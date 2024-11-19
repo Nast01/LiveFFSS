@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "512010707139",
+    "project_id": "ffive-1de0d",
+    "storage_bucket": "ffive-1de0d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:512010707139:android:f06310aa67063a39adc276",
+        "android_client_info": {
+          "package_name": "com.example.live_ffss"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBw3UTt0MK1g_xbWZ_P4iruMjVy6_RZwPA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
