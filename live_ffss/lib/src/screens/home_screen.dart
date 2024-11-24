@@ -1,274 +1,178 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:live_ffss/src/controllers/authentication_controller.dart';
-import 'package:getwidget/getwidget.dart';
+import 'package:live_ffss/src/controllers/competition_controller.dart';
+import 'package:live_ffss/src/model/competition.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatelessWidget {
-  final AuthenticationController _controller =
-      Get.put(AuthenticationController());
-
   HomeScreen({super.key});
+  final CompetitionController controller = Get.find<CompetitionController>();
+
+  Widget buildListItem(BuildContext context, Competition competition) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.all(8),
+      height: 80,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F9FE),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          // First part: Rounded container with texts
+          Container(
+            width: 80,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              color: Color(0xFFEAF2FF),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
+              ),
+            ),
+            padding: const EdgeInsets.all(4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  DateFormat.MMM().format(competition.beginDate),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  overflow: TextOverflow.ellipsis, // Ensure no overflow issues
+                ),
+                Text(
+                  competition.beginDate.day.toString(),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  overflow: TextOverflow.ellipsis, // Ensure no overflow issues
+                ),
+              ],
+            ),
+          ),
+
+          // Second part: Two wrapped texts
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    competition.name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    softWrap: true,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    competition.location ?? "",
+                    style: const TextStyle(
+                      fontSize: 9,
+                      color: Colors.black87,
+                    ),
+                    softWrap: true,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Third part: Circle with green background
+          Container(
+            width: 10,
+            height: 10,
+            decoration: const BoxDecoration(
+              color: Colors.green,
+              shape: BoxShape.circle,
+            ),
+            margin: const EdgeInsets.all(4),
+          ),
+
+          // Fourth part: Right arrow icon
+          Container(
+            width: 50,
+            child: const Icon(
+              Icons.chevron_right,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    List list = [
-      "Flutter",
-      "React",
-      "Ionic",
-      "Xamarin",
-    ];
-
     return Scaffold(
       body: SafeArea(
-        top: true,
         child: Column(
-          mainAxisSize: MainAxisSize.max,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Image.asset(
-                  'assets/images/logo_ffss.png',
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                ),
-                Text(
-                  "LIVE FFSS !",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
+            // First Row: Logo and Title
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo Image
+                  Image.asset(
+                    'assets/images/logo_ffss.png', // Replace with your logo URL or asset
+                    width: 50,
+                    height: 50,
                   ),
-                )
-              ],
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Expanded(
-                  child: GFSearchBar(
-                    searchList: list,
-                    searchQueryBuilder: (query, list) {
-                      return list
-                          .where((item) =>
-                              item.toLowerCase().contains(query.toLowerCase()))
-                          .toList();
-                    },
-                    overlaySearchListItemBuilder: (item) {
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(
-                          item,
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 50.0,
-                    padding: const EdgeInsets.all(8),
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        GFButton(
-                          onPressed: () {},
-                          text: "TOUS",
-                          type: GFButtonType.outline2x,
-                          textStyle: GoogleFonts.poppins(
-                              color: const Color(0xFF006FFD),
-                              fontWeight: FontWeight.bold),
-                          shape: GFButtonShape.pills,
-                          size: GFSize.SMALL,
-                        ),
-                        const SizedBox(
-                          width: 8,
-                        ),
-                        GFButton(
-                          onPressed: () {},
-                          text: "EAU PLATE",
-                          type: GFButtonType.outline2x,
-                          textStyle: GoogleFonts.poppins(
-                              color: const Color(0xFF006FFD),
-                              fontWeight: FontWeight.bold),
-                          shape: GFButtonShape.pills,
-                          size: GFSize.SMALL,
-                        ),
-                        const SizedBox(
-                          width: 8,
-                        ),
-                        GFButton(
-                          onPressed: () {},
-                          text: "COTIER",
-                          type: GFButtonType.outline2x,
-                          textStyle: GoogleFonts.poppins(
-                              color: const Color(0xFF006FFD),
-                              fontWeight: FontWeight.bold),
-                          shape: GFButtonShape.pills,
-                          size: GFSize.SMALL,
-                        ),
-                      ],
+                  const SizedBox(width: 16), // Space between logo and title
+                  // Title
+                  const Text(
+                    "LIVE FFSS!",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                // TextButton(
-                //   onPressed: () {},
-                //   child: Container(
-                //     width: 90,
-                //     padding: const EdgeInsets.all(8),
-                //     decoration: BoxDecoration(
-                //       color: const Color(0xFFEAF2FF), // Couleur de fond
-                //       borderRadius:
-                //           BorderRadius.circular(8), // Rayon des coins arrondis
-                //     ),
-                //     child: Text(
-                //       "TOUS",
-                //       textAlign: TextAlign.center,
-                //       style: GoogleFonts.poppins(
-                //           color: const Color(0xFF006FFD),
-                //           fontWeight: FontWeight.bold),
-                //     ),
-                //   ),
-                // ),
-                // TextButton(
-                //   onPressed: () {},
-                //   child: Container(
-                //     width: 90,
-                //     padding: const EdgeInsets.all(8),
-                //     decoration: BoxDecoration(
-                //       color: const Color(0xFFEAF2FF), // Couleur de fond
-                //       borderRadius:
-                //           BorderRadius.circular(8), // Rayon des coins arrondis
-                //     ),
-                //     child: Text(
-                //       "EAU PLATE",
-                //       textAlign: TextAlign.center,
-                //       style: GoogleFonts.poppins(
-                //           color: const Color(0xFF006FFD),
-                //           fontWeight: FontWeight.bold),
-                //     ),
-                //   ),
-                // ),
-                // TextButton(
-                //   onPressed: () {},
-                //   child: Container(
-                //     width: 80,
-                //     padding: const EdgeInsets.all(8),
-                //     decoration: BoxDecoration(
-                //       color: const Color(0xFFEAF2FF), // Couleur de fond
-                //       borderRadius:
-                //           BorderRadius.circular(8), // Rayon des coins arrondis
-                //     ),
-                //     child: Text(
-                //       "COTIER",
-                //       textAlign: TextAlign.center,
-                //       style: GoogleFonts.poppins(
-                //         color: const Color(0xFF006FFD),
-                //         fontWeight: FontWeight.bold,
-                //       ),
-                //     ),
-                //   ),
-                // ),
-              ],
+                ],
+              ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'Ce week end',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'voir plus...',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF006FFD),
-                              ),
-                            ),
-                          ),
-                        ],
+            const SizedBox(height: 16),
+            // Second Row: List of Competitions
+            Expanded(
+              child: Obx(() {
+                if (controller.competitionList.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Aucune compétition...',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
                       ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GFCard(
-                              boxFit: BoxFit.cover,
-                              image: Image.asset('your asset image'),
-                              title: const GFListTile(
-                                avatar: GFAvatar(
-                                  backgroundImage:
-                                      AssetImage('your asset image'),
-                                ),
-                                title: Text('Card Title'),
-                                subTitle: Text('Card Sub Title'),
-                              ),
-                              content: const Text(
-                                  "Some quick example text to build on the card"),
-                              buttonBar: GFButtonBar(
-                                children: <Widget>[
-                                  GFButton(
-                                    onPressed: () {},
-                                    text: 'Buy',
-                                  ),
-                                  GFButton(
-                                    onPressed: () {},
-                                    text: 'Cancel',
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  itemCount: controller.competitionList.length,
+                  itemBuilder: (context, index) {
+                    final competition = controller.competitionList[index];
+                    return buildListItem(context, competition);
+                  },
+                );
+              }),
             ),
           ],
         ),
-        // child: Obx(() {
-
-        //   // if (_controller.isAuthenticated.value) {
-
-        //     // _controller.getCompetitionList();
-        //   //   return const Text('Authenticated!');
-        //   // }else {
-        //   //   return Column(
-        //   //     children: [
-        //   //       ElevatedButton(
-        //   //         onPressed: () => _controller.getCompetitionList(),
-        //   //         child: const Text('Authenticate'),
-        //   //       ),
-        //   //       Text(_controller.errorMessage.value),
-        //   //     ],
-        //   //   );
-        //   // }
-        // }),
       ),
     );
   }
