@@ -1,40 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:live_ffss/src/controllers/competition_controller.dart';
-import 'package:live_ffss/src/screens/home_screen.dart';
-
-import 'src/settings/settings_controller.dart';
-import 'src/settings/settings_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:live_ffss/app/core/services/language_service.dart';
+import 'package:live_ffss/app/core/themes/app_theme.dart';
+import 'package:live_ffss/app/core/translations/app_translations.dart';
+import 'package:live_ffss/app/data/services/api_service.dart';
+import 'package:live_ffss/app/data/services/user_service.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 
 void main() async {
-  final settingsController = SettingsController(SettingsService());
+  WidgetsFlutterBinding.ensureInitialized();
 
-  await settingsController.loadSettings();
+  // Initialize secure storage
+  await Get.putAsync(() async => const FlutterSecureStorage());
 
-  Get.put(CompetitionController());
+  // Initialize user service (singleton)
+  await Get.putAsync(() async => await UserService().init());
 
-  runApp(const FFSSApp());
-  // runApp(GetMaterialApp(
-  //   debugShowCheckedModeBanner: false,
-  //   home: HomeScreen(),
-  // ));
-  //runApp(MyApp(settingsController: settingsController));
-}
+  // Initialize language service (singleton)
+  await Get.putAsync(() async => await LanguageService().init());
+  // Get the initial locale from language service
+  final languageService = Get.find<LanguageService>();
+  final initialLocale = languageService
+      .getLocaleFromString(languageService.currentLanguage.value);
 
-class FFSSApp extends StatelessWidget {
-  const FFSSApp({super.key});
+  // Initialize API service (singleton)
+  await Get.putAsync(() async => ApiService());
 
-  @override
-  Widget build(BuildContext context) {
-    return GetMaterialApp(
+  runApp(
+    GetMaterialApp(
+      title: 'app_title'.tr,
+      initialRoute: AppPages.initial,
+      getPages: AppPages.routes,
+      theme: appThemeData,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        textTheme: GoogleFonts.poppinsTextTheme(
-          Theme.of(context).textTheme, // Ensure it adapts to the current theme
-        ),
-      ),
-      home: HomeScreen(),
-    );
-  }
+      // Add translations
+      translations: AppTranslations(),
+      locale: initialLocale,
+      fallbackLocale: const Locale('fr', 'FR'),
+    ),
+  );
 }
