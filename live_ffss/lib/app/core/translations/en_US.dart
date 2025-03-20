@@ -1,3 +1,5 @@
+// ignore: file_names
+
 final Map<String, String> enUS = {
   // App general
   'app_title': 'Live FFSS',
@@ -58,6 +60,10 @@ final Map<String, String> enUS = {
   'all': 'ALL',
   'swimming': 'SWIMMING',
   'beach': 'BEACH',
+  'no_location': 'Unknown location',
+  'see': 'See',
+  'other_competitions': 'Other competitions',
+  'no_other_competitions': 'No other competitions',
 
   // Language
   'language': 'Language',

@@ -5,15 +5,15 @@ import 'package:intl/intl.dart';
 class CompetitionModel {
   final int id;
   final String name;
-  final DateTime beginDate;
-  final DateTime endDate;
+  final DateTime? beginDate;
+  final DateTime? endDate;
   final DateTime? beginEntryLimitDate;
   final DateTime? endEntryLimitDate;
   final String? location;
   final int status;
   final String statusLabel;
   final String? description;
-  final String speciality;
+  final int speciality;
   final String specialityLabel;
   final String typeWater;
   final String typePool;
@@ -24,7 +24,7 @@ class CompetitionModel {
   final bool hasBegun;
   final bool hasResult;
   final bool hasPassed;
-  final String level;
+  final int level;
   final String levelLabel;
 
   CompetitionModel({
@@ -59,19 +59,21 @@ class CompetitionModel {
       name: json['Nom'],
       beginDate: DateTime.parse(json['Debut']),
       endDate: DateTime.parse(json['Fin']),
-      beginEntryLimitDate: DateTime.parse(json['DebutEngagement']),
+      beginEntryLimitDate: json['DebutEngagement'] != null
+          ? DateTime.parse(json['DebutEngagement'])
+          : null,
       endEntryLimitDate: DateTime.parse(json['FinEngagement']),
       location: json['Lieu'],
       status: json['Statut'],
-      statusLabel: json['statutlabel'],
+      statusLabel: json['statutLabel'],
       description: json['Description'],
       speciality: json['Specialite'],
-      specialityLabel: json["specialiteLabel"],
+      specialityLabel: json['specialiteLabel'],
       typeWater: json['water'],
       typePool: json['bassin'],
       typeChrono: json['chronoLabel'],
       isEligibleToNationalRecord: json['isEligibleToNationalRecord'],
-      numberOfLanes: json['numberOfLanes'],
+      numberOfLanes: json["numberOfLanes"] ?? 0,
       organizer: json["Organisme"]["NomOrga"],
       hasBegun: json['hasBegun'],
       hasResult: json['hasResultat'],
@@ -82,22 +84,24 @@ class CompetitionModel {
   }
 
   // Format date for display
-  String get formattedBeginDate => DateFormat('dd/MM/yyyy').format(beginDate);
+  String get formattedBeginDate => DateFormat('dd/MM/yyyy').format(beginDate!);
   String get dayDateBeginDate {
-    String day = DateFormat('EEE').format(beginDate).toUpperCase();
-    String date = DateFormat('dd').format(beginDate);
+    String day = DateFormat('EEE').format(beginDate!).toUpperCase();
+    String date = DateFormat('dd').format(beginDate!);
     return '$day $date';
   }
 
   String get formattedDayBeginDate {
-    return DateFormat('dd').format(beginDate);
+    return DateFormat('dd').format(beginDate!);
   }
 
-  String get formattedEndDate => DateFormat('dd/MM/yyyy').format(endDate);
+  String get formattedEndDate => DateFormat('dd/MM/yyyy').format(endDate!);
   String get formattedBeginEntryLimitDate =>
       DateFormat('dd/MM/yyyy').format(beginEntryLimitDate!);
   String get formattedEndEntryLimitDate =>
       DateFormat('dd/MM/yyyy').format(endEntryLimitDate!);
+  String get formattedBeginDateMonth =>
+      DateFormat('MMM').format(beginDate!).toUpperCase();
 
   // Get entry status
   String get entryStatus {
@@ -124,9 +128,9 @@ class CompetitionModel {
 
   String get competitionStatus {
     final now = DateTime.now();
-    if (now.isAfter(beginDate) && now.isBefore(endDate)) {
+    if (now.isAfter(beginDate!) && now.isBefore(endDate!)) {
       return 'on_going'.tr;
-    } else if (now.isAfter(endDate)) {
+    } else if (now.isAfter(endDate!)) {
       return 'done'.tr;
     } else {
       return 'coming'.tr;
@@ -135,9 +139,9 @@ class CompetitionModel {
 
   Color get competitionStatusColor {
     final now = DateTime.now();
-    if (now.isAfter(beginDate) && now.isBefore(endDate)) {
+    if (now.isAfter(beginDate!) && now.isBefore(endDate!)) {
       return Colors.amber;
-    } else if (now.isAfter(endDate)) {
+    } else if (now.isAfter(endDate!)) {
       return Colors.grey;
     } else {
       return Colors.blue;

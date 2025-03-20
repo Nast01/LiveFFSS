@@ -2,7 +2,6 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/data/models/competition_model.dart';
-import 'package:live_ffss/app/routes/app_pages.dart';
 import '../controllers/home_controller.dart';
 import '../../../widgets/user_avatar.dart';
 import '../../../widgets/language_selector.dart';
@@ -96,7 +95,7 @@ class HomeView extends GetView<HomeController> {
             const SizedBox(height: 8),
             _buildCarousel(),
             const SizedBox(height: 24),
-            // _buildCompetitionsList(),
+            _buildCompetitionsList(),
           ],
         ),
       ),
@@ -177,12 +176,10 @@ class HomeView extends GetView<HomeController> {
       final competitions = controller.carouselCompetitions;
       return CarouselSlider(
         options: CarouselOptions(
-          height: 200,
+          height: 280,
           viewportFraction: 0.85,
           enableInfiniteScroll: competitions.length > 1,
           enlargeCenterPage: true,
-          autoPlay: competitions.length > 1,
-          autoPlayInterval: const Duration(seconds: 5),
         ),
         items: competitions.map((competition) {
           return Builder(
@@ -236,7 +233,7 @@ class HomeView extends GetView<HomeController> {
                   ),
                   child: Text(
                     competition.formattedBeginDate,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -249,14 +246,15 @@ class HomeView extends GetView<HomeController> {
                   bottom: 10,
                   right: 10,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: competition.competitionStatusColor,
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: Text(
                       competition.competitionStatus,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -269,22 +267,25 @@ class HomeView extends GetView<HomeController> {
           // Text section
           Expanded(
             child: Padding(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    competition.name,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                  Tooltip(
+                    message: competition.name,
+                    child: Text(
+                      competition.name,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    competition.location,
+                    competition.location ?? 'Unknown location',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[600],
@@ -298,20 +299,20 @@ class HomeView extends GetView<HomeController> {
           ),
           // Button
           Padding(
-            padding: EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
             child: OutlinedButton(
               onPressed: () =>
                   controller.navigateToCompetitionDetails(competition),
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Color(0xFF0275FF)),
+                side: const BorderSide(color: Color(0xFF0275FF)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                minimumSize: Size(100, 36),
+                minimumSize: const Size(100, 36),
               ),
               child: Text(
-                'Voir',
-                style: TextStyle(
+                'see'.tr,
+                style: const TextStyle(
                   color: Color(0xFF0275FF),
                   fontSize: 14,
                 ),
@@ -319,6 +320,194 @@ class HomeView extends GetView<HomeController> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      height: 100,
+      color: const Color(0xFFE1E8F0),
+      child: const Center(
+        child: Icon(
+          Icons.image,
+          color: Colors.white,
+          size: 40,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompetitionsList() {
+    return Obx(() {
+      final displayedCompetitions = controller.displayedListCompetitions;
+      final allListCompetitions = controller.listCompetitions;
+
+      if (allListCompetitions.isEmpty) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: Center(
+            child: Text('no_other_competitions'.tr),
+          ),
+        );
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'other_competitions'.tr,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...displayedCompetitions
+              .map((competition) => _buildCompetitionListItem(competition)),
+          if (controller.hasMoreToLoad)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: OutlinedButton(
+                  onPressed: controller.loadMore,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF0275FF)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    minimumSize: const Size(140, 40),
+                  ),
+                  child: Text(
+                    'see_more'.tr,
+                    style: const TextStyle(
+                      color: Color(0xFF0275FF),
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildCompetitionListItem(CompetitionModel competition) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () => controller.navigateToCompetitionDetails(competition),
+        borderRadius: BorderRadius.circular(5),
+        child: Row(
+          children: [
+            // Date container
+            Container(
+              width: 60,
+              height: 60,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(5),
+                  bottomLeft: Radius.circular(5),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    competition.formattedBeginDateMonth,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    competition.formattedDayBeginDate,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Competition details
+            Expanded(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      competition.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      competition.location ?? 'no_location'.tr,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Status and chevron
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: competition.entryStatusColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      competition.entryStatus,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.chevron_right,
+                    color: Colors.grey[400],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

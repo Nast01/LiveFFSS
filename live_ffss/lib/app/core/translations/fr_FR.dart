@@ -1,3 +1,4 @@
+// ignore: file_names
 final Map<String, String> frFR = {
   // App general
   'app_title': 'Live FFSS',
@@ -58,6 +59,10 @@ final Map<String, String> frFR = {
   'all': 'TOUS',
   'swimming': 'EAU PLATE',
   'beach': 'COTIER',
+  'no_location': 'Pas de lieu',
+  'see': 'Voir',
+  'other_competitions': 'Autres compétitions',
+  'no_other_competitions': 'Pas d\'autres compétitions',
 
   // Language
   'language': 'Langue',

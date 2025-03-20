@@ -4,3 +4,7 @@ const String apiVersion = "api/v1.0/";
 const String requestToken = "requestToken";
 const String me = "me";
 const String competitionList = "competition/evenement";
+const String competitionRanking = "organisme/classement";
+const String raceList = "competition/epreuve";
+const String entryList = "competition/engagement";
+const String heatList = "/competition/serie";

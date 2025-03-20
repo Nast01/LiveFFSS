@@ -7,5 +7,6 @@ abstract class Routes {
   static const adminDashboard = '/admin-dashboard';
   static const profile = '/profile';
   static const settings = '/settings';
+  static const competitionDetail = '/competition-detail';
   // Add other routes here
 }

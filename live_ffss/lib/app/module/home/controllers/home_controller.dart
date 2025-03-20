@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/data/models/competition_model.dart';
 import 'package:live_ffss/app/data/services/api_service.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 import '../../../data/services/user_service.dart';
 
 class HomeController extends GetxController {
@@ -35,7 +36,8 @@ class HomeController extends GetxController {
 
       // Sort competitions by begin date and then by name
       loadedCompetitions.sort((a, b) {
-        final dateComparison = a.beginDate.compareTo(b.beginDate);
+        final dateComparison =
+            (a.beginDate ?? DateTime(0)).compareTo(b.beginDate ?? DateTime(0));
         if (dateComparison != 0) {
           return dateComparison;
         }
@@ -87,7 +89,7 @@ class HomeController extends GetxController {
 
   void navigateToCompetitionDetails(CompetitionModel competition) {
     // In a real app, you would navigate to the competition details page
-    Get.toNamed('/competition/${competition.id}', arguments: competition);
+    Get.toNamed(Routes.competitionDetail, arguments: competition);
   }
 
   RxString get appTitle => 'app_title'.tr.obs;
