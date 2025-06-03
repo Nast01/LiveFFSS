@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/data/models/competition_model.dart';

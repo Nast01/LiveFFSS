@@ -49,6 +49,7 @@ final Map<String, String> frFR = {
   'open': 'OUVERT',
   'closed': 'FERME',
   'soon': 'BIENTOT',
+  'unknown': 'INCONNU',
   'on_going': 'EN COURS',
   'done': 'TERMINE',
   'coming': 'A VENIR',

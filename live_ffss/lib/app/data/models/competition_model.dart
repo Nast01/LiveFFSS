@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:live_ffss/app/data/models/club_model.dart';
 
 class CompetitionModel {
   final int id;
@@ -26,6 +27,8 @@ class CompetitionModel {
   final bool hasPassed;
   final int level;
   final String levelLabel;
+  final String? refereePrincipal;
+  final ClubModel organizerClub;
 
   CompetitionModel({
     required this.id,
@@ -51,6 +54,8 @@ class CompetitionModel {
     required this.hasPassed,
     required this.level,
     required this.levelLabel,
+    required this.organizerClub,
+    this.refereePrincipal,
   });
 
   factory CompetitionModel.fromJson(Map<String, dynamic> json) {
@@ -80,8 +85,15 @@ class CompetitionModel {
       hasPassed: json['hasPassed'],
       level: json['Niveau'],
       levelLabel: json["niveauLabel"],
+      organizerClub: ClubModel.fromJson(
+        json["Organisme"],
+      ),
+      refereePrincipal: json['JugePrincipal'],
     );
   }
+
+  bool get hasRefereePrincipal =>
+      refereePrincipal != null && refereePrincipal!.isNotEmpty;
 
   // Format date for display
   String get formattedBeginDate => DateFormat('dd/MM/yyyy').format(beginDate!);
@@ -127,6 +139,10 @@ class CompetitionModel {
   }
 
   String get competitionStatus {
+    if (beginDate == null || endDate == null) {
+      return 'unknown'.tr;
+    }
+
     final now = DateTime.now();
     if (now.isAfter(beginDate!) && now.isBefore(endDate!)) {
       return 'on_going'.tr;
@@ -138,6 +154,10 @@ class CompetitionModel {
   }
 
   Color get competitionStatusColor {
+    if (beginDate == null || endDate == null) {
+      return Colors.grey;
+    }
+
     final now = DateTime.now();
     if (now.isAfter(beginDate!) && now.isBefore(endDate!)) {
       return Colors.amber;

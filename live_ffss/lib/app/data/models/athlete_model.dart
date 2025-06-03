@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 class AthleteModel {
   late int id;

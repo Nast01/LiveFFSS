@@ -25,7 +25,8 @@ class ApiService extends GetxService {
 
   // Get competitions with filters and pagination
   Future<List<CompetitionModel>> getCompetitions({
-    String season = '2024-2025',
+    String season = '2023-2024',
+    String debut = '2024-05-20',
     CompetitionType type = CompetitionType.mixte,
     CompetitionVisibility visibility = CompetitionVisibility.incoming,
     int pageSize = 10,
@@ -41,7 +42,7 @@ class ApiService extends GetxService {
       // }
 
       final url = Uri.parse(
-          "$qualBaseUrl$apiVersion$competitionList?saison=2024-2025&type=${type.index}&visibility=${visibility.name}&length=$pageSize&start=${pageSize * (page - 1)}&order=DebutEngagement&orderDirection=ASC");
+          "$qualBaseUrl$apiVersion$competitionList?saison=$season&debut=$debut&type=${type.index}&visibility=${visibility.name}&length=$pageSize&start=${pageSize * (page - 1)}&order=DebutEngagement&orderDirection=ASC");
       var headers = {'Content-Type': 'application/json; charset=UTF-8'};
       headers.addIf(token != null, 'Authorization', 'Bearer $token');
 

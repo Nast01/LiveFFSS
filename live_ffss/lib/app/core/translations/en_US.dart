@@ -50,6 +50,7 @@ final Map<String, String> enUS = {
   'open': 'OPEN',
   'closed': 'CLOSED',
   'soon': 'SOON',
+  'unknown': 'UNKNOWN',
   'on_going': 'ON GOING',
   'done': 'DONE',
   'coming': 'COMING',

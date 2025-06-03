@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:live_ffss/app/core/enum/enum.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/data/models/competition_model.dart';
 import 'package:live_ffss/app/data/services/api_service.dart';
@@ -32,7 +33,9 @@ class HomeController extends GetxController {
       //   final List<dynamic> data = json.decode(response.body);
       //   final loadedCompetitions = data.map((json) => Competition.fromJson(json)).toList();
 
-      final loadedCompetitions = await _apiService.getAllCompetitions();
+      final loadedCompetitions = await _apiService.getAllCompetitions(
+          type: CompetitionType.mixte,
+          visibility: CompetitionVisibility.passed);
 
       // Sort competitions by begin date and then by name
       loadedCompetitions.sort((a, b) {
