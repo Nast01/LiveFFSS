@@ -30,6 +30,8 @@ final Map<String, String> enUS = {
   'network_error': 'Network error',
 
   //Competition
+  'competition': 'Compétition',
+  'no_competition_selected': 'Aucune compétition sélectionnée',
   'token_not_found': 'Authentication token not found',
   'failed_to_load': 'Failed to load',
   'competitions': 'Competitions',
@@ -65,6 +67,20 @@ final Map<String, String> enUS = {
   'see': 'See',
   'other_competitions': 'Other competitions',
   'no_other_competitions': 'No other competitions',
+
+  'home': 'Home',
+  'races': 'Races',
+  'program': 'Program',
+  'rankings': 'Rankings',
+  'clubs': 'Clubs',
+  'clubs_ranking': 'Clubs Ranking',
+  'rank': 'Position',
+  'points': 'Points',
+  'club': 'Club',
+  'complete_ranking': 'Complete Ranking',
+  'men': 'Men',
+  'women': 'Women',
+  'mixed': 'Mixed',
 
   // Language
   'language': 'Language',

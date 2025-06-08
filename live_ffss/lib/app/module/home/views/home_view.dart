@@ -219,7 +219,7 @@ class HomeView extends GetView<HomeController> {
               ClipRRect(
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(10)),
-                child: _buildImagePlaceholder(),
+                child: _buildImagePlaceholder(competition),
               ),
               Positioned(
                 top: 10,
@@ -324,18 +324,65 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildImagePlaceholder() {
-    return Container(
-      height: 100,
-      color: const Color(0xFFE1E8F0),
-      child: const Center(
-        child: Icon(
-          Icons.image,
-          color: Colors.white,
-          size: 40,
+  Widget _buildImagePlaceholder(CompetitionModel competition) {
+    if (competition.organizerClub.hasLogo) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8.0),
+        child: Image.network(
+          competition.organizerClub.logoUrl!,
+          fit: BoxFit.fill,
+          errorBuilder: (context, error, stackTrace) {
+            // Fallback to icon if image fails to load
+            return Container(
+              height: 100,
+              color: const Color(0xFFE1E8F0),
+              child: const Center(
+                child: Icon(
+                  Icons.image,
+                  color: Colors.white,
+                  size: 40,
+                ),
+              ),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              height: 100,
+              color: const Color(0xFFE1E8F0),
+              child: const Center(
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          },
         ),
-      ),
-    );
+      );
+    } else {
+      // Display default icon when logoUrl is null or empty
+      return Container(
+        height: 100,
+        color: const Color(0xFFE1E8F0),
+        child: const Center(
+          child: Icon(
+            Icons.image,
+            color: Colors.white,
+            size: 40,
+          ),
+        ),
+      );
+    }
+
+    // return Container(
+    //   height: 100,
+    //   color: const Color(0xFFE1E8F0),
+    //   child: const Center(
+    //     child: Icon(
+    //       Icons.image,
+    //       color: Colors.white,
+    //       size: 40,
+    //     ),
+    //   ),
+    // );
   }
 
   Widget _buildCompetitionsList() {

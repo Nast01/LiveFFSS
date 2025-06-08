@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:live_ffss/app/core/const/api_const.dart';
 import 'package:live_ffss/app/core/enum/enum.dart';
+import 'package:live_ffss/app/core/utils/url_builder.dart';
 import 'package:live_ffss/app/data/models/entry_model.dart';
 import 'package:live_ffss/app/data/models/heat_model.dart';
 import 'package:live_ffss/app/data/models/race_model.dart';
@@ -128,15 +129,25 @@ class ApiService extends GetxService {
     }
   }
 
-  Future<List<RaceModel>> getRaces(String competitionId) async {
-    // Get token
-    final token = await getToken();
-
-    final url = Uri.parse(
-        "$qualBaseUrl$apiVersion$raceList?evenement=$competitionId&token=$token");
-    var headers = {'Content-Type': 'application/json; charset=UTF-8'};
-
+  Future<List<RaceModel>> getRaces(int competitionId) async {
     try {
+      isLoading.value = true;
+      // Get token
+      final token = await getToken();
+
+      final url = UrlBuilder.buildUrl<Object>(
+        qualBaseUrl,
+        "$apiVersion$raceList",
+        {
+          'evenement': competitionId, // String
+          'token': token,
+        },
+      );
+
+      // final url = Uri.parse(
+      //     "$qualBaseUrl$apiVersion$raceList?evenement=$competitionId&token=$token");
+      var headers = {'Content-Type': 'application/json; charset=UTF-8'};
+
       final response = await http.get(
         url,
         headers: headers,

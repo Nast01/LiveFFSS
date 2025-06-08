@@ -14,7 +14,7 @@ class HomeController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
   final RxInt displayedItems = 3.obs;
-  final RxString selectedFilter = 'TOUS'.obs;
+  final RxString selectedFilter = 'all'.tr.obs;
 
   @override
   void onInit() {

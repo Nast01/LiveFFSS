@@ -29,6 +29,8 @@ final Map<String, String> frFR = {
   'network_error': 'Erreur réseau',
 
   //Competition
+  'competition': 'Compétition',
+  'no_competition_selected': 'Aucune compétition sélectionnée',
   'token_not_found': 'Token d\'authentification non trouvé',
   'failed_to_load_competition': 'Problème de chargement',
   'competitions': 'Competitions',
@@ -64,6 +66,20 @@ final Map<String, String> frFR = {
   'see': 'Voir',
   'other_competitions': 'Autres compétitions',
   'no_other_competitions': 'Pas d\'autres compétitions',
+
+  'home': 'Accueil',
+  'races': 'Epreuves',
+  'program': 'Programme',
+  'rankings': 'Classements',
+  'clubs': 'Clubs',
+  'clubs_ranking': 'Classement Clubs',
+  'rank': 'Position',
+  'points': 'Points',
+  'club': 'Club',
+  'complete_ranking': 'Classement complet',
+  'men': 'Messieurs',
+  'women': 'Dames',
+  'mixed': 'Mixte',
 
   // Language
   'language': 'Langue',

@@ -3,9 +3,13 @@ import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LanguageService extends GetxService {
-  final FlutterSecureStorage _storage = Get.find<FlutterSecureStorage>();
+  static LanguageService get to => Get.find();
 
+  final FlutterSecureStorage _storage = Get.find<FlutterSecureStorage>();
   final RxString currentLanguage = 'fr_FR'.obs;
+
+  bool get isFrench => currentLanguage.value == 'fr_FR';
+  bool get isEnglish => currentLanguage.value == 'en_US';
 
   Future<LanguageService> init() async {
     // Load saved language preference
