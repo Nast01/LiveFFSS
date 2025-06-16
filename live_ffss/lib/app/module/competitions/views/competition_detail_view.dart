@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_controller.dart';
+import 'package:live_ffss/app/module/competitions/views/competition_detail_clubs_view.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_home_view.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_races_view.dart';
 
@@ -96,16 +97,7 @@ class CompetitionDetailView extends GetView<CompetitionDetailController> {
                           style: const TextStyle(
                               fontSize: 16, color: Colors.black),
                         ),
-                        Text(
-                          'clubs'.tr,
-                          style: const TextStyle(
-                              fontSize: 16, color: Colors.black),
-                        ),
-                        // AccueilTab(competition: competition),
-                        // EpreuvesTab(competition: competition),
-                        // ProgrammeTab(competition: competition),
-                        // ClassementsTab(competition: competition),
-                        // ClassementClubsTab(competition: competition),
+                        const CompetitionDetailClubsView(),
                       ],
                     )),
               ),
@@ -138,7 +130,7 @@ class CompetitionDetailView extends GetView<CompetitionDetailController> {
                     label: 'home'.tr,
                   ),
                   BottomNavigationBarItem(
-                    icon: const Icon(Icons.event),
+                    icon: const Icon(Icons.list),
                     label: 'races'.tr,
                   ),
                   BottomNavigationBarItem(

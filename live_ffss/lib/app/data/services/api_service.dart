@@ -6,9 +6,12 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:live_ffss/app/core/const/api_const.dart';
 import 'package:live_ffss/app/core/enum/enum.dart';
 import 'package:live_ffss/app/core/utils/url_builder.dart';
+import 'package:live_ffss/app/data/models/athlete_model.dart';
+import 'package:live_ffss/app/data/models/club_model.dart';
 import 'package:live_ffss/app/data/models/entry_model.dart';
 import 'package:live_ffss/app/data/models/heat_model.dart';
 import 'package:live_ffss/app/data/models/race_model.dart';
+import 'package:live_ffss/app/data/models/referee_model.dart';
 import '../models/competition_model.dart';
 
 class ApiService extends GetxService {
@@ -164,6 +167,100 @@ class ApiService extends GetxService {
       }
     } catch (e) {
       throw Exception('Error fetching race: $e');
+    }
+  }
+
+  Future<List<ClubModel>> getClubs(int competitionId) async {
+    try {
+      isLoading.value = true;
+      // Get token
+      final token = await getToken();
+
+      final url = UrlBuilder.buildUrl<Object>(
+        qualBaseUrl,
+        "$apiVersion$baseCompetition$competitionId$clubList",
+        {
+          'token': token,
+        },
+      );
+
+      var headers = {'Content-Type': 'application/json; charset=UTF-8'};
+
+      final response = await http.get(
+        url,
+        headers: headers,
+      );
+
+      Map<String, dynamic> jsonData = jsonDecode(response.body);
+      if (jsonData['success'] == true) {
+        // Extract the list from the correct key
+        List<dynamic> clubList = jsonData['data'];
+
+        List<ClubModel> clubs = [];
+
+        for (var json in clubList) {
+          if (json is Map<String, dynamic>) {
+            // Check if the JSON has the expected structure
+            var clubDetail = await getClubDetail(json['Id']);
+            clubDetail.athletes = (json['athletes'] as List<dynamic>?)
+                    ?.whereType<Map<String, dynamic>>()
+                    .map((athlete) =>
+                        AthleteModel.fromJsonWithClub(athlete, clubDetail))
+                    .toList() ??
+                [];
+
+            clubDetail.referees = (json['officiels'] as List<dynamic>?)
+                    ?.whereType<Map<String, dynamic>>()
+                    .map((referee) =>
+                        RefereeModel.fromJsonWithClub(referee, clubDetail))
+                    .toList() ??
+                [];
+
+            clubs.add(clubDetail);
+          }
+        }
+
+        return clubs;
+      } else {
+        throw Exception('Failed to load club: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching club: $e');
+    }
+  }
+
+  Future<ClubModel> getClubDetail(var clubId) async {
+    try {
+      isLoading.value = true;
+      // Get token
+      final token = await getToken();
+
+      final url = UrlBuilder.buildUrl<Object>(
+        qualBaseUrl,
+        "$apiVersion$clubDetail$clubId",
+        {
+          'token': token,
+        },
+      );
+
+      var headers = {'Content-Type': 'application/json; charset=UTF-8'};
+
+      final response = await http.get(
+        url,
+        headers: headers,
+      );
+
+      Map<String, dynamic> jsonData = jsonDecode(response.body);
+      if (jsonData['success'] == true) {
+        // Extract the list from the correct key
+        Map<String, dynamic> club = jsonData['data'];
+
+        return ClubModel.fromJson(club);
+      } else {
+        throw Exception('Failed to load club detail: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching club detail: $e');
     }
   }
 

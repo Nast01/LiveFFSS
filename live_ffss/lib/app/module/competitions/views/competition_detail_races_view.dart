@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:live_ffss/app/module/competitions/controllers/competition_detail_controller.dart';
+import 'package:live_ffss/app/module/competitions/controllers/competition_detail_races_controller.dart';
 
-class CompetitionDetailRacesView extends GetView<CompetitionDetailController> {
+class CompetitionDetailRacesView
+    extends GetView<CompetitionDetailRacesController> {
   const CompetitionDetailRacesView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       return SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -40,12 +41,12 @@ class CompetitionDetailRacesView extends GetView<CompetitionDetailController> {
                   const SizedBox(height: 16),
                   // Races list
                   if (controller.filteredRaces.isEmpty)
-                    const Center(
+                    Center(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
+                        padding: const EdgeInsets.symmetric(vertical: 20),
                         child: Text(
-                          'No races',
-                          style: TextStyle(
+                          'no_races_found'.tr,
+                          style: const TextStyle(
                             fontSize: 16,
                             color: Colors.grey,
                           ),
@@ -68,7 +69,7 @@ class CompetitionDetailRacesView extends GetView<CompetitionDetailController> {
   }
 
   Widget _buildFilterTabs() {
-    final controller = Get.find<CompetitionDetailController>();
+    final controller = Get.find<CompetitionDetailRacesController>();
 
     return Obx(() {
       return Container(
@@ -90,7 +91,7 @@ class CompetitionDetailRacesView extends GetView<CompetitionDetailController> {
   }
 
   Widget _buildFilterTab(String title, int index, int selectedIndex) {
-    final controller = Get.find<CompetitionDetailController>();
+    final controller = Get.find<CompetitionDetailRacesController>();
     final isSelected = selectedIndex == index;
 
     return GestureDetector(
@@ -122,11 +123,11 @@ class CompetitionDetailRacesView extends GetView<CompetitionDetailController> {
     return GestureDetector(
       onTap: () {
         // Navigate to epreuve details or switch to epreuves tab
-        Get.find<CompetitionDetailController>().changeTab(1);
+        // Get.find<CompetitionDetailRacesController>().changeTab(1);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 12),
         child: Row(
           children: [
             // Purple circle avatar

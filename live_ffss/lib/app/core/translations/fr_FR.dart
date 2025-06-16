@@ -81,6 +81,16 @@ final Map<String, String> frFR = {
   'women': 'Dames',
   'mixed': 'Mixte',
 
+  'no_clubs_found': 'Aucun club trouvé',
+  'no_races_found': 'Aucune épreuve trouvée',
+  'athlete_upper': 'Athlète',
+  'referee_upper': 'Arbitre',
+  'athletes_upper': 'Athlètes',
+  'referees_upper': 'Arbitres',
+  'athletes_lower': 'athlètes',
+  'referees_lower': 'arbitres',
+  'athletes_and_referees': '@athleteCount athlètes • @refereeCount arbitres',
+
   // Language
   'language': 'Langue',
   'english': 'Anglais',
