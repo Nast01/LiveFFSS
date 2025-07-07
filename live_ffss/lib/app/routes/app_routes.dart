@@ -8,5 +8,6 @@ abstract class Routes {
   static const profile = '/profile';
   static const settings = '/settings';
   static const competitionDetail = '/competition-detail';
+  static const program = '/program';
   // Add other routes here
 }

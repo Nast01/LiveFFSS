@@ -9,21 +9,23 @@ class AuthProvider {
     String errorText = '';
     try {
       final url = Uri.parse(
-          "$qualBaseUrl$apiVersion$requestToken?login=$login&password=$password");
+          "${ApiConstants.qualBaseUrl}${ApiConstants.apiVersion}${ApiConstants.requestToken}?login=$login&password=$password");
 
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
 
-      if (response.statusCode == 201) {
-        final body = jsonDecode(response.body);
+      Map<String, dynamic> jsonData = jsonDecode(response.body);
+      if (jsonData['success'] == true) {
+        // final body = jsonDecode(response.body);
 
-        String? token = body['token'];
-        DateTime? expiration = DateTime.parse(body['expiration']);
+        String? token = jsonData['token'];
+        DateTime? expiration = DateTime.parse(jsonData['expiration']);
 
         // final meUrl = Uri.parse("$qualBaseUrl$apiVersion$me?token=$token");
-        final meUrl = Uri.parse("$qualBaseUrl$apiVersion$me");
+        final meUrl = Uri.parse(
+            "$ApiConstants.qualBaseUrl$ApiConstants.apiVersion$ApiConstants.me");
         var headers = {'Content-Type': 'application/json; charset=UTF-8'};
         headers.addIf(token != null, 'Authorization', 'Bearer $token');
 
@@ -32,10 +34,10 @@ class AuthProvider {
           headers: headers,
         );
 
-        if (meResponse.statusCode == 201) {
-          final meBody = jsonDecode(meResponse.body);
-          String label = meBody['label'];
-          String type = meBody['type'];
+        Map<String, dynamic> meJsonData = jsonDecode(meResponse.body);
+        if (meJsonData['success'] == true) {
+          String label = meJsonData['label'];
+          String type = meJsonData['type'];
           String role;
           String lastName;
           String firstName;
@@ -43,11 +45,11 @@ class AuthProvider {
           String club;
 
           if (type == 'licencie') {
-            role = meBody['data']['role'];
-            lastName = meBody['data']['nom'];
-            firstName = meBody['data']['prenom'];
-            number = meBody['data']['numero'];
-            club = meBody['data']['club']['label'];
+            role = meJsonData['data']['role'];
+            lastName = meJsonData['data']['nom'];
+            firstName = meJsonData['data']['prenom'];
+            number = meJsonData['data']['numero'];
+            club = meJsonData['data']['club']['label'];
             return UserModel(
               token: token,
               tokenExpirationDate: expiration,
@@ -60,7 +62,7 @@ class AuthProvider {
               club: club,
             );
           } else if (type == 'organisme') {
-            role = meBody['data']['role'];
+            role = meJsonData['data']['role'];
             if (role == 'admin') {
               return UserModel(
                 token: token,

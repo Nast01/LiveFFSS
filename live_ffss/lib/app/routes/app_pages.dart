@@ -5,6 +5,8 @@ import 'package:live_ffss/app/module/competitions/bindings/competition_detail_bi
 import 'package:live_ffss/app/module/competitions/views/competition_detail_view.dart';
 import 'package:live_ffss/app/module/home/bindings/home_binding.dart';
 import 'package:live_ffss/app/module/home/views/home_view.dart';
+import 'package:live_ffss/app/module/program/bindings/program_binding.dart';
+import 'package:live_ffss/app/module/program/views/program_view.dart';
 // Import other views and bindings as needed
 
 part 'app_routes.dart';
@@ -26,8 +28,15 @@ class AppPages {
     GetPage(
       name: Routes.competitionDetail,
       page: () => const CompetitionDetailView(),
-      binding: CompetitionDetailBinding(),
+      bindings: [
+        CompetitionDetailBinding(),
+        ProgramBinding(), // Ensure ProgramBinding is included if needed
+      ],
     ),
-    // Add other routes here
+    GetPage(
+      name: Routes.program,
+      page: () => const ProgramView(),
+      binding: ProgramBinding(),
+    ),
   ];
 }

@@ -20,7 +20,7 @@ class HomeView extends GetView<HomeController> {
             // App logo
             Image.asset(
               'assets/images/logo_ffss.png', // Make sure to add this asset
-              height: 32,
+              height: 48,
               errorBuilder: (context, error, stackTrace) {
                 // Fallback if image isn't available
                 return const Icon(
@@ -326,35 +326,41 @@ class HomeView extends GetView<HomeController> {
 
   Widget _buildImagePlaceholder(CompetitionModel competition) {
     if (competition.organizerClub.hasLogo) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8.0),
-        child: Image.network(
-          competition.organizerClub.logoUrl!,
-          fit: BoxFit.fill,
-          errorBuilder: (context, error, stackTrace) {
-            // Fallback to icon if image fails to load
-            return Container(
-              height: 100,
-              color: const Color(0xFFE1E8F0),
-              child: const Center(
-                child: Icon(
-                  Icons.image,
-                  color: Colors.white,
-                  size: 40,
+      return Container(
+        width: double.infinity,
+        height: 60,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8.0),
+          child: Image.network(
+            competition.organizerClub.logoUrl!,
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              // Fallback to icon if image fails to load
+              return Container(
+                height: 100,
+                color: const Color(0xFFE1E8F0),
+                child: const Center(
+                  child: Icon(
+                    Icons.image,
+                    color: Colors.white,
+                    size: 40,
+                  ),
                 ),
-              ),
-            );
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
-              height: 100,
-              color: const Color(0xFFE1E8F0),
-              child: const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            );
-          },
+              );
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                height: 100,
+                color: const Color(0xFFE1E8F0),
+                child: const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              );
+            },
+          ),
         ),
       );
     } else {
@@ -558,76 +564,4 @@ class HomeView extends GetView<HomeController> {
       ),
     );
   }
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       automaticallyImplyLeading: false,
-  //       title: Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           // App logo
-  //           Image.asset(
-  //             'assets/images/logo_ffss.png', // Make sure to add this asset
-  //             height: 32,
-  //             errorBuilder: (context, error, stackTrace) {
-  //               // Fallback if image isn't available
-  //               return const Icon(
-  //                 Icons.app_shortcut,
-  //                 size: 32,
-  //                 color: Colors.white,
-  //               );
-  //             },
-  //           ),
-  //           const SizedBox(width: 8),
-  //           // App title now uses translation
-  //           Obx(
-  //             () => Text(
-  //               controller.appTitle.value,
-  //               style: Theme.of(context).textTheme.headlineLarge,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //       centerTitle: true,
-  //       actions: [
-  //         // Language selector
-  //         const LanguageSelector(),
-  //         const SizedBox(width: 8),
-  //         // User avatar
-  //         Padding(
-  //           padding: const EdgeInsets.only(right: 16.0),
-  //           child: UserAvatar(
-  //             size: 36,
-  //             backgroundColor: Theme.of(context).primaryColor.withOpacity(0.8),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //     body: Center(
-  //       child: Column(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           Text(
-  //             'welcome_message'.tr,
-  //             style: Theme.of(context).textTheme.headlineMedium,
-  //             textAlign: TextAlign.center,
-  //           ),
-  //           const SizedBox(height: 16),
-  //           Text(
-  //             'content_placeholder'.tr,
-  //             style: Theme.of(context).textTheme.bodyLarge,
-  //           ),
-  //           const SizedBox(height: 32),
-  //           Obx(() => controller.isLoggedIn.value
-  //               ? Text('logged_in_message'.tr)
-  //               : ElevatedButton(
-  //                   onPressed: () => Get.toNamed(Routes.login),
-  //                   child: Text('go_to_login'.tr),
-  //                 )),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 }

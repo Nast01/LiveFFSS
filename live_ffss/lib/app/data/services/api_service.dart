@@ -10,6 +10,7 @@ import 'package:live_ffss/app/data/models/athlete_model.dart';
 import 'package:live_ffss/app/data/models/club_model.dart';
 import 'package:live_ffss/app/data/models/entry_model.dart';
 import 'package:live_ffss/app/data/models/heat_model.dart';
+import 'package:live_ffss/app/data/models/meeting_model.dart';
 import 'package:live_ffss/app/data/models/race_model.dart';
 import 'package:live_ffss/app/data/models/referee_model.dart';
 import '../models/competition_model.dart';
@@ -30,7 +31,7 @@ class ApiService extends GetxService {
   // Get competitions with filters and pagination
   Future<List<CompetitionModel>> getCompetitions({
     String season = '2023-2024',
-    String debut = '2024-05-20',
+    String debut = '2024-09-29',
     CompetitionType type = CompetitionType.mixte,
     CompetitionVisibility visibility = CompetitionVisibility.incoming,
     int pageSize = 10,
@@ -46,7 +47,7 @@ class ApiService extends GetxService {
       // }
 
       final url = Uri.parse(
-          "$qualBaseUrl$apiVersion$competitionList?saison=$season&debut=$debut&type=${type.index}&visibility=${visibility.name}&length=$pageSize&start=${pageSize * (page - 1)}&order=DebutEngagement&orderDirection=ASC");
+          "${ApiConstants.qualBaseUrl}${ApiConstants.apiVersion}${ApiConstants.competitionList}?saison=$season&debut=$debut&type=${type.index}&visibility=${visibility.name}&length=$pageSize&start=${pageSize * (page - 1)}&order=DebutEngagement&orderDirection=ASC");
       var headers = {'Content-Type': 'application/json; charset=UTF-8'};
       headers.addIf(token != null, 'Authorization', 'Bearer $token');
 
@@ -139,8 +140,8 @@ class ApiService extends GetxService {
       final token = await getToken();
 
       final url = UrlBuilder.buildUrl<Object>(
-        qualBaseUrl,
-        "$apiVersion$raceList",
+        ApiConstants.qualBaseUrl,
+        "${ApiConstants.apiVersion}${ApiConstants.raceList}",
         {
           'evenement': competitionId, // String
           'token': token,
@@ -176,9 +177,14 @@ class ApiService extends GetxService {
       // Get token
       final token = await getToken();
 
+      final endPoint = ApiConstants.replacePath(
+        ApiConstants.clubList,
+        {'id': competitionId.toString()},
+      );
+
       final url = UrlBuilder.buildUrl<Object>(
-        qualBaseUrl,
-        "$apiVersion$baseCompetition$competitionId$clubList",
+        ApiConstants.qualBaseUrl,
+        "${ApiConstants.apiVersion}$endPoint",
         {
           'token': token,
         },
@@ -235,9 +241,14 @@ class ApiService extends GetxService {
       // Get token
       final token = await getToken();
 
+      final endPoint = ApiConstants.replacePath(
+        ApiConstants.clubDetail,
+        {'id': clubId.toString()},
+      );
+
       final url = UrlBuilder.buildUrl<Object>(
-        qualBaseUrl,
-        "$apiVersion$clubDetail$clubId",
+        ApiConstants.apiVersion,
+        "${ApiConstants.apiVersion}$endPoint",
         {
           'token': token,
         },
@@ -269,7 +280,7 @@ class ApiService extends GetxService {
     final token = await getToken();
 
     final url = Uri.parse(
-        "$qualBaseUrl$apiVersion$entryList?epreuve=$raceId&token=$token");
+        "${ApiConstants.qualBaseUrl}${ApiConstants.apiVersion}${ApiConstants.entryList}?epreuve=$raceId&token=$token");
     var headers = {'Content-Type': 'application/json; charset=UTF-8'};
 
     try {
@@ -298,7 +309,7 @@ class ApiService extends GetxService {
     final token = await getToken();
 
     final url = Uri.parse(
-        "$qualBaseUrl$apiVersion$heatList?epreuve=$raceId&token=$token");
+        "${ApiConstants.qualBaseUrl}${ApiConstants.apiVersion}${ApiConstants.heatList}?epreuve=$raceId&token=$token");
 
     try {
       final response = await http.get(
@@ -318,6 +329,122 @@ class ApiService extends GetxService {
       }
     } catch (e) {
       throw Exception('Error fetching heat: $e');
+    }
+  }
+
+  Future<List<MeetingModel>> getMeetings(int competitionId) async {
+    // Get token
+    final token = await getToken();
+    final endPoint = ApiConstants.replacePath(
+      ApiConstants.meetingList,
+      {'id': competitionId.toString()},
+    );
+
+    final url = UrlBuilder.buildUrl<Object>(
+      ApiConstants.qualBaseUrl,
+      "${ApiConstants.apiVersion}$endPoint",
+      {
+        'token': token,
+      },
+    );
+    try {
+      final response = await http.get(
+        url,
+        // headers: headers,
+      );
+
+      Map<String, dynamic> jsonData = jsonDecode(response.body);
+      if (jsonData['success'] == true) {
+        // Extract the list from the correct key
+        List<dynamic> meetingList = jsonData['data'];
+
+        return meetingList.map((json) => MeetingModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load heat: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching heat: $e');
+    }
+  }
+
+  Future<bool?> createMeeting(MeetingModel meeting, int competitionId) async {
+    try {
+      isLoading.value = true;
+      // Get token
+      final token = await getToken();
+      final endPoint = ApiConstants.replacePath(
+        ApiConstants.meetingSubmit,
+        {'competition': competitionId.toString()},
+      );
+
+      final meetingJson = meeting.toApiParams();
+      meetingJson['token'] = token;
+
+      // Build query parameters from the JSON
+      final queryParams =
+          meetingJson.map((key, value) => MapEntry(key, value?.toString()));
+
+      var headers = {'Content-Type': 'application/json; charset=UTF-8'};
+
+      final url = UrlBuilder.buildUrlAllowEmpty<Object>(
+        ApiConstants.qualBaseUrl,
+        "${ApiConstants.apiVersion}$endPoint",
+        queryParams,
+      );
+      final response = await http.post(
+        url,
+        headers: headers,
+      );
+
+      Map<String, dynamic> jsonData = jsonDecode(response.body);
+      if (jsonData['success'] == true) {
+        // Extract the list from the correct key
+        //List<dynamic> meetingData = jsonData['data'];
+
+        return true;
+        //MeetingModel.fromJson(meetingData.first);
+      } else {
+        throw Exception('Failed to create meeting: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching meeting: $e');
+    }
+  }
+
+  Future<bool> deleteMeeting(int meetingId) async {
+    try {
+      isLoading.value = true;
+      // Get token
+      final token = await getToken();
+      final endPoint = ApiConstants.replacePath(
+        ApiConstants.meetingDelete,
+        {'id': meetingId.toString()},
+      );
+
+      final url = UrlBuilder.buildUrl<Object>(
+        ApiConstants.qualBaseUrl,
+        "${ApiConstants.apiVersion}$endPoint",
+        {
+          'token': token,
+        },
+      );
+
+      var headers = {'Content-Type': 'application/json; charset=UTF-8'};
+
+      final response = await http.delete(
+        url,
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('Failed to delete meeting: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error deleting meeting: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 }

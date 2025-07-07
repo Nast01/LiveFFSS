@@ -4,6 +4,9 @@ import 'package:live_ffss/app/module/competitions/controllers/competition_detail
 import 'package:live_ffss/app/module/competitions/views/competition_detail_clubs_view.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_home_view.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_races_view.dart';
+import 'package:live_ffss/app/module/program/controllers/program_controller.dart';
+import 'package:live_ffss/app/module/program/views/program_view.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 
 class CompetitionDetailView extends GetView<CompetitionDetailController> {
   const CompetitionDetailView({super.key});
@@ -87,16 +90,7 @@ class CompetitionDetailView extends GetView<CompetitionDetailController> {
                       children: [
                         const CompetitionDetailHomeView(),
                         const CompetitionDetailRacesView(),
-                        Text(
-                          'program'.tr,
-                          style: const TextStyle(
-                              fontSize: 16, color: Colors.black),
-                        ),
-                        Text(
-                          'rankings'.tr,
-                          style: const TextStyle(
-                              fontSize: 16, color: Colors.black),
-                        ),
+                        _buildProgramView(competition),
                         const CompetitionDetailClubsView(),
                       ],
                     )),
@@ -150,5 +144,13 @@ class CompetitionDetailView extends GetView<CompetitionDetailController> {
         ),
       );
     });
+  }
+
+  Widget _buildProgramView(competition) {
+    // Get or create ProgramController and set the competition
+    final programController = Get.find<ProgramController>();
+    programController.setCompetition(competition);
+
+    return const ProgramView();
   }
 }

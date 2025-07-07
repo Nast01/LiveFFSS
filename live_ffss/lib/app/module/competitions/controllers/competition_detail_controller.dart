@@ -2,8 +2,6 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/data/models/club_ranking.dart';
 import 'package:live_ffss/app/data/models/competition_model.dart';
-import 'package:live_ffss/app/data/models/race_model.dart';
-import 'package:live_ffss/app/data/models/club_model.dart';
 import 'package:live_ffss/app/data/services/api_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 
