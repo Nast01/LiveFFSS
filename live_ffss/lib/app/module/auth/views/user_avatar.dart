@@ -84,21 +84,6 @@ class UserAvatar extends GetWidget<UserController> {
             });
           },
         ),
-        // PopupMenuItem(
-        //   child: Row(
-        //     children: [
-        //       const Icon(Icons.settings_outlined, size: 20),
-        //       const SizedBox(width: 8),
-        //       Text('settings'.tr),
-        //     ],
-        //   ),
-        //   onTap: () {
-        //     // Navigate to settings
-        //     WidgetsBinding.instance.addPostFrameCallback((_) {
-        //       controller.navigateToSettings();
-        //     });
-        //   },
-        // ),
         PopupMenuItem(
           child: Row(
             children: [
