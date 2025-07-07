@@ -132,6 +132,25 @@ final Map<String, String> enUS = {
   'direct_logout_failed': 'Échec de la déconnexion directe',
   'navigation_error': 'Erreur de navigation',
 
+  'login_to_view_profile': 'Please login to view your profile',
+  'not_logged_in': 'You are not logged in',
+  'personal_info': 'Personal Information',
+  'first_name': 'First Name',
+  'last_name': 'Last Name',
+  'user_type': 'User Type',
+  'role': 'Role',
+  'licensee_info': 'Licensee Information',
+  'license_number': 'License Number',
+  'birth_year': 'Birth Year',
+  'account_info': 'Account Information',
+  'token_expires': 'Token Expires on',
+  'session_status': 'Session Status',
+  'refresh_profile': 'Refresh Profile',
+
+  'organisme': 'club',
+  'user': 'user',
+  'administrator': 'administrator',
+
   // Language
   'language': 'Language',
   'english': 'English',

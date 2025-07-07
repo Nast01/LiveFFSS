@@ -132,6 +132,25 @@ final Map<String, String> frFR = {
   'direct_logout_failed': 'Échec de la déconnexion directe',
   'navigation_error': 'Erreur de navigation',
 
+  'login_to_view_profile': 'Veuillez vous connecter pour voir votre profil',
+  'not_logged_in': 'Vous n\'êtes pas connecté',
+  'personal_info': 'Informations Personnelles',
+  'first_name': 'Prénom',
+  'last_name': 'Nom',
+  'user_type': 'Type d\'Utilisateur',
+  'role': 'Rôle',
+  'licensee_info': 'Informations Licencié',
+  'license_number': 'Numéro de Licence',
+  'birth_year': 'Année de Naissance',
+  'account_info': 'Informations du Compte',
+  'token_expires': 'Le token expire le',
+  'session_status': 'Statut de la Session',
+  'refresh_profile': 'Actualiser le Profil',
+
+  'organisme': 'club',
+  'user': 'utilisateur',
+  'administrator': 'administrateur',
+
   // Language
   'language': 'Langue',
   'english': 'Anglais',
