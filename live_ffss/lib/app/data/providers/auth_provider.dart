@@ -25,13 +25,13 @@ class AuthProvider {
 
         // final meUrl = Uri.parse("$qualBaseUrl$apiVersion$me?token=$token");
         final meUrl = Uri.parse(
-            "$ApiConstants.qualBaseUrl$ApiConstants.apiVersion$ApiConstants.me");
-        var headers = {'Content-Type': 'application/json; charset=UTF-8'};
-        headers.addIf(token != null, 'Authorization', 'Bearer $token');
+            "${ApiConstants.qualBaseUrl}${ApiConstants.apiVersion}${ApiConstants.me}?token=$token");
+        //var headers = {'Content-Type': 'application/json; charset=UTF-8'};
+        //headers.addIf(token != null, 'Authorization', 'Bearer $token');
 
         final meResponse = await http.get(
           meUrl,
-          headers: headers,
+          headers: {'Content-Type': 'application/json; charset=UTF-8'},
         );
 
         Map<String, dynamic> meJsonData = jsonDecode(meResponse.body);

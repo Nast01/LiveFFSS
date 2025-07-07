@@ -128,6 +128,10 @@ final Map<String, String> enUS = {
   'meeting_deleted_successfully': 'Réunion supprimée avec succès',
   'success': 'Succès',
 
+  'logout_success': 'Déconnexion réussie',
+  'direct_logout_failed': 'Échec de la déconnexion directe',
+  'navigation_error': 'Erreur de navigation',
+
   // Language
   'language': 'Language',
   'english': 'English',

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:live_ffss/app/module/auth/controllers/auth_controller.dart';
-import '../data/services/user_service.dart';
-import '../routes/app_pages.dart';
+import 'package:live_ffss/app/module/auth/controllers/user_controller.dart';
 
-class UserAvatar extends StatelessWidget {
+class UserAvatar extends GetWidget<UserController> {
   final double size;
   final Color? backgroundColor;
   final Color? textColor;
@@ -18,11 +16,9 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final UserService userService = Get.find<UserService>();
-
     return Obx(() {
-      final isLoggedIn = userService.isLoggedIn;
-      final firstLetter = userService.userFirstLetter;
+      final isLoggedIn = controller.isLoggedIn;
+      final firstLetter = controller.userFirstLetter;
 
       return GestureDetector(
         onTap: () {
@@ -31,7 +27,7 @@ class UserAvatar extends StatelessWidget {
             _showUserMenu(context);
           } else {
             // Navigate to login page
-            Get.toNamed(Routes.login);
+            controller.navigateToLogin();
           }
         },
         child: CircleAvatar(
@@ -83,10 +79,9 @@ class UserAvatar extends StatelessWidget {
           ),
           onTap: () {
             // Navigate to profile
-            Future.delayed(
-              const Duration(seconds: 0),
-              () => Get.toNamed(Routes.profile),
-            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              controller.navigateToProfile();
+            });
           },
         ),
         PopupMenuItem(
@@ -99,10 +94,9 @@ class UserAvatar extends StatelessWidget {
           ),
           onTap: () {
             // Navigate to settings
-            Future.delayed(
-              const Duration(seconds: 0),
-              () => Get.toNamed(Routes.settings),
-            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              controller.navigateToSettings();
+            });
           },
         ),
         PopupMenuItem(
@@ -115,10 +109,9 @@ class UserAvatar extends StatelessWidget {
           ),
           onTap: () {
             // Logout
-            Future.delayed(
-              const Duration(seconds: 0),
-              () => Get.find<AuthController>().logout(),
-            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              controller.logout();
+            });
           },
         ),
       ],

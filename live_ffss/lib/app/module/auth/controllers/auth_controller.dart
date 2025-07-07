@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:live_ffss/app/module/home/controllers/home_controller.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../routes/app_pages.dart';
 import '../../../data/services/user_service.dart';
@@ -39,6 +40,7 @@ class AuthController extends GetxController {
 
         // Navigate to home page
         Get.offAllNamed(Routes.home);
+        _refreshDependentControllers();
       } catch (e) {
         errorMessage.value = e.toString();
       } finally {
@@ -59,5 +61,20 @@ class AuthController extends GetxController {
 
   Future<void> checkLoginStatus() async {
     await _userService.checkUserSession();
+  }
+
+  void _refreshDependentControllers() {
+    // Refresh HomeController if it's registered
+    if (Get.isRegistered<HomeController>()) {
+      try {
+        final homeController = Get.find<HomeController>();
+        homeController.refreshAfterLogout();
+      } catch (e) {
+        // Ignore if HomeController refresh fails
+      }
+    }
+
+    // Force update the UI
+    Get.forceAppUpdate();
   }
 }

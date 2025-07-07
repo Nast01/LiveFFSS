@@ -103,4 +103,17 @@ class HomeController extends GetxController {
   void changeLanguage(String languageCode) {
     _languageService.changeLanguage(languageCode);
   }
+
+  // Add method to handle refresh after logout
+  void refreshAfterLogout() {
+    // Reset any user-specific data
+    displayedItems.value = 3;
+    selectedFilter.value = 'TOUS';
+
+    // Reload competitions if needed
+    loadCompetitions();
+
+    // Force UI update
+    update();
+  }
 }

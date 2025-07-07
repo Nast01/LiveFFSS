@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/data/models/competition_model.dart';
 import '../controllers/home_controller.dart';
-import '../../../widgets/user_avatar.dart';
+import '../../auth/views/user_avatar.dart';
 import '../../../widgets/language_selector.dart';
 
 class HomeView extends GetView<HomeController> {

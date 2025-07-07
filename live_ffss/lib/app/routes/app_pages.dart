@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:live_ffss/app/module/auth/bindings/auth_binding.dart';
+import 'package:live_ffss/app/module/auth/bindings/user_binding.dart';
 import 'package:live_ffss/app/module/auth/views/login_view.dart';
 import 'package:live_ffss/app/module/competitions/bindings/competition_detail_binding.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_view.dart';
@@ -18,7 +19,10 @@ class AppPages {
     GetPage(
       name: Routes.home,
       page: () => const HomeView(),
-      binding: HomeBinding(),
+      bindings: [
+        HomeBinding(),
+        UserBinding(),
+      ],
     ),
     GetPage(
       name: Routes.login,
