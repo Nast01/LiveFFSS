@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/data/models/meeting_model.dart';
+import 'package:live_ffss/app/data/models/slot_model.dart';
 import 'package:live_ffss/app/module/program/controllers/program_controller.dart';
 import 'package:live_ffss/app/module/program/views/program_add_meeting_dialog.dart';
 
@@ -89,7 +90,7 @@ class ProgramView extends GetView<ProgramController> {
               itemCount: controller.meetings.length,
               itemBuilder: (context, index) {
                 final meeting = controller.meetings[index];
-                return _buildMeetingCard(meeting, index);
+                return _buildExpandableMeetingCard(meeting, index);
               },
             ),
           );
@@ -118,7 +119,7 @@ class ProgramView extends GetView<ProgramController> {
     );
   }
 
-  Widget _buildMeetingCard(MeetingModel meeting, int index) {
+  Widget _buildExpandableMeetingCard(MeetingModel meeting, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
@@ -126,135 +127,80 @@ class ProgramView extends GetView<ProgramController> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => _onMeetingTapped(meeting),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+        child: Theme(
+          data: Theme.of(Get.context!).copyWith(
+            dividerColor: Colors.transparent,
+          ),
+          child: ExpansionTile(
+            leading: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    meeting.date.day.toString(),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  Text(
+                    meeting.formattedDateMonth,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            title: Text(
+              meeting.name,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header with name and date
+                const SizedBox(height: 6),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Meeting icon and time info
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            meeting.date.day.toString(),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
-                          ),
-                          Text(
-                            meeting.formattedDateMonth,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.blue,
-                            ),
-                          ),
-                        ],
+                    Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${meeting.formattedBeginTime} - ${meeting.formattedEndTime}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(width: 12),
-
-                    // Meeting details
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Meeting name
-                          Text(
-                            meeting.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-
-                          // Time and duration info (moved here)
-                          Row(
-                            children: [
-                              Icon(Icons.access_time,
-                                  size: 14, color: Colors.grey[600]),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${meeting.formattedBeginTime} - ${meeting.formattedEndTime}',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey[700],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Icon(Icons.timer,
-                                  size: 14, color: Colors.grey[600]),
-                              const SizedBox(width: 4),
-                              Text(
-                                meeting.formattedDuration,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                        ],
+                    Icon(Icons.timer, size: 14, color: Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      meeting.formattedDuration,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[700],
                       ),
-                    ),
-
-                    // More actions button
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: Colors.grey),
-                      onSelected: (value) => _onMenuSelected(value, meeting),
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              const Icon(Icons.edit,
-                                  size: 18, color: Colors.blue),
-                              const SizedBox(width: 8),
-                              Text('edit'.tr),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              const Icon(Icons.delete,
-                                  size: 18, color: Colors.red),
-                              const SizedBox(width: 8),
-                              Text('delete'.tr),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
-
-                // Description if available
                 if (meeting.description.isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 6),
                   Text(
                     meeting.description,
                     style: TextStyle(
@@ -268,20 +214,217 @@ class ProgramView extends GetView<ProgramController> {
                 ],
               ],
             ),
+            trailing: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.grey),
+              onSelected: (value) => _onMenuSelected(value, meeting),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.edit, size: 18, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      Text('edit'.tr),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.delete, size: 18, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Text('delete'.tr),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            children: [
+              _buildSlotsSection(meeting),
+            ],
           ),
         ),
       ),
     );
   }
 
-  void _onMeetingTapped(MeetingModel meeting) {
-    // Handle meeting tap - navigate to meeting details or show info
-    Get.snackbar(
-      'meeting_selected'.tr,
-      meeting.name,
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
+  Widget _buildSlotsSection(MeetingModel meeting) {
+    // Check if meeting has slots
+    if (meeting.slots.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Icon(
+              Icons.schedule_outlined,
+              size: 48,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'no_time_slots_available'.tr,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.schedule,
+                size: 20,
+                color: Colors.blue[700],
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${'time_slots'.tr} (${meeting.slots.length})',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[700],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...meeting.slots.asMap().entries.map((entry) {
+            final index = entry.key;
+            final slot = entry.value;
+            return _buildSlotCard(slot, index);
+          }),
+          const SizedBox(height: 8),
+        ],
+      ),
     );
+  }
+
+  Widget _buildSlotCard(SlotModel slot, int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          // Slot number
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: Colors.blue[100],
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                '${index + 1}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[700],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Slot details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  slot.name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time,
+                      size: 12,
+                      color: Colors.grey[600],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${_formatTime(slot.beginHour)} - ${_formatTime(slot.endHour)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Icon(
+                      Icons.timer_outlined,
+                      size: 12,
+                      color: Colors.grey[600],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _formatDuration(slot.endHour.difference(slot.beginHour)),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Slot status indicator (optional)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.green[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'active'.tr,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: Colors.green[700],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTime(DateTime time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+
+    if (hours > 0) {
+      return '${hours}h ${minutes}min';
+    } else {
+      return '${minutes}min';
+    }
   }
 
   void _onMenuSelected(String value, MeetingModel meeting) {

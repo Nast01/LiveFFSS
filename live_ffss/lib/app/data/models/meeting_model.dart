@@ -61,8 +61,12 @@ class MeetingModel {
       meeting.slots = (json['creneaus'] as List<dynamic>)
           .map((slot) => SlotModel.fromJson(slot))
           .toList();
-    }
 
+      // Sort slots by beginHour
+      meeting.slots.sort((a, b) => a.beginHour.compareTo(b.beginHour));
+    } else {
+      meeting.slots = [];
+    }
     return meeting;
   }
 

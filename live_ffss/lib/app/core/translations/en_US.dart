@@ -151,6 +151,10 @@ final Map<String, String> enUS = {
   'user': 'user',
   'administrator': 'administrator',
 
+  'no_time_slots_available': 'No time slots available',
+  'time_slots': 'Time Slots',
+  'active': 'Active',
+
   // Language
   'language': 'Language',
   'english': 'English',

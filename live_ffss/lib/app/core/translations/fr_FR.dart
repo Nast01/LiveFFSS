@@ -151,6 +151,10 @@ final Map<String, String> frFR = {
   'user': 'utilisateur',
   'administrator': 'administrateur',
 
+  'no_time_slots_available': 'Aucun créneau horaire disponible',
+  'time_slots': 'Créneaux Horaires',
+  'active': 'Active',
+
   // Language
   'language': 'Langue',
   'english': 'Anglais',
