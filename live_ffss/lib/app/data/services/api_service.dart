@@ -431,12 +431,12 @@ class ApiService extends GetxService {
 
       var headers = {'Content-Type': 'application/json; charset=UTF-8'};
 
-      final response = await http.delete(
+      final response = await http.post(
         url,
         headers: headers,
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201) {
         return true;
       } else {
         throw Exception('Failed to delete meeting: ${response.statusCode}');

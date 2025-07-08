@@ -133,9 +133,8 @@ class ProgramController extends GetxController {
       return false;
     }
 
-    isCreatingMeeting.value = true;
-
     try {
+      isCreatingMeeting.value = true;
       // Create DateTime objects for begin and end hours
       final beginDateTime = DateTime(
         selectedDate.value.year,
@@ -175,14 +174,13 @@ class ProgramController extends GetxController {
         endHour: endDateTime,
       );
 
-      // TODO: Call your API service to create the meeting
       await _apiService.createMeeting(meeting, competition.value!.id);
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-
       // Add to local list (if using local state)
-      meetings.add(meeting);
+      //meetings.add(meeting);
+
+      // Close the dialog
+      Get.back();
 
       Get.snackbar(
         'success'.tr,
@@ -194,6 +192,9 @@ class ProgramController extends GetxController {
 
       // Reset the form
       resetForm();
+      // Reload the meeting list
+      await loadMeetings();
+
       return true;
     } catch (e) {
       Get.snackbar(
