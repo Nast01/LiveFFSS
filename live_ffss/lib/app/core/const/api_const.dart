@@ -2,7 +2,7 @@ class ApiConstants {
   ApiConstants._();
 
   static const String baseUrl = "https://ffss.fr/";
-  static const String qualBaseUrl = "https://qual.ffss.fr/";
+  static const String qualBaseUrl = "https://ffss.fr/";
   static const String apiVersion = "api/v1.0/";
   static const String requestToken = "requestToken";
   static const String me = "me";
