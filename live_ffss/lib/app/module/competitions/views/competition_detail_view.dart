@@ -6,7 +6,6 @@ import 'package:live_ffss/app/module/competitions/views/competition_detail_home_
 import 'package:live_ffss/app/module/competitions/views/competition_detail_races_view.dart';
 import 'package:live_ffss/app/module/program/controllers/program_controller.dart';
 import 'package:live_ffss/app/module/program/views/program_view.dart';
-import 'package:live_ffss/app/routes/app_pages.dart';
 
 class CompetitionDetailView extends GetView<CompetitionDetailController> {
   const CompetitionDetailView({super.key});

@@ -1,8 +1,5 @@
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/core/const/format_const.dart';
-import 'package:live_ffss/app/data/models/category_model.dart';
-import 'package:live_ffss/app/data/models/discipline_model.dart';
-import 'package:live_ffss/app/data/models/progress_entry_model.dart';
 import 'package:live_ffss/app/data/models/slot_model.dart';
 
 class MeetingModel {
@@ -59,7 +56,7 @@ class MeetingModel {
 
     if (json['creneaus'] != null) {
       meeting.slots = (json['creneaus'] as List<dynamic>)
-          .map((slot) => SlotModel.fromJson(slot))
+          .map((slot) => SlotModel.fromJson(slot, meeting))
           .toList();
 
       // Sort slots by beginHour
