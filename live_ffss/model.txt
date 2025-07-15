@@ -1,0 +1,6 @@
+Deroulement = RaceFormatConfigurationModel
+    Partie = RaceFormatDetailModel
+Programmation = MeetingModel
+    Partie = RaceFormatDetailModel
+    Creneau = SlotModel
+    Place = LiveResultModel

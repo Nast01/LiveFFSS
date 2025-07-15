@@ -1,6 +1,6 @@
-import 'package:live_ffss/app/data/models/progress_model.dart';
+import 'package:live_ffss/app/data/models/race_format_configuration_model.dart';
 
-class ProgressEntryModel {
+class RaceFormatDetailModel {
   late String id;
   late int order;
   late String label;
@@ -12,9 +12,9 @@ class ProgressEntryModel {
   late String qualificationMethodLabel;
   late int spotsPerRace;
   late int qualifyingSpots;
-  late ProgressModel progress;
+  late RaceFormatConfigurationModel raceFormatConfiguration;
 
-  ProgressEntryModel({
+  RaceFormatDetailModel({
     required this.id,
     required this.order,
     required this.label,
@@ -28,8 +28,8 @@ class ProgressEntryModel {
     required this.qualifyingSpots,
   });
 
-  factory ProgressEntryModel.fromJson(Map<String, dynamic> json) {
-    return ProgressEntryModel(
+  factory RaceFormatDetailModel.fromJson(Map<String, dynamic> json) {
+    return RaceFormatDetailModel(
       id: json['id'],
       order: json['ordre'],
       label: json['label'],

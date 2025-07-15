@@ -1,8 +1,8 @@
 import 'package:live_ffss/app/data/models/category_model.dart';
 import 'package:live_ffss/app/data/models/discipline_model.dart';
-import 'package:live_ffss/app/data/models/progress_entry_model.dart';
+import 'package:live_ffss/app/data/models/race_format_detail_model.dart';
 
-class ProgressModel {
+class RaceFormatConfigurationModel {
   late int id;
   late String label;
   late String fullLabel;
@@ -10,9 +10,9 @@ class ProgressModel {
   late String genderLabel;
   late DisciplineModel discipline;
   late List<CategoryModel> categories;
-  late List<ProgressEntryModel> progressEntries;
+  late List<RaceFormatDetailModel> raceFormatDetails;
 
-  ProgressModel({
+  RaceFormatConfigurationModel({
     required this.id,
     required this.label,
     required this.fullLabel,
@@ -20,11 +20,11 @@ class ProgressModel {
     required this.genderLabel,
     required this.discipline,
     required this.categories,
-    required this.progressEntries,
+    required this.raceFormatDetails,
   });
 
-  factory ProgressModel.fromJson(Map<String, dynamic> json) {
-    return ProgressModel(
+  factory RaceFormatConfigurationModel.fromJson(Map<String, dynamic> json) {
+    return RaceFormatConfigurationModel(
       id: json["Id"],
       label: json["label"],
       fullLabel: json["fullLabel"],
@@ -37,9 +37,9 @@ class ProgressModel {
                   CategoryModel.fromJson(categoryJson["categorie"]))
               .toList()
           : [],
-      progressEntries: json["parties"] != null
+      raceFormatDetails: json["parties"] != null
           ? (json["parties"] as List)
-              .map((entryJson) => ProgressEntryModel.fromJson(entryJson))
+              .map((entryJson) => RaceFormatDetailModel.fromJson(entryJson))
               .toList()
           : [],
     );

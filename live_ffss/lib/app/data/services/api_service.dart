@@ -360,10 +360,10 @@ class ApiService extends GetxService {
 
         return meetingList.map((json) => MeetingModel.fromJson(json)).toList();
       } else {
-        throw Exception('Failed to load heat: ${response.statusCode}');
+        throw Exception('Failed to load Meetings: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error fetching heat: $e');
+      throw Exception('Error fetching Meetings: $e');
     }
   }
 

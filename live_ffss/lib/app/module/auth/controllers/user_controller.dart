@@ -97,18 +97,18 @@ class UserController extends GetxController {
     Get.forceAppUpdate();
   }
 
-  Future<void> _handleDirectLogout() async {
-    try {
-      // Clear user session directly through user service
-      _userService.clearCurrentUser();
+  // Future<void> _handleDirectLogout() async {
+  //   try {
+  //     // Clear user session directly through user service
+  //     _userService.clearCurrentUser();
 
-      // Clear secure storage if available
-      final storage = Get.find<FlutterSecureStorage>();
-      await storage.deleteAll();
-    } catch (e) {
-      throw Exception('Direct logout failed: $e');
-    }
-  }
+  //     // Clear secure storage if available
+  //     final storage = Get.find<FlutterSecureStorage>();
+  //     await storage.deleteAll();
+  //   } catch (e) {
+  //     throw Exception('Direct logout failed: $e');
+  //   }
+  // }
 
   void _showErrorSnackbar(String message) {
     Get.snackbar(

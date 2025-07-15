@@ -155,6 +155,11 @@ final Map<String, String> enUS = {
   'time_slots': 'Time Slots',
   'active': 'Active',
 
+  'marshalling': 'Marshalling',
+  'in_progress': 'In Progress',
+  'waiting': 'Waiting',
+  'finished': 'Finished',
+
   // Language
   'language': 'Language',
   'english': 'English',

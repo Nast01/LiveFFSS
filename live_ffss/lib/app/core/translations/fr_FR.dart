@@ -155,6 +155,11 @@ final Map<String, String> frFR = {
   'time_slots': 'Créneaux Horaires',
   'active': 'Active',
 
+  'marshalling': 'Marshalling',
+  'in_progress': 'En Cours',
+  'waiting': 'En Attente',
+  'finished': 'Terminé',
+
   // Language
   'language': 'Langue',
   'english': 'Anglais',
