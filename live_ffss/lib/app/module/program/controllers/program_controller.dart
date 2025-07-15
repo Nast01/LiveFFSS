@@ -245,4 +245,8 @@ class ProgramController extends GetxController {
     endTime.value =
         TimeOfDay(hour: DateTime.now().hour + 1, minute: DateTime.now().minute);
   }
+
+  // Helper method to get total slots count for timeline connection
+  int get totalSlotsCount =>
+      meetings.isNotEmpty ? meetings.first.slots.length : 0;
 }

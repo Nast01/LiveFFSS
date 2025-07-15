@@ -1,7 +1,7 @@
 import 'package:live_ffss/app/data/models/race_format_configuration_model.dart';
 
 class RaceFormatDetailModel {
-  late String id;
+  late int id;
   late int order;
   late String label;
   late String fullLabel;
