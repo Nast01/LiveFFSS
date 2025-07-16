@@ -160,6 +160,8 @@ final Map<String, String> enUS = {
   'waiting': 'Waiting',
   'finished': 'Finished',
 
+  'runs': 'runs',
+
   // Language
   'language': 'Language',
   'english': 'English',

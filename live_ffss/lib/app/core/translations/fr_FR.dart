@@ -160,6 +160,8 @@ final Map<String, String> frFR = {
   'waiting': 'En Attente',
   'finished': 'Terminé',
 
+  'runs': 'courses',
+
   // Language
   'language': 'Langue',
   'english': 'Anglais',
