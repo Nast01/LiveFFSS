@@ -4,6 +4,7 @@ import 'package:live_ffss/app/data/models/meeting_model.dart';
 import 'package:live_ffss/app/data/models/slot_model.dart';
 import 'package:live_ffss/app/module/program/controllers/program_controller.dart';
 import 'package:live_ffss/app/module/program/views/program_add_meeting_dialog.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 
 class ProgramView extends GetView<ProgramController> {
   const ProgramView({super.key});
@@ -95,16 +96,16 @@ class ProgramView extends GetView<ProgramController> {
             ),
           );
         }),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            // Handle floating action button press
-            _onFloatingActionButtonPressed();
-          },
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          child: const Icon(Icons.add),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () {
+        //     // Handle floating action button press
+        //     _onFloatingActionButtonPressed();
+        //   },
+        //   backgroundColor: Colors.blue,
+        //   foregroundColor: Colors.white,
+        //   child: const Icon(Icons.add),
+        // ),
+        // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       );
     });
   }
@@ -345,11 +346,10 @@ class ProgramView extends GetView<ProgramController> {
                 ),
             ],
           ),
-          const SizedBox(width: 16),
 
           // Time display - vertical layout
           Container(
-            width: 60,
+            width: 40,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -372,12 +372,12 @@ class ProgramView extends GetView<ProgramController> {
             ),
           ),
 
-          const SizedBox(width: 16),
-
           // Slot content - make it clickable if has runs
           Expanded(
             child: GestureDetector(
-              onTap: () {}, //hasRuns ? () => _navigateToSlotRuns(slot) : null,
+              onTap: hasRuns
+                  ? () => Get.toNamed(Routes.slot, arguments: slot)
+                  : null,
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(

@@ -162,6 +162,32 @@ final Map<String, String> frFR = {
 
   'runs': 'courses',
 
+  'slot_details': 'Détails du créneau',
+  'no_slot_selected': 'Aucun créneau sélectionné',
+  'no_runs_available': 'Aucune course disponible',
+  'error_loading_results': 'Erreur lors du chargement des résultats',
+  'no_results_available': 'Pas de résultats disponibles',
+  'results_will_appear_here': 'Les résultats apparaîtront ici',
+  'no_result': 'Aucun résultat',
+  'results': 'Résultats',
+  'athletes': 'Athlètes',
+  'no_athletes_found': 'Aucun athlète trouvé',
+  'enter_rankings': 'Entrer les Classements',
+  'enter_times': 'Entrer les Temps',
+  'beach_ranking_instructions':
+      'Entrez le classement de chaque athlète (1, 2, 3, etc.)',
+  'swimming_times_instructions':
+      'Entrez le temps de chaque athlète au format HH:MM.SS (ex., 1:23.45)',
+  'time': 'Temps',
+  'save': 'Sauvegarder',
+  'results_updated_successfully': 'Résultats mis à jour avec succès',
+  'failed_to_update_results': 'Échec de la mise à jour des résultats',
+  'withdraw_athlete': 'Retirer l\'Athlète',
+  'confirm_withdraw_athlete': 'Êtes-vous sûr de vouloir retirer cet athlète ?',
+  'withdraw': 'Retirer',
+  'athlete_withdrawn_successfully': 'Athlète retiré avec succès',
+  'failed_to_withdraw_athlete': 'Échec du retrait de l\'athlète',
+
   // Language
   'language': 'Langue',
   'english': 'Anglais',

@@ -162,6 +162,32 @@ final Map<String, String> enUS = {
 
   'runs': 'runs',
 
+  'slot_details': 'Slot Details',
+  'no_slot_selected': 'No slot selected',
+  'no_runs_available': 'No runs available',
+  'error_loading_results': 'Error loading results',
+  'no_results_available': 'No results available',
+  'results_will_appear_here': 'Results will appear here when available',
+  'no_result': 'No result',
+  'results': 'Results',
+  'athletes': 'Athletes',
+  'no_athletes_found': 'No athletes found',
+  'enter_rankings': 'Enter Rankings',
+  'enter_times': 'Enter Times',
+  'beach_ranking_instructions':
+      'Enter the ranking for each athlete (1, 2, 3, etc.)',
+  'swimming_times_instructions':
+      'Enter up to 3 times for each swimmer (e.g., 1:23.45)',
+  'time': 'Time',
+  'save': 'Save',
+  'results_updated_successfully': 'Results updated successfully',
+  'failed_to_update_results': 'Failed to update results',
+  'withdraw_athlete': 'Withdraw Athlete',
+  'confirm_withdraw_athlete': 'Are you sure you want to withdraw this athlete?',
+  'withdraw': 'Withdraw',
+  'athlete_withdrawn_successfully': 'Athlete withdrawn successfully',
+  'failed_to_withdraw_athlete': 'Failed to withdraw athlete',
+
   // Language
   'language': 'Language',
   'english': 'English',

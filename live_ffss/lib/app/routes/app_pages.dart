@@ -10,6 +10,8 @@ import 'package:live_ffss/app/module/home/bindings/home_binding.dart';
 import 'package:live_ffss/app/module/home/views/home_view.dart';
 import 'package:live_ffss/app/module/program/bindings/program_binding.dart';
 import 'package:live_ffss/app/module/program/views/program_view.dart';
+import 'package:live_ffss/app/module/slot/bindings/slot_binding.dart';
+import 'package:live_ffss/app/module/slot/views/slot_view.dart';
 // Import other views and bindings as needed
 
 part 'app_routes.dart';
@@ -48,6 +50,11 @@ class AppPages {
       name: Routes.program,
       page: () => const ProgramView(),
       binding: ProgramBinding(),
+    ),
+    GetPage(
+      name: Routes.slot,
+      page: () => const SlotView(),
+      binding: SlotBinding(),
     ),
   ];
 }

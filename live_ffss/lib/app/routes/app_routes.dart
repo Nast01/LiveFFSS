@@ -9,5 +9,6 @@ abstract class Routes {
   static const settings = '/settings';
   static const competitionDetail = '/competition-detail';
   static const program = '/program';
+  static const slot = '/slot';
   // Add other routes here
 }
