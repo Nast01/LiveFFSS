@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:live_ffss/app/core/config/app_config.dart';
@@ -249,6 +252,38 @@ void main() {
               '{"success": false, "message": "Token expired"}', 401));
 
       expect(client.get('x'), throwsA(isA<AuthException>()));
+    });
+  });
+
+  group('HttpClient network errors', () {
+    test('SocketException becomes NetworkException', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenThrow(const SocketException('No internet'));
+
+      expect(client.get('x'), throwsA(isA<NetworkException>()));
+    });
+
+    test('TimeoutException becomes NetworkException', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenThrow(TimeoutException('slow'));
+
+      expect(client.get('x'), throwsA(isA<NetworkException>()));
+    });
+
+    test('AppException is rethrown unchanged (not wrapped)', () async {
+      // Server returned HTML 500 -> ApiException; ensure that is what bubbles up,
+      // not a wrapping UnknownException.
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith('html', 500));
+
+      expect(client.get('x'), throwsA(isA<ApiException>()));
+    });
+
+    test('Unexpected error becomes UnknownException', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenThrow(StateError('weird'));
+
+      expect(client.get('x'), throwsA(isA<UnknownException>()));
     });
   });
 }

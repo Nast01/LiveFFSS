@@ -26,8 +26,7 @@ class HttpClient {
   }) async {
     final uri = _buildUri(path, query);
     final headers = await _buildHeaders();
-    final response = await _inner.get(uri, headers: headers);
-    return _decode(response);
+    return _send(() => _inner.get(uri, headers: headers));
   }
 
   Future<Map<String, dynamic>> post(
@@ -37,12 +36,29 @@ class HttpClient {
   }) async {
     final uri = _buildUri(path, query);
     final headers = await _buildHeaders();
-    final response = await _inner.post(
-      uri,
-      headers: headers,
-      body: body == null ? null : jsonEncode(body),
+    return _send(
+      () => _inner.post(
+        uri,
+        headers: headers,
+        body: body == null ? null : jsonEncode(body),
+      ),
     );
-    return _decode(response);
+  }
+
+  Future<Map<String, dynamic>> _send(
+      Future<http.Response> Function() request) async {
+    try {
+      final response = await request();
+      return _decode(response);
+    } on AppException {
+      rethrow;
+    } on SocketException catch (e) {
+      throw NetworkException(e.message);
+    } on TimeoutException catch (e) {
+      throw NetworkException(e.message ?? 'Request timed out');
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
   }
 
   Uri _buildUri(String path, Map<String, dynamic>? query) {
