@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:live_ffss/app/core/config/app_config.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:mocktail/mocktail.dart';
@@ -156,6 +157,52 @@ void main() {
           .captured;
       final uri = captured.single as Uri;
       expect(uri.queryParameters.containsKey('token'), isFalse);
+    });
+  });
+
+  group('HttpClient success responses', () {
+    test('returns full body on 2xx with success: true', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith(
+              '{"success": true, "data": [1, 2, 3], "meta": "x"}', 200));
+
+      final body = await client.get('x');
+
+      expect(body['success'], true);
+      expect(body['data'], [1, 2, 3]);
+      expect(body['meta'], 'x');
+    });
+
+    test('returns full body on 2xx without a success key', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer(
+              (_) async => responseWith('{"data": [1, 2]}', 200));
+
+      final body = await client.get('x');
+      expect(body['data'], [1, 2]);
+    });
+
+    test('accepts 200 and 201 as success', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer(
+              (_) async => responseWith('{"success": true}', 201));
+
+      final body = await client.get('x');
+      expect(body['success'], true);
+    });
+
+    test('throws ApiException when body is not a JSON object', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith('"a string"', 200));
+
+      expect(client.get('x'), throwsA(isA<ApiException>()));
+    });
+
+    test('throws ApiException on invalid JSON', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith('not json', 200));
+
+      expect(client.get('x'), throwsA(isA<ApiException>()));
     });
   });
 }

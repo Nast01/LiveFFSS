@@ -84,10 +84,19 @@ class HttpClient {
   }
 
   Map<String, dynamic> _decode(http.Response response) {
-    final dynamic body = jsonDecode(response.body);
-    if (body is! Map<String, dynamic>) {
-      throw const ApiException('Unexpected response shape');
+    final status = response.statusCode;
+
+    final dynamic body;
+    try {
+      body = jsonDecode(response.body);
+    } on FormatException catch (e) {
+      throw ApiException('Invalid JSON: ${e.message}', statusCode: status);
     }
+
+    if (body is! Map<String, dynamic>) {
+      throw ApiException('Unexpected response shape', statusCode: status);
+    }
+
     return body;
   }
 }
