@@ -81,4 +81,81 @@ void main() {
       expect((captured.single as Uri).queryParameters, {'a': 'kept'});
     });
   });
+
+  group('HttpClient headers', () {
+    test('always sends Content-Type: application/json; charset=UTF-8',
+        () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer(
+              (_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x');
+
+      final captured = verify(
+              () => httpMock.get(any(), headers: captureAny(named: 'headers')))
+          .captured;
+      final headers = captured.single as Map<String, String>;
+      expect(headers['Content-Type'], 'application/json; charset=UTF-8');
+    });
+
+    test('omits Authorization when no token', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => null);
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer(
+              (_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x');
+
+      final captured = verify(
+              () => httpMock.get(any(), headers: captureAny(named: 'headers')))
+          .captured;
+      final headers = captured.single as Map<String, String>;
+      expect(headers.containsKey('Authorization'), isFalse);
+    });
+
+    test('omits Authorization when token is empty string', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => '');
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer(
+              (_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x');
+
+      final captured = verify(
+              () => httpMock.get(any(), headers: captureAny(named: 'headers')))
+          .captured;
+      expect((captured.single as Map<String, String>).containsKey('Authorization'),
+          isFalse);
+    });
+
+    test('sends Authorization: Bearer <token> when token present', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer(
+              (_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x');
+
+      final captured = verify(
+              () => httpMock.get(any(), headers: captureAny(named: 'headers')))
+          .captured;
+      final headers = captured.single as Map<String, String>;
+      expect(headers['Authorization'], 'Bearer abc123');
+    });
+
+    test('token is NOT included as a query parameter', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer(
+              (_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x', query: {'a': 'b'});
+
+      final captured = verify(
+              () => httpMock.get(captureAny(), headers: any(named: 'headers')))
+          .captured;
+      final uri = captured.single as Uri;
+      expect(uri.queryParameters.containsKey('token'), isFalse);
+    });
+  });
 }
