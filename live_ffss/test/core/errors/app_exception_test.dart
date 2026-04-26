@@ -33,5 +33,22 @@ void main() {
       const e = NetworkException('x');
       expect(e, isA<Exception>());
     });
+
+    test('ApiException defaults statusCode and code to null', () {
+      const e = ApiException('bare');
+      expect(e.statusCode, isNull);
+      expect(e.code, isNull);
+    });
+
+    test('ApiException stores optional code', () {
+      const e = ApiException('Rate limited', code: 'E_RATE_LIMIT');
+      expect(e.code, 'E_RATE_LIMIT');
+      expect(const ApiException('x').code, isNull);
+    });
+
+    test('toString format is "<runtimeType>: <message>"', () {
+      const e = NetworkException('No internet');
+      expect(e.toString(), 'NetworkException: No internet');
+    });
   });
 }
