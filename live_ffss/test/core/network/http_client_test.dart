@@ -205,4 +205,50 @@ void main() {
       expect(client.get('x'), throwsA(isA<ApiException>()));
     });
   });
+
+  group('HttpClient API errors', () {
+    test('throws ApiException on 2xx with success: false', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith(
+              '{"success": false, "message": "Bad input"}', 200));
+
+      expect(
+        client.get('x'),
+        throwsA(isA<ApiException>().having(
+            (e) => e.message, 'message', contains('Bad input'))),
+      );
+    });
+
+    test('throws ApiException with statusCode on 4xx', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith(
+              '{"success": false, "message": "Not found"}', 404));
+
+      expect(
+        client.get('x'),
+        throwsA(isA<ApiException>().having(
+            (e) => e.statusCode, 'statusCode', 404)),
+      );
+    });
+
+    test('throws ApiException on 5xx even with non-JSON body', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async =>
+              responseWith('<html>Internal Server Error</html>', 500));
+
+      expect(
+        client.get('x'),
+        throwsA(isA<ApiException>().having(
+            (e) => e.statusCode, 'statusCode', 500)),
+      );
+    });
+
+    test('throws AuthException on 401', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith(
+              '{"success": false, "message": "Token expired"}', 401));
+
+      expect(client.get('x'), throwsA(isA<AuthException>()));
+    });
+  });
 }

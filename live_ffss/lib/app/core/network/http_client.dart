@@ -86,6 +86,17 @@ class HttpClient {
   Map<String, dynamic> _decode(http.Response response) {
     final status = response.statusCode;
 
+    if (status == 401) {
+      throw AuthException(_extractMessage(response.body) ?? 'Unauthorized');
+    }
+
+    if (status >= 400) {
+      throw ApiException(
+        _extractMessage(response.body) ?? 'HTTP $status',
+        statusCode: status,
+      );
+    }
+
     final dynamic body;
     try {
       body = jsonDecode(response.body);
@@ -97,6 +108,27 @@ class HttpClient {
       throw ApiException('Unexpected response shape', statusCode: status);
     }
 
+    if (body['success'] == false) {
+      throw ApiException(
+        body['message']?.toString() ?? 'API returned success: false',
+        statusCode: status,
+        code: body['code']?.toString(),
+      );
+    }
+
     return body;
+  }
+
+  String? _extractMessage(String rawBody) {
+    try {
+      final dynamic decoded = jsonDecode(rawBody);
+      if (decoded is Map<String, dynamic>) {
+        final msg = decoded['message'];
+        if (msg is String) return msg;
+      }
+    } on FormatException {
+      // Body wasn't JSON. Fall through.
+    }
+    return null;
   }
 }
