@@ -14,11 +14,13 @@
 
 1. **HttpClient return type:** spec §7 says "return `data` if present, else full body." During planning I noticed the `me` endpoint puts `label`/`type` at the top level *and* nested data under `data`, so unwrapping `data` would lose information. **Refinement:** `HttpClient` returns the full decoded `Map<String, dynamic>` body after envelope validation; datasources extract what they need. Spec amended below in this plan; the design doc remains as-is — the difference is small.
 
-2. **Lint tightening deferred.** Spec §10 lists `prefer_const_constructors`, `prefer_single_quotes`, `unnecessary_lambdas`, `avoid_print`. Adding these now would explode `flutter analyze` against the existing legacy code (4,000+ LOC of double-quoted strings, etc.) and Batch 0 is supposed to be "no behavior change." We only drop the `sized_box_for_whitespace: ignore` override here. Full lint tightening is **moved to Batch 6 (Demolition)**, where existing code is being deleted/rewritten anyway.
+2. **Lint tightening deferred.** Spec §10 lists `prefer_const_constructors`, `prefer_single_quotes`, `unnecessary_lambdas`, `avoid_print`. Adding these now — along with `strict-casts: true` / `strict-raw-types: true` — would explode `flutter analyze` against the existing legacy code (4,000+ LOC of double-quoted strings; ~230 dynamic→typed coercions in `fromJson` factories) and Batch 0 is supposed to be "no behavior change." We only drop the `sized_box_for_whitespace: ignore` override here. Full lint tightening (including `strict-casts`) is **moved to Batch 6 (Demolition)**, where existing models will have been replaced by typed DTOs and the rest of the legacy code is being deleted anyway.
 
-3. **No empty folder creation.** Dart doesn't track empty dirs. Folders appear naturally when files are added in Batches 1+.
+3. **Package version pins.** The plan was originally written against Dart 3.5+ / `meta ^1.14.0`. The host runs Flutter 3.22.2 / Dart 3.4.3 / `meta 1.12.0`, so two devDeps are pinned lower: `build_runner: ^2.4.8` (instead of `^2.4.13`, which requires Dart `>=3.5.0`) and `freezed: ^2.5.2` (instead of `^2.5.7`, which requires `meta ^1.14.0`). Functionality unaffected.
 
-4. **`InitialBinding` not wired into `main.dart` yet.** Batch 0 builds it; Batch 1 wires it in alongside the auth migration.
+4. **No empty folder creation.** Dart doesn't track empty dirs. Folders appear naturally when files are added in Batches 1+.
+
+5. **`InitialBinding` not wired into `main.dart` yet.** Batch 0 builds it; Batch 1 wires it in alongside the auth migration.
 
 ---
 
@@ -81,11 +83,11 @@ dependencies:
   json_annotation: ^4.9.0
 
 dev_dependencies:
-  build_runner: ^2.4.13
+  build_runner: ^2.4.8
   flutter_lints: ^3.0.0
   flutter_test:
     sdk: flutter
-  freezed: ^2.5.7
+  freezed: ^2.5.2
   json_serializable: ^6.8.0
   mocktail: ^1.0.4
 
@@ -108,15 +110,13 @@ Expected output: ends with `Got dependencies!` and lists the new packages (`mock
 Replace the file with:
 
 ```yaml
-analyzer:
-  language:
-    strict-casts: true
-    strict-raw-types: true
 include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
 ```
+
+(We're only dropping the legacy `sized_box_for_whitespace: ignore` override. `strict-casts` / `strict-raw-types` and the stricter style lints all move to Batch 6, after typed DTOs replace the dynamic-heavy `fromJson` factories — see "Notes & deviations" §2 above.)
 
 - [ ] **Step 4: Verify analyzer still passes existing code**
 
