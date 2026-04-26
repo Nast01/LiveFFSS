@@ -23,27 +23,27 @@ class HttpClient {
   Future<Map<String, dynamic>> get(
     String path, {
     Map<String, dynamic>? query,
-  }) async {
-    final uri = _buildUri(path, query);
-    final headers = await _buildHeaders();
-    return _send(() => _inner.get(uri, headers: headers));
-  }
+  }) =>
+      _send(() async {
+        final uri = _buildUri(path, query);
+        final headers = await _buildHeaders();
+        return _inner.get(uri, headers: headers);
+      });
 
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? query,
     Object? body,
-  }) async {
-    final uri = _buildUri(path, query);
-    final headers = await _buildHeaders();
-    return _send(
-      () => _inner.post(
-        uri,
-        headers: headers,
-        body: body == null ? null : jsonEncode(body),
-      ),
-    );
-  }
+  }) =>
+      _send(() async {
+        final uri = _buildUri(path, query);
+        final headers = await _buildHeaders();
+        return _inner.post(
+          uri,
+          headers: headers,
+          body: body == null ? null : jsonEncode(body),
+        );
+      });
 
   Future<Map<String, dynamic>> _send(
       Future<http.Response> Function() request) async {
@@ -76,16 +76,7 @@ class HttpClient {
     return filtered.isEmpty ? uri : uri.replace(queryParameters: filtered);
   }
 
-  String _trimSlashes(String s) {
-    var out = s;
-    while (out.startsWith('/')) {
-      out = out.substring(1);
-    }
-    while (out.endsWith('/')) {
-      out = out.substring(0, out.length - 1);
-    }
-    return out;
-  }
+  String _trimSlashes(String s) => s.replaceAll(RegExp(r'^/+|/+$'), '');
 
   Future<Map<String, String>> _buildHeaders() async {
     final headers = {

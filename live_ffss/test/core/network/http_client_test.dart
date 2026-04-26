@@ -286,4 +286,64 @@ void main() {
       expect(client.get('x'), throwsA(isA<UnknownException>()));
     });
   });
+
+  group('HttpClient.post', () {
+    test('builds URI and sends JSON-encoded body', () async {
+      when(() => httpMock.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenAnswer(
+              (_) async => responseWith('{"success": true}', 200));
+
+      await client.post('competition/evenement', body: {'name': 'X'});
+
+      final captured = verify(() => httpMock.post(
+            captureAny(),
+            headers: any(named: 'headers'),
+            body: captureAny(named: 'body'),
+          )).captured;
+      expect(captured[0],
+          Uri.parse('https://example.test/api/v1.0/competition/evenement'));
+      expect(captured[1], '{"name":"X"}');
+    });
+
+    test('sends null body when none provided', () async {
+      when(() => httpMock.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenAnswer(
+              (_) async => responseWith('{"success": true}', 201));
+
+      await client.post('x');
+
+      final captured = verify(() => httpMock.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: captureAny(named: 'body'),
+          )).captured;
+      expect(captured.single, isNull);
+    });
+
+    test('decodes 2xx success response identically to get', () async {
+      when(() => httpMock.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenAnswer(
+              (_) async => responseWith('{"success": true, "id": 7}', 200));
+
+      final body = await client.post('x', body: {'k': 'v'});
+      expect(body['id'], 7);
+    });
+  });
+
+  group('HttpClient TokenStorage failures', () {
+    test('TokenStorage exception is wrapped as UnknownException', () async {
+      when(() => tokens.getToken()).thenThrow(StateError('keystore broken'));
+
+      expect(client.get('x'), throwsA(isA<UnknownException>()));
+    });
+  });
 }
