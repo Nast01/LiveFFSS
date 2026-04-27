@@ -3,29 +3,62 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/core/config/app_config.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
+import 'package:live_ffss/app/core/services/language_service.dart';
+import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
+import 'package:live_ffss/app/data/repositories/auth_repository.dart';
+import 'package:live_ffss/app/data/services/api_service.dart';
+import 'package:live_ffss/app/data/services/user_service.dart';
 
 class InitialBinding {
   InitialBinding._();
 
   static Future<void> register() async {
+    // 1. Config
     Get.put<AppConfig>(AppConfig.fromEnv(), permanent: true);
 
+    // 2. Storage
     Get.put<FlutterSecureStorage>(
       const FlutterSecureStorage(),
       permanent: true,
     );
-
     Get.put<TokenStorage>(
       TokenStorage(Get.find<FlutterSecureStorage>()),
       permanent: true,
     );
 
+    // 3. HTTP
     Get.put<HttpClient>(
       HttpClient(
         config: Get.find<AppConfig>(),
         tokenStorage: Get.find<TokenStorage>(),
       ),
       permanent: true,
+    );
+
+    // 4. Auth data layer
+    Get.put<AuthRemoteDataSource>(
+      AuthRemoteDataSourceImpl(Get.find<HttpClient>()),
+      permanent: true,
+    );
+    Get.put<AuthRepository>(
+      AuthRepositoryImpl(
+        dataSource: Get.find<AuthRemoteDataSource>(),
+        tokenStorage: Get.find<TokenStorage>(),
+        secureStorage: Get.find<FlutterSecureStorage>(),
+      ),
+      permanent: true,
+    );
+
+    // Transitional: legacy ApiService stays alive until per-domain data
+    // sources replace it in Batches 3-5.
+    Get.put<ApiService>(ApiService(), permanent: true);
+
+    // 5. Long-lived state holders (depend on the auth repo)
+    await Get.putAsync<UserService>(
+      () async => UserService(Get.find<AuthRepository>()).init(),
+    );
+    await Get.putAsync<LanguageService>(
+      () async => LanguageService().init(),
     );
   }
 }
