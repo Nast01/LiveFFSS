@@ -1,7 +1,8 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:live_ffss/app/data/models/competition_model.dart';
+import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/presentation/modules/home/competition_formatting.dart';
 import '../controllers/home_controller.dart';
 import '../../auth/views/user_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/language_selector.dart';
@@ -108,21 +109,21 @@ class HomeView extends GetView<HomeController> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          _buildFilterTab('all'.tr),
+          _buildFilterTab('all'.tr, HomeFilter.all),
           const SizedBox(width: 10),
-          _buildFilterTab('swimming'.tr),
+          _buildFilterTab('swimming'.tr, HomeFilter.pool),
           const SizedBox(width: 10),
-          _buildFilterTab('beach'.tr),
+          _buildFilterTab('beach'.tr, HomeFilter.coastal),
         ],
       ),
     );
   }
 
-  Widget _buildFilterTab(String label) {
+  Widget _buildFilterTab(String label, HomeFilter filter) {
     return Obx(() {
-      final isActive = controller.selectedFilter.value == label;
+      final isActive = controller.selectedFilter.value == filter;
       return GestureDetector(
-        onTap: () => controller.setFilter(label),
+        onTap: () => controller.setFilter(filter),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
@@ -197,7 +198,8 @@ class HomeView extends GetView<HomeController> {
     });
   }
 
-  Widget _buildCarouselItem(CompetitionModel competition) {
+  Widget _buildCarouselItem(Competition competition) {
+    final isOnGoing = competition.phase == CompetitionStatus.onGoing;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 5.0),
@@ -242,7 +244,7 @@ class HomeView extends GetView<HomeController> {
                   ),
                 ),
               ),
-              if (competition.competitionStatus == 'EN COURS')
+              if (isOnGoing)
                 Positioned(
                   bottom: 10,
                   right: 10,
@@ -250,11 +252,11 @@ class HomeView extends GetView<HomeController> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: competition.competitionStatusColor,
+                      color: competition.phaseColor,
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: Text(
-                      competition.competitionStatus,
+                      competition.phaseLabel,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -325,20 +327,20 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildImagePlaceholder(CompetitionModel competition) {
-    if (competition.organizerClub.hasLogo) {
-      return Container(
+  Widget _buildImagePlaceholder(Competition competition) {
+    final logoUrl = competition.organizerClub.logoUrl;
+    if (logoUrl != null && logoUrl.isNotEmpty) {
+      return SizedBox(
         width: double.infinity,
         height: 60,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8.0),
           child: Image.network(
-            competition.organizerClub.logoUrl!,
+            logoUrl,
             width: 60,
             height: 60,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
-              // Fallback to icon if image fails to load
               return Container(
                 height: 100,
                 color: const Color(0xFFE1E8F0),
@@ -365,7 +367,6 @@ class HomeView extends GetView<HomeController> {
         ),
       );
     } else {
-      // Display default icon when logoUrl is null or empty
       return Container(
         height: 100,
         color: const Color(0xFFE1E8F0),
@@ -378,18 +379,6 @@ class HomeView extends GetView<HomeController> {
         ),
       );
     }
-
-    // return Container(
-    //   height: 100,
-    //   color: const Color(0xFFE1E8F0),
-    //   child: const Center(
-    //     child: Icon(
-    //       Icons.image,
-    //       color: Colors.white,
-    //       size: 40,
-    //     ),
-    //   ),
-    // );
   }
 
   Widget _buildCompetitionsList() {
@@ -450,7 +439,7 @@ class HomeView extends GetView<HomeController> {
     });
   }
 
-  Widget _buildCompetitionListItem(CompetitionModel competition) {
+  Widget _buildCompetitionListItem(Competition competition) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       decoration: BoxDecoration(
@@ -544,7 +533,7 @@ class HomeView extends GetView<HomeController> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      competition.entryStatus,
+                      competition.entryStatusLabel,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,

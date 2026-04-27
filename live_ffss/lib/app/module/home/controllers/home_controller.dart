@@ -1,20 +1,30 @@
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/enum/enum.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
-import 'package:live_ffss/app/data/models/competition_model.dart';
-import 'package:live_ffss/app/data/services/api_service.dart';
+import 'package:live_ffss/app/data/repositories/competition_repository.dart';
+import 'package:live_ffss/app/data/services/user_service.dart';
+import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
-import '../../../data/services/user_service.dart';
+
+enum HomeFilter { all, coastal, pool, mixed }
 
 class HomeController extends GetxController {
-  final UserService _userService = Get.find<UserService>();
-  final LanguageService _languageService = Get.find<LanguageService>();
-  final ApiService _apiService = Get.find<ApiService>();
-  final RxList<CompetitionModel> competitions = <CompetitionModel>[].obs;
+  HomeController(
+    this._competitionRepo,
+    this._userService,
+    this._languageService,
+  );
+
+  final CompetitionRepository _competitionRepo;
+  final UserService _userService;
+  final LanguageService _languageService;
+
+  final RxList<Competition> competitions = <Competition>[].obs;
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
   final RxInt displayedItems = 3.obs;
-  final RxString selectedFilter = 'all'.tr.obs;
+  final Rx<HomeFilter> selectedFilter = HomeFilter.all.obs;
 
   @override
   void onInit() {
@@ -26,94 +36,65 @@ class HomeController extends GetxController {
     try {
       isLoading.value = true;
       hasError.value = false;
-
-      // In a real app, you would use the API
-      // final response = await http.get(Uri.parse(apiUrl));
-      // if (response.statusCode == 200) {
-      //   final List<dynamic> data = json.decode(response.body);
-      //   final loadedCompetitions = data.map((json) => Competition.fromJson(json)).toList();
-
-      final loadedCompetitions = await _apiService.getAllCompetitions(
-          type: CompetitionType.mixte,
-          visibility: CompetitionVisibility.passed);
-
-      // Sort competitions by begin date and then by name
-      loadedCompetitions.sort((a, b) {
-        final dateComparison =
-            (a.beginDate ?? DateTime(0)).compareTo(b.beginDate ?? DateTime(0));
-        if (dateComparison != 0) {
-          return dateComparison;
-        }
+      final loaded = await _competitionRepo.getAllCompetitions(
+        type: CompetitionType.mixte,
+        visibility: CompetitionVisibility.passed,
+      );
+      loaded.sort((a, b) {
+        final dateComparison = (a.beginDate ?? DateTime(0))
+            .compareTo(b.beginDate ?? DateTime(0));
+        if (dateComparison != 0) return dateComparison;
         return a.name.compareTo(b.name);
       });
-
-      competitions.value = loadedCompetitions;
-      isLoading.value = false;
-    } catch (e) {
+      competitions.value = loaded;
+    } on AppException {
       hasError.value = true;
+    } finally {
       isLoading.value = false;
     }
   }
 
   void loadMore() {
-    final maxItems = competitions.length - 5;
+    final maxItems = listCompetitions.length;
     if (displayedItems.value < maxItems) {
-      displayedItems.value += 3;
-      if (displayedItems.value > maxItems) {
-        displayedItems.value = maxItems;
-      }
+      displayedItems.value =
+          (displayedItems.value + 3).clamp(0, maxItems);
     }
   }
 
-  void setFilter(String filter) {
+  void setFilter(HomeFilter filter) {
     selectedFilter.value = filter;
-    // In a real app, you would filter competitions here
-    // For now, we just update the filter selection
   }
 
-  List<CompetitionModel> get carouselCompetitions =>
+  List<Competition> get carouselCompetitions =>
       competitions.take(5).toList();
 
-  List<CompetitionModel> get listCompetitions =>
+  List<Competition> get listCompetitions =>
       competitions.length > 5 ? competitions.skip(5).toList() : [];
 
-  List<CompetitionModel> get displayedListCompetitions =>
+  List<Competition> get displayedListCompetitions =>
       listCompetitions.take(displayedItems.value).toList();
 
   bool get hasMoreToLoad => displayedItems.value < listCompetitions.length;
 
-  Rx<bool> get isLoggedIn {
-    if (_userService.currentUser.value != null) {
-      return true.obs;
-    } else {
-      return false.obs;
-    }
-  }
+  bool get isLoggedIn => _userService.isLoggedIn;
 
-  void navigateToCompetitionDetails(CompetitionModel competition) {
-    // In a real app, you would navigate to the competition details page
+  void navigateToCompetitionDetails(Competition competition) {
     Get.toNamed(Routes.competitionDetail, arguments: competition);
   }
 
   RxString get appTitle => 'app_title'.tr.obs;
 
-  // Current language
   RxString get currentLanguage => _languageService.currentLanguage;
 
   void changeLanguage(String languageCode) {
     _languageService.changeLanguage(languageCode);
   }
 
-  // Add method to handle refresh after logout
   void refreshAfterLogout() {
-    // Reset any user-specific data
     displayedItems.value = 3;
-    selectedFilter.value = 'TOUS';
-
-    // Reload competitions if needed
+    selectedFilter.value = HomeFilter.all;
     loadCompetitions();
-
-    // Force UI update
     update();
   }
 }
