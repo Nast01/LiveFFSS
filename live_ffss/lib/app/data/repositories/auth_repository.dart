@@ -1,37 +1,84 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:get/get.dart';
-import '../models/user_model.dart';
-import '../providers/auth_provider.dart';
+import 'package:live_ffss/app/core/network/token_storage.dart';
+import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
+import 'package:live_ffss/app/data/mappers/user_mapper.dart';
+import 'package:live_ffss/app/domain/models/user.dart';
 
-class AuthRepository {
-  final AuthProvider _authProvider = AuthProvider();
-  final FlutterSecureStorage _storage = Get.find<FlutterSecureStorage>();
+abstract class AuthRepository {
+  Future<User> login({required String login, required String password});
+  Future<void> logout();
+  Future<User?> restoreSession();
+  Stream<User?> get userStream;
+}
 
-  Future<UserModel?> login(String id, String password) async {
-    final user = await _authProvider.login(id, password);
+class AuthRepositoryImpl implements AuthRepository {
+  AuthRepositoryImpl({
+    required AuthRemoteDataSource dataSource,
+    required TokenStorage tokenStorage,
+    required FlutterSecureStorage secureStorage,
+  })  : _dataSource = dataSource,
+        _tokenStorage = tokenStorage,
+        _secureStorage = secureStorage;
 
-    // Store user data securely
-    await _storage.write(key: 'token', value: user?.token);
-    await _storage.write(
-        key: 'tokenExpirationDate',
-        value: user?.tokenExpirationDate.toString());
-    await _storage.write(key: 'label', value: user?.label);
-    await _storage.write(key: 'type', value: user?.type);
-    await _storage.write(key: 'role', value: user?.role);
-    await _storage.write(key: 'lastName', value: user?.lastName);
-    await _storage.write(key: 'firstName', value: user?.firstName);
-    await _storage.write(key: 'number', value: user?.number);
-    await _storage.write(key: 'club', value: user?.club);
+  static const _userKey = 'user';
 
+  final AuthRemoteDataSource _dataSource;
+  final TokenStorage _tokenStorage;
+  final FlutterSecureStorage _secureStorage;
+  final StreamController<User?> _userController =
+      StreamController<User?>.broadcast();
+
+  @override
+  Stream<User?> get userStream => _userController.stream;
+
+  @override
+  Future<User> login({
+    required String login,
+    required String password,
+  }) async {
+    final tokenDto =
+        await _dataSource.requestToken(login: login, password: password);
+    await _tokenStorage.setToken(tokenDto.token);
+
+    final userDto = await _dataSource.getCurrentUser();
+    final user = userDto.toDomain(
+      token: tokenDto.token,
+      tokenExpiration: DateTime.parse(tokenDto.expiration),
+    );
+
+    await _secureStorage.write(
+      key: _userKey,
+      value: jsonEncode(user.toJson()),
+    );
+    _userController.add(user);
     return user;
   }
 
+  @override
   Future<void> logout() async {
-    await _storage.deleteAll();
+    await _tokenStorage.clearToken();
+    await _secureStorage.delete(key: _userKey);
+    _userController.add(null);
   }
 
-  Future<bool> isLoggedIn() async {
-    final token = await _storage.read(key: 'token');
-    return token != null;
+  @override
+  Future<User?> restoreSession() async {
+    final raw = await _secureStorage.read(key: _userKey);
+    if (raw == null || raw.isEmpty) return null;
+
+    final json = jsonDecode(raw) as Map<String, dynamic>;
+    final user = User.fromJson(json);
+
+    if (user.tokenExpiration.isBefore(DateTime.now().toUtc())) {
+      // Token expired — clean up so we don't hand back a stale session.
+      await _tokenStorage.clearToken();
+      await _secureStorage.delete(key: _userKey);
+      return null;
+    }
+
+    return user;
   }
 }
