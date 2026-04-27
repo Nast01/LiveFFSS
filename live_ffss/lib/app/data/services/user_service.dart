@@ -1,63 +1,33 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:async';
+
 import 'package:get/get.dart';
-import '../models/user_model.dart';
+import 'package:live_ffss/app/data/repositories/auth_repository.dart';
+import 'package:live_ffss/app/domain/models/user.dart';
 
 class UserService extends GetxService {
-  final FlutterSecureStorage _storage = Get.find<FlutterSecureStorage>();
+  UserService(this._auth);
 
-  final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
+  final AuthRepository _auth;
+  final Rx<User?> currentUser = Rx<User?>(null);
+  StreamSubscription<User?>? _sub;
 
   Future<UserService> init() async {
-    // Check if user is already logged in
-    await checkUserSession();
+    currentUser.value = await _auth.restoreSession();
+    _sub = _auth.userStream.listen((user) => currentUser.value = user);
     return this;
   }
 
-  Future<void> checkUserSession() async {
-    try {
-      final token = await _storage.read(key: 'token');
-
-      if (token != null) {
-        final tokenExpirationDate =
-            await _storage.read(key: 'tokenExpirationDate') ?? '';
-        final label = await _storage.read(key: 'label') ?? '';
-        final type = await _storage.read(key: 'type') ?? '';
-        final role = await _storage.read(key: 'role') ?? '';
-        final lastName = await _storage.read(key: 'lastName') ?? '';
-        final firstName = await _storage.read(key: 'firstName') ?? '';
-        final number = await _storage.read(key: 'number') ?? '';
-        final club = await _storage.read(key: 'club') ?? '';
-
-        currentUser.value = UserModel(
-          token: token,
-          tokenExpirationDate: DateTime.parse(tokenExpirationDate),
-          label: label,
-          type: type,
-          role: role,
-          lastName: lastName,
-          firstName: firstName,
-          number: number,
-          club: club,
-        );
-      }
-    } catch (e) {
-      // Handle error or just reset currentUser
-      currentUser.value = null;
-    }
-  }
-
-  void setCurrentUser(UserModel user) {
-    currentUser.value = user;
-  }
-
-  void clearCurrentUser() {
-    currentUser.value = null;
+  @override
+  void onClose() {
+    _sub?.cancel();
+    super.onClose();
   }
 
   bool get isLoggedIn => currentUser.value != null;
 
   String? get userFirstLetter {
-    if (!isLoggedIn || currentUser.value!.label.isEmpty) return null;
-    return currentUser.value!.label[0].toUpperCase();
+    final u = currentUser.value;
+    if (u == null || u.label.isEmpty) return null;
+    return u.label[0].toUpperCase();
   }
 }
