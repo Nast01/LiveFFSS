@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/data/dtos/competition_dto.dart';
 import 'package:live_ffss/app/data/mappers/competition_mapper.dart';
-import 'package:live_ffss/app/domain/models/competition.dart';
 
 void main() {
   group('CompetitionMapper', () {
