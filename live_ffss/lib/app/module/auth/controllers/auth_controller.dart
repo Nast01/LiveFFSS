@@ -1,80 +1,43 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:live_ffss/app/module/home/controllers/home_controller.dart';
-import '../../../data/repositories/auth_repository.dart';
-import '../../../routes/app_pages.dart';
-import '../../../data/services/user_service.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/data/repositories/auth_repository.dart';
+import 'package:live_ffss/app/domain/models/user.dart';
+
+enum AuthEvent { loggedIn, loggedOut }
 
 class AuthController extends GetxController {
-  final AuthRepository _authRepository = AuthRepository();
-  final UserService _userService = Get.find<UserService>();
+  AuthController(this._auth);
 
-  final idController = TextEditingController();
-  final passwordController = TextEditingController();
+  final AuthRepository _auth;
 
-  final formKey = GlobalKey<FormState>();
+  final Rxn<User> user = Rxn<User>();
+  final RxBool isLoading = false.obs;
+  final Rxn<AppException> error = Rxn<AppException>();
+  final Rxn<AuthEvent> event = Rxn<AuthEvent>();
 
-  final isLoading = false.obs;
-  final errorMessage = ''.obs;
-
-  @override
-  void onClose() {
-    idController.dispose();
-    passwordController.dispose();
-    super.onClose();
-  }
-
-  Future<void> login() async {
-    if (formKey.currentState!.validate()) {
-      try {
-        isLoading.value = true;
-        errorMessage.value = '';
-
-        final user = await _authRepository.login(
-          idController.text.trim(),
-          passwordController.text,
-        );
-
-        // Update user service with current user
-        _userService.setCurrentUser(user!);
-
-        // Navigate to home page
-        Get.offAllNamed(Routes.home);
-        _refreshDependentControllers();
-      } catch (e) {
-        errorMessage.value = e.toString();
-      } finally {
-        isLoading.value = false;
-      }
+  Future<void> login({
+    required String login,
+    required String password,
+  }) async {
+    isLoading.value = true;
+    error.value = null;
+    try {
+      user.value = await _auth.login(login: login, password: password);
+      event.value = AuthEvent.loggedIn;
+    } on AppException catch (e) {
+      error.value = e;
+    } finally {
+      isLoading.value = false;
     }
   }
 
   Future<void> logout() async {
     try {
-      await _authRepository.logout();
-      _userService.clearCurrentUser();
-      Get.offAllNamed(Routes.home);
-    } catch (e) {
-      Get.snackbar('error'.tr, 'logout_error'.tr);
+      await _auth.logout();
+      user.value = null;
+      event.value = AuthEvent.loggedOut;
+    } on AppException catch (e) {
+      error.value = e;
     }
-  }
-
-  Future<void> checkLoginStatus() async {
-    await _userService.checkUserSession();
-  }
-
-  void _refreshDependentControllers() {
-    // Refresh HomeController if it's registered
-    if (Get.isRegistered<HomeController>()) {
-      try {
-        final homeController = Get.find<HomeController>();
-        homeController.refreshAfterLogout();
-      } catch (e) {
-        // Ignore if HomeController refresh fails
-      }
-    }
-
-    // Force update the UI
-    Get.forceAppUpdate();
   }
 }
