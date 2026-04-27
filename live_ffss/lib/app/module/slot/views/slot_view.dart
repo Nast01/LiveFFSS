@@ -5,6 +5,10 @@ import 'package:live_ffss/app/data/models/live_result_model.dart';
 import 'package:live_ffss/app/data/models/run_model.dart';
 import 'package:live_ffss/app/data/models/slot_model.dart';
 import 'package:live_ffss/app/module/slot/controllers/slot_controller.dart';
+import 'package:live_ffss/app/presentation/shared/empty_state.dart';
+import 'package:live_ffss/app/presentation/shared/error_state.dart';
+import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
+import 'package:live_ffss/app/presentation/shared/status_badge.dart';
 
 class SlotView extends GetView<SlotController> {
   const SlotView({super.key});
@@ -152,30 +156,13 @@ class SlotView extends GetView<SlotController> {
   Widget _buildAthletesContent() {
     return Obx(() {
       if (controller.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
+        return const LoadingIndicator();
       }
 
       if (controller.allAthletes.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.people_outline,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'no_athletes_found'.tr,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
+        return EmptyState(
+          icon: Icons.people_outline,
+          title: 'no_athletes_found'.tr,
         );
       }
 
@@ -337,26 +324,9 @@ class SlotView extends GetView<SlotController> {
   }
 
   Widget _buildEmptyRunsView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.event_busy,
-            size: 64,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'no_runs_available'.tr,
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+    return EmptyState(
+      icon: Icons.event_busy,
+      title: 'no_runs_available'.tr,
     );
   }
 
@@ -373,31 +343,13 @@ class SlotView extends GetView<SlotController> {
   Widget _buildRunTab(RunModel run, int runIndex) {
     return Obx(() {
       if (controller.isLoading.value) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
+        return const LoadingIndicator();
       }
 
       if (controller.hasError.value) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'error_loading_results'.tr,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.red,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: controller.refreshResults,
-                child: Text('retry'.tr),
-              ),
-            ],
-          ),
+        return ErrorState(
+          message: 'error_loading_results'.tr,
+          onRetry: controller.refreshResults,
         );
       }
 
@@ -469,21 +421,9 @@ class SlotView extends GetView<SlotController> {
                   ),
                 ),
               ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(run.status),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  run.localizedStatus,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              StatusBadge(
+                label: run.localizedStatus,
+                color: _getStatusColor(run.status),
               ),
             ],
           ),
@@ -532,34 +472,10 @@ class SlotView extends GetView<SlotController> {
       final results = controller.runResults[runIndex] ?? [];
 
       if (results.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.emoji_events_outlined,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'no_results_available'.tr,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'results_will_appear_here'.tr,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-              ),
-            ],
-          ),
+        return EmptyState(
+          icon: Icons.emoji_events_outlined,
+          title: 'no_results_available'.tr,
+          description: 'results_will_appear_here'.tr,
         );
       }
 

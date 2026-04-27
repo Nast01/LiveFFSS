@@ -5,6 +5,7 @@ import 'package:live_ffss/app/data/models/competition_model.dart';
 import '../controllers/home_controller.dart';
 import '../../auth/views/user_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/language_selector.dart';
+import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -56,7 +57,7 @@ class HomeView extends GetView<HomeController> {
         ],
       ),
       body: Obx(() => controller.isLoading.value
-          ? const Center(child: CircularProgressIndicator())
+          ? const LoadingIndicator()
           : controller.hasError.value
               ? _buildErrorView()
               : _buildContentView()),

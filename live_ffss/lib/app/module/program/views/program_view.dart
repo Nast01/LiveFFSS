@@ -4,6 +4,7 @@ import 'package:live_ffss/app/data/models/meeting_model.dart';
 import 'package:live_ffss/app/data/models/slot_model.dart';
 import 'package:live_ffss/app/module/program/controllers/program_controller.dart';
 import 'package:live_ffss/app/module/program/views/program_add_meeting_dialog.dart';
+import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
 class ProgramView extends GetView<ProgramController> {
@@ -45,9 +46,7 @@ class ProgramView extends GetView<ProgramController> {
         backgroundColor: Colors.white,
         body: Obx(() {
           if (controller.isLoading.value) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const LoadingIndicator();
           }
 
           if (controller.meetings.isEmpty) {

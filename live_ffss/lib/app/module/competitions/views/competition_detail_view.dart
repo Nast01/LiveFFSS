@@ -6,6 +6,7 @@ import 'package:live_ffss/app/module/competitions/views/competition_detail_home_
 import 'package:live_ffss/app/module/competitions/views/competition_detail_races_view.dart';
 import 'package:live_ffss/app/module/program/controllers/program_controller.dart';
 import 'package:live_ffss/app/module/program/views/program_view.dart';
+import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 
 class CompetitionDetailView extends GetView<CompetitionDetailController> {
   const CompetitionDetailView({super.key});
@@ -75,9 +76,7 @@ class CompetitionDetailView extends GetView<CompetitionDetailController> {
         ),
         body: Obx(() {
           if (controller.isLoading.value) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const LoadingIndicator();
           }
 
           return Column(

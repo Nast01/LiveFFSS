@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/data/models/athlete_model.dart';
 import 'package:live_ffss/app/data/models/club_model.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_clubs_controller.dart';
+import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 
 class CompetitionDetailClubsView
     extends GetView<CompetitionDetailClubsController> {
@@ -13,9 +14,7 @@ class CompetitionDetailClubsView
     return Obx(
       () {
         if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const LoadingIndicator();
         }
 
         if (controller.filteredClubs.isEmpty) {
