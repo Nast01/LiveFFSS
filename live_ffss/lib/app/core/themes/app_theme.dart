@@ -1,34 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:live_ffss/app/core/theme/app_colors.dart';
+import 'package:live_ffss/app/core/theme/app_radius.dart';
+import 'package:live_ffss/app/core/theme/app_spacing.dart';
 
 final ThemeData appThemeData = ThemeData(
   primarySwatch: Colors.blue,
   visualDensity: VisualDensity.adaptivePlatformDensity,
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
-    fillColor: Colors.grey[100],
+    fillColor: AppColors.surfaceMuted,
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: AppRadius.smRadius,
       borderSide: BorderSide.none,
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: Colors.grey[300]!),
+      borderRadius: AppRadius.smRadius,
+      borderSide: const BorderSide(color: AppColors.border),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: Colors.blue),
+      borderRadius: AppRadius.smRadius,
+      borderSide: const BorderSide(color: AppColors.primary),
     ),
     errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: Colors.red),
+      borderRadius: AppRadius.smRadius,
+      borderSide: const BorderSide(color: AppColors.statusError),
     ),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.md,
+      vertical: AppSpacing.md,
+    ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.smRadius),
       elevation: 0,
     ),
   ),
