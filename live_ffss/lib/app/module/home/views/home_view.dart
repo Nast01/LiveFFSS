@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/data/models/competition_model.dart';
 import '../controllers/home_controller.dart';
 import '../../auth/views/user_avatar.dart';
-import '../../../widgets/language_selector.dart';
+import 'package:live_ffss/app/presentation/shared/language_selector.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
