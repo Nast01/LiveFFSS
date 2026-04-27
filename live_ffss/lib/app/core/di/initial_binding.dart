@@ -5,7 +5,9 @@ import 'package:live_ffss/app/core/network/http_client.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
+import 'package:live_ffss/app/data/datasources/competition_remote_datasource.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
+import 'package:live_ffss/app/data/repositories/competition_repository.dart';
 import 'package:live_ffss/app/data/services/api_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 
@@ -49,11 +51,21 @@ class InitialBinding {
       permanent: true,
     );
 
+    // 5. Competition data layer
+    Get.put<CompetitionRemoteDataSource>(
+      CompetitionRemoteDataSourceImpl(Get.find<HttpClient>()),
+      permanent: true,
+    );
+    Get.put<CompetitionRepository>(
+      CompetitionRepositoryImpl(Get.find<CompetitionRemoteDataSource>()),
+      permanent: true,
+    );
+
     // Transitional: legacy ApiService stays alive until per-domain data
     // sources replace it in Batches 3-5.
     Get.put<ApiService>(ApiService(), permanent: true);
 
-    // 5. Long-lived state holders (depend on the auth repo)
+    // 6. Long-lived state holders (depend on the auth repo)
     await Get.putAsync<UserService>(
       () async => UserService(Get.find<AuthRepository>()).init(),
     );
