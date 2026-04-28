@@ -16,7 +16,6 @@ import 'package:live_ffss/app/data/repositories/competition_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/repositories/result_repository.dart';
-import 'package:live_ffss/app/data/services/api_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 
 class InitialBinding {
@@ -88,10 +87,6 @@ class InitialBinding {
       RaceRepositoryImpl(Get.find<RaceRemoteDataSource>()),
       permanent: true,
     );
-
-    // Transitional: legacy ApiService stays alive until per-domain data
-    // sources replace it in Batches 4b/5/6.
-    Get.put<ApiService>(ApiService(), permanent: true);
 
     // 5d. Meeting data layer
     Get.put<MeetingRemoteDataSource>(
