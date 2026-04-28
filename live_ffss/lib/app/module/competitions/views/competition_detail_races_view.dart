@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_races_controller.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 
 class CompetitionDetailRacesView
     extends GetView<CompetitionDetailRacesController> {
@@ -56,7 +57,7 @@ class CompetitionDetailRacesView
                   else
                     Column(
                       children: controller.filteredRaces.map((race) {
-                        return _buildRaceItem(race.label, race.raceType);
+                        return _buildRaceItem(race.label, race.specialityLabel);
                       }).toList(),
                     ),
                 ],
