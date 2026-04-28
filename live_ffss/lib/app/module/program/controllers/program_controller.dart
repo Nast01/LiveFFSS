@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:live_ffss/app/data/models/meeting_model.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
 class ProgramController extends GetxController {
@@ -14,7 +14,7 @@ class ProgramController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool hasError = false.obs;
   final RxBool isCreatingMeeting = false.obs;
-  final RxList<MeetingModel> meetings = <MeetingModel>[].obs;
+  final RxList<Meeting> meetings = <Meeting>[].obs;
   final Rxn<UiMessage> message = Rxn<UiMessage>();
 
   void setCompetition(Competition? newCompetition) {
@@ -79,15 +79,14 @@ class ProgramController extends GetxController {
 
     try {
       isCreatingMeeting.value = true;
-      final meeting = MeetingModel(
-        id: 0,
+      await _meetingRepo.createMeeting(
         name: name.trim(),
         description: description.trim(),
         date: date,
         beginHour: beginDateTime,
         endHour: endDateTime,
+        competitionId: competitionId,
       );
-      await _meetingRepo.createMeeting(meeting, competitionId);
       message.value = const UiMessageSuccess('meeting_created_successfully');
       await loadMeetings();
       return true;
@@ -99,7 +98,7 @@ class ProgramController extends GetxController {
     }
   }
 
-  Future<void> deleteMeeting(MeetingModel meeting) async {
+  Future<void> deleteMeeting(Meeting meeting) async {
     if (competition.value == null) return;
     try {
       final success = await _meetingRepo.deleteMeeting(meeting.id);

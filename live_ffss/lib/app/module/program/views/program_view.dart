@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:live_ffss/app/data/models/meeting_model.dart';
-import 'package:live_ffss/app/data/models/slot_model.dart';
+import 'package:live_ffss/app/domain/models/meeting.dart';
+import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/module/program/controllers/program_controller.dart';
 import 'package:live_ffss/app/module/program/views/program_add_meeting_dialog.dart';
+import 'package:live_ffss/app/presentation/modules/program/meeting_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
@@ -140,7 +141,7 @@ class _ProgramViewState extends State<ProgramView> {
     });
   }
 
-  Widget _buildExpandableMeetingCard(BuildContext context, MeetingModel meeting, int index) {
+  Widget _buildExpandableMeetingCard(BuildContext context, Meeting meeting, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
@@ -270,7 +271,7 @@ class _ProgramViewState extends State<ProgramView> {
     );
   }
 
-  Widget _buildSlotsSection(MeetingModel meeting) {
+  Widget _buildSlotsSection(Meeting meeting) {
     // Check if meeting has slots
     if (meeting.slots.isEmpty) {
       return Padding(
@@ -331,7 +332,7 @@ class _ProgramViewState extends State<ProgramView> {
     );
   }
 
-  Widget _buildSlotCard(SlotModel slot, int index) {
+  Widget _buildSlotCard(Slot slot, int index) {
     final bool hasRuns = slot.runs.isNotEmpty;
 
     return Container(
@@ -539,7 +540,7 @@ class _ProgramViewState extends State<ProgramView> {
     }
   }
 
-  void _onMenuSelected(String value, MeetingModel meeting) {
+  void _onMenuSelected(String value, Meeting meeting) {
     switch (value) {
       case 'edit':
         _editMeeting(meeting);
@@ -550,7 +551,7 @@ class _ProgramViewState extends State<ProgramView> {
     }
   }
 
-  void _editMeeting(MeetingModel meeting) {
+  void _editMeeting(Meeting meeting) {
     // Populate the form with existing meeting data
     // controller.populateFormWithMeeting(meeting);
 
@@ -561,7 +562,7 @@ class _ProgramViewState extends State<ProgramView> {
     // );
   }
 
-  void _deleteMeeting(MeetingModel meeting) {
+  void _deleteMeeting(Meeting meeting) {
     Get.dialog(
       AlertDialog(
         title: Text('delete_meeting'.tr),
