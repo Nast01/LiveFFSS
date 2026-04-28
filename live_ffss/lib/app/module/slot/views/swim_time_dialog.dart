@@ -100,7 +100,7 @@ class SwimmingTimesDialog extends GetView<SlotController> {
                                   if (result.entry?.athletes.isNotEmpty == true)
                                     Text(
                                       result.entry!.athletes
-                                          .map((a) => a.fullName)
+                                          .map((a) => '${a.firstName} ${a.lastName}')
                                           .join(' / '),
                                       style: const TextStyle(
                                         fontSize: 16,
