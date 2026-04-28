@@ -1,14 +1,16 @@
 import 'package:get/get.dart';
-import 'package:live_ffss/app/data/models/club_model.dart';
-import 'package:live_ffss/app/data/models/competition_model.dart';
-import 'package:live_ffss/app/data/services/api_service.dart';
+import 'package:live_ffss/app/data/repositories/club_repository.dart';
+import 'package:live_ffss/app/domain/models/club.dart';
+import 'package:live_ffss/app/domain/models/competition.dart';
 
 class CompetitionDetailClubsController extends GetxController {
-  final ApiService _apiService = Get.find<ApiService>();
+  CompetitionDetailClubsController(this._clubRepo);
 
-  Rxn<CompetitionModel> competition = Rxn<CompetitionModel>();
-  final RxList<ClubModel> allClubs = <ClubModel>[].obs;
-  final RxList<ClubModel> filteredClubs = <ClubModel>[].obs;
+  final ClubRepository _clubRepo;
+
+  Rxn<Competition> competition = Rxn<Competition>();
+  final RxList<Club> allClubs = <Club>[].obs;
+  final RxList<Club> filteredClubs = <Club>[].obs;
 
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
@@ -16,30 +18,28 @@ class CompetitionDetailClubsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-
-    // Get the competition from arguments
-    competition.value = Get.arguments as CompetitionModel;
-    loadClubs();
+    final arg = Get.arguments;
+    if (arg is Competition) {
+      competition.value = arg;
+      loadClubs(arg.id);
+    } else {
+      isLoading.value = false;
+    }
   }
 
-  Future<void> loadClubs() async {
+  Future<void> loadClubs(int competitionId) async {
     try {
       isLoading.value = true;
       hasError.value = false;
 
-      final loadedClubs =
-          await _apiService.getClubs(competition.value?.id ?? 0);
+      final loaded = await _clubRepo.getClubs(competitionId);
+      loaded.sort((a, b) => a.name.compareTo(b.name));
 
-      // Sort races by raceType and name
-      loadedClubs.sort((a, b) {
-        return a.name.compareTo(b.name);
-      });
-
-      allClubs.value = loadedClubs;
-      _applyClubFilter(); // Apply initial filter
-      isLoading.value = false;
-    } catch (e) {
+      allClubs.value = loaded;
+      _applyClubFilter();
+    } catch (_) {
       hasError.value = true;
+    } finally {
       isLoading.value = false;
     }
   }

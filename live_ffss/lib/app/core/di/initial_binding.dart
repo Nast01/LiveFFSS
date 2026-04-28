@@ -5,9 +5,13 @@ import 'package:live_ffss/app/core/network/http_client.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
+import 'package:live_ffss/app/data/datasources/club_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/competition_remote_datasource.dart';
+import 'package:live_ffss/app/data/datasources/race_remote_datasource.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
+import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/competition_repository.dart';
+import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/api_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 
@@ -61,11 +65,31 @@ class InitialBinding {
       permanent: true,
     );
 
+    // 6. Club data layer
+    Get.put<ClubRemoteDataSource>(
+      ClubRemoteDataSourceImpl(Get.find<HttpClient>()),
+      permanent: true,
+    );
+    Get.put<ClubRepository>(
+      ClubRepositoryImpl(Get.find<ClubRemoteDataSource>()),
+      permanent: true,
+    );
+
+    // 7. Race data layer
+    Get.put<RaceRemoteDataSource>(
+      RaceRemoteDataSourceImpl(Get.find<HttpClient>()),
+      permanent: true,
+    );
+    Get.put<RaceRepository>(
+      RaceRepositoryImpl(Get.find<RaceRemoteDataSource>()),
+      permanent: true,
+    );
+
     // Transitional: legacy ApiService stays alive until per-domain data
     // sources replace it in Batches 3-5.
     Get.put<ApiService>(ApiService(), permanent: true);
 
-    // 6. Long-lived state holders (depend on the auth repo)
+    // 8. Long-lived state holders (depend on the auth repo)
     await Get.putAsync<UserService>(
       () async => UserService(Get.find<AuthRepository>()).init(),
     );

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:live_ffss/app/data/models/athlete_model.dart';
-import 'package:live_ffss/app/data/models/club_model.dart';
+import 'package:live_ffss/app/data/mappers/club_mapper.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/club.dart';
+import 'package:live_ffss/app/domain/models/referee.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_clubs_controller.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 
@@ -42,7 +44,8 @@ class CompetitionDetailClubsView
         }
 
         return RefreshIndicator(
-          onRefresh: () => controller.loadClubs(),
+          onRefresh: () =>
+              controller.loadClubs(controller.competition.value?.id ?? 0),
           child: ListView.builder(
             itemCount: controller.filteredClubs.length,
             itemBuilder: (context, index) {
@@ -55,7 +58,7 @@ class CompetitionDetailClubsView
     );
   }
 
-  Widget buildClubCard(BuildContext context, ClubModel club) {
+  Widget buildClubCard(BuildContext context, Club club) {
     return Card(
       margin: const EdgeInsets.all(8),
       elevation: 4,
@@ -64,7 +67,7 @@ class CompetitionDetailClubsView
         leading: CircleAvatar(
           radius: 25,
           backgroundColor: Colors.grey[200],
-          child: club.logoUrl != null
+          child: club.hasLogo
               ? ClipOval(
                   child: Image.network(
                     club.logoUrl!,
@@ -136,30 +139,36 @@ class CompetitionDetailClubsView
     );
   }
 
-  Widget buildLicenseeTile(var licensee) {
-    bool isAthlete = licensee is AthleteModel;
+  Widget buildLicenseeTile(Object licensee) {
+    if (licensee is Athlete) {
+      return _buildAthleteTile(licensee);
+    } else if (licensee is Referee) {
+      return _buildRefereeTile(licensee);
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildAthleteTile(Athlete a) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 0),
       leading: CircleAvatar(
         radius: 20,
-        backgroundColor: isAthlete == true
-            ? Colors.green.withOpacity(0.2)
-            : Colors.orange.withOpacity(0.2),
-        child: Icon(
-          isAthlete == true ? Icons.pool : Icons.sports_score,
-          color: isAthlete == true ? Colors.green : Colors.orange,
+        backgroundColor: Colors.green.withOpacity(0.2),
+        child: const Icon(
+          Icons.pool,
+          color: Colors.green,
           size: 20,
         ),
       ),
       title: Text(
-        isAthlete == true ? licensee.fullName : licensee.fullNameWithLevel,
+        '${a.firstName} ${a.lastName}',
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
       ),
       // subtitle: Text(
-      //   'Licence: ${person.licenseNumber ?? 'N/A'}',
+      //   'Licence: ${a.licenseNumber ?? 'N/A'}',
       //   style: TextStyle(
       //     fontSize: 12,
       //     color: Colors.grey[600],
@@ -168,21 +177,67 @@ class CompetitionDetailClubsView
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: isAthlete == true
-              ? Colors.green.withOpacity(0.1)
-              : Colors.orange.withOpacity(0.1),
+          color: Colors.green.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isAthlete == true ? Colors.green : Colors.orange,
+            color: Colors.green,
             width: 1,
           ),
         ),
         child: Text(
-          isAthlete == true ? 'athlete_upper'.tr : 'referee_upper'.tr,
-          style: TextStyle(
+          'athlete_upper'.tr,
+          style: const TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.bold,
-            color: isAthlete == true ? Colors.green : Colors.orange,
+            color: Colors.green,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRefereeTile(Referee r) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 0),
+      leading: CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.orange.withOpacity(0.2),
+        child: const Icon(
+          Icons.sports_score,
+          color: Colors.orange,
+          size: 20,
+        ),
+      ),
+      title: Text(
+        '${r.firstName} ${r.lastName} (${r.level})',
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      // subtitle: Text(
+      //   'Licence: ${r.licenseNumber ?? 'N/A'}',
+      //   style: TextStyle(
+      //     fontSize: 12,
+      //     color: Colors.grey[600],
+      //   ),
+      // ),
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.orange.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.orange,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          'referee_upper'.tr,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: Colors.orange,
           ),
         ),
       ),
