@@ -1,30 +1,50 @@
-import 'package:live_ffss/app/data/models/meeting_model.dart';
-import 'package:live_ffss/app/data/services/api_service.dart';
+import 'package:intl/intl.dart';
+import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
+import 'package:live_ffss/app/data/mappers/meeting_mapper.dart';
+import 'package:live_ffss/app/domain/models/meeting.dart';
 
-/// Transitional shim around ApiService for the Program module.
-///
-/// Returns legacy [MeetingModel] — full domain migration of Meeting +
-/// Slot + Run is bundled with Batch 5's slot work. This file goes away
-/// when MeetingDto/Meeting domain land.
 abstract class MeetingRepository {
-  Future<List<MeetingModel>> getMeetings(int competitionId);
-  Future<bool?> createMeeting(MeetingModel meeting, int competitionId);
+  Future<List<Meeting>> getMeetings(int competitionId);
+  Future<bool> createMeeting({
+    required String name,
+    required String description,
+    required DateTime date,
+    required DateTime beginHour,
+    required DateTime endHour,
+    required int competitionId,
+  });
   Future<bool> deleteMeeting(int meetingId);
 }
 
 class MeetingRepositoryImpl implements MeetingRepository {
-  MeetingRepositoryImpl(this._api);
-
-  final ApiService _api;
-
-  @override
-  Future<List<MeetingModel>> getMeetings(int competitionId) =>
-      _api.getMeetings(competitionId);
+  MeetingRepositoryImpl(this._dataSource);
+  final MeetingRemoteDataSource _dataSource;
 
   @override
-  Future<bool?> createMeeting(MeetingModel meeting, int competitionId) =>
-      _api.createMeeting(meeting, competitionId);
+  Future<List<Meeting>> getMeetings(int competitionId) async {
+    final dtos = await _dataSource.getMeetings(competitionId);
+    return dtos.map((d) => d.toDomain()).toList();
+  }
 
   @override
-  Future<bool> deleteMeeting(int meetingId) => _api.deleteMeeting(meetingId);
+  Future<bool> createMeeting({
+    required String name,
+    required String description,
+    required DateTime date,
+    required DateTime beginHour,
+    required DateTime endHour,
+    required int competitionId,
+  }) =>
+      _dataSource.createMeeting(
+        name: name,
+        description: description,
+        dayIso: DateFormat('yyyy-MM-dd').format(date),
+        beginTime: DateFormat('HH:mm').format(beginHour),
+        endTime: DateFormat('HH:mm').format(endHour),
+        competitionId: competitionId,
+      );
+
+  @override
+  Future<bool> deleteMeeting(int meetingId) =>
+      _dataSource.deleteMeeting(meetingId);
 }

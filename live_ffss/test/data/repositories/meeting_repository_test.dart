@@ -1,53 +1,72 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:live_ffss/app/data/models/meeting_model.dart';
+import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
+import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
-import 'package:live_ffss/app/data/services/api_service.dart';
 import 'package:mocktail/mocktail.dart';
 
-class _MockApi extends Mock implements ApiService {}
-
-class _FakeMeeting extends Fake implements MeetingModel {}
+class _MockDataSource extends Mock implements MeetingRemoteDataSource {}
 
 void main() {
-  setUpAll(() {
-    registerFallbackValue(_FakeMeeting());
-  });
-
-  late _MockApi api;
+  late _MockDataSource ds;
   late MeetingRepository repo;
 
+  MeetingDto makeDto(int id) => MeetingDto(
+        id: id,
+        name: 'M$id',
+        description: '',
+        date: '2026-05-01',
+        beginHour: '10:00',
+        endHour: '12:00',
+      );
+
   setUp(() {
-    api = _MockApi();
-    repo = MeetingRepositoryImpl(api);
+    ds = _MockDataSource();
+    repo = MeetingRepositoryImpl(ds);
   });
 
-  group('MeetingRepository', () {
-    test('getMeetings forwards competitionId and returns list', () async {
-      when(() => api.getMeetings(any())).thenAnswer((_) async => []);
+  test('getMeetings forwards id and maps to domain', () async {
+    when(() => ds.getMeetings(any()))
+        .thenAnswer((_) async => [makeDto(1), makeDto(2)]);
+    final list = await repo.getMeetings(42);
+    expect(list.length, 2);
+    expect(list.first.id, 1);
+    verify(() => ds.getMeetings(42)).called(1);
+  });
 
-      final list = await repo.getMeetings(42);
+  test('createMeeting formats date/times and forwards', () async {
+    when(() => ds.createMeeting(
+          name: any(named: 'name'),
+          description: any(named: 'description'),
+          dayIso: any(named: 'dayIso'),
+          beginTime: any(named: 'beginTime'),
+          endTime: any(named: 'endTime'),
+          competitionId: any(named: 'competitionId'),
+        )).thenAnswer((_) async => true);
 
-      expect(list, isEmpty);
-      verify(() => api.getMeetings(42)).called(1);
-    });
+    final ok = await repo.createMeeting(
+      name: 'Test',
+      description: 'Desc',
+      date: DateTime(2026, 5, 1),
+      beginHour: DateTime(2026, 5, 1, 10, 30),
+      endHour: DateTime(2026, 5, 1, 11, 45),
+      competitionId: 99,
+    );
 
-    test('createMeeting forwards meeting + competitionId', () async {
-      final meeting = _FakeMeeting();
-      when(() => api.createMeeting(any(), any())).thenAnswer((_) async => true);
+    expect(ok, true);
+    verify(() => ds.createMeeting(
+          name: 'Test',
+          description: 'Desc',
+          dayIso: '2026-05-01',
+          beginTime: '10:30',
+          endTime: '11:45',
+          competitionId: 99,
+        )).called(1);
+  });
 
-      final result = await repo.createMeeting(meeting, 99);
-
-      expect(result, true);
-      verify(() => api.createMeeting(meeting, 99)).called(1);
-    });
-
-    test('deleteMeeting forwards meetingId', () async {
-      when(() => api.deleteMeeting(any())).thenAnswer((_) async => true);
-
-      final result = await repo.deleteMeeting(7);
-
-      expect(result, true);
-      verify(() => api.deleteMeeting(7)).called(1);
-    });
+  test('deleteMeeting forwards meetingId', () async {
+    when(() => ds.deleteMeeting(any())).thenAnswer((_) async => true);
+    final ok = await repo.deleteMeeting(7);
+    expect(ok, true);
+    verify(() => ds.deleteMeeting(7)).called(1);
   });
 }
