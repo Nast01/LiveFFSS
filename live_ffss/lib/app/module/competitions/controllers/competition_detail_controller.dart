@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
-import 'package:live_ffss/app/data/models/club_ranking.dart';
+import 'package:live_ffss/app/domain/models/club_ranking.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 
 class CompetitionDetailController extends GetxController {
