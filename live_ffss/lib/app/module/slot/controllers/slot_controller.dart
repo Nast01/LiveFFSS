@@ -1,118 +1,80 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:live_ffss/app/data/models/athlete_model.dart';
-import 'package:live_ffss/app/data/models/slot_model.dart';
-import 'package:live_ffss/app/data/models/run_model.dart';
-import 'package:live_ffss/app/data/models/live_result_model.dart';
-import 'package:live_ffss/app/data/services/api_service.dart';
-import 'package:live_ffss/app/module/slot/views/beach_ranking_dialog.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/data/repositories/result_repository.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/live_result.dart';
+import 'package:live_ffss/app/domain/models/run.dart';
+import 'package:live_ffss/app/domain/models/slot.dart';
 
 class SlotController extends GetxController
     with GetSingleTickerProviderStateMixin {
-  final ApiService _apiService = Get.find<ApiService>();
+  SlotController(this._results);
 
-  late TabController tabController;
+  final ResultRepository _results;
 
-  Rxn<SlotModel> slot = Rxn<SlotModel>();
+  TabController? tabController;
+
+  final Rxn<Slot> slot = Rxn<Slot>();
   final RxBool isLoading = false.obs;
-  final RxBool hasError = false.obs;
-  final RxString errorMessage = ''.obs;
+  final Rxn<AppException> error = Rxn<AppException>();
 
-  // Current selected run index
   final RxInt currentRunIndex = 0.obs;
-
-  // Bottom navigation index (0: Results, 1: Athletes)
   final RxInt currentBottomTabIndex = 0.obs;
 
-  // Live results for each run
-  final RxMap<int, List<LiveResultModel>> runResults =
-      <int, List<LiveResultModel>>{}.obs;
+  // Keyed by runId — was list-index in legacy (spec bug #8 fix).
+  final RxMap<int, List<LiveResult>> runResults =
+      <int, List<LiveResult>>{}.obs;
+  final RxList<Athlete> allAthletes = <Athlete>[].obs;
 
-  // All athletes in the slot (from all runs)
-  final RxList<AthleteModel> allAthletes = <AthleteModel>[].obs;
-
-  // Form controllers for result entry
   final RxBool isUpdatingResults = false.obs;
   final RxBool isWithdrawingAthlete = false.obs;
-
-  // Beach ranking data
-  final RxMap<int, int> beachRankings = <int, int>{}.obs; // lane number -> rank
-
-  // Swimming times data (up to 3 times per athlete)
+  final RxMap<int, int> beachRankings = <int, int>{}.obs;
   final RxMap<int, List<String>> swimmingTimes =
-      <int, List<String>>{}.obs; // lane number -> [time1, time2, time3]
+      <int, List<String>>{}.obs;
 
   @override
   void onInit() {
     super.onInit();
-
-    // Get the slot from arguments
-    slot.value = Get.arguments as SlotModel?;
-
-    if (slot.value != null && slot.value!.runs.isNotEmpty) {
-      // Initialize tab controller with the number of runs
-      tabController =
-          TabController(length: slot.value!.runs.length, vsync: this);
-
-      // Load live results for all runs
-      loadAllRunResults();
-
-      // Load all athletes from the slot
-      loadAllAthletes();
+    final arg = Get.arguments;
+    if (arg is Slot) {
+      slot.value = arg;
+      if (arg.runs.isNotEmpty) {
+        tabController = TabController(length: arg.runs.length, vsync: this);
+        loadAllRunResults();
+      }
     }
   }
 
   @override
   void onClose() {
-    tabController.dispose();
+    tabController?.dispose();
     super.onClose();
   }
 
   Future<void> loadAllRunResults() async {
-    if (slot.value == null) return;
-
+    final s = slot.value;
+    if (s == null) return;
+    isLoading.value = true;
+    error.value = null;
     try {
-      isLoading.value = true;
-      hasError.value = false;
-
-      // Load results for each run
-      for (int i = 0; i < slot.value!.runs.length; i++) {
-        final run = slot.value!.runs[i];
-        await loadRunResults(run.id, i);
+      for (final run in s.runs) {
+        try {
+          runResults[run.id] = await _results.getRunResults(run.id);
+        } on UnimplementedError {
+          runResults[run.id] = const [];
+        } on AppException catch (e) {
+          runResults[run.id] = const [];
+          error.value = e;
+        }
       }
-    } catch (e) {
-      hasError.value = true;
-      errorMessage.value = e.toString();
+      _refreshAthletes();
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> loadRunResults(int runId, int runIndex) async {
-    try {
-      // This is a placeholder - you'll need to implement the actual API call
-      // based on your backend API structure
-      final results = await _loadRunResultsFromApi(runId);
-      runResults[runIndex] = results;
-    } catch (e) {
-      // Handle individual run loading error
-      runResults[runIndex] = [];
-      debugPrint('Error loading results for run $runId: $e');
-    }
-  }
-
-  // Placeholder method for API call - implement based on your actual API
-  Future<List<LiveResultModel>> _loadRunResultsFromApi(int runId) async {
-    // Use the actual API service method
-    return List<LiveResultModel>.empty();
-    //TODO: Uncomment and implement the actual API call
-    //await _apiService.getRunResults(runId);
-  }
-
-  Future<void> refreshResults() async {
-    await loadAllRunResults();
-    await loadAllAthletes();
-  }
+  Future<void> refreshResults() => loadAllRunResults();
 
   void goBack() {
     Get.back();
@@ -126,106 +88,38 @@ class SlotController extends GetxController
     currentBottomTabIndex.value = index;
   }
 
-  Future<void> loadAllAthletes() async {
-    if (slot.value == null) return;
-
-    try {
-      Set<AthleteModel> athleteSet = {};
-
-      // Collect athletes from all runs
-      for (final run in slot.value!.runs) {
-        final results = runResults[slot.value!.runs.indexOf(run)] ?? [];
-        for (final result in results) {
-          if (result.entry?.athletes.isNotEmpty == true) {
-            athleteSet.addAll(result.entry!.athletes);
-          }
-        }
+  void _refreshAthletes() {
+    final athletes = <Athlete>{};
+    for (final list in runResults.values) {
+      for (final lr in list) {
+        if (lr.entry != null) athletes.addAll(lr.entry!.athletes);
       }
-
-      // Convert to list and sort by name
-      allAthletes.value = athleteSet.toList()
-        ..sort((a, b) => a.fullName.compareTo(b.fullName));
-    } catch (e) {
-      debugPrint('Error loading athletes: $e');
     }
+    allAthletes.value = athletes.toList()
+      ..sort((a, b) =>
+          '${a.firstName} ${a.lastName}'.compareTo('${b.firstName} ${b.lastName}'));
   }
 
-  // Check if current run is beach discipline
+  // Discipline checks — string-matching preserved (TODO(batch-6): typed enum).
   bool get isBeachDiscipline {
-    final run = currentRun;
-    if (run == null || slot.value?.raceFormatDetailModel == null) return false;
-
-    // Check if discipline is beach/coastal type
-    return slot.value!.raceFormatDetailModel!.level
-            .toLowerCase()
-            .contains('côtier') ||
-        slot.value!.raceFormatDetailModel!.level
-            .toLowerCase()
-            .contains('beach') ||
-        slot.value!.raceFormatDetailModel!.level
-            .toLowerCase()
-            .contains('coastal');
+    final level = slot.value?.raceFormatDetail?.level.toLowerCase();
+    if (level == null) return false;
+    return level.contains('côtier') ||
+        level.contains('beach') ||
+        level.contains('coastal');
   }
 
-  // Check if current run is swimming discipline
   bool get isSwimmingDiscipline {
-    final run = currentRun;
-    if (run == null || slot.value?.raceFormatDetailModel == null) return false;
-
-    // Check if discipline is swimming/pool type
-    return slot.value!.raceFormatDetailModel!.level
-            .toLowerCase()
-            .contains('eau-plate') ||
-        slot.value!.raceFormatDetailModel!.level
-            .toLowerCase()
-            .contains('swimming') ||
-        slot.value!.raceFormatDetailModel!.level
-            .toLowerCase()
-            .contains('piscine');
+    final level = slot.value?.raceFormatDetail?.level.toLowerCase();
+    if (level == null) return false;
+    return level.contains('eau-plate') ||
+        level.contains('swimming') ||
+        level.contains('piscine');
   }
 
   void openResultEntryDialog() {
-    if (isBeachDiscipline) {
-      _openBeachRankingDialog();
-    } else if (isSwimmingDiscipline) {
-      _openSwimmingTimesDialog();
-    }
-  }
-
-  void _openBeachRankingDialog() {
-    // Initialize beach rankings if empty
-    final currentResults = currentRunResults;
-    if (beachRankings.isEmpty) {
-      for (int i = 0; i < currentResults.length; i++) {
-        final result = currentResults[i];
-        final laneNumber = int.tryParse(result.number) ?? (i + 1);
-        beachRankings[laneNumber] = result.currentRank ?? 0;
-      }
-    }
-
-    //TODO: Use the actual dialog view
-    // Get.dialog(
-    //   BeachRankingDialog(),
-    //   barrierDismissible: false,
-    // );
-  }
-
-  void _openSwimmingTimesDialog() {
-    // Initialize swimming times if empty
-    final currentResults = currentRunResults;
-    if (swimmingTimes.isEmpty) {
-      for (int i = 0; i < currentResults.length; i++) {
-        final result = currentResults[i];
-        final laneNumber = int.tryParse(result.number) ?? (i + 1);
-        swimmingTimes[laneNumber] = ['', '', '']; // 3 empty time slots
-      }
-    }
-
-    //TODO: Use the actual dialog view
-    // Get.dialog(
-    //   _SwimmingTimesDialog(controller: this),
-    //   barrierDismissible: false,
-    // );
+    // TODO(batch-6): wire BeachRankingDialog / SwimTimeDialog when the
+    // backend mutation endpoints are documented. Currently dead code.
   }
 
   void updateBeachRanking(int laneNumber, int rank) {
@@ -240,103 +134,53 @@ class SlotController extends GetxController
   }
 
   Future<void> saveResults() async {
+    final run = currentRun;
+    if (run == null) return;
     try {
       isUpdatingResults.value = true;
-
+      // TODO(batch-6): wire to FFSS backend once endpoint is documented.
       if (isBeachDiscipline) {
-        await _saveBeachRankings();
+        await _results.updateBeachRankings(run.id, beachRankings);
       } else if (isSwimmingDiscipline) {
-        await _saveSwimmingTimes();
+        await _results.updateSwimmingTimes(run.id, swimmingTimes);
       }
-
-      Get.back(); // Close dialog
-      Get.snackbar(
-        'success'.tr,
-        'results_updated_successfully'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.primary,
-        colorText: Get.theme.colorScheme.onPrimary,
-      );
-
-      // Refresh results
+      _showSuccessSnackbar('results_updated_successfully');
       await refreshResults();
-    } catch (e) {
-      Get.snackbar(
-        'error'.tr,
-        'failed_to_update_results'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
+    } on UnimplementedError {
+      _showErrorSnackbar('feature_not_yet_available');
+    } catch (_) {
+      _showErrorSnackbar('failed_to_update_results');
     } finally {
       isUpdatingResults.value = false;
     }
   }
 
-  Future<void> _saveBeachRankings() async {
-    // Use the actual API service method
-    final success = false;
-    //TODO - Uncomment and implement the actual API call
-    // await _apiService.updateBeachRankings(currentRun!.id, beachRankings);
-    if (!success) {
-      throw Exception('Failed to save beach rankings');
-    }
-  }
-
-  Future<void> _saveSwimmingTimes() async {
-    // Use the actual API service method
-    final success = false;
-    //TODO - Uncomment and implement the actual API call
-    // await _apiService.updateSwimmingTimes(currentRun!.id, swimmingTimes);
-    if (!success) {
-      throw Exception('Failed to save swimming times');
-    }
-  }
-
-  Future<void> withdrawAthlete(AthleteModel athlete) async {
+  Future<void> withdrawAthlete(Athlete athlete) async {
+    final run = currentRun;
+    if (run == null) return;
     try {
       isWithdrawingAthlete.value = true;
-
-      // Use the actual API service method
-      final success = false;
-      //TODO - Uncomment and implement the actual API call
-      // await _apiService.withdrawAthlete(athlete.id, currentRun?.id ?? 0);
-      if (!success) {
-        throw Exception('Failed to withdraw athlete');
-      }
-
-      // Remove from local list
+      // TODO(batch-6): wire to FFSS backend once endpoint is documented.
+      await _results.withdrawAthlete(athleteId: athlete.id, runId: run.id);
       allAthletes.remove(athlete);
-
-      Get.snackbar(
-        'success'.tr,
-        'athlete_withdrawn_successfully'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.primary,
-        colorText: Get.theme.colorScheme.onPrimary,
-      );
-
-      // Refresh data
+      _showSuccessSnackbar('athlete_withdrawn_successfully');
       await refreshResults();
-    } catch (e) {
-      Get.snackbar(
-        'error'.tr,
-        'failed_to_withdraw_athlete'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
+    } on UnimplementedError {
+      _showErrorSnackbar('feature_not_yet_available');
+    } catch (_) {
+      _showErrorSnackbar('failed_to_withdraw_athlete');
     } finally {
       isWithdrawingAthlete.value = false;
     }
   }
 
-  void showWithdrawAthleteDialog(AthleteModel athlete) {
+  void showWithdrawAthleteDialog(Athlete athlete) {
+    // TODO(batch-6): pure UI — view should host this dialog.
     Get.dialog(
       AlertDialog(
         title: Text('withdraw_athlete'.tr),
         content: Text(
-          '${'confirm_withdraw_athlete'.tr}: ${athlete.fullName}?',
+          '${'confirm_withdraw_athlete'.tr}: ${athlete.firstName} ${athlete.lastName}?',
         ),
         actions: [
           TextButton(
@@ -359,28 +203,45 @@ class SlotController extends GetxController
     );
   }
 
-  // Helper getters
+  void _showSuccessSnackbar(String key) {
+    // TODO(batch-6): replace with Rxn<UiMessage> dispatch.
+    Get.snackbar(
+      'success'.tr,
+      key.tr,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Get.theme.colorScheme.primary,
+      colorText: Get.theme.colorScheme.onPrimary,
+    );
+  }
+
+  void _showErrorSnackbar(String key) {
+    Get.snackbar(
+      'error'.tr,
+      key.tr,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Get.theme.colorScheme.error,
+      colorText: Get.theme.colorScheme.onError,
+    );
+  }
+
   String get slotTitle =>
-      slot.value?.raceFormatDetailModel?.fullLabel ?? slot.value?.name ?? '';
+      slot.value?.raceFormatDetail?.fullLabel ?? slot.value?.name ?? '';
 
   String get slotTimeRange {
-    if (slot.value == null) return '';
-    return '${_formatTime(slot.value!.beginHour)} - ${_formatTime(slot.value!.endHour)}';
+    final s = slot.value;
+    if (s == null) return '';
+    return '${_formatTime(s.beginHour)} - ${_formatTime(s.endHour)}';
   }
 
-  RunModel? get currentRun {
-    if (slot.value == null ||
-        currentRunIndex.value >= slot.value!.runs.length) {
-      return null;
-    }
-    return slot.value!.runs[currentRunIndex.value];
+  Run? get currentRun {
+    final s = slot.value;
+    if (s == null || currentRunIndex.value >= s.runs.length) return null;
+    return s.runs[currentRunIndex.value];
   }
 
-  List<LiveResultModel> get currentRunResults {
-    return runResults[currentRunIndex.value] ?? [];
-  }
+  List<LiveResult> get currentRunResults =>
+      runResults[currentRun?.id] ?? const [];
 
-  String _formatTime(DateTime time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-  }
+  String _formatTime(DateTime time) =>
+      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 }
