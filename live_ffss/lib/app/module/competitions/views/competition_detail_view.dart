@@ -7,6 +7,7 @@ import 'package:live_ffss/app/module/competitions/views/competition_detail_home_
 import 'package:live_ffss/app/module/competitions/views/competition_detail_races_view.dart';
 import 'package:live_ffss/app/module/program/controllers/program_controller.dart';
 import 'package:live_ffss/app/module/program/views/program_view.dart';
+import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 
 class CompetitionDetailView extends GetView<CompetitionDetailController> {
@@ -145,7 +146,7 @@ class CompetitionDetailView extends GetView<CompetitionDetailController> {
     });
   }
 
-  Widget _buildProgramView(competition) {
+  Widget _buildProgramView(Competition? competition) {
     // Get or create ProgramController and set the competition
     final programController = Get.find<ProgramController>();
     programController.setCompetition(competition);
