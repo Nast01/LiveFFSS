@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:live_ffss/app/data/models/athlete_model.dart';
-import 'package:live_ffss/app/data/models/live_result_model.dart';
-import 'package:live_ffss/app/data/models/run_model.dart';
-import 'package:live_ffss/app/data/models/slot_model.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/live_result.dart';
+import 'package:live_ffss/app/domain/models/run.dart';
+import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/module/slot/controllers/slot_controller.dart';
+import 'package:live_ffss/app/presentation/modules/slot/run_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
@@ -136,7 +137,7 @@ class SlotView extends GetView<SlotController> {
         ));
   }
 
-  Widget _buildMainContent(SlotModel slot) {
+  Widget _buildMainContent(Slot slot) {
     return Obx(() {
       switch (controller.currentBottomTabIndex.value) {
         case 0:
@@ -149,7 +150,7 @@ class SlotView extends GetView<SlotController> {
     });
   }
 
-  Widget _buildResultsContent(SlotModel slot) {
+  Widget _buildResultsContent(Slot slot) {
     return slot.runs.isEmpty ? _buildEmptyRunsView() : _buildTabBarView();
   }
 
@@ -180,7 +181,7 @@ class SlotView extends GetView<SlotController> {
     });
   }
 
-  Widget _buildAthleteCard(AthleteModel athlete) {
+  Widget _buildAthleteCard(Athlete athlete) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
@@ -215,22 +216,13 @@ class SlotView extends GetView<SlotController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      athlete.fullName,
+                      '${athlete.firstName} ${athlete.lastName}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    if (athlete.club != null)
-                      Text(
-                        athlete.club!.name,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -269,22 +261,24 @@ class SlotView extends GetView<SlotController> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: athlete.gender == 'M'
+                      color: athlete.gender == Gender.male
                           ? Colors.blue.withOpacity(0.1)
                           : Colors.pink.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color:
-                            athlete.gender == 'M' ? Colors.blue : Colors.pink,
+                        color: athlete.gender == Gender.male
+                            ? Colors.blue
+                            : Colors.pink,
                       ),
                     ),
                     child: Text(
-                      athlete.gender,
+                      athlete.gender == Gender.male ? 'M' : 'F',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color:
-                            athlete.gender == 'M' ? Colors.blue : Colors.pink,
+                        color: athlete.gender == Gender.male
+                            ? Colors.blue
+                            : Colors.pink,
                       ),
                     ),
                   ),
@@ -340,13 +334,13 @@ class SlotView extends GetView<SlotController> {
     );
   }
 
-  Widget _buildRunTab(RunModel run, int runIndex) {
+  Widget _buildRunTab(Run run, int runIndex) {
     return Obx(() {
       if (controller.isLoading.value) {
         return const LoadingIndicator();
       }
 
-      if (controller.hasError.value) {
+      if (controller.error.value != null) {
         return ErrorState(
           message: 'error_loading_results'.tr,
           onRetry: controller.refreshResults,
@@ -361,7 +355,7 @@ class SlotView extends GetView<SlotController> {
             if (controller.isBeachDiscipline || controller.isSwimmingDiscipline)
               _buildResultEntryButton(),
             Expanded(
-              child: _buildResultsList(runIndex),
+              child: _buildResultsList(run),
             ),
           ],
         ),
@@ -396,7 +390,7 @@ class SlotView extends GetView<SlotController> {
     );
   }
 
-  Widget _buildRunInfoHeader(RunModel run) {
+  Widget _buildRunInfoHeader(Run run) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(16),
@@ -423,7 +417,7 @@ class SlotView extends GetView<SlotController> {
               ),
               StatusBadge(
                 label: run.localizedStatus,
-                color: _getStatusColor(run.status),
+                color: run.statusColor,
               ),
             ],
           ),
@@ -467,9 +461,9 @@ class SlotView extends GetView<SlotController> {
     );
   }
 
-  Widget _buildResultsList(int runIndex) {
+  Widget _buildResultsList(Run run) {
     return Obx(() {
-      final results = controller.runResults[runIndex] ?? [];
+      final results = controller.runResults[run.id] ?? [];
 
       if (results.isEmpty) {
         return EmptyState(
@@ -490,7 +484,7 @@ class SlotView extends GetView<SlotController> {
     });
   }
 
-  Widget _buildResultCard(LiveResultModel result, int position) {
+  Widget _buildResultCard(LiveResult result, int position) {
     final hasResult = result.result != null;
     final isDisqualified = result.isDisqualified;
 
@@ -540,7 +534,7 @@ class SlotView extends GetView<SlotController> {
                     if (result.entry?.athletes.isNotEmpty == true) ...[
                       Text(
                         result.entry!.athletes
-                            .map((a) => a.fullName)
+                            .map((a) => '${a.firstName} ${a.lastName}')
                             .join(' / '),
                         style: const TextStyle(
                           fontSize: 16,
@@ -550,17 +544,6 @@ class SlotView extends GetView<SlotController> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
-                      if (result.entry!.athletes.first.club != null)
-                        Text(
-                          result.entry!.athletes.first.club!.name,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
                     ],
                   ],
                 ),
@@ -608,9 +591,9 @@ class SlotView extends GetView<SlotController> {
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
+                      child: const Text(
                         'DSQ',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -634,19 +617,6 @@ class SlotView extends GetView<SlotController> {
         ),
       ),
     );
-  }
-
-  Color _getStatusColor(int status) {
-    switch (status) {
-      case 0:
-        return Colors.orange; // Waiting
-      case 1:
-        return Colors.blue; // Marshalling
-      case 2:
-        return Colors.amber; // In progress
-      default:
-        return Colors.green; // Finished
-    }
   }
 
   Color _getRankColor(int rank) {
