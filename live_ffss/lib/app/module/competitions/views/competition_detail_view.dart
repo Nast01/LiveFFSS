@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_controller.dart';
+import 'package:live_ffss/app/presentation/modules/home/competition_formatting.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_clubs_view.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_home_view.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_races_view.dart';

@@ -1,12 +1,14 @@
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/data/models/club_ranking.dart';
-import 'package:live_ffss/app/data/models/competition_model.dart';
+import 'package:live_ffss/app/domain/models/competition.dart';
 
 class CompetitionDetailController extends GetxController {
-  final LanguageService _languageService = Get.find<LanguageService>();
+  CompetitionDetailController(this._languageService);
 
-  Rxn<CompetitionModel> competition = Rxn<CompetitionModel>();
+  final LanguageService _languageService;
+
+  Rxn<Competition> competition = Rxn<Competition>();
 
   final RxBool isLoading = false.obs;
   final RxBool hasError = false.obs;
@@ -15,15 +17,14 @@ class CompetitionDetailController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-
-    // Get the competition from arguments
-    competition.value = Get.arguments as CompetitionModel;
+    final arg = Get.arguments;
+    if (arg is Competition) {
+      competition.value = arg;
+    }
   }
 
-  List<ClubRanking> get clubRankingsLimited =>
-      List.empty(); //.take(3).toList();
+  List<ClubRanking> get clubRankingsLimited => List.empty();
 
-  // Current language
   RxString get currentLanguage => _languageService.currentLanguage;
   bool get isFrench => _languageService.isFrench;
   bool get isEnglish => _languageService.isEnglish;
@@ -33,6 +34,6 @@ class CompetitionDetailController extends GetxController {
   }
 
   Future<void> refreshData() async {
-    // await fetchCompetitionDetails();
+    // No-op until rankings are wired up.
   }
 }
