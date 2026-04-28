@@ -7,12 +7,15 @@ import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/club_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/competition_remote_datasource.dart';
+import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/race_remote_datasource.dart';
+import 'package:live_ffss/app/data/datasources/result_remote_datasource.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/competition_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/repositories/result_repository.dart';
 import 'package:live_ffss/app/data/services/api_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 
@@ -90,9 +93,23 @@ class InitialBinding {
     // sources replace it in Batches 4b/5/6.
     Get.put<ApiService>(ApiService(), permanent: true);
 
-    // 5d. Meeting data layer (transitional shim — wraps ApiService)
+    // 5d. Meeting data layer
+    Get.put<MeetingRemoteDataSource>(
+      MeetingRemoteDataSourceImpl(Get.find<HttpClient>()),
+      permanent: true,
+    );
     Get.put<MeetingRepository>(
-      MeetingRepositoryImpl(Get.find<ApiService>()),
+      MeetingRepositoryImpl(Get.find<MeetingRemoteDataSource>()),
+      permanent: true,
+    );
+
+    // 5e. Result data layer (UnimplementedError stubs — see ResultRepository)
+    Get.put<ResultRemoteDataSource>(
+      ResultRemoteDataSourceImpl(),
+      permanent: true,
+    );
+    Get.put<ResultRepository>(
+      ResultRepositoryImpl(Get.find<ResultRemoteDataSource>()),
       permanent: true,
     );
 
