@@ -2,30 +2,110 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/module/program/controllers/program_controller.dart';
 
-class ProgramAddMeetingDialog extends GetView<ProgramController> {
+class ProgramAddMeetingDialog extends StatefulWidget {
   const ProgramAddMeetingDialog({super.key});
+
+  @override
+  State<ProgramAddMeetingDialog> createState() =>
+      _ProgramAddMeetingDialogState();
+}
+
+class _ProgramAddMeetingDialogState extends State<ProgramAddMeetingDialog> {
+  final _controller = Get.find<ProgramController>();
+
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+
+  late DateTime _selectedDate = DateTime.now();
+  late TimeOfDay _beginTime = TimeOfDay.now();
+  late TimeOfDay _endTime = TimeOfDay(
+    hour: (DateTime.now().hour + 1) % 24,
+    minute: DateTime.now().minute,
+  );
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: Colors.blue,
+            onPrimary: Colors.white,
+            surface: Colors.white,
+            onSurface: Colors.black,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
+  Future<void> _selectTime(
+    TimeOfDay current,
+    void Function(TimeOfDay) onPicked,
+  ) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: current,
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: Colors.blue,
+            onPrimary: Colors.white,
+            surface: Colors.white,
+            onSurface: Colors.black,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) {
+      setState(() => onPicked(picked));
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    final ok = await _controller.submitMeeting(
+      name: _nameController.text,
+      description: _descriptionController.text,
+      date: _selectedDate,
+      beginTime: _beginTime,
+      endTime: _endTime,
+    );
+    if (ok && mounted) Get.back();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         padding: const EdgeInsets.all(20),
         width: Get.width * 0.9,
-        constraints: BoxConstraints(
-          maxHeight: Get.height * 0.8,
-        ),
+        constraints: BoxConstraints(maxHeight: Get.height * 0.8),
         child: SingleChildScrollView(
           child: Form(
-            key: controller.formKey,
+            key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Dialog Title
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -44,57 +124,38 @@ class ProgramAddMeetingDialog extends GetView<ProgramController> {
                   ],
                 ),
                 const SizedBox(height: 20),
-
-                // Name Field
                 _buildTextFormField(
-                  controller: controller.nameController,
+                  controller: _nameController,
                   label: 'name'.tr,
                   hint: 'enter_name'.tr,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'name_required'.tr;
-                    }
-                    return null;
-                  },
+                  validator: (v) =>
+                      (v == null || v.isEmpty) ? 'name_required'.tr : null,
                 ),
                 const SizedBox(height: 16),
-
-                // Description Field
                 _buildTextFormField(
-                  controller: controller.descriptionController,
+                  controller: _descriptionController,
                   label: 'description'.tr,
                   hint: 'enter_description'.tr,
                   maxLines: 3,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'description_required'.tr;
-                    }
-                    return null;
-                  },
+                  validator: (v) => (v == null || v.isEmpty)
+                      ? 'description_required'.tr
+                      : null,
                 ),
                 const SizedBox(height: 16),
-
-                // Date Field
                 _buildDateField(),
                 const SizedBox(height: 16),
-
-                // Begin Time Field
                 _buildTimeField(
                   label: 'begin_time'.tr,
-                  timeValue: controller.beginTime,
-                  onTimeSelected: (time) => controller.beginTime.value = time,
+                  current: _beginTime,
+                  onPicked: (t) => _beginTime = t,
                 ),
                 const SizedBox(height: 16),
-
-                // End Time Field
                 _buildTimeField(
                   label: 'end_time'.tr,
-                  timeValue: controller.endTime,
-                  onTimeSelected: (time) => controller.endTime.value = time,
+                  current: _endTime,
+                  onPicked: (t) => _endTime = t,
                 ),
                 const SizedBox(height: 24),
-
-                // Action Buttons
                 Row(
                   children: [
                     Expanded(
@@ -107,18 +168,16 @@ class ProgramAddMeetingDialog extends GetView<ProgramController> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: Text(
-                          'cancel'.tr,
-                          style: const TextStyle(color: Colors.grey),
-                        ),
+                        child: Text('cancel'.tr,
+                            style: const TextStyle(color: Colors.grey)),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Obx(() => ElevatedButton(
-                            onPressed: controller.isCreatingMeeting.value
+                            onPressed: _controller.isCreatingMeeting.value
                                 ? null
-                                : _handleCreateMeeting,
+                                : _submit,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
@@ -127,14 +186,15 @@ class ProgramAddMeetingDialog extends GetView<ProgramController> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: controller.isCreatingMeeting.value
+                            child: _controller.isCreatingMeeting.value
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
+                                      valueColor:
+                                          AlwaysStoppedAnimation<Color>(
+                                              Colors.white),
                                     ),
                                   )
                                 : Text('create'.tr),
@@ -205,36 +265,35 @@ class ProgramAddMeetingDialog extends GetView<ProgramController> {
           ),
         ),
         const SizedBox(height: 8),
-        Obx(() => InkWell(
-              onTap: _selectDate,
-              child: Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
+        InkWell(
+          onTap: _selectDate,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                  style: const TextStyle(fontSize: 16),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "${controller.selectedDate.value.day}/${controller.selectedDate.value.month}/${controller.selectedDate.value.year}",
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const Icon(Icons.calendar_today, color: Colors.grey),
-                  ],
-                ),
-              ),
-            )),
+                const Icon(Icons.calendar_today, color: Colors.grey),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildTimeField({
     required String label,
-    required Rx<TimeOfDay> timeValue,
-    required Function(TimeOfDay) onTimeSelected,
+    required TimeOfDay current,
+    required void Function(TimeOfDay) onPicked,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,52 +307,28 @@ class ProgramAddMeetingDialog extends GetView<ProgramController> {
           ),
         ),
         const SizedBox(height: 8),
-        Obx(() => InkWell(
-              onTap: () => _selectTime(timeValue, onTimeSelected),
-              child: Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
+        InkWell(
+          onTap: () => _selectTime(current, onPicked),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')}',
+                  style: const TextStyle(fontSize: 16),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "${timeValue.value.hour.toString().padLeft(2, '0')}:${timeValue.value.minute.toString().padLeft(2, '0')}",
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const Icon(Icons.access_time, color: Colors.grey),
-                  ],
-                ),
-              ),
-            )),
+                const Icon(Icons.access_time, color: Colors.grey),
+              ],
+            ),
+          ),
+        ),
       ],
     );
-  }
-
-  Future<void> _selectDate() async {
-    final DateTime? picked =
-        await controller.selectDate(controller.selectedDate.value);
-    if (picked != null) {
-      controller.selectedDate.value = picked;
-    }
-  }
-
-  Future<void> _selectTime(
-      Rx<TimeOfDay> timeValue, Function(TimeOfDay) onTimeSelected) async {
-    final TimeOfDay? picked = await controller.selectTime(timeValue.value);
-    if (picked != null) {
-      onTimeSelected(picked);
-    }
-  }
-
-  Future<void> _handleCreateMeeting() async {
-    final success = await controller.createMeeting();
-    if (success) {
-      Get.back(); // Close the dialog
-    }
   }
 }
