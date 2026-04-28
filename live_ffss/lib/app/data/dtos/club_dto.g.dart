@@ -13,6 +13,14 @@ _$ClubDtoImpl _$$ClubDtoImplFromJson(Map<String, dynamic> json) =>
       shortName: json['NomCourt'] as String?,
       logoUrl: json['logo'] as String?,
       capUrl: json['bonnet'] as String?,
+      athletes: (json['athletes'] as List<dynamic>?)
+              ?.map((e) => AthleteDto.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <AthleteDto>[],
+      referees: (json['officiels'] as List<dynamic>?)
+              ?.map((e) => RefereeDto.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <RefereeDto>[],
     );
 
 Map<String, dynamic> _$$ClubDtoImplToJson(_$ClubDtoImpl instance) =>
@@ -22,4 +30,6 @@ Map<String, dynamic> _$$ClubDtoImplToJson(_$ClubDtoImpl instance) =>
       'NomCourt': instance.shortName,
       'logo': instance.logoUrl,
       'bonnet': instance.capUrl,
+      'athletes': instance.athletes,
+      'officiels': instance.referees,
     };

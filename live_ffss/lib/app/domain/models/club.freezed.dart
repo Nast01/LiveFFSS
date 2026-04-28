@@ -25,8 +25,8 @@ mixin _$Club {
   String? get shortName => throw _privateConstructorUsedError;
   String? get logoUrl => throw _privateConstructorUsedError;
   String? get capUrl => throw _privateConstructorUsedError;
-  List<dynamic> get athletes => throw _privateConstructorUsedError;
-  List<dynamic> get referees => throw _privateConstructorUsedError;
+  List<Athlete> get athletes => throw _privateConstructorUsedError;
+  List<Referee> get referees => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -44,8 +44,8 @@ abstract class $ClubCopyWith<$Res> {
       String? shortName,
       String? logoUrl,
       String? capUrl,
-      List<dynamic> athletes,
-      List<dynamic> referees});
+      List<Athlete> athletes,
+      List<Referee> referees});
 }
 
 /// @nodoc
@@ -93,11 +93,11 @@ class _$ClubCopyWithImpl<$Res, $Val extends Club>
       athletes: null == athletes
           ? _value.athletes
           : athletes // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>,
+              as List<Athlete>,
       referees: null == referees
           ? _value.referees
           : referees // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>,
+              as List<Referee>,
     ) as $Val);
   }
 }
@@ -115,8 +115,8 @@ abstract class _$$ClubImplCopyWith<$Res> implements $ClubCopyWith<$Res> {
       String? shortName,
       String? logoUrl,
       String? capUrl,
-      List<dynamic> athletes,
-      List<dynamic> referees});
+      List<Athlete> athletes,
+      List<Referee> referees});
 }
 
 /// @nodoc
@@ -161,11 +161,11 @@ class __$$ClubImplCopyWithImpl<$Res>
       athletes: null == athletes
           ? _value._athletes
           : athletes // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>,
+              as List<Athlete>,
       referees: null == referees
           ? _value._referees
           : referees // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>,
+              as List<Referee>,
     ));
   }
 }
@@ -179,8 +179,8 @@ class _$ClubImpl implements _Club {
       this.shortName,
       this.logoUrl,
       this.capUrl,
-      final List<dynamic> athletes = const <dynamic>[],
-      final List<dynamic> referees = const <dynamic>[]})
+      final List<Athlete> athletes = const <Athlete>[],
+      final List<Referee> referees = const <Referee>[]})
       : _athletes = athletes,
         _referees = referees;
 
@@ -197,19 +197,19 @@ class _$ClubImpl implements _Club {
   final String? logoUrl;
   @override
   final String? capUrl;
-  final List<dynamic> _athletes;
+  final List<Athlete> _athletes;
   @override
   @JsonKey()
-  List<dynamic> get athletes {
+  List<Athlete> get athletes {
     if (_athletes is EqualUnmodifiableListView) return _athletes;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_athletes);
   }
 
-  final List<dynamic> _referees;
+  final List<Referee> _referees;
   @override
   @JsonKey()
-  List<dynamic> get referees {
+  List<Referee> get referees {
     if (_referees is EqualUnmodifiableListView) return _referees;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_referees);
@@ -268,8 +268,8 @@ abstract class _Club implements Club {
       final String? shortName,
       final String? logoUrl,
       final String? capUrl,
-      final List<dynamic> athletes,
-      final List<dynamic> referees}) = _$ClubImpl;
+      final List<Athlete> athletes,
+      final List<Referee> referees}) = _$ClubImpl;
 
   factory _Club.fromJson(Map<String, dynamic> json) = _$ClubImpl.fromJson;
 
@@ -284,9 +284,9 @@ abstract class _Club implements Club {
   @override
   String? get capUrl;
   @override
-  List<dynamic> get athletes;
+  List<Athlete> get athletes;
   @override
-  List<dynamic> get referees;
+  List<Referee> get referees;
   @override
   @JsonKey(ignore: true)
   _$$ClubImplCopyWith<_$ClubImpl> get copyWith =>

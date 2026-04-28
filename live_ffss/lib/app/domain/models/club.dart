@@ -1,4 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/referee.dart';
 
 part 'club.freezed.dart';
 part 'club.g.dart';
@@ -11,8 +13,8 @@ class Club with _$Club {
     String? shortName,
     String? logoUrl,
     String? capUrl,
-    @Default(<dynamic>[]) List<dynamic> athletes,
-    @Default(<dynamic>[]) List<dynamic> referees,
+    @Default(<Athlete>[]) List<Athlete> athletes,
+    @Default(<Referee>[]) List<Referee> referees,
   }) = _Club;
 
   factory Club.fromJson(Map<String, dynamic> json) => _$ClubFromJson(json);

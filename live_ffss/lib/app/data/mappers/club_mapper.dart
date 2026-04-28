@@ -1,4 +1,6 @@
 import 'package:live_ffss/app/data/dtos/club_dto.dart';
+import 'package:live_ffss/app/data/mappers/athlete_mapper.dart';
+import 'package:live_ffss/app/data/mappers/referee_mapper.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 
 extension ClubMapper on ClubDto {
@@ -8,6 +10,8 @@ extension ClubMapper on ClubDto {
         shortName: shortName,
         logoUrl: logoUrl,
         capUrl: capUrl,
+        athletes: athletes.map((a) => a.toDomain()).toList(),
+        referees: referees.map((r) => r.toDomain()).toList(),
       );
 }
 

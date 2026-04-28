@@ -12,8 +12,14 @@ _$ClubImpl _$$ClubImplFromJson(Map<String, dynamic> json) => _$ClubImpl(
       shortName: json['shortName'] as String?,
       logoUrl: json['logoUrl'] as String?,
       capUrl: json['capUrl'] as String?,
-      athletes: json['athletes'] as List<dynamic>? ?? const <dynamic>[],
-      referees: json['referees'] as List<dynamic>? ?? const <dynamic>[],
+      athletes: (json['athletes'] as List<dynamic>?)
+              ?.map((e) => Athlete.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <Athlete>[],
+      referees: (json['referees'] as List<dynamic>?)
+              ?.map((e) => Referee.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <Referee>[],
     );
 
 Map<String, dynamic> _$$ClubImplToJson(_$ClubImpl instance) =>

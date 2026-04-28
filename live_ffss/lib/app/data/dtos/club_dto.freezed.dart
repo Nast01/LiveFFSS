@@ -30,6 +30,10 @@ mixin _$ClubDto {
   String? get logoUrl => throw _privateConstructorUsedError;
   @JsonKey(name: 'bonnet')
   String? get capUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'athletes')
+  List<AthleteDto> get athletes => throw _privateConstructorUsedError;
+  @JsonKey(name: 'officiels')
+  List<RefereeDto> get referees => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -46,7 +50,9 @@ abstract class $ClubDtoCopyWith<$Res> {
       @JsonKey(name: 'NomCompletOrga') String name,
       @JsonKey(name: 'NomCourt') String? shortName,
       @JsonKey(name: 'logo') String? logoUrl,
-      @JsonKey(name: 'bonnet') String? capUrl});
+      @JsonKey(name: 'bonnet') String? capUrl,
+      @JsonKey(name: 'athletes') List<AthleteDto> athletes,
+      @JsonKey(name: 'officiels') List<RefereeDto> referees});
 }
 
 /// @nodoc
@@ -67,6 +73,8 @@ class _$ClubDtoCopyWithImpl<$Res, $Val extends ClubDto>
     Object? shortName = freezed,
     Object? logoUrl = freezed,
     Object? capUrl = freezed,
+    Object? athletes = null,
+    Object? referees = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -89,6 +97,14 @@ class _$ClubDtoCopyWithImpl<$Res, $Val extends ClubDto>
           ? _value.capUrl
           : capUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      athletes: null == athletes
+          ? _value.athletes
+          : athletes // ignore: cast_nullable_to_non_nullable
+              as List<AthleteDto>,
+      referees: null == referees
+          ? _value.referees
+          : referees // ignore: cast_nullable_to_non_nullable
+              as List<RefereeDto>,
     ) as $Val);
   }
 }
@@ -105,7 +121,9 @@ abstract class _$$ClubDtoImplCopyWith<$Res> implements $ClubDtoCopyWith<$Res> {
       @JsonKey(name: 'NomCompletOrga') String name,
       @JsonKey(name: 'NomCourt') String? shortName,
       @JsonKey(name: 'logo') String? logoUrl,
-      @JsonKey(name: 'bonnet') String? capUrl});
+      @JsonKey(name: 'bonnet') String? capUrl,
+      @JsonKey(name: 'athletes') List<AthleteDto> athletes,
+      @JsonKey(name: 'officiels') List<RefereeDto> referees});
 }
 
 /// @nodoc
@@ -124,6 +142,8 @@ class __$$ClubDtoImplCopyWithImpl<$Res>
     Object? shortName = freezed,
     Object? logoUrl = freezed,
     Object? capUrl = freezed,
+    Object? athletes = null,
+    Object? referees = null,
   }) {
     return _then(_$ClubDtoImpl(
       id: null == id
@@ -146,6 +166,14 @@ class __$$ClubDtoImplCopyWithImpl<$Res>
           ? _value.capUrl
           : capUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      athletes: null == athletes
+          ? _value._athletes
+          : athletes // ignore: cast_nullable_to_non_nullable
+              as List<AthleteDto>,
+      referees: null == referees
+          ? _value._referees
+          : referees // ignore: cast_nullable_to_non_nullable
+              as List<RefereeDto>,
     ));
   }
 }
@@ -158,7 +186,13 @@ class _$ClubDtoImpl implements _ClubDto {
       @JsonKey(name: 'NomCompletOrga') required this.name,
       @JsonKey(name: 'NomCourt') this.shortName,
       @JsonKey(name: 'logo') this.logoUrl,
-      @JsonKey(name: 'bonnet') this.capUrl});
+      @JsonKey(name: 'bonnet') this.capUrl,
+      @JsonKey(name: 'athletes')
+      final List<AthleteDto> athletes = const <AthleteDto>[],
+      @JsonKey(name: 'officiels')
+      final List<RefereeDto> referees = const <RefereeDto>[]})
+      : _athletes = athletes,
+        _referees = referees;
 
   factory _$ClubDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$ClubDtoImplFromJson(json);
@@ -178,10 +212,27 @@ class _$ClubDtoImpl implements _ClubDto {
   @override
   @JsonKey(name: 'bonnet')
   final String? capUrl;
+  final List<AthleteDto> _athletes;
+  @override
+  @JsonKey(name: 'athletes')
+  List<AthleteDto> get athletes {
+    if (_athletes is EqualUnmodifiableListView) return _athletes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_athletes);
+  }
+
+  final List<RefereeDto> _referees;
+  @override
+  @JsonKey(name: 'officiels')
+  List<RefereeDto> get referees {
+    if (_referees is EqualUnmodifiableListView) return _referees;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_referees);
+  }
 
   @override
   String toString() {
-    return 'ClubDto(id: $id, name: $name, shortName: $shortName, logoUrl: $logoUrl, capUrl: $capUrl)';
+    return 'ClubDto(id: $id, name: $name, shortName: $shortName, logoUrl: $logoUrl, capUrl: $capUrl, athletes: $athletes, referees: $referees)';
   }
 
   @override
@@ -194,13 +245,22 @@ class _$ClubDtoImpl implements _ClubDto {
             (identical(other.shortName, shortName) ||
                 other.shortName == shortName) &&
             (identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl) &&
-            (identical(other.capUrl, capUrl) || other.capUrl == capUrl));
+            (identical(other.capUrl, capUrl) || other.capUrl == capUrl) &&
+            const DeepCollectionEquality().equals(other._athletes, _athletes) &&
+            const DeepCollectionEquality().equals(other._referees, _referees));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, name, shortName, logoUrl, capUrl);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      name,
+      shortName,
+      logoUrl,
+      capUrl,
+      const DeepCollectionEquality().hash(_athletes),
+      const DeepCollectionEquality().hash(_referees));
 
   @JsonKey(ignore: true)
   @override
@@ -218,11 +278,14 @@ class _$ClubDtoImpl implements _ClubDto {
 
 abstract class _ClubDto implements ClubDto {
   const factory _ClubDto(
-      {@JsonKey(name: 'Id') required final int id,
-      @JsonKey(name: 'NomCompletOrga') required final String name,
-      @JsonKey(name: 'NomCourt') final String? shortName,
-      @JsonKey(name: 'logo') final String? logoUrl,
-      @JsonKey(name: 'bonnet') final String? capUrl}) = _$ClubDtoImpl;
+          {@JsonKey(name: 'Id') required final int id,
+          @JsonKey(name: 'NomCompletOrga') required final String name,
+          @JsonKey(name: 'NomCourt') final String? shortName,
+          @JsonKey(name: 'logo') final String? logoUrl,
+          @JsonKey(name: 'bonnet') final String? capUrl,
+          @JsonKey(name: 'athletes') final List<AthleteDto> athletes,
+          @JsonKey(name: 'officiels') final List<RefereeDto> referees}) =
+      _$ClubDtoImpl;
 
   factory _ClubDto.fromJson(Map<String, dynamic> json) = _$ClubDtoImpl.fromJson;
 
@@ -241,6 +304,12 @@ abstract class _ClubDto implements ClubDto {
   @override
   @JsonKey(name: 'bonnet')
   String? get capUrl;
+  @override
+  @JsonKey(name: 'athletes')
+  List<AthleteDto> get athletes;
+  @override
+  @JsonKey(name: 'officiels')
+  List<RefereeDto> get referees;
   @override
   @JsonKey(ignore: true)
   _$$ClubDtoImplCopyWith<_$ClubDtoImpl> get copyWith =>
