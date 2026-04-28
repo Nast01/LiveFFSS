@@ -5,10 +5,40 @@ import 'package:live_ffss/app/data/models/slot_model.dart';
 import 'package:live_ffss/app/module/program/controllers/program_controller.dart';
 import 'package:live_ffss/app/module/program/views/program_add_meeting_dialog.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
-class ProgramView extends GetView<ProgramController> {
+class ProgramView extends StatefulWidget {
   const ProgramView({super.key});
+
+  @override
+  State<ProgramView> createState() => _ProgramViewState();
+}
+
+class _ProgramViewState extends State<ProgramView> {
+  final ProgramController controller = Get.find<ProgramController>();
+  Worker? _messageWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    _messageWorker = ever<UiMessage?>(controller.message, (msg) {
+      if (msg == null) return;
+      Get.snackbar(
+        msg is UiMessageSuccess ? 'success'.tr : 'error'.tr,
+        msg.translationKey.tr,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: msg is UiMessageSuccess ? Colors.green : Colors.red,
+        colorText: Colors.white,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _messageWorker?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,36 +120,27 @@ class ProgramView extends GetView<ProgramController> {
               itemCount: controller.meetings.length,
               itemBuilder: (context, index) {
                 final meeting = controller.meetings[index];
-                return _buildExpandableMeetingCard(meeting, index);
+                return _buildExpandableMeetingCard(context, meeting, index);
               },
             ),
           );
         }),
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: () {
-        //     // Handle floating action button press
-        //     _onFloatingActionButtonPressed();
-        //   },
-        //   backgroundColor: Colors.blue,
-        //   foregroundColor: Colors.white,
-        //   child: const Icon(Icons.add),
-        // ),
-        // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Get.dialog(
+              const ProgramAddMeetingDialog(),
+              barrierDismissible: false,
+            );
+          },
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          child: const Icon(Icons.add),
+        ),
       );
     });
   }
 
-  void _onFloatingActionButtonPressed() {
-    // Prepare the form in the controller
-    controller.onAddMeetingPressed();
-    // Show the dialog (UI responsibility)
-    Get.dialog(
-      const ProgramAddMeetingDialog(),
-      barrierDismissible: false,
-    );
-  }
-
-  Widget _buildExpandableMeetingCard(MeetingModel meeting, int index) {
+  Widget _buildExpandableMeetingCard(BuildContext context, MeetingModel meeting, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
@@ -128,7 +149,7 @@ class ProgramView extends GetView<ProgramController> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Theme(
-          data: Theme.of(Get.context!).copyWith(
+          data: Theme.of(context).copyWith(
             dividerColor: Colors.transparent,
           ),
           child: ExpansionTile(
@@ -347,7 +368,7 @@ class ProgramView extends GetView<ProgramController> {
           ),
 
           // Time display - vertical layout
-          Container(
+          SizedBox(
             width: 40,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -497,10 +518,6 @@ class ProgramView extends GetView<ProgramController> {
         ],
       ),
     );
-  }
-
-  String _formatTime(DateTime time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   String _formatTimeHour(DateTime time) {
