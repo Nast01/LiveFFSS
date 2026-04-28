@@ -11,6 +11,7 @@ import 'package:live_ffss/app/data/datasources/race_remote_datasource.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/competition_repository.dart';
+import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/api_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
@@ -86,8 +87,14 @@ class InitialBinding {
     );
 
     // Transitional: legacy ApiService stays alive until per-domain data
-    // sources replace it in Batches 3-5.
+    // sources replace it in Batches 4b/5/6.
     Get.put<ApiService>(ApiService(), permanent: true);
+
+    // 5d. Meeting data layer (transitional shim — wraps ApiService)
+    Get.put<MeetingRepository>(
+      MeetingRepositoryImpl(Get.find<ApiService>()),
+      permanent: true,
+    );
 
     // 8. Long-lived state holders (depend on the auth repo)
     await Get.putAsync<UserService>(
