@@ -49,7 +49,12 @@ class UserPreferencesService extends GetxService {
   Future<List<int>> _readIds(String key) async {
     final raw = await _storage.read(key: key);
     if (raw == null || raw.isEmpty) return <int>[];
-    final decoded = jsonDecode(raw) as List<dynamic>;
-    return decoded.cast<int>();
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded.cast<int>();
+    } catch (_) {
+      // Corrupt or unexpected payload — treat as absent; the next write self-heals.
+      return <int>[];
+    }
   }
 }

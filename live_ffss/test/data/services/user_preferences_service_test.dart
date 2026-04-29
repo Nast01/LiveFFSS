@@ -43,6 +43,16 @@ void main() {
       expect(prefs.favoriteIds, isEmpty);
       expect(prefs.lastViewedIds, isEmpty);
     });
+
+    test('tolerates corrupt JSON (returns empty defaults)', () async {
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => 'not-valid-json{{{');
+
+      await prefs.init();
+
+      expect(prefs.favoriteIds, isEmpty);
+      expect(prefs.lastViewedIds, isEmpty);
+    });
   });
 
   group('UserPreferencesService.toggleFavorite', () {
