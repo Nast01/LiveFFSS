@@ -67,6 +67,14 @@ final Map<String, String> frFR = {
   'other_competitions': 'Autres compétitions',
   'no_other_competitions': 'Pas d\'autres compétitions',
 
+  // Home page (redesign 2026-04)
+  'last_viewed': 'Vus récemment',
+  'this_week': 'Cette semaine',
+  'search_competitions': 'Rechercher une compétition',
+  'live': 'LIVE',
+  'no_competitions_found': 'Aucune compétition trouvée',
+  'no_last_viewed': 'Aucune compétition consultée',
+
   'home': 'Accueil',
   'races': 'Epreuves',
   'program': 'Programme',

@@ -68,6 +68,14 @@ final Map<String, String> enUS = {
   'other_competitions': 'Other competitions',
   'no_other_competitions': 'No other competitions',
 
+  // Home page (redesign 2026-04)
+  'last_viewed': 'Last viewed',
+  'this_week': 'This week',
+  'search_competitions': 'Search competition',
+  'live': 'LIVE',
+  'no_competitions_found': 'No competitions found',
+  'no_last_viewed': 'No competitions viewed yet',
+
   'home': 'Home',
   'races': 'Races',
   'program': 'Program',
