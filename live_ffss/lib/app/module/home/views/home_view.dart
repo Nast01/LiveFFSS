@@ -1,10 +1,16 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:live_ffss/app/core/theme/app_colors.dart';
+import 'package:live_ffss/app/core/theme/app_radius.dart';
+import 'package:live_ffss/app/core/theme/app_spacing.dart';
+import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/module/auth/views/user_avatar.dart';
+import 'package:live_ffss/app/module/home/controllers/home_controller.dart';
 import 'package:live_ffss/app/presentation/modules/home/competition_formatting.dart';
-import '../controllers/home_controller.dart';
-import '../../auth/views/user_avatar.dart';
+import 'package:live_ffss/app/presentation/shared/empty_state.dart';
+import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/language_selector.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 
@@ -14,128 +20,226 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // App logo
-            Image.asset(
-              'assets/images/logo_ffss.png', // Make sure to add this asset
-              height: 48,
-              errorBuilder: (context, error, stackTrace) {
-                // Fallback if image isn't available
-                return const Icon(
-                  Icons.app_shortcut,
-                  size: 32,
-                  color: Colors.white,
-                );
-              },
-            ),
-            const SizedBox(width: 8),
-            // App title now uses translation
-            Obx(
-              () => Text(
-                controller.appTitleKey.tr,
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        actions: [
-          // Language selector
-          const LanguageSelector(),
-          const SizedBox(width: 8),
-          // User avatar
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: UserAvatar(
-              size: 36,
-              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.8),
-            ),
-          ),
-        ],
-      ),
-      body: Obx(() => controller.isLoading.value
-          ? const LoadingIndicator()
-          : controller.hasError.value
-              ? _buildErrorView()
-              : _buildContentView()),
-    );
-  }
-
-  Widget _buildErrorView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'error_occurred'.tr,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: controller.loadCompetitions,
-            child: Text('retry'.tr),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContentView() {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+      backgroundColor: AppColors.surface,
+      body: SafeArea(
+        bottom: false,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildFilterTabs(),
-            const SizedBox(height: 16),
-            _buildWeekendHeader(),
-            const SizedBox(height: 8),
-            _buildCarousel(),
-            const SizedBox(height: 24),
-            _buildCompetitionsList(),
+            const _HomeHero(),
+            const _HomeWave(),
+            const SizedBox(height: AppSpacing.md),
+            const _HomeFiltersBar(),
+            const SizedBox(height: AppSpacing.sm),
+            const _HomeSearchBar(),
+            const SizedBox(height: AppSpacing.md),
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const LoadingIndicator();
+                }
+                if (controller.hasError.value) {
+                  return ErrorState(
+                    message: 'error_occured'.tr,
+                    onRetry: controller.loadCompetitions,
+                  );
+                }
+                return const _HomeList();
+              }),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildFilterTabs() {
+class _HomeHero extends GetView<HomeController> {
+  const _HomeHero();
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      width: double.infinity,
+      color: AppColors.primary,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.lg,
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Spacer(),
+              const LanguageSelector(),
+              const SizedBox(width: AppSpacing.sm),
+              UserAvatar(
+                size: 36,
+                backgroundColor: Colors.white.withOpacity(0.2),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/logo_ffss.png',
+                height: 56,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.app_shortcut,
+                  size: 40,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                controller.appTitleKey.tr,
+                style: AppTypography.title.copyWith(
+                  color: Colors.white,
+                  fontSize: 24,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _HeroPill(
+                label: 'last_viewed'.tr,
+                temporal: TemporalFilter.lastViewed,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _HeroPill(
+                label: 'this_week'.tr,
+                temporal: TemporalFilter.thisWeek,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _HeroPill(
+                label: 'all'.tr,
+                temporal: TemporalFilter.all,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroPill extends GetView<HomeController> {
+  const _HeroPill({required this.label, required this.temporal});
+
+  final String label;
+  final TemporalFilter temporal;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final active = controller.selectedTemporal.value == temporal;
+      return GestureDetector(
+        onTap: () => controller.setTemporal(temporal),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: active ? Colors.white : Colors.transparent,
+            borderRadius: AppRadius.pillRadius,
+            border: Border.all(color: Colors.white),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: active ? AppColors.primary : Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _HomeWave extends StatelessWidget {
+  const _HomeWave();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 24,
+      child: CustomPaint(painter: _WavePainter()),
+    );
+  }
+}
+
+class _WavePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = AppColors.primary;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..quadraticBezierTo(
+        size.width * 0.5,
+        size.height * 2,
+        size.width,
+        0,
+      )
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _HomeFiltersBar extends GetView<HomeController> {
+  const _HomeFiltersBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: AppSpacing.pageHorizontal,
       child: Row(
         children: [
-          _buildFilterTab('all'.tr, HomeFilter.all),
-          const SizedBox(width: 10),
-          _buildFilterTab('swimming'.tr, HomeFilter.pool),
-          const SizedBox(width: 10),
-          _buildFilterTab('beach'.tr, HomeFilter.coastal),
+          _DisciplinePill(label: 'all'.tr, filter: HomeFilter.all),
+          const SizedBox(width: AppSpacing.sm),
+          _DisciplinePill(label: 'swimming'.tr, filter: HomeFilter.pool),
+          const SizedBox(width: AppSpacing.sm),
+          _DisciplinePill(label: 'beach'.tr, filter: HomeFilter.coastal),
         ],
       ),
     );
   }
+}
 
-  Widget _buildFilterTab(String label, HomeFilter filter) {
+class _DisciplinePill extends GetView<HomeController> {
+  const _DisciplinePill({required this.label, required this.filter});
+
+  final String label;
+  final HomeFilter filter;
+
+  @override
+  Widget build(BuildContext context) {
     return Obx(() {
-      final isActive = controller.selectedDiscipline.value == filter;
+      final active = controller.selectedDiscipline.value == filter;
       return GestureDetector(
         onTap: () => controller.setDiscipline(filter),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF0275FF) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border:
-                isActive ? null : Border.all(color: const Color(0xFF0275FF)),
+            color: active ? AppColors.primary : Colors.white,
+            borderRadius: AppRadius.pillRadius,
+            border: Border.all(color: AppColors.primary),
           ),
           child: Text(
             label,
             style: TextStyle(
-              color: isActive ? Colors.white : const Color(0xFF0275FF),
+              color: active ? Colors.white : AppColors.primary,
               fontWeight: FontWeight.w500,
               fontSize: 12,
             ),
@@ -144,391 +248,269 @@ class HomeView extends GetView<HomeController> {
       );
     });
   }
+}
 
-  Widget _buildWeekendHeader() {
+class _HomeSearchBar extends StatefulWidget {
+  const _HomeSearchBar();
+
+  @override
+  State<_HomeSearchBar> createState() => _HomeSearchBarState();
+}
+
+class _HomeSearchBarState extends State<_HomeSearchBar> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final home = Get.find<HomeController>();
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'this_week_end'.tr,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+      padding: AppSpacing.pageHorizontal,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surfaceMuted,
+          borderRadius: AppRadius.pillRadius,
+        ),
+        child: TextField(
+          controller: _controller,
+          onChanged: home.setSearchQuery,
+          decoration: InputDecoration(
+            hintText: 'search_competitions'.tr,
+            hintStyle: AppTypography.body.copyWith(color: AppColors.textMuted),
+            prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
+            border: InputBorder.none,
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
           ),
-          TextButton(
-            onPressed: () {},
-            child: Text(
-              'see_more'.tr,
-              style: const TextStyle(
-                color: Color(0xFF0275FF),
-                fontSize: 12,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
+}
 
-  Widget _buildCarousel() {
+class _HomeList extends GetView<HomeController> {
+  const _HomeList();
+
+  @override
+  Widget build(BuildContext context) {
     return Obx(() {
-      final competitions = controller.filteredCompetitions.take(5).toList();
-      return CarouselSlider(
-        options: CarouselOptions(
-          height: 280,
-          viewportFraction: 0.85,
-          enableInfiniteScroll: competitions.length > 1,
-          enlargeCenterPage: true,
-        ),
-        items: competitions.map((competition) {
-          return Builder(
-            builder: (BuildContext context) {
-              return GestureDetector(
-                onTap: () =>
-                    controller.navigateToCompetitionDetails(competition),
-                child: _buildCarouselItem(competition),
-              );
-            },
-          );
-        }).toList(),
-      );
-    });
-  }
-
-  Widget _buildCarouselItem(Competition competition) {
-    final isOnGoing = competition.phase == CompetitionStatus.onGoing;
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 5.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Image section
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(10)),
-                child: _buildImagePlaceholder(competition),
-              ),
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0275FF),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Text(
-                    competition.formattedBeginDate,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              if (isOnGoing)
-                Positioned(
-                  bottom: 10,
-                  right: 10,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: competition.phaseColor,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Text(
-                      competition.phaseLabel,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          // Text section
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Tooltip(
-                    message: competition.name,
-                    child: Text(
-                      competition.name,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    competition.location ?? 'Unknown location',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Button
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: OutlinedButton(
-              onPressed: () =>
-                  controller.navigateToCompetitionDetails(competition),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF0275FF)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                minimumSize: const Size(100, 36),
-              ),
-              child: Text(
-                'see'.tr,
-                style: const TextStyle(
-                  color: Color(0xFF0275FF),
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImagePlaceholder(Competition competition) {
-    final logoUrl = competition.organizerClub.logoUrl;
-    if (logoUrl != null && logoUrl.isNotEmpty) {
-      return SizedBox(
-        width: double.infinity,
-        height: 60,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8.0),
-          child: Image.network(
-            logoUrl,
-            width: 60,
-            height: 60,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                height: 100,
-                color: const Color(0xFFE1E8F0),
-                child: const Center(
-                  child: Icon(
-                    Icons.image,
-                    color: Colors.white,
-                    size: 40,
-                  ),
-                ),
-              );
-            },
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                height: 100,
-                color: const Color(0xFFE1E8F0),
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              );
-            },
-          ),
-        ),
-      );
-    } else {
-      return Container(
-        height: 100,
-        color: const Color(0xFFE1E8F0),
-        child: const Center(
-          child: Icon(
-            Icons.image,
-            color: Colors.white,
-            size: 40,
-          ),
-        ),
-      );
-    }
-  }
-
-  Widget _buildCompetitionsList() {
-    return Obx(() {
-      final all = controller.filteredCompetitions;
-      final listCompetitions = all.length > 5 ? all.skip(5).toList() : <Competition>[];
-
-      if (listCompetitions.isEmpty) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Center(
-            child: Text('no_other_competitions'.tr),
-          ),
+      final items = controller.filteredCompetitions;
+      if (items.isEmpty) {
+        final isLastViewed =
+            controller.selectedTemporal.value == TemporalFilter.lastViewed;
+        return EmptyState(
+          icon: Icons.event_busy,
+          title:
+              isLastViewed ? 'no_last_viewed'.tr : 'no_competitions_found'.tr,
         );
       }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'other_competitions'.tr,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...listCompetitions
-              .map((competition) => _buildCompetitionListItem(competition)),
-        ],
+      return ListView.separated(
+        padding: AppSpacing.pageHorizontal,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+        itemBuilder: (_, i) => _CompetitionCard(competition: items[i]),
       );
     });
   }
+}
 
-  Widget _buildCompetitionListItem(Competition competition) {
+class _CompetitionCard extends GetView<HomeController> {
+  const _CompetitionCard({required this.competition});
+
+  final Competition competition;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: AppRadius.smRadius,
+      child: InkWell(
+        onTap: () => controller.navigateToCompetitionDetails(competition),
+        borderRadius: AppRadius.smRadius,
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.border),
+            borderRadius: AppRadius.smRadius,
+          ),
+          child: Row(
+            children: [
+              _CardThumbnail(competition: competition),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(child: _CardBody(competition: competition)),
+              const SizedBox(width: AppSpacing.sm),
+              _CardTrailing(competition: competition),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CardThumbnail extends StatelessWidget {
+  const _CardThumbnail({required this.competition});
+
+  final Competition competition;
+
+  @override
+  Widget build(BuildContext context) {
+    final logoUrl = competition.organizerClub.logoUrl;
+    if (logoUrl == null || logoUrl.isEmpty) {
+      return _DateBlock(competition: competition);
+    }
+    return ClipRRect(
+      borderRadius: AppRadius.smRadius,
+      child: Image.network(
+        logoUrl,
+        width: 56,
+        height: 56,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _DateBlock(competition: competition),
+        loadingBuilder: (_, child, progress) =>
+            progress == null ? child : _DateBlock(competition: competition),
+      ),
+    );
+  }
+}
+
+class _DateBlock extends StatelessWidget {
+  const _DateBlock({required this.competition});
+
+  final Competition competition;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      width: 56,
+      height: 56,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+        color: AppColors.surfaceMuted,
+        borderRadius: AppRadius.smRadius,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            competition.formattedBeginDateMonth,
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          Text(
+            competition.formattedDayBeginDate,
+            style: AppTypography.subtitle.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
         ],
       ),
-      child: InkWell(
-        onTap: () => controller.navigateToCompetitionDetails(competition),
-        borderRadius: BorderRadius.circular(5),
-        child: Row(
+    );
+  }
+}
+
+class _CardBody extends StatelessWidget {
+  const _CardBody({required this.competition});
+
+  final Competition competition;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          competition.name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: AppTypography.title.copyWith(fontSize: 14),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          _dateRange(competition),
+          style: AppTypography.body.copyWith(fontSize: 12),
+        ),
+        Text(
+          competition.location ?? 'no_location'.tr,
+          style: AppTypography.caption,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  String _dateRange(Competition c) {
+    final fmt = DateFormat('yyyy MMM dd');
+    if (c.beginDate == null) return '';
+    if (c.endDate == null || c.endDate!.isAtSameMomentAs(c.beginDate!)) {
+      return fmt.format(c.beginDate!);
+    }
+    return '${fmt.format(c.beginDate!)} - ${DateFormat('dd').format(c.endDate!)}';
+  }
+}
+
+class _CardTrailing extends GetView<HomeController> {
+  const _CardTrailing({required this.competition});
+
+  final Competition competition;
+
+  @override
+  Widget build(BuildContext context) {
+    final isLive = competition.phase == CompetitionStatus.onGoing;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: isLive ? AppColors.statusError : competition.entryStatusColor,
+            borderRadius: AppRadius.pillRadius,
+          ),
+          child: Text(
+            isLive ? 'live'.tr : competition.entryStatusLabel,
+            style: AppTypography.badge.copyWith(fontSize: 10),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Date container
-            Container(
-              width: 60,
-              height: 60,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(5),
-                  bottomLeft: Radius.circular(5),
+            Obx(() {
+              final favored =
+                  controller.favoriteIds.contains(competition.id);
+              return IconButton(
+                onPressed: () => controller.toggleFavorite(competition.id),
+                icon: Icon(
+                  favored ? Icons.star : Icons.star_border,
+                  color: favored
+                      ? AppColors.statusWaiting
+                      : AppColors.textMuted,
+                  size: 22,
                 ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    competition.formattedBeginDateMonth,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    competition.formattedDayBeginDate,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Competition details
-            Expanded(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      competition.name,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      competition.location ?? 'no_location'.tr,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Status and chevron
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: competition.entryStatusColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      competition.entryStatusLabel,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.chevron_right,
-                    color: Colors.grey[400],
-                  ),
-                ],
-              ),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              );
+            }),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.textMuted,
+              size: 22,
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 }
