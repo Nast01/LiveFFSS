@@ -65,6 +65,7 @@ void main() {
       );
 
   setUp(() {
+    Get.testMode = true;
     repo = _MockRepo();
     users = _MockUserService();
     lang = _MockLanguageService();
@@ -74,6 +75,10 @@ void main() {
     when(() => prefs.favoriteIds).thenReturn(<int>{}.obs);
     when(() => prefs.isFavorite(any())).thenReturn(false);
     controller = HomeController(repo, users, lang, prefs);
+  });
+
+  tearDown(() {
+    Get.reset();
   });
 
   group('HomeController.loadCompetitions', () {

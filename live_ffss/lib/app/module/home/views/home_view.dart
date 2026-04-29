@@ -36,7 +36,7 @@ class HomeView extends GetView<HomeController> {
             // App title now uses translation
             Obx(
               () => Text(
-                controller.appTitle.value,
+                controller.appTitleKey.tr,
                 style: Theme.of(context).textTheme.headlineLarge,
               ),
             ),

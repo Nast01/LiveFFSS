@@ -112,7 +112,7 @@ class HomeController extends GetxController {
     Get.toNamed(Routes.competitionDetail, arguments: competition);
   }
 
-  RxString get appTitle => 'app_title'.tr.obs;
+  String get appTitleKey => 'app_title';
 
   RxString get currentLanguage => _languageService.currentLanguage;
 
