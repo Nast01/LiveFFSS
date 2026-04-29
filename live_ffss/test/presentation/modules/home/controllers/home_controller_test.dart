@@ -4,6 +4,7 @@ import 'package:live_ffss/app/core/enum/enum.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/data/repositories/competition_repository.dart';
+import 'package:live_ffss/app/data/services/user_preferences_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
@@ -16,26 +17,40 @@ class _MockUserService extends Mock implements UserService {}
 
 class _MockLanguageService extends Mock implements LanguageService {}
 
+class _MockPrefs extends Mock implements UserPreferencesService {}
+
 void main() {
   setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
     registerFallbackValue(CompetitionType.mixte);
     registerFallbackValue(CompetitionVisibility.incoming);
+    Get.testMode = true;
   });
 
   late _MockRepo repo;
   late _MockUserService users;
   late _MockLanguageService lang;
+  late _MockPrefs prefs;
   late HomeController controller;
 
-  Competition c(int id, {DateTime? begin}) => Competition(
+  Competition c(
+    int id, {
+    DateTime? begin,
+    DateTime? end,
+    String typeWater = '',
+    String? location,
+  }) =>
+      Competition(
         id: id,
         name: 'C$id',
         beginDate: begin,
+        endDate: end,
+        location: location,
         statusCode: 0,
         statusLabel: '',
         speciality: 0,
         specialityLabel: '',
-        typeWater: '',
+        typeWater: typeWater,
         typePool: '',
         typeChrono: '',
         isEligibleToNationalRecord: false,
@@ -53,8 +68,12 @@ void main() {
     repo = _MockRepo();
     users = _MockUserService();
     lang = _MockLanguageService();
+    prefs = _MockPrefs();
     when(() => lang.currentLanguage).thenReturn('fr_FR'.obs);
-    controller = HomeController(repo, users, lang);
+    when(() => prefs.lastViewedIds).thenReturn(<int>[].obs);
+    when(() => prefs.favoriteIds).thenReturn(<int>{}.obs);
+    when(() => prefs.isFavorite(any())).thenReturn(false);
+    controller = HomeController(repo, users, lang, prefs);
   });
 
   group('HomeController.loadCompetitions', () {
@@ -89,40 +108,128 @@ void main() {
     });
   });
 
-  group('HomeController paging slice', () {
-    test('carouselCompetitions returns at most first 5', () {
-      controller.competitions
-          .value = List.generate(8, (i) => c(i + 1));
-      expect(controller.carouselCompetitions.length, 5);
-      expect(controller.carouselCompetitions.first.id, 1);
+  group('HomeController.filteredCompetitions', () {
+    test('temporal=all returns everything', () {
+      controller.competitions.value = [c(1), c(2), c(3)];
+      controller.setTemporal(TemporalFilter.all);
+      controller.setDiscipline(HomeFilter.all);
+      controller.setSearchQuery('');
+
+      expect(controller.filteredCompetitions.length, 3);
     });
 
-    test('listCompetitions returns the rest after first 5', () {
-      controller.competitions
-          .value = List.generate(8, (i) => c(i + 1));
-      expect(controller.listCompetitions.length, 3);
-      expect(controller.listCompetitions.first.id, 6);
-    });
-
-    test('listCompetitions is empty when fewer than 6 total', () {
-      controller.competitions.value = List.generate(3, (i) => c(i + 1));
-      expect(controller.listCompetitions, isEmpty);
-    });
-
-    test('loadMore increases displayedItems up to listCompetitions.length',
+    test('temporal=thisWeek keeps only competitions overlapping current week',
         () {
-      controller.competitions
-          .value = List.generate(20, (i) => c(i + 1));
-      expect(controller.displayedItems.value, 3);
-      controller.loadMore();
-      expect(controller.displayedItems.value, 6);
+      final now = DateTime.now();
+      final inWeek = c(1, begin: now, end: now.add(const Duration(days: 1)));
+      final farFuture = c(
+        2,
+        begin: now.add(const Duration(days: 60)),
+        end: now.add(const Duration(days: 61)),
+      );
+      controller.competitions.value = [inWeek, farFuture];
+      controller.setTemporal(TemporalFilter.thisWeek);
+
+      expect(controller.filteredCompetitions, [inWeek]);
+    });
+
+    test(
+        'temporal=lastViewed returns competitions in last-viewed order, '
+        'skipping ids not loaded', () {
+      when(() => prefs.lastViewedIds).thenReturn(<int>[3, 99, 1].obs);
+      controller.competitions.value = [c(1), c(2), c(3)];
+      controller.setTemporal(TemporalFilter.lastViewed);
+
+      final result = controller.filteredCompetitions.map((x) => x.id).toList();
+      expect(result, [3, 1]);
+    });
+
+    test('discipline=pool keeps only swimming competitions', () {
+      controller.competitions.value = [
+        c(1, typeWater: 'Eau-plate'),
+        c(2, typeWater: 'Côtier'),
+      ];
+      controller.setTemporal(TemporalFilter.all);
+      controller.setDiscipline(HomeFilter.pool);
+
+      expect(controller.filteredCompetitions.map((x) => x.id), [1]);
+    });
+
+    test('discipline=coastal keeps only beach competitions', () {
+      controller.competitions.value = [
+        c(1, typeWater: 'Eau-plate'),
+        c(2, typeWater: 'Côtier'),
+      ];
+      controller.setTemporal(TemporalFilter.all);
+      controller.setDiscipline(HomeFilter.coastal);
+
+      expect(controller.filteredCompetitions.map((x) => x.id), [2]);
+    });
+
+    test('search filters by name and location, case-insensitive', () {
+      controller.competitions.value = [
+        c(1, location: 'Paris'),
+        c(2, location: 'Lyon'),
+      ];
+      controller.setTemporal(TemporalFilter.all);
+
+      controller.setSearchQuery('PARIS');
+      expect(controller.filteredCompetitions.map((x) => x.id), [1]);
+
+      controller.setSearchQuery('c2');
+      expect(controller.filteredCompetitions.map((x) => x.id), [2]);
+    });
+
+    test('combines temporal, discipline, and search', () {
+      final now = DateTime.now();
+      controller.competitions.value = [
+        c(1,
+            begin: now,
+            end: now.add(const Duration(days: 1)),
+            typeWater: 'Eau-plate'),
+        c(2,
+            begin: now,
+            end: now.add(const Duration(days: 1)),
+            typeWater: 'Côtier'),
+        c(3,
+            begin: now.add(const Duration(days: 60)),
+            end: now.add(const Duration(days: 61)),
+            typeWater: 'Eau-plate'),
+      ];
+      controller.setTemporal(TemporalFilter.thisWeek);
+      controller.setDiscipline(HomeFilter.pool);
+      controller.setSearchQuery('C1');
+
+      expect(controller.filteredCompetitions.map((x) => x.id), [1]);
     });
   });
 
-  group('HomeController.setFilter', () {
-    test('updates selectedFilter', () {
-      controller.setFilter(HomeFilter.coastal);
-      expect(controller.selectedFilter.value, HomeFilter.coastal);
+  group('HomeController favorites', () {
+    test('toggleFavorite delegates to UserPreferencesService', () async {
+      when(() => prefs.toggleFavorite(any())).thenAnswer((_) async {});
+      await controller.toggleFavorite(42);
+      verify(() => prefs.toggleFavorite(42)).called(1);
+    });
+
+    test('isFavorite delegates to UserPreferencesService', () {
+      when(() => prefs.isFavorite(7)).thenReturn(true);
+      expect(controller.isFavorite(7), isTrue);
+    });
+
+    test('favoriteIds exposes the service-backed RxSet', () {
+      final set = <int>{1, 2}.obs;
+      when(() => prefs.favoriteIds).thenReturn(set);
+      expect(controller.favoriteIds, set);
+    });
+  });
+
+  group('HomeController.navigateToCompetitionDetails', () {
+    test('records the view before navigation', () async {
+      when(() => prefs.recordView(any())).thenAnswer((_) async {});
+
+      await controller.navigateToCompetitionDetails(c(55));
+
+      verify(() => prefs.recordView(55)).called(1);
     });
   });
 }

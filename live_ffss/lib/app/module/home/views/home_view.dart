@@ -121,9 +121,9 @@ class HomeView extends GetView<HomeController> {
 
   Widget _buildFilterTab(String label, HomeFilter filter) {
     return Obx(() {
-      final isActive = controller.selectedFilter.value == filter;
+      final isActive = controller.selectedDiscipline.value == filter;
       return GestureDetector(
-        onTap: () => controller.setFilter(filter),
+        onTap: () => controller.setDiscipline(filter),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
@@ -175,7 +175,7 @@ class HomeView extends GetView<HomeController> {
 
   Widget _buildCarousel() {
     return Obx(() {
-      final competitions = controller.carouselCompetitions;
+      final competitions = controller.filteredCompetitions.take(5).toList();
       return CarouselSlider(
         options: CarouselOptions(
           height: 280,
@@ -383,10 +383,10 @@ class HomeView extends GetView<HomeController> {
 
   Widget _buildCompetitionsList() {
     return Obx(() {
-      final displayedCompetitions = controller.displayedListCompetitions;
-      final allListCompetitions = controller.listCompetitions;
+      final all = controller.filteredCompetitions;
+      final listCompetitions = all.length > 5 ? all.skip(5).toList() : <Competition>[];
 
-      if (allListCompetitions.isEmpty) {
+      if (listCompetitions.isEmpty) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Center(
@@ -409,31 +409,8 @@ class HomeView extends GetView<HomeController> {
             ),
           ),
           const SizedBox(height: 8),
-          ...displayedCompetitions
+          ...listCompetitions
               .map((competition) => _buildCompetitionListItem(competition)),
-          if (controller.hasMoreToLoad)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: OutlinedButton(
-                  onPressed: controller.loadMore,
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF0275FF)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    minimumSize: const Size(140, 40),
-                  ),
-                  child: Text(
-                    'see_more'.tr,
-                    style: const TextStyle(
-                      color: Color(0xFF0275FF),
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ),
         ],
       );
     });
