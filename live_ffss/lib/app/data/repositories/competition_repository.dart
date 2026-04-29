@@ -23,7 +23,7 @@ abstract class CompetitionRepository {
 class CompetitionRepositoryImpl implements CompetitionRepository {
   CompetitionRepositoryImpl(this._dataSource);
 
-  static const _defaultSeason = '2023-2024';
+  static const _defaultSeason = '2025-2026';
   static const _defaultStartDate = '2024-09-29';
   static const _defaultPageSize = 10;
 
