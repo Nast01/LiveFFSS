@@ -16,6 +16,7 @@ import 'package:live_ffss/app/data/repositories/competition_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/repositories/result_repository.dart';
+import 'package:live_ffss/app/data/services/user_preferences_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 
 class InitialBinding {
@@ -114,6 +115,11 @@ class InitialBinding {
     );
     await Get.putAsync<LanguageService>(
       () async => LanguageService().init(),
+    );
+    await Get.putAsync<UserPreferencesService>(
+      () async => UserPreferencesService(
+        Get.find<FlutterSecureStorage>(),
+      ).init(),
     );
   }
 }
