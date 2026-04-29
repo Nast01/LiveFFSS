@@ -125,6 +125,5 @@ class HomeController extends GetxController {
     selectedTemporal.value = TemporalFilter.thisWeek;
     searchQuery.value = '';
     loadCompetitions();
-    update();
   }
 }
