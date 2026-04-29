@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
@@ -258,7 +257,15 @@ class _HomeSearchBar extends StatefulWidget {
 }
 
 class _HomeSearchBarState extends State<_HomeSearchBar> {
-  final TextEditingController _controller = TextEditingController();
+  late final HomeController _home;
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _home = Get.find<HomeController>();
+    _controller = TextEditingController(text: _home.searchQuery.value);
+  }
 
   @override
   void dispose() {
@@ -268,7 +275,6 @@ class _HomeSearchBarState extends State<_HomeSearchBar> {
 
   @override
   Widget build(BuildContext context) {
-    final home = Get.find<HomeController>();
     return Padding(
       padding: AppSpacing.pageHorizontal,
       child: Container(
@@ -278,7 +284,7 @@ class _HomeSearchBarState extends State<_HomeSearchBar> {
         ),
         child: TextField(
           controller: _controller,
-          onChanged: home.setSearchQuery,
+          onChanged: _home.setSearchQuery,
           decoration: InputDecoration(
             hintText: 'search_competitions'.tr,
             hintStyle: AppTypography.body.copyWith(color: AppColors.textMuted),
@@ -435,7 +441,7 @@ class _CardBody extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          _dateRange(competition),
+          competition.formattedDateRange,
           style: AppTypography.body.copyWith(fontSize: 12),
         ),
         Text(
@@ -448,14 +454,6 @@ class _CardBody extends StatelessWidget {
     );
   }
 
-  String _dateRange(Competition c) {
-    final fmt = DateFormat('yyyy MMM dd');
-    if (c.beginDate == null) return '';
-    if (c.endDate == null || c.endDate!.isAtSameMomentAs(c.beginDate!)) {
-      return fmt.format(c.beginDate!);
-    }
-    return '${fmt.format(c.beginDate!)} - ${DateFormat('dd').format(c.endDate!)}';
-  }
 }
 
 class _CardTrailing extends GetView<HomeController> {

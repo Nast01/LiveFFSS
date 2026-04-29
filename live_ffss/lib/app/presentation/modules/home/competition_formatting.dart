@@ -100,4 +100,13 @@ extension CompetitionFormatting on Competition {
         t.contains('beach') ||
         t.contains('coastal');
   }
+
+  String get formattedDateRange {
+    if (beginDate == null) return '';
+    final fmt = DateFormat('yyyy MMM dd');
+    if (endDate == null || endDate!.isAtSameMomentAs(beginDate!)) {
+      return fmt.format(beginDate!);
+    }
+    return '${fmt.format(beginDate!)} - ${DateFormat('dd').format(endDate!)}';
+  }
 }
