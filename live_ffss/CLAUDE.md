@@ -4,23 +4,42 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 
 ## Architecture (3-layer pragmatic)
 
-`Controller → Repository → DataSource`. State + DI via GetX. Each domain owns one of each:
+`Controller → Repository → DataSource`. State + DI via GetX. Each domain owns one of each.
 
+**Data + domain layers:**
 - **`lib/app/data/dtos/`** — freezed + json_serializable, 1:1 with FFSS API JSON. French field names mapped via `@JsonKey(name: 'NomCompletOrga')` etc. First line: `// ignore_for_file: invalid_annotation_target` when using `@JsonKey` on freezed factory params.
 - **`lib/app/data/mappers/`** — extension `XMapper on XDto { X toDomain() => ... }`. Date parsing, enum decoding, default-handling all live here.
-- **`lib/app/data/datasources/`** — abstract `XRemoteDataSource` + `Impl(HttpClient)`. Returns DTOs.
+- **`lib/app/data/datasources/`** — abstract `XRemoteDataSource` + `Impl(HttpClient)`. Returns DTOs. Six domains: auth, club, competition, meeting, race, result.
 - **`lib/app/data/repositories/`** — abstract `XRepository` + `Impl(XRemoteDataSource)`. Returns domain models. Owns auto-pagination, orchestration.
-- **`lib/app/domain/models/`** — freezed pure types, no `@JsonKey`. Enums for status/role/discipline.
-- **`lib/app/presentation/modules/<feature>/`** — view-side extensions (`CompetitionFormatting`, `RaceFormatting`, etc.) for date strings, status labels, colors.
+- **`lib/app/data/services/`** — `UserService` (long-lived auth state, exposes `Rx<User?>`, listens to `AuthRepository.userStream`).
+- **`lib/app/domain/models/`** — freezed pure types, no `@JsonKey`. Enums for status/role/discipline. Includes `athlete`, `category`, `club`, `club_ranking`, `competition`, `discipline`, `entry`, `heat`, `live_result`, `meeting`, `race`, `race_format_configuration`, `race_format_detail`, `referee`, `result`, `run`, `slot`, `user`.
+
+**Feature modules (dual location — both are live):**
+- **`lib/app/module/<feature>/{bindings,controllers,views}/`** — actual feature code: GetX bindings, controllers, view widgets. Modules: `auth`, `competitions`, `home`, `program`, `slot`. Auth module also holds `profile_*` and `user_*`.
+- **`lib/app/presentation/modules/<feature>/`** — view-side `*_formatting.dart` extensions only (`CompetitionFormatting`, `RaceFormatting`, `MeetingFormatting`, `RunFormatting`) for date strings, status labels, colors. Currently covers `competitions`, `home`, `program`, `slot` (no `auth` extension yet).
 - **`lib/app/presentation/shared/`** — `LoadingIndicator`, `EmptyState`, `ErrorState`, `StatusBadge`, `SectionHeader`, `UiMessage`, `LanguageSelector`.
-- **`lib/app/core/`** — `config/AppConfig`, `network/HttpClient`+`TokenStorage`, `errors/AppException` (sealed), `theme/AppColors`+`AppSpacing`+`AppRadius`+`AppTypography`, `di/InitialBinding` (single registration point).
+- **`lib/app/routes/`** — `app_pages.dart` (GetPage list, per-route bindings) + `app_routes.dart` (route name constants, `part of 'app_pages.dart'`). `AppPages.initial = Routes.home`.
+
+**Core (`lib/app/core/`):**
+- `config/` — `AppConfig.fromEnv()`.
+- `const/` — `ApiConstants` (path templates + `replacePath`), `FormatConst` (intl `DateFormat`s).
+- `enum/` — UI-side enums (`CompetitionVisibility`, `CompetitionType`); domain enums live with their model.
+- `errors/` — sealed `AppException` family (`ApiException`, `AuthException`, `NetworkException`, `UnknownException`).
+- `network/` — `HttpClient`, `TokenStorage`.
+- `services/` — `LanguageService` (locale persistence via secure storage; async-init).
+- `theme/` — `AppColors`, `AppRadius`, `AppSpacing`, `AppTypography` (design tokens).
+- `themes/` — `app_theme.dart` (assembles tokens into `ThemeData`).
+- `translations/` — `AppTranslations` + `en_us.dart`, `fr_fr.dart`.
+- `utils/` — `url_builder.dart`, `validators.dart`.
+- `di/InitialBinding` — single registration point (see DI order section).
+- Empty scaffold dirs that survived the cleanup: `core/bindings/`, `core/controllers/`, `core/middleware/`. Don't add to them — register in `InitialBinding` or per-module bindings instead.
 
 ## Controller discipline (enforce by review)
 
 - **No `Get.context!`** in controllers. Date/time pickers, dialogs → views with local `context`.
 - **No `Get.snackbar`** in controllers. Use `Rxn<UiMessage>` (sealed `UiMessageSuccess`/`UiMessageError`); view watches with `ever()`.
 - **No `Get.dialog`** in controllers. View triggers based on controller state.
-- **No `.tr`** in controllers. Controllers store translation keys; views translate at render.
+- **No `.tr`** in controllers. Controllers store translation keys (defined in `core/translations/`); views translate at render.
 - **No `BuildContext` parameters** in controller methods.
 - **No `TextEditingController`/`GlobalKey`** in controllers when scoped to one view — make the view a `StatefulWidget`.
 - **Constructor injection only.** `Get.lazyPut<X>(() => X(Get.find<Y>()))` in bindings. NEVER `Get.find()` inside controller body.
@@ -36,6 +55,7 @@ Exceptions: `UserController` and `ProfileController` still have `Get.snackbar`/`
 - **`HttpClient`**: mock `http.Client`. Cover URL building, header injection, error mapping, transport failures.
 - **No widget tests, no integration tests.** Pragmatic core coverage = mapper/repo/controller layers.
 - For mocktail: `class _MockX extends Mock implements X {}` (NOT `extends Fake` — Fake doesn't support `when()`). For non-primitive `any()` matchers, register fallback values: `setUpAll(() { registerFallbackValue(_FakeUri()); })`.
+- **Test layout**: mappers/repos/core mirror their source paths (`test/data/mappers/`, `test/data/repositories/`, `test/core/...`). Controller tests live at `test/presentation/modules/<feature>/controllers/` even though the controllers themselves are at `lib/app/module/<feature>/controllers/` — the test path follows the architectural intent, not the current source location. The legacy `test/widget_test.dart` and `test/unit_test.dart` are scaffold leftovers; don't extend them.
 
 ## Codegen workflow
 
@@ -57,7 +77,7 @@ When `build_runner` regenerates other files via CRLF normalization (Windows quir
 
 ## API contract (FFSS, external, fixed)
 
-- Base URL: `https://ffss.fr` (single env). `AppConfig.fromEnv()` is the seam.
+- Base URL: `https://ffss.fr` (single env). `AppConfig.fromEnv()` is the seam. Path templates (with `:id` placeholders) and the `replacePath(path, params)` helper live in `core/const/api_const.dart` (`ApiConstants`).
 - `HttpClient.get/post` returns the **full decoded body** as `Map<String, dynamic>`. Datasources extract `body['data']` themselves — `me` endpoint has fields at both top-level and nested under `data`, so unwrapping in HttpClient would lose info.
 - Auth: `Authorization: Bearer <token>` from `TokenStorage`. NEVER pass token as a URL query parameter.
 - Success envelope: `success: true` (or absent). HttpClient throws `ApiException` on `success: false`, `AuthException` on 401, `ApiException` with statusCode on 4xx/5xx, `NetworkException` on `SocketException`/`TimeoutException`, `UnknownException` for anything else. **`AppException` rethrows pass through unchanged** — don't catch and re-wrap.
@@ -76,10 +96,10 @@ When `build_runner` regenerates other files via CRLF normalization (Windows quir
 2. `FlutterSecureStorage` → `TokenStorage`
 3. `HttpClient`
 4. Per-domain DataSource → Repository (Auth, Competition, Club, Race, Meeting, Result)
-5. `UserService` (async — `Get.putAsync`, depends on `AuthRepository`)
-6. `LanguageService` (async)
+5. `UserService` (async — `Get.putAsync`, depends on `AuthRepository`; lives at `lib/app/data/services/`)
+6. `LanguageService` (async; lives at `lib/app/core/services/`)
 
-All `permanent: true`. Per-route bindings register **only controllers** — no datasource/repository registrations leak into route bindings.
+All `permanent: true`. Per-route bindings (under `lib/app/module/<feature>/bindings/`) register **only controllers** — no datasource/repository registrations leak into route bindings. `AppPages` in `lib/app/routes/app_pages.dart` wires bindings to routes; some pages stack multiple bindings (e.g. `competitionDetail` uses both `CompetitionDetailBinding` and `ProgramBinding`).
 
 ## Things to NOT do
 
@@ -103,3 +123,5 @@ All `permanent: true`. Per-route bindings register **only controllers** — no d
 - Plans: `docs/superpowers/plans/` — 8 markdown files, one per batch (0, 1, 2, 3a, 3b, 4a, 5, 6).
 - Spec: `docs/superpowers/specs/2026-04-25-architecture-refactor-design.md` — original design.
 - Examples to follow: Auth (Batch 1), Competition (Batch 3a) — the cleanest end-to-end demonstrations of the pattern.
+- Routing entry point: `lib/app/routes/app_pages.dart` — start here to map a feature to its module + bindings + controllers.
+- DI entry point: `lib/app/core/di/initial_binding.dart` — wired in `main.dart` before `runApp`.
