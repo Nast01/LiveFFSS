@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:live_ffss/app/core/enum/enum.dart';
 import 'package:live_ffss/app/data/datasources/competition_remote_datasource.dart';
 import 'package:live_ffss/app/data/mappers/competition_mapper.dart';
@@ -18,13 +19,21 @@ abstract class CompetitionRepository {
   });
 
   Future<List<Competition>> getNext5();
+
+  Future<List<Competition>> getCompetitionsForRange({
+    required DateTime from,
+    required DateTime to,
+    CompetitionType type = CompetitionType.mixte,
+    CompetitionVisibility visibility = CompetitionVisibility.passed,
+    int pageSize = 10,
+  });
 }
 
 class CompetitionRepositoryImpl implements CompetitionRepository {
   CompetitionRepositoryImpl(this._dataSource);
 
   static const _defaultSeason = '2025-2026';
-  static const _defaultStartDate = '2024-09-29';
+  static const _defaultStartDate = '2025-09-29';
   static const _defaultPageSize = 10;
 
   final CompetitionRemoteDataSource _dataSource;
@@ -79,5 +88,37 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
       page: 1,
     );
     return batch.take(5).toList();
+  }
+
+  @override
+  Future<List<Competition>> getCompetitionsForRange({
+    required DateTime from,
+    required DateTime to,
+    CompetitionType type = CompetitionType.mixte,
+    CompetitionVisibility visibility = CompetitionVisibility.passed,
+    int pageSize = _defaultPageSize,
+  }) async {
+    final fmt = DateFormat('yyyy-MM-dd');
+    final fromStr = fmt.format(from);
+    final toStr = fmt.format(to);
+    final all = <Competition>[];
+    var page = 1;
+    while (true) {
+      final dtos = await _dataSource.getCompetitions(
+        season: _defaultSeason,
+        startDate: fromStr,
+        endDate: toStr,
+        type: type,
+        visibility: visibility,
+        page: page,
+        pageSize: pageSize,
+      );
+      final batch = dtos.map((d) => d.toDomain()).toList();
+      if (batch.isEmpty) break;
+      all.addAll(batch);
+      if (batch.length < pageSize) break;
+      page++;
+    }
+    return all;
   }
 }

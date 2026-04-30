@@ -127,4 +127,60 @@ void main() {
       expect(list.map((c) => c.id), [1, 2, 3, 4, 5]);
     });
   });
+
+  group('CompetitionRepository.getCompetitionsForRange', () {
+    test('forwards yyyy-MM-dd from/to dates to the data source', () async {
+      when(() => ds.getCompetitions(
+            season: any(named: 'season'),
+            startDate: any(named: 'startDate'),
+            endDate: any(named: 'endDate'),
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+          )).thenAnswer((_) async => [makeDto(1)]);
+
+      await repo.getCompetitionsForRange(
+        from: DateTime(2026, 4, 27),
+        to: DateTime(2026, 5, 3),
+      );
+
+      verify(() => ds.getCompetitions(
+            season: any(named: 'season'),
+            startDate: '2026-04-27',
+            endDate: '2026-05-03',
+            type: CompetitionType.mixte,
+            visibility: CompetitionVisibility.passed,
+            page: 1,
+            pageSize: any(named: 'pageSize'),
+          )).called(1);
+    });
+
+    test('auto-paginates until a partial page is returned', () async {
+      var calls = 0;
+      when(() => ds.getCompetitions(
+            season: any(named: 'season'),
+            startDate: any(named: 'startDate'),
+            endDate: any(named: 'endDate'),
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+          )).thenAnswer((_) async {
+        calls++;
+        if (calls == 1) return [makeDto(1), makeDto(2), makeDto(3)];
+        return [makeDto(4)];
+      });
+
+      final list = await repo.getCompetitionsForRange(
+        from: DateTime(2026, 4, 27),
+        to: DateTime(2026, 5, 3),
+        pageSize: 3,
+      );
+
+      expect(list.length, 4);
+      expect(list.map((c) => c.id), [1, 2, 3, 4]);
+      expect(calls, 2);
+    });
+  });
 }
