@@ -29,6 +29,9 @@ class HomeController extends GetxController {
   final RxList<Competition> competitions = <Competition>[].obs;
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
+  final RxList<Competition> thisWeekCompetitions = <Competition>[].obs;
+  final RxBool isLoadingThisWeek = false.obs;
+  final RxBool hasErrorThisWeek = false.obs;
   final Rx<HomeFilter> selectedDiscipline = HomeFilter.all.obs;
   final Rx<TemporalFilter> selectedTemporal = TemporalFilter.thisWeek.obs;
   final RxString searchQuery = ''.obs;
@@ -61,7 +64,40 @@ class HomeController extends GetxController {
     }
   }
 
-  void setTemporal(TemporalFilter t) => selectedTemporal.value = t;
+  Future<void> loadThisWeek() async {
+    try {
+      isLoadingThisWeek.value = true;
+      hasErrorThisWeek.value = false;
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final monday = today.subtract(Duration(days: today.weekday - 1));
+      final sunday = monday.add(const Duration(days: 6));
+      final loaded = await _competitionRepo.getCompetitionsForRange(
+        from: monday,
+        to: sunday,
+      );
+      loaded.sort((a, b) {
+        final dateComparison = (a.beginDate ?? DateTime(0))
+            .compareTo(b.beginDate ?? DateTime(0));
+        if (dateComparison != 0) return dateComparison;
+        return a.name.compareTo(b.name);
+      });
+      thisWeekCompetitions.value = loaded;
+    } on AppException {
+      hasErrorThisWeek.value = true;
+    } finally {
+      isLoadingThisWeek.value = false;
+    }
+  }
+
+  void setTemporal(TemporalFilter t) {
+    selectedTemporal.value = t;
+    if (t == TemporalFilter.thisWeek &&
+        thisWeekCompetitions.isEmpty &&
+        !hasErrorThisWeek.value) {
+      loadThisWeek();
+    }
+  }
   void setDiscipline(HomeFilter d) => selectedDiscipline.value = d;
   void setSearchQuery(String q) => searchQuery.value = q;
 
@@ -80,7 +116,7 @@ class HomeController extends GetxController {
             .where((c) => c != null)
             .cast<Competition>();
       case TemporalFilter.thisWeek:
-        result = result.where((c) => c.overlapsCurrentWeek);
+        result = thisWeekCompetitions;
       case TemporalFilter.all:
         // no-op
     }
@@ -124,6 +160,8 @@ class HomeController extends GetxController {
     selectedDiscipline.value = HomeFilter.all;
     selectedTemporal.value = TemporalFilter.thisWeek;
     searchQuery.value = '';
+    thisWeekCompetitions.clear();
+    hasErrorThisWeek.value = false;
     loadCompetitions();
   }
 }

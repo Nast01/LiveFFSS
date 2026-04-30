@@ -25,6 +25,7 @@ void main() {
     registerFallbackValue(CompetitionType.mixte);
     registerFallbackValue(CompetitionVisibility.incoming);
     Get.testMode = true;
+    registerFallbackValue(DateTime(2000));
   });
 
   late _MockRepo repo;
@@ -74,6 +75,10 @@ void main() {
     when(() => prefs.lastViewedIds).thenReturn(<int>[].obs);
     when(() => prefs.favoriteIds).thenReturn(<int>{}.obs);
     when(() => prefs.isFavorite(any())).thenReturn(false);
+    when(() => repo.getCompetitionsForRange(
+          from: any(named: 'from'),
+          to: any(named: 'to'),
+        )).thenAnswer((_) async => <Competition>[]);
     controller = HomeController(repo, users, lang, prefs);
   });
 
@@ -123,19 +128,14 @@ void main() {
       expect(controller.filteredCompetitions.length, 3);
     });
 
-    test('temporal=thisWeek keeps only competitions overlapping current week',
-        () {
-      final now = DateTime.now();
-      final inWeek = c(1, begin: now, end: now.add(const Duration(days: 1)));
-      final farFuture = c(
-        2,
-        begin: now.add(const Duration(days: 60)),
-        end: now.add(const Duration(days: 61)),
-      );
-      controller.competitions.value = [inWeek, farFuture];
+    test('temporal=thisWeek reads from thisWeekCompetitions cache', () {
+      controller.competitions.value = [c(1), c(2)];
+      controller.thisWeekCompetitions.value = [c(10), c(20)];
+      // Fill cache so setTemporal does not auto-fetch.
       controller.setTemporal(TemporalFilter.thisWeek);
 
-      expect(controller.filteredCompetitions, [inWeek]);
+      final result = controller.filteredCompetitions.map((x) => x.id).toList();
+      expect(result, [10, 20]);
     });
 
     test(
@@ -186,20 +186,10 @@ void main() {
     });
 
     test('combines temporal, discipline, and search', () {
-      final now = DateTime.now();
-      controller.competitions.value = [
-        c(1,
-            begin: now,
-            end: now.add(const Duration(days: 1)),
-            typeWater: 'Eau-plate'),
-        c(2,
-            begin: now,
-            end: now.add(const Duration(days: 1)),
-            typeWater: 'Côtier'),
-        c(3,
-            begin: now.add(const Duration(days: 60)),
-            end: now.add(const Duration(days: 61)),
-            typeWater: 'Eau-plate'),
+      controller.thisWeekCompetitions.value = [
+        c(1, typeWater: 'Eau-plate'),
+        c(2, typeWater: 'Côtier'),
+        c(3, typeWater: 'Eau-plate'),
       ];
       controller.setTemporal(TemporalFilter.thisWeek);
       controller.setDiscipline(HomeFilter.pool);
@@ -235,6 +225,96 @@ void main() {
       await controller.navigateToCompetitionDetails(c(55));
 
       verify(() => prefs.recordView(55)).called(1);
+    });
+  });
+
+  group('HomeController.setTemporal lazy fetch', () {
+    test('thisWeek triggers loadThisWeek when cache is empty', () async {
+      when(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          )).thenAnswer((_) async => [c(7)]);
+
+      controller.setTemporal(TemporalFilter.thisWeek);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.thisWeekCompetitions.map((x) => x.id), [7]);
+      verify(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          )).called(1);
+    });
+
+    test('thisWeek does not re-fetch when cache is non-empty', () {
+      controller.thisWeekCompetitions.value = [c(1)];
+      controller.setTemporal(TemporalFilter.thisWeek);
+
+      verifyNever(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          ));
+    });
+
+    test('thisWeek does not re-fetch when hasErrorThisWeek is true', () {
+      controller.hasErrorThisWeek.value = true;
+      controller.setTemporal(TemporalFilter.thisWeek);
+
+      verifyNever(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          ));
+    });
+  });
+
+  group('HomeController.loadThisWeek', () {
+    test('calls repo with Monday and Sunday of current week', () async {
+      DateTime? capturedFrom;
+      DateTime? capturedTo;
+      when(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          )).thenAnswer((invocation) async {
+        capturedFrom = invocation.namedArguments[#from] as DateTime;
+        capturedTo = invocation.namedArguments[#to] as DateTime;
+        return <Competition>[];
+      });
+
+      await controller.loadThisWeek();
+
+      expect(capturedFrom, isNotNull);
+      expect(capturedTo, isNotNull);
+      expect(capturedFrom!.weekday, DateTime.monday);
+      expect(capturedTo!.weekday, DateTime.sunday);
+      expect(capturedTo!.difference(capturedFrom!).inDays, 6);
+    });
+
+    test('on AppException sets hasErrorThisWeek and clears loading', () async {
+      when(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          )).thenThrow(const NetworkException('offline'));
+
+      await controller.loadThisWeek();
+
+      expect(controller.hasErrorThisWeek.value, true);
+      expect(controller.isLoadingThisWeek.value, false);
+      expect(controller.thisWeekCompetitions, isEmpty);
+    });
+  });
+
+  group('HomeController.refreshAfterLogout extended', () {
+    test('clears thisWeekCompetitions and resets hasErrorThisWeek', () {
+      when(() => repo.getAllCompetitions(
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+          )).thenAnswer((_) async => <Competition>[]);
+      controller.thisWeekCompetitions.value = [c(1), c(2)];
+      controller.hasErrorThisWeek.value = true;
+
+      controller.refreshAfterLogout();
+
+      expect(controller.thisWeekCompetitions, isEmpty);
+      expect(controller.hasErrorThisWeek.value, false);
     });
   });
 }
