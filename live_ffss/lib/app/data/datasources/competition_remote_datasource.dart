@@ -7,6 +7,7 @@ abstract class CompetitionRemoteDataSource {
   Future<List<CompetitionDto>> getCompetitions({
     required String season,
     required String startDate,
+    String? endDate,
     required CompetitionType type,
     required CompetitionVisibility visibility,
     required int page,
@@ -23,6 +24,7 @@ class CompetitionRemoteDataSourceImpl implements CompetitionRemoteDataSource {
   Future<List<CompetitionDto>> getCompetitions({
     required String season,
     required String startDate,
+    String? endDate,
     required CompetitionType type,
     required CompetitionVisibility visibility,
     required int page,
@@ -33,6 +35,7 @@ class CompetitionRemoteDataSourceImpl implements CompetitionRemoteDataSource {
       query: {
         'saison': season,
         'debut': startDate,
+        if (endDate != null) 'fin': endDate,
         'type': type.index,
         'visibility': visibility.name,
         'length': pageSize,
