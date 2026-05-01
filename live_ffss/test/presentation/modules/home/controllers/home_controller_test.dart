@@ -266,6 +266,19 @@ void main() {
             to: any(named: 'to'),
           ));
     });
+
+    test('thisWeek does not re-fetch when fetch is already in flight',
+        () async {
+      // Simulate in-flight: explicitly set the loading flag and an empty cache.
+      controller.isLoadingThisWeek.value = true;
+
+      controller.setTemporal(TemporalFilter.thisWeek);
+
+      verifyNever(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          ));
+    });
   });
 
   group('HomeController.loadThisWeek', () {
@@ -334,6 +347,35 @@ void main() {
 
       expect(controller.thisWeekCompetitions, isEmpty);
       expect(controller.hasErrorThisWeek.value, false);
+    });
+  });
+
+  group('HomeController.onInit', () {
+    test('fires both loadCompetitions and loadThisWeek in parallel', () async {
+      when(() => repo.getAllCompetitions(
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+          )).thenAnswer((_) async => [c(1)]);
+      when(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          )).thenAnswer((_) async => [c(2)]);
+
+      controller.onInit();
+      await Future<void>.delayed(Duration.zero);
+      // Drain microtasks twice — both futures need to resolve.
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => repo.getAllCompetitions(
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+          )).called(1);
+      verify(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          )).called(1);
+      expect(controller.competitions.map((x) => x.id), [1]);
+      expect(controller.thisWeekCompetitions.map((x) => x.id), [2]);
     });
   });
 }

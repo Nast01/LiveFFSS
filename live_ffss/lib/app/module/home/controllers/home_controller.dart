@@ -40,6 +40,7 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     loadCompetitions();
+    loadThisWeek();
   }
 
   Future<void> loadCompetitions() async {
@@ -94,7 +95,8 @@ class HomeController extends GetxController {
     selectedTemporal.value = t;
     if (t == TemporalFilter.thisWeek &&
         thisWeekCompetitions.isEmpty &&
-        !hasErrorThisWeek.value) {
+        !hasErrorThisWeek.value &&
+        !isLoadingThisWeek.value) {
       loadThisWeek();
     }
   }
