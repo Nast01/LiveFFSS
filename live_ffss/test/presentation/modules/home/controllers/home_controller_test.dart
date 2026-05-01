@@ -38,7 +38,7 @@ void main() {
     int id, {
     DateTime? begin,
     DateTime? end,
-    String typeWater = '',
+    String specialityLabel = '',
     String? location,
   }) =>
       Competition(
@@ -50,8 +50,8 @@ void main() {
         statusCode: 0,
         statusLabel: '',
         speciality: 0,
-        specialityLabel: '',
-        typeWater: typeWater,
+        specialityLabel: specialityLabel,
+        typeWater: 'N/A',
         typePool: '',
         typeChrono: '',
         isEligibleToNationalRecord: false,
@@ -151,8 +151,8 @@ void main() {
 
     test('discipline=pool keeps only swimming competitions', () {
       controller.competitions.value = [
-        c(1, typeWater: 'Eau-plate'),
-        c(2, typeWater: 'Côtier'),
+        c(1, specialityLabel: 'Eau-plate'),
+        c(2, specialityLabel: 'Côtier'),
       ];
       controller.setTemporal(TemporalFilter.all);
       controller.setDiscipline(HomeFilter.pool);
@@ -162,8 +162,8 @@ void main() {
 
     test('discipline=coastal keeps only beach competitions', () {
       controller.competitions.value = [
-        c(1, typeWater: 'Eau-plate'),
-        c(2, typeWater: 'Côtier'),
+        c(1, specialityLabel: 'Eau-plate'),
+        c(2, specialityLabel: 'Côtier'),
       ];
       controller.setTemporal(TemporalFilter.all);
       controller.setDiscipline(HomeFilter.coastal);
@@ -187,9 +187,9 @@ void main() {
 
     test('combines temporal, discipline, and search', () {
       controller.thisWeekCompetitions.value = [
-        c(1, typeWater: 'Eau-plate'),
-        c(2, typeWater: 'Côtier'),
-        c(3, typeWater: 'Eau-plate'),
+        c(1, specialityLabel: 'Eau-plate'),
+        c(2, specialityLabel: 'Côtier'),
+        c(3, specialityLabel: 'Eau-plate'),
       ];
       controller.setTemporal(TemporalFilter.thisWeek);
       controller.setDiscipline(HomeFilter.pool);

@@ -77,19 +77,13 @@ extension CompetitionFormatting on Competition {
       };
 
   bool get isSwimming {
-    final t = typeWater.toLowerCase();
-    return t.contains('eau-plate') ||
-        t.contains('eau plate') ||
-        t.contains('swimming') ||
-        t.contains('piscine');
+    final s = specialityLabel.toLowerCase();
+    return s.contains('eau-plate') || s.contains('eau plate');
   }
 
   bool get isBeach {
-    final t = typeWater.toLowerCase();
-    return t.contains('côtier') ||
-        t.contains('cotier') ||
-        t.contains('beach') ||
-        t.contains('coastal');
+    final s = specialityLabel.toLowerCase();
+    return s.contains('côtier') || s.contains('cotier');
   }
 
   String get formattedDateRange {
