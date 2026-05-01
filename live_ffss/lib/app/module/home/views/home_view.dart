@@ -10,6 +10,7 @@ import 'package:live_ffss/app/module/home/controllers/home_controller.dart';
 import 'package:live_ffss/app/presentation/modules/home/competition_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
+import 'package:live_ffss/app/presentation/shared/home_wave.dart';
 import 'package:live_ffss/app/presentation/shared/language_selector.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 
@@ -25,7 +26,7 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           children: [
             const _HomeHero(),
-            const _HomeWave(),
+            const HomeWave(),
             const SizedBox(height: AppSpacing.md),
             const _HomeFiltersBar(),
             const SizedBox(height: AppSpacing.sm),
@@ -170,40 +171,6 @@ class _HeroPill extends GetView<HomeController> {
       );
     });
   }
-}
-
-class _HomeWave extends StatelessWidget {
-  const _HomeWave();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 24,
-      child: CustomPaint(painter: _WavePainter()),
-    );
-  }
-}
-
-class _WavePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = AppColors.primary;
-    final path = Path()
-      ..moveTo(0, 0)
-      ..quadraticBezierTo(
-        size.width * 0.5,
-        size.height * 2,
-        size.width,
-        0,
-      )
-      ..lineTo(size.width, 0)
-      ..close();
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _HomeFiltersBar extends GetView<HomeController> {
