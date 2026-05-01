@@ -76,15 +76,6 @@ extension CompetitionFormatting on Competition {
         CompetitionStatus.unknown => AppColors.textMuted,
       };
 
-  bool get overlapsCurrentWeek {
-    if (beginDate == null || endDate == null) return false;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final weekStart = today.subtract(Duration(days: today.weekday - 1));
-    final weekEnd = weekStart.add(const Duration(days: 7));
-    return beginDate!.isBefore(weekEnd) && endDate!.isAfter(weekStart);
-  }
-
   bool get isSwimming {
     final t = typeWater.toLowerCase();
     return t.contains('eau-plate') ||
