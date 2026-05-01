@@ -6,7 +6,7 @@ import 'package:live_ffss/app/data/repositories/competition_repository.dart';
 import 'package:live_ffss/app/data/services/user_preferences_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
-import 'package:live_ffss/app/presentation/modules/home/competition_formatting.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/competition_formatting.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
 enum HomeFilter { all, coastal, pool, mixed }

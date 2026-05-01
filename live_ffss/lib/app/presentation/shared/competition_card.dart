@@ -5,7 +5,7 @@ import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
-import 'package:live_ffss/app/presentation/modules/home/competition_formatting.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/competition_formatting.dart';
 
 class CompetitionCard extends StatelessWidget {
   const CompetitionCard({
