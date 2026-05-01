@@ -6,8 +6,10 @@ import 'package:live_ffss/app/module/auth/views/login_view.dart';
 import 'package:live_ffss/app/module/auth/views/profile_view.dart';
 import 'package:live_ffss/app/module/competitions/bindings/competition_detail_binding.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_view.dart';
+import 'package:live_ffss/app/module/favorites/bindings/favorites_binding.dart';
 import 'package:live_ffss/app/module/home/bindings/home_binding.dart';
-import 'package:live_ffss/app/module/home/views/home_view.dart';
+import 'package:live_ffss/app/module/main_shell/bindings/main_shell_binding.dart';
+import 'package:live_ffss/app/module/main_shell/views/main_shell_view.dart';
 import 'package:live_ffss/app/module/program/bindings/program_binding.dart';
 import 'package:live_ffss/app/module/program/views/program_view.dart';
 import 'package:live_ffss/app/module/slot/bindings/slot_binding.dart';
@@ -22,9 +24,11 @@ class AppPages {
   static final routes = [
     GetPage(
       name: Routes.home,
-      page: () => const HomeView(),
+      page: () => const MainShellView(),
       bindings: [
+        MainShellBinding(),
         HomeBinding(),
+        FavoritesBinding(),
         UserBinding(),
       ],
     ),
