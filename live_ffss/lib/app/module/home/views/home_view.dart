@@ -33,13 +33,23 @@ class HomeView extends GetView<HomeController> {
             const SizedBox(height: AppSpacing.md),
             Expanded(
               child: Obx(() {
-                if (controller.isLoading.value) {
+                final isWeek =
+                    controller.selectedTemporal.value == TemporalFilter.thisWeek;
+                final loading = isWeek
+                    ? controller.isLoadingThisWeek.value
+                    : controller.isLoading.value;
+                final hasErr = isWeek
+                    ? controller.hasErrorThisWeek.value
+                    : controller.hasError.value;
+                if (loading) {
                   return const LoadingIndicator();
                 }
-                if (controller.hasError.value) {
+                if (hasErr) {
                   return ErrorState(
                     message: 'error_occured'.tr,
-                    onRetry: controller.loadCompetitions,
+                    onRetry: isWeek
+                        ? controller.loadThisWeek
+                        : controller.loadCompetitions,
                   );
                 }
                 return const _HomeList();
