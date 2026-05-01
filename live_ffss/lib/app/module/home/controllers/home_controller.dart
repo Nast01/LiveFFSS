@@ -51,9 +51,12 @@ class HomeController extends GetxController {
         type: CompetitionType.mixte,
         visibility: CompetitionVisibility.passed,
       );
+      // DESC by beginDate: future competitions appear first (their dates
+      // are larger than past ones), then most-recent past, then oldest.
+      // Items without a date sink to the bottom (DateTime(0) is far past).
       loaded.sort((a, b) {
-        final dateComparison = (a.beginDate ?? DateTime(0))
-            .compareTo(b.beginDate ?? DateTime(0));
+        final dateComparison = (b.beginDate ?? DateTime(0))
+            .compareTo(a.beginDate ?? DateTime(0));
         if (dateComparison != 0) return dateComparison;
         return a.name.compareTo(b.name);
       });

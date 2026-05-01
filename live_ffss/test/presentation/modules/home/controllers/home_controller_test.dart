@@ -87,19 +87,21 @@ void main() {
   });
 
   group('HomeController.loadCompetitions', () {
-    test('loads, sorts by beginDate then name, clears error', () async {
+    test('loads, sorts by beginDate DESC then name, clears error', () async {
       when(() => repo.getAllCompetitions(
             type: any(named: 'type'),
             visibility: any(named: 'visibility'),
           )).thenAnswer((_) async => [
-            c(2, begin: DateTime.utc(2026, 5, 2)),
             c(1, begin: DateTime.utc(2026, 5, 1)),
+            c(2, begin: DateTime.utc(2026, 5, 2)),
           ]);
 
       await controller.loadCompetitions();
 
       expect(controller.competitions.length, 2);
-      expect(controller.competitions.first.id, 1);
+      // DESC by date: id=2 (May 2) is more recent, comes first.
+      expect(controller.competitions.first.id, 2);
+      expect(controller.competitions.last.id, 1);
       expect(controller.isLoading.value, false);
       expect(controller.hasError.value, false);
     });
