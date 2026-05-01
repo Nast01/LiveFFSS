@@ -77,6 +77,8 @@ final Map<String, String> enUS = {
   'no_last_viewed': 'No competitions viewed yet',
 
   'home': 'Home',
+  'favorites': 'Favorites',
+  'no_favorites_yet': "You haven't favorited any competition yet",
   'races': 'Races',
   'program': 'Program',
   'rankings': 'Rankings',

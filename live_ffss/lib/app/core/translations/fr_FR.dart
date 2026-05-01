@@ -76,6 +76,8 @@ final Map<String, String> frFR = {
   'no_last_viewed': 'Aucune compétition consultée',
 
   'home': 'Accueil',
+  'favorites': 'Favoris',
+  'no_favorites_yet': "Vous n'avez encore mis aucune compétition en favori",
   'races': 'Epreuves',
   'program': 'Programme',
   'rankings': 'Classements',
