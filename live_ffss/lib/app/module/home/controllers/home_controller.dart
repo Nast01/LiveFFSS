@@ -98,6 +98,7 @@ class HomeController extends GetxController {
       loadThisWeek();
     }
   }
+
   void setDiscipline(HomeFilter d) => selectedDiscipline.value = d;
   void setSearchQuery(String q) => searchQuery.value = q;
 
@@ -106,7 +107,10 @@ class HomeController extends GetxController {
   Future<void> toggleFavorite(int id) => _prefs.toggleFavorite(id);
 
   List<Competition> get filteredCompetitions {
-    Iterable<Competition> result = competitions;
+    final source = selectedTemporal.value == TemporalFilter.thisWeek
+        ? thisWeekCompetitions
+        : competitions;
+    Iterable<Competition> result = source;
 
     switch (selectedTemporal.value) {
       case TemporalFilter.lastViewed:
@@ -116,9 +120,9 @@ class HomeController extends GetxController {
             .where((c) => c != null)
             .cast<Competition>();
       case TemporalFilter.thisWeek:
-        result = thisWeekCompetitions;
+      // already filtered server-side
       case TemporalFilter.all:
-        // no-op
+      // no-op
     }
 
     switch (selectedDiscipline.value) {
@@ -162,6 +166,8 @@ class HomeController extends GetxController {
     searchQuery.value = '';
     thisWeekCompetitions.clear();
     hasErrorThisWeek.value = false;
+    isLoadingThisWeek.value = false;
+    isLoading.value = false;
     loadCompetitions();
   }
 }

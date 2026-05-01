@@ -236,6 +236,8 @@ void main() {
           )).thenAnswer((_) async => [c(7)]);
 
       controller.setTemporal(TemporalFilter.thisWeek);
+      // Drain the microtask queue so the fire-and-forget loadThisWeek future
+      // initiated by setTemporal can resolve before we assert on its effect.
       await Future<void>.delayed(Duration.zero);
 
       expect(controller.thisWeekCompetitions.map((x) => x.id), [7]);
@@ -267,6 +269,23 @@ void main() {
   });
 
   group('HomeController.loadThisWeek', () {
+    test('on success populates cache and clears loading + error flags',
+        () async {
+      controller.hasErrorThisWeek.value = true; // ensure it gets cleared
+      when(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          )).thenAnswer((_) async => [c(1), c(2)]);
+
+      final future = controller.loadThisWeek();
+      expect(controller.isLoadingThisWeek.value, isTrue);
+      await future;
+
+      expect(controller.thisWeekCompetitions.map((x) => x.id), [1, 2]);
+      expect(controller.isLoadingThisWeek.value, isFalse);
+      expect(controller.hasErrorThisWeek.value, isFalse);
+    });
+
     test('calls repo with Monday and Sunday of current week', () async {
       DateTime? capturedFrom;
       DateTime? capturedTo;
