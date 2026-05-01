@@ -33,6 +33,6 @@ class FavoritesController extends GetxController {
 
   Future<void> retry() => _homeController.loadCompetitions();
   Future<void> toggleFavorite(int id) => _prefs.toggleFavorite(id);
-  void navigateToCompetitionDetails(Competition c) =>
+  Future<void> navigateToCompetitionDetails(Competition c) =>
       _homeController.navigateToCompetitionDetails(c);
 }
