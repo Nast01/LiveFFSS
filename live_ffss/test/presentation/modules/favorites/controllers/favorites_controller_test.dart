@@ -145,4 +145,30 @@ void main() {
       verify(() => prefs.toggleFavorite(42)).called(1);
     });
   });
+
+  group('pass-through getters', () {
+    test('isLoading returns the home controller\'s observable', () {
+      final isLoadingRx = false.obs;
+      when(() => home.isLoading).thenReturn(isLoadingRx);
+      expect(controller.isLoading, same(isLoadingRx));
+    });
+
+    test('hasError returns the home controller\'s observable', () {
+      final hasErrorRx = false.obs;
+      when(() => home.hasError).thenReturn(hasErrorRx);
+      expect(controller.hasError, same(hasErrorRx));
+    });
+
+    test('competitions returns the home controller\'s list', () {
+      final list = <Competition>[c(1), c(2)].obs;
+      when(() => home.competitions).thenReturn(list);
+      expect(controller.competitions, same(list));
+    });
+
+    test('favoriteIds returns the prefs service set', () {
+      final favs = <int>{1, 2}.obs;
+      when(() => prefs.favoriteIds).thenReturn(favs);
+      expect(controller.favoriteIds, same(favs));
+    });
+  });
 }
