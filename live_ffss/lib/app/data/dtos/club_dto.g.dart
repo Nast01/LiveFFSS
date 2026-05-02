@@ -8,8 +8,8 @@ part of 'club_dto.dart';
 
 _$ClubDtoImpl _$$ClubDtoImplFromJson(Map<String, dynamic> json) =>
     _$ClubDtoImpl(
-      id: (json['Id'] as num).toInt(),
-      name: json['NomCompletOrga'] as String,
+      id: (json['Id'] as num?)?.toInt() ?? 0,
+      name: json['NomCompletOrga'] as String? ?? '',
       shortName: json['NomCourt'] as String?,
       logoUrl: json['logo'] as String?,
       capUrl: json['bonnet'] as String?,

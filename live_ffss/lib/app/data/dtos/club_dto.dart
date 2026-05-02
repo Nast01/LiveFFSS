@@ -9,8 +9,8 @@ part 'club_dto.g.dart';
 @freezed
 class ClubDto with _$ClubDto {
   const factory ClubDto({
-    @JsonKey(name: 'Id') required int id,
-    @JsonKey(name: 'NomCompletOrga') required String name,
+    @JsonKey(name: 'Id') @Default(0) int id,
+    @JsonKey(name: 'NomCompletOrga') @Default('') String name,
     @JsonKey(name: 'NomCourt') String? shortName,
     @JsonKey(name: 'logo') String? logoUrl,
     @JsonKey(name: 'bonnet') String? capUrl,

@@ -182,8 +182,8 @@ class __$$ClubDtoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ClubDtoImpl implements _ClubDto {
   const _$ClubDtoImpl(
-      {@JsonKey(name: 'Id') required this.id,
-      @JsonKey(name: 'NomCompletOrga') required this.name,
+      {@JsonKey(name: 'Id') this.id = 0,
+      @JsonKey(name: 'NomCompletOrga') this.name = '',
       @JsonKey(name: 'NomCourt') this.shortName,
       @JsonKey(name: 'logo') this.logoUrl,
       @JsonKey(name: 'bonnet') this.capUrl,
@@ -278,8 +278,8 @@ class _$ClubDtoImpl implements _ClubDto {
 
 abstract class _ClubDto implements ClubDto {
   const factory _ClubDto(
-          {@JsonKey(name: 'Id') required final int id,
-          @JsonKey(name: 'NomCompletOrga') required final String name,
+          {@JsonKey(name: 'Id') final int id,
+          @JsonKey(name: 'NomCompletOrga') final String name,
           @JsonKey(name: 'NomCourt') final String? shortName,
           @JsonKey(name: 'logo') final String? logoUrl,
           @JsonKey(name: 'bonnet') final String? capUrl,
