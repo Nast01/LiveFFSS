@@ -9,12 +9,14 @@ import 'package:live_ffss/app/data/datasources/club_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/competition_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/race_remote_datasource.dart';
+import 'package:live_ffss/app/data/datasources/ranking_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/result_remote_datasource.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/competition_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/repositories/ranking_repository.dart';
 import 'package:live_ffss/app/data/repositories/result_repository.dart';
 import 'package:live_ffss/app/data/services/user_preferences_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
@@ -106,6 +108,16 @@ class InitialBinding {
     );
     Get.put<ResultRepository>(
       ResultRepositoryImpl(Get.find<ResultRemoteDataSource>()),
+      permanent: true,
+    );
+
+    // 5f. Ranking data layer (stub returning empty lists — see datasource doc)
+    Get.put<RankingRemoteDataSource>(
+      RankingRemoteDataSourceImpl(),
+      permanent: true,
+    );
+    Get.put<RankingRepository>(
+      RankingRepositoryImpl(Get.find<RankingRemoteDataSource>()),
       permanent: true,
     );
 
