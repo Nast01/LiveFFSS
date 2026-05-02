@@ -74,6 +74,12 @@ final Map<String, String> frFR = {
   'live': 'LIVE',
   'no_competitions_found': 'Aucune compétition trouvée',
   'no_last_viewed': 'Aucune compétition consultée',
+  'events': 'Évènements',
+  'individual_ranking': 'Classement Individuel',
+  'relais_ranking': 'Classement Relais',
+  'no_rankings_yet': 'Aucun classement',
+  'no_individual_ranking_yet': 'Aucun classement individuel',
+  'no_relais_ranking_yet': 'Aucun classement relais',
 
   'home': 'Accueil',
   'favorites': 'Favoris',
