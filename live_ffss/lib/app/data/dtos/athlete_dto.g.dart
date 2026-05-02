@@ -9,14 +9,14 @@ part of 'athlete_dto.dart';
 _$AthleteDtoImpl _$$AthleteDtoImplFromJson(Map<String, dynamic> json) =>
     _$AthleteDtoImpl(
       id: (json['Id'] as num?)?.toInt() ?? 0,
-      licenseeNumber: json['NumeroLicence'] as String,
-      firstName: json['Prenom'] as String,
-      lastName: json['Nom'] as String,
-      gender: json['Sexe'] as String,
-      year: (_readYear(json, 'Annee') as num).toInt(),
-      nationalityCode: json['nationaliteCode'] as String,
-      nationality: json['nationaliteLabel'] as String,
-      isValid: json['isValid'] as bool,
+      licenseeNumber: json['NumeroLicence'] as String? ?? '',
+      firstName: json['Prenom'] as String? ?? '',
+      lastName: json['Nom'] as String? ?? '',
+      gender: json['Sexe'] as String? ?? '',
+      year: (_readYear(json, 'Annee') as num?)?.toInt() ?? 0,
+      nationalityCode: json['nationaliteCode'] as String? ?? '',
+      nationality: json['nationaliteLabel'] as String? ?? '',
+      isValid: json['isValid'] as bool? ?? false,
       isLicensee: json['isLicencie'] as bool? ?? false,
       isGuest: json['isInvite'] as bool? ?? false,
     );

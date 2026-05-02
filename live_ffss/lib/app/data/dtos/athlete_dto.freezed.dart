@@ -242,14 +242,14 @@ class __$$AthleteDtoImplCopyWithImpl<$Res>
 class _$AthleteDtoImpl implements _AthleteDto {
   const _$AthleteDtoImpl(
       {@JsonKey(name: 'Id') this.id = 0,
-      @JsonKey(name: 'NumeroLicence') required this.licenseeNumber,
-      @JsonKey(name: 'Prenom') required this.firstName,
-      @JsonKey(name: 'Nom') required this.lastName,
-      @JsonKey(name: 'Sexe') required this.gender,
-      @JsonKey(name: 'Annee', readValue: _readYear) required this.year,
-      @JsonKey(name: 'nationaliteCode') required this.nationalityCode,
-      @JsonKey(name: 'nationaliteLabel') required this.nationality,
-      @JsonKey(name: 'isValid') required this.isValid,
+      @JsonKey(name: 'NumeroLicence') this.licenseeNumber = '',
+      @JsonKey(name: 'Prenom') this.firstName = '',
+      @JsonKey(name: 'Nom') this.lastName = '',
+      @JsonKey(name: 'Sexe') this.gender = '',
+      @JsonKey(name: 'Annee', readValue: _readYear) this.year = 0,
+      @JsonKey(name: 'nationaliteCode') this.nationalityCode = '',
+      @JsonKey(name: 'nationaliteLabel') this.nationality = '',
+      @JsonKey(name: 'isValid') this.isValid = false,
       @JsonKey(name: 'isLicencie') this.isLicensee = false,
       @JsonKey(name: 'isInvite') this.isGuest = false});
 
@@ -352,14 +352,14 @@ class _$AthleteDtoImpl implements _AthleteDto {
 abstract class _AthleteDto implements AthleteDto {
   const factory _AthleteDto(
       {@JsonKey(name: 'Id') final int id,
-      @JsonKey(name: 'NumeroLicence') required final String licenseeNumber,
-      @JsonKey(name: 'Prenom') required final String firstName,
-      @JsonKey(name: 'Nom') required final String lastName,
-      @JsonKey(name: 'Sexe') required final String gender,
-      @JsonKey(name: 'Annee', readValue: _readYear) required final int year,
-      @JsonKey(name: 'nationaliteCode') required final String nationalityCode,
-      @JsonKey(name: 'nationaliteLabel') required final String nationality,
-      @JsonKey(name: 'isValid') required final bool isValid,
+      @JsonKey(name: 'NumeroLicence') final String licenseeNumber,
+      @JsonKey(name: 'Prenom') final String firstName,
+      @JsonKey(name: 'Nom') final String lastName,
+      @JsonKey(name: 'Sexe') final String gender,
+      @JsonKey(name: 'Annee', readValue: _readYear) final int year,
+      @JsonKey(name: 'nationaliteCode') final String nationalityCode,
+      @JsonKey(name: 'nationaliteLabel') final String nationality,
+      @JsonKey(name: 'isValid') final bool isValid,
       @JsonKey(name: 'isLicencie') final bool isLicensee,
       @JsonKey(name: 'isInvite') final bool isGuest}) = _$AthleteDtoImpl;
 

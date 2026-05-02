@@ -8,14 +8,14 @@ part 'athlete_dto.g.dart';
 class AthleteDto with _$AthleteDto {
   const factory AthleteDto({
     @JsonKey(name: 'Id') @Default(0) int id,
-    @JsonKey(name: 'NumeroLicence') required String licenseeNumber,
-    @JsonKey(name: 'Prenom') required String firstName,
-    @JsonKey(name: 'Nom') required String lastName,
-    @JsonKey(name: 'Sexe') required String gender,
-    @JsonKey(name: 'Annee', readValue: _readYear) required int year,
-    @JsonKey(name: 'nationaliteCode') required String nationalityCode,
-    @JsonKey(name: 'nationaliteLabel') required String nationality,
-    @JsonKey(name: 'isValid') required bool isValid,
+    @JsonKey(name: 'NumeroLicence') @Default('') String licenseeNumber,
+    @JsonKey(name: 'Prenom') @Default('') String firstName,
+    @JsonKey(name: 'Nom') @Default('') String lastName,
+    @JsonKey(name: 'Sexe') @Default('') String gender,
+    @JsonKey(name: 'Annee', readValue: _readYear) @Default(0) int year,
+    @JsonKey(name: 'nationaliteCode') @Default('') String nationalityCode,
+    @JsonKey(name: 'nationaliteLabel') @Default('') String nationality,
+    @JsonKey(name: 'isValid') @Default(false) bool isValid,
     @JsonKey(name: 'isLicencie') @Default(false) bool isLicensee,
     @JsonKey(name: 'isInvite') @Default(false) bool isGuest,
   }) = _AthleteDto;

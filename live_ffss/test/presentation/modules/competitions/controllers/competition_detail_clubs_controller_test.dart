@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_clubs_controller.dart';
@@ -33,8 +34,9 @@ void main() {
       expect(controller.hasError.value, false);
     });
 
-    test('on error sets hasError', () async {
-      when(() => repo.getClubs(any())).thenThrow(Exception('offline'));
+    test('on AppException sets hasError', () async {
+      when(() => repo.getClubs(any()))
+          .thenThrow(const NetworkException('offline'));
 
       await controller.loadClubs(99);
 

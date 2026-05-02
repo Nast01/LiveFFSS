@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
@@ -37,14 +38,7 @@ class CompetitionDetailClubsController extends GetxController {
 
       allClubs.value = loaded;
       _applyClubFilter();
-    } catch (e, st) {
-      // TEMP DIAGNOSTIC: keep until the Clubs-tab error is root-caused, then
-      // restore the bare `catch (_)` (or, better, `on AppException`).
-      // ignore: avoid_print
-      print('[ClubsController.loadClubs] competitionId=$competitionId '
-          'error type=${e.runtimeType} message=$e');
-      // ignore: avoid_print
-      print(st);
+    } on AppException {
       hasError.value = true;
     } finally {
       isLoading.value = false;
