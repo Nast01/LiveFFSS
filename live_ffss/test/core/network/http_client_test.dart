@@ -339,6 +339,58 @@ void main() {
     });
   });
 
+  group('HttpClient onAuthFailure', () {
+    test('on 401, fires onAuthFailure and still throws AuthException',
+        () async {
+      var handlerCalled = false;
+      client.onAuthFailure = () async {
+        handlerCalled = true;
+      };
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith(
+              '{"success": false, "message": "Token expired"}', 401));
+
+      await expectLater(client.get('x'), throwsA(isA<AuthException>()));
+      // Allow the fire-and-forget callback to settle.
+      await Future<void>.delayed(Duration.zero);
+      expect(handlerCalled, isTrue);
+    });
+
+    test('does NOT fire onAuthFailure on non-401 responses', () async {
+      var handlerCalled = false;
+      client.onAuthFailure = () async {
+        handlerCalled = true;
+      };
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith(
+              '{"success": false, "message": "Not found"}', 404));
+
+      await expectLater(client.get('x'), throwsA(isA<ApiException>()));
+      await Future<void>.delayed(Duration.zero);
+      expect(handlerCalled, isFalse);
+    });
+
+    test('errors thrown inside the handler do not mask the AuthException',
+        () async {
+      client.onAuthFailure = () async {
+        throw StateError('handler exploded');
+      };
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith(
+              '{"success": false, "message": "Token expired"}', 401));
+
+      await expectLater(client.get('x'), throwsA(isA<AuthException>()));
+    });
+
+    test('without a handler set, 401 still throws AuthException', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith(
+              '{"success": false, "message": "Token expired"}', 401));
+
+      await expectLater(client.get('x'), throwsA(isA<AuthException>()));
+    });
+  });
+
   group('HttpClient TokenStorage failures', () {
     test('TokenStorage exception is wrapped as UnknownException', () async {
       when(() => tokens.getToken()).thenThrow(StateError('keystore broken'));

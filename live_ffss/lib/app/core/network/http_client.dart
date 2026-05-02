@@ -20,6 +20,15 @@ class HttpClient {
   final TokenStorage _tokenStorage;
   final http.Client _inner;
 
+  Future<void> Function()? _onAuthFailure;
+
+  /// Fired when the server returns 401 (session expired / token invalid).
+  /// The handler runs fire-and-forget; errors inside it are swallowed so the
+  /// `AuthException` always propagates to the caller. Wired in
+  /// `InitialBinding` to logout + navigate to the login screen.
+  set onAuthFailure(Future<void> Function() handler) =>
+      _onAuthFailure = handler;
+
   Future<Map<String, dynamic>> get(
     String path, {
     Map<String, dynamic>? query,
@@ -94,6 +103,7 @@ class HttpClient {
     final status = response.statusCode;
 
     if (status == 401) {
+      _notifyAuthFailure();
       throw AuthException(_extractMessage(response.body) ?? 'Unauthorized');
     }
 
@@ -124,6 +134,13 @@ class HttpClient {
     }
 
     return body;
+  }
+
+  void _notifyAuthFailure() {
+    final cb = _onAuthFailure;
+    if (cb == null) return;
+    // Fire-and-forget; swallow errors so the AuthException always propagates.
+    cb().catchError((Object _) {});
   }
 
   String? _extractMessage(String rawBody) {

@@ -28,10 +28,12 @@ final Map<String, String> enUS = {
   'login_error': 'Failed to login',
   'logout_error': 'Failed to logout',
   'network_error': 'Network error',
+  'session_expired': 'Session expired',
+  'please_login_again': 'Please log in again',
 
   //Competition
   'competition': 'Compétition',
-  'no_competition_selected': 'Aucune compétition sélectionnée',
+  'no_competition_selected': 'No event selected',
   'token_not_found': 'Authentication token not found',
   'failed_to_load': 'Failed to load',
   'competitions': 'Competitions',

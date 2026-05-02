@@ -4,6 +4,7 @@ import 'package:live_ffss/app/core/config/app_config.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/club_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/competition_remote_datasource.dart';
@@ -133,5 +134,37 @@ class InitialBinding {
         Get.find<FlutterSecureStorage>(),
       ).init(),
     );
+
+    // 9. Session expiration handling
+    _wireSessionExpirationHandler();
+  }
+
+  static bool _handlingExpiry = false;
+
+  /// Wires HttpClient.onAuthFailure to log out + navigate to /login + show a
+  /// snackbar. The flag prevents duplicate handling when several in-flight
+  /// requests all return 401 in the same microtask. The current-route check
+  /// avoids re-navigating when the user is already on the login screen
+  /// (e.g., a failed login attempt itself returns 401).
+  static void _wireSessionExpirationHandler() {
+    final http = Get.find<HttpClient>();
+    final auth = Get.find<AuthRepository>();
+
+    http.onAuthFailure = () async {
+      if (_handlingExpiry) return;
+      if (Get.currentRoute == Routes.login) return;
+      _handlingExpiry = true;
+      try {
+        await auth.logout();
+        await Get.offAllNamed<void>(Routes.login);
+        Get.snackbar(
+          'session_expired'.tr,
+          'please_login_again'.tr,
+          snackPosition: SnackPosition.TOP,
+        );
+      } finally {
+        _handlingExpiry = false;
+      }
+    };
   }
 }

@@ -27,6 +27,8 @@ final Map<String, String> frFR = {
   'login_error': 'Échec de la connexion',
   'logout_error': 'Échec de la déconnexion',
   'network_error': 'Erreur réseau',
+  'session_expired': 'Session expirée',
+  'please_login_again': 'Veuillez vous reconnecter',
 
   //Competition
   'competition': 'Compétition',
