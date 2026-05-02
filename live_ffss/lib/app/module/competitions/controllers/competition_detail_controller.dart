@@ -1,15 +1,13 @@
 import 'package:get/get.dart';
-import 'package:live_ffss/app/core/services/language_service.dart';
-import 'package:live_ffss/app/domain/models/club_ranking.dart';
+import 'package:live_ffss/app/data/services/user_preferences_service.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 
 class CompetitionDetailController extends GetxController {
-  CompetitionDetailController(this._languageService);
+  CompetitionDetailController(this._prefs);
 
-  final LanguageService _languageService;
+  final UserPreferencesService _prefs;
 
-  Rxn<Competition> competition = Rxn<Competition>();
-
+  final Rxn<Competition> competition = Rxn<Competition>();
   final RxBool isLoading = false.obs;
   final RxBool hasError = false.obs;
   final RxInt currentTabIndex = 0.obs;
@@ -23,17 +21,10 @@ class CompetitionDetailController extends GetxController {
     }
   }
 
-  List<ClubRanking> get clubRankingsLimited => List.empty();
-
-  RxString get currentLanguage => _languageService.currentLanguage;
-  bool get isFrench => _languageService.isFrench;
-  bool get isEnglish => _languageService.isEnglish;
+  RxSet<int> get favoriteIds => _prefs.favoriteIds;
+  Future<void> toggleFavorite(int id) => _prefs.toggleFavorite(id);
 
   void changeTab(int index) {
     currentTabIndex.value = index;
-  }
-
-  Future<void> refreshData() async {
-    // No-op until rankings are wired up.
   }
 }
