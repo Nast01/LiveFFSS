@@ -10,7 +10,7 @@ part 'club_dto.g.dart';
 class ClubDto with _$ClubDto {
   const factory ClubDto({
     @JsonKey(name: 'Id') @Default(0) int id,
-    @JsonKey(name: 'NomCompletOrga') @Default('') String name,
+    @JsonKey(name: 'label', readValue: _readClubLabel) @Default('') String name,
     @JsonKey(name: 'NomCourt') String? shortName,
     @JsonKey(name: 'logo') String? logoUrl,
     @JsonKey(name: 'bonnet') String? capUrl,
@@ -22,4 +22,17 @@ class ClubDto with _$ClubDto {
 
   factory ClubDto.fromJson(Map<String, dynamic> json) =>
       _$ClubDtoFromJson(json);
+}
+
+// Two FFSS endpoints return clubs with different name keys:
+// - GET .../organismes (Clubs pill, doc says "label"): use `label`.
+// - GET .../competition/evenement (home list, "organizerClub" embedded):
+//   uses `NomCompletOrga` (legacy key, undocumented but observed in prod).
+// Try `label` first, fall back to `NomCompletOrga`, ultimately default to ''.
+Object? _readClubLabel(Map<dynamic, dynamic> map, String key) {
+  final label = map['label'];
+  if (label is String && label.isNotEmpty) return label;
+  final legacy = map['NomCompletOrga'];
+  if (legacy is String && legacy.isNotEmpty) return legacy;
+  return '';
 }

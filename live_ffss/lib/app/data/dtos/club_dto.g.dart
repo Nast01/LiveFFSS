@@ -9,7 +9,7 @@ part of 'club_dto.dart';
 _$ClubDtoImpl _$$ClubDtoImplFromJson(Map<String, dynamic> json) =>
     _$ClubDtoImpl(
       id: (json['Id'] as num?)?.toInt() ?? 0,
-      name: json['NomCompletOrga'] as String? ?? '',
+      name: _readClubLabel(json, 'label') as String? ?? '',
       shortName: json['NomCourt'] as String?,
       logoUrl: json['logo'] as String?,
       capUrl: json['bonnet'] as String?,
@@ -26,7 +26,7 @@ _$ClubDtoImpl _$$ClubDtoImplFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$$ClubDtoImplToJson(_$ClubDtoImpl instance) =>
     <String, dynamic>{
       'Id': instance.id,
-      'NomCompletOrga': instance.name,
+      'label': instance.name,
       'NomCourt': instance.shortName,
       'logo': instance.logoUrl,
       'bonnet': instance.capUrl,

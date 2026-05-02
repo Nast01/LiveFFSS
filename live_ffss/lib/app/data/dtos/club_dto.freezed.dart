@@ -22,7 +22,7 @@ ClubDto _$ClubDtoFromJson(Map<String, dynamic> json) {
 mixin _$ClubDto {
   @JsonKey(name: 'Id')
   int get id => throw _privateConstructorUsedError;
-  @JsonKey(name: 'NomCompletOrga')
+  @JsonKey(name: 'label', readValue: _readClubLabel)
   String get name => throw _privateConstructorUsedError;
   @JsonKey(name: 'NomCourt')
   String? get shortName => throw _privateConstructorUsedError;
@@ -47,7 +47,7 @@ abstract class $ClubDtoCopyWith<$Res> {
   @useResult
   $Res call(
       {@JsonKey(name: 'Id') int id,
-      @JsonKey(name: 'NomCompletOrga') String name,
+      @JsonKey(name: 'label', readValue: _readClubLabel) String name,
       @JsonKey(name: 'NomCourt') String? shortName,
       @JsonKey(name: 'logo') String? logoUrl,
       @JsonKey(name: 'bonnet') String? capUrl,
@@ -118,7 +118,7 @@ abstract class _$$ClubDtoImplCopyWith<$Res> implements $ClubDtoCopyWith<$Res> {
   @useResult
   $Res call(
       {@JsonKey(name: 'Id') int id,
-      @JsonKey(name: 'NomCompletOrga') String name,
+      @JsonKey(name: 'label', readValue: _readClubLabel) String name,
       @JsonKey(name: 'NomCourt') String? shortName,
       @JsonKey(name: 'logo') String? logoUrl,
       @JsonKey(name: 'bonnet') String? capUrl,
@@ -183,7 +183,7 @@ class __$$ClubDtoImplCopyWithImpl<$Res>
 class _$ClubDtoImpl implements _ClubDto {
   const _$ClubDtoImpl(
       {@JsonKey(name: 'Id') this.id = 0,
-      @JsonKey(name: 'NomCompletOrga') this.name = '',
+      @JsonKey(name: 'label', readValue: _readClubLabel) this.name = '',
       @JsonKey(name: 'NomCourt') this.shortName,
       @JsonKey(name: 'logo') this.logoUrl,
       @JsonKey(name: 'bonnet') this.capUrl,
@@ -201,7 +201,7 @@ class _$ClubDtoImpl implements _ClubDto {
   @JsonKey(name: 'Id')
   final int id;
   @override
-  @JsonKey(name: 'NomCompletOrga')
+  @JsonKey(name: 'label', readValue: _readClubLabel)
   final String name;
   @override
   @JsonKey(name: 'NomCourt')
@@ -279,7 +279,7 @@ class _$ClubDtoImpl implements _ClubDto {
 abstract class _ClubDto implements ClubDto {
   const factory _ClubDto(
           {@JsonKey(name: 'Id') final int id,
-          @JsonKey(name: 'NomCompletOrga') final String name,
+          @JsonKey(name: 'label', readValue: _readClubLabel) final String name,
           @JsonKey(name: 'NomCourt') final String? shortName,
           @JsonKey(name: 'logo') final String? logoUrl,
           @JsonKey(name: 'bonnet') final String? capUrl,
@@ -293,7 +293,7 @@ abstract class _ClubDto implements ClubDto {
   @JsonKey(name: 'Id')
   int get id;
   @override
-  @JsonKey(name: 'NomCompletOrga')
+  @JsonKey(name: 'label', readValue: _readClubLabel)
   String get name;
   @override
   @JsonKey(name: 'NomCourt')
