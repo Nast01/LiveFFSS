@@ -36,14 +36,12 @@ class CompetitionDetailPointsController extends GetxController {
     try {
       isLoading.value = true;
       hasError.value = false;
-      final results = await Future.wait([
-        _rankingRepo.getClubRankings(competitionId),
-        _rankingRepo.getIndividualRankings(competitionId),
-        _rankingRepo.getRelayRankings(competitionId),
-      ]);
-      clubRankings.value = results[0] as List<ClubRanking>;
-      individualRankings.value = results[1] as List<IndividualRanking>;
-      relayRankings.value = results[2] as List<RelayRanking>;
+      final clubFuture = _rankingRepo.getClubRankings(competitionId);
+      final individualFuture = _rankingRepo.getIndividualRankings(competitionId);
+      final relayFuture = _rankingRepo.getRelayRankings(competitionId);
+      clubRankings.value = await clubFuture;
+      individualRankings.value = await individualFuture;
+      relayRankings.value = await relayFuture;
     } on AppException {
       hasError.value = true;
     } finally {
