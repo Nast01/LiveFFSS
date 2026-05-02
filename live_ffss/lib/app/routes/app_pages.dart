@@ -45,10 +45,7 @@ class AppPages {
     GetPage(
       name: Routes.competitionDetail,
       page: () => const CompetitionDetailView(),
-      bindings: [
-        CompetitionDetailBinding(),
-        ProgramBinding(), // Ensure ProgramBinding is included if needed
-      ],
+      binding: CompetitionDetailBinding(),
     ),
     GetPage(
       name: Routes.program,
