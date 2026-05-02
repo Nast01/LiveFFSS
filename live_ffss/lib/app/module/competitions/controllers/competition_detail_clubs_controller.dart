@@ -37,7 +37,14 @@ class CompetitionDetailClubsController extends GetxController {
 
       allClubs.value = loaded;
       _applyClubFilter();
-    } catch (_) {
+    } catch (e, st) {
+      // TEMP DIAGNOSTIC: keep until the Clubs-tab error is root-caused, then
+      // restore the bare `catch (_)` (or, better, `on AppException`).
+      // ignore: avoid_print
+      print('[ClubsController.loadClubs] competitionId=$competitionId '
+          'error type=${e.runtimeType} message=$e');
+      // ignore: avoid_print
+      print(st);
       hasError.value = true;
     } finally {
       isLoading.value = false;
