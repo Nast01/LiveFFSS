@@ -9,6 +9,12 @@ abstract class RankingRepository {
   Future<List<RelayRanking>> getRelayRankings(int competitionId);
 }
 
+/// Temporary passthrough: returns domain types directly because
+/// [RankingRemoteDataSource] is a stub returning empty domain lists.
+///
+/// When the FFSS backend lands, the data source will return DTOs;
+/// add `lib/app/data/mappers/ranking_*_mapper.dart` and map here
+/// before returning. See CLAUDE.md "Known gaps".
 class RankingRepositoryImpl implements RankingRepository {
   RankingRepositoryImpl(this._dataSource);
 
