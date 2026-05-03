@@ -15,6 +15,12 @@ class CompetitionDetailClubsController extends GetxController {
 
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
+  final RxString searchQuery = ''.obs;
+
+  void setSearchQuery(String value) {
+    searchQuery.value = value;
+    _applyClubFilter();
+  }
 
   @override
   void onInit() {
@@ -46,6 +52,35 @@ class CompetitionDetailClubsController extends GetxController {
   }
 
   void _applyClubFilter() {
-    filteredClubs.value = List.from(allClubs);
+    final q = searchQuery.value.trim().toLowerCase();
+    if (q.isEmpty) {
+      filteredClubs.value = List.from(allClubs);
+      return;
+    }
+    final result = <Club>[];
+    for (final club in allClubs) {
+      final clubMatches = club.name.toLowerCase().contains(q);
+      final matchingAthletes = club.athletes
+          .where((a) =>
+              '${a.firstName} ${a.lastName}'.toLowerCase().contains(q))
+          .toList();
+      final matchingReferees = club.referees
+          .where((r) =>
+              '${r.firstName} ${r.lastName}'.toLowerCase().contains(q))
+          .toList();
+
+      if (clubMatches) {
+        // Club name matched: keep all members visible.
+        result.add(club);
+      } else if (matchingAthletes.isNotEmpty || matchingReferees.isNotEmpty) {
+        // Only some members matched: narrow the lists to those.
+        result.add(club.copyWith(
+          athletes: matchingAthletes,
+          referees: matchingReferees,
+        ));
+      }
+      // No match anywhere → drop the club.
+    }
+    filteredClubs.value = result;
   }
 }

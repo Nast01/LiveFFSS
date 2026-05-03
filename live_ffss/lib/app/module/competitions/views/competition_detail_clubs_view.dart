@@ -18,41 +18,115 @@ class CompetitionDetailClubsView
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      if (controller.isLoading.value) {
-        return const LoadingIndicator();
-      }
-      if (controller.hasError.value) {
-        return ErrorState(
-          message: 'error_occured'.tr,
-          onRetry: () =>
-              controller.loadClubs(controller.competition.value?.id ?? 0),
-        );
-      }
-      if (controller.filteredClubs.isEmpty) {
-        return EmptyState(
-          icon: Icons.group_off,
-          title: 'no_clubs_found'.tr,
-        );
-      }
-      return RefreshIndicator(
-        onRefresh: () =>
-            controller.loadClubs(controller.competition.value?.id ?? 0),
-        child: ListView.separated(
-          padding: AppSpacing.pageHorizontal,
-          itemCount: controller.filteredClubs.length,
-          separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-          itemBuilder: (_, i) => _ClubCard(club: controller.filteredClubs[i]),
+    return Column(
+      children: [
+        const _ClubsSearchBar(),
+        const SizedBox(height: AppSpacing.sm),
+        Expanded(
+          child: Obx(() {
+            if (controller.isLoading.value) {
+              return const LoadingIndicator();
+            }
+            if (controller.hasError.value) {
+              return ErrorState(
+                message: 'error_occured'.tr,
+                onRetry: () => controller
+                    .loadClubs(controller.competition.value?.id ?? 0),
+              );
+            }
+            if (controller.filteredClubs.isEmpty) {
+              return EmptyState(
+                icon: Icons.group_off,
+                title: 'no_clubs_found'.tr,
+              );
+            }
+            final searchActive =
+                controller.searchQuery.value.trim().isNotEmpty;
+            return RefreshIndicator(
+              onRefresh: () => controller
+                  .loadClubs(controller.competition.value?.id ?? 0),
+              child: ListView.separated(
+                padding: AppSpacing.pageHorizontal,
+                itemCount: controller.filteredClubs.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: AppSpacing.sm),
+                itemBuilder: (_, i) {
+                  final club = controller.filteredClubs[i];
+                  return _ClubCard(
+                    key: ValueKey(
+                        '${club.id}-${searchActive ? 'open' : 'closed'}'),
+                    club: club,
+                    expandedByDefault: searchActive,
+                  );
+                },
+              ),
+            );
+          }),
         ),
-      );
-    });
+      ],
+    );
+  }
+}
+
+class _ClubsSearchBar extends StatefulWidget {
+  const _ClubsSearchBar();
+
+  @override
+  State<_ClubsSearchBar> createState() => _ClubsSearchBarState();
+}
+
+class _ClubsSearchBarState extends State<_ClubsSearchBar> {
+  late final CompetitionDetailClubsController _ctrl;
+  late final TextEditingController _textController;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = Get.find<CompetitionDetailClubsController>();
+    _textController = TextEditingController(text: _ctrl.searchQuery.value);
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: AppSpacing.pageHorizontal,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surfaceMuted,
+          borderRadius: AppRadius.pillRadius,
+        ),
+        child: TextField(
+          controller: _textController,
+          onChanged: _ctrl.setSearchQuery,
+          decoration: InputDecoration(
+            hintText: 'search_clubs_athletes_referees'.tr,
+            hintStyle: AppTypography.body.copyWith(color: AppColors.textMuted),
+            prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
+            border: InputBorder.none,
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+          ),
+        ),
+      ),
+    );
   }
 }
 
 class _ClubCard extends StatelessWidget {
-  const _ClubCard({required this.club});
+  const _ClubCard({
+    super.key,
+    required this.club,
+    this.expandedByDefault = false,
+  });
 
   final Club club;
+  final bool expandedByDefault;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +139,7 @@ class _ClubCard extends StatelessWidget {
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
+          initiallyExpanded: expandedByDefault,
           tilePadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm,
             vertical: AppSpacing.xs,

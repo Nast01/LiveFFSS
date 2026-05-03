@@ -73,6 +73,7 @@ final Map<String, String> frFR = {
   'last_viewed': 'Vus récemment',
   'this_week': 'Cette semaine',
   'search_competitions': 'Rechercher une compétition',
+  'search_clubs_athletes_referees': 'Rechercher un club, un athlète ou un arbitre',
   'live': 'LIVE',
   'no_competitions_found': 'Aucune compétition trouvée',
   'no_last_viewed': 'Aucune compétition consultée',

@@ -74,6 +74,7 @@ final Map<String, String> enUS = {
   'last_viewed': 'Last viewed',
   'this_week': 'This week',
   'search_competitions': 'Search competition',
+  'search_clubs_athletes_referees': 'Search a club, athlete or referee',
   'live': 'LIVE',
   'no_competitions_found': 'No competitions found',
   'no_last_viewed': 'No competitions viewed yet',
