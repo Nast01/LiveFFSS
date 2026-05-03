@@ -80,6 +80,8 @@ final Map<String, String> frFR = {
   'events': 'Évènements',
   'individual_ranking': 'Classement Individuel',
   'relais_ranking': 'Classement Relais',
+  'individual': 'Individuel',
+  'relais': 'Relais',
   'no_rankings_yet': 'Aucun classement',
   'no_individual_ranking_yet': 'Aucun classement individuel',
   'no_relais_ranking_yet': 'Aucun classement relais',

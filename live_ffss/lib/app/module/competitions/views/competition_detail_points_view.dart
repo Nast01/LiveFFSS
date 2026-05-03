@@ -17,9 +17,6 @@ class CompetitionDetailPointsView
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: AppSpacing.md),
-        const _PointsPillsRow(),
-        const SizedBox(height: AppSpacing.md),
         Expanded(
           child: Obx(() {
             if (controller.isLoading.value) {
@@ -41,62 +38,88 @@ class CompetitionDetailPointsView
             );
           }),
         ),
+        const _PointsBottomMenu(),
       ],
     );
   }
 }
 
-class _PointsPillsRow extends GetView<CompetitionDetailPointsController> {
-  const _PointsPillsRow();
+class _PointsBottomMenu extends StatelessWidget {
+  const _PointsBottomMenu();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: AppSpacing.pageHorizontal,
-      child: Row(
-        children: [
-          _PointsPill(label: 'clubs_ranking'.tr, index: 0),
-          const SizedBox(width: AppSpacing.sm),
-          _PointsPill(label: 'individual_ranking'.tr, index: 1),
-          const SizedBox(width: AppSpacing.sm),
-          _PointsPill(label: 'relais_ranking'.tr, index: 2),
-        ],
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            _PointsBottomItem(
+              icon: Icons.emoji_events,
+              label: 'clubs'.tr,
+              index: 0,
+            ),
+            _PointsBottomItem(
+              icon: Icons.military_tech,
+              label: 'individual'.tr,
+              index: 1,
+            ),
+            _PointsBottomItem(
+              icon: Icons.leaderboard,
+              label: 'relais'.tr,
+              index: 2,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _PointsPill extends GetView<CompetitionDetailPointsController> {
-  const _PointsPill({required this.label, required this.index});
+class _PointsBottomItem extends GetView<CompetitionDetailPointsController> {
+  const _PointsBottomItem({
+    required this.icon,
+    required this.label,
+    required this.index,
+  });
 
+  final IconData icon;
   final String label;
   final int index;
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final active = controller.selectedPointsTab.value == index;
-      return GestureDetector(
-        onTap: () => controller.setPointsTab(index),
-        child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: active ? AppColors.primary : Colors.white,
-            borderRadius: AppRadius.pillRadius,
-            border: Border.all(color: AppColors.primary),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: active ? Colors.white : AppColors.primary,
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
+    return Expanded(
+      child: Obx(() {
+        final active = controller.selectedPointsTab.value == index;
+        final color = active ? AppColors.primary : AppColors.textMuted;
+        return InkWell(
+          onTap: () => controller.setPointsTab(index),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: color, size: 26),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  label,
+                  style: AppTypography.caption.copyWith(
+                    color: color,
+                    fontWeight:
+                        active ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 }
 

@@ -81,6 +81,8 @@ final Map<String, String> enUS = {
   'events': 'Events',
   'individual_ranking': 'Individual Ranking',
   'relais_ranking': 'Relay Ranking',
+  'individual': 'Individual',
+  'relais': 'Relay',
   'no_rankings_yet': 'No rankings yet',
   'no_individual_ranking_yet': 'No individual ranking yet',
   'no_relais_ranking_yet': 'No relay ranking yet',
