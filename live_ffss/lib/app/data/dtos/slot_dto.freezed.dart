@@ -34,8 +34,12 @@ mixin _$SlotDto {
   @JsonKey(name: 'courses')
   List<RunDto> get runs => throw _privateConstructorUsedError;
 
+  /// Serializes this SlotDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of SlotDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $SlotDtoCopyWith<SlotDto> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -65,6 +69,8 @@ class _$SlotDtoCopyWithImpl<$Res, $Val extends SlotDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of SlotDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -103,6 +109,8 @@ class _$SlotDtoCopyWithImpl<$Res, $Val extends SlotDto>
     ) as $Val);
   }
 
+  /// Create a copy of SlotDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $RaceFormatDetailDtoCopyWith<$Res>? get raceFormatDetail {
@@ -144,6 +152,8 @@ class __$$SlotDtoImplCopyWithImpl<$Res>
       _$SlotDtoImpl _value, $Res Function(_$SlotDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of SlotDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -242,12 +252,14 @@ class _$SlotDtoImpl implements _SlotDto {
             const DeepCollectionEquality().equals(other._runs, _runs));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, name, beginHour, endHour,
       raceFormatDetail, const DeepCollectionEquality().hash(_runs));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SlotDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$SlotDtoImplCopyWith<_$SlotDtoImpl> get copyWith =>
@@ -290,8 +302,11 @@ abstract class _SlotDto implements SlotDto {
   @override
   @JsonKey(name: 'courses')
   List<RunDto> get runs;
+
+  /// Create a copy of SlotDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SlotDtoImplCopyWith<_$SlotDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

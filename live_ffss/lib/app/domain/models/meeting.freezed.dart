@@ -28,8 +28,12 @@ mixin _$Meeting {
   DateTime get endHour => throw _privateConstructorUsedError;
   List<Slot> get slots => throw _privateConstructorUsedError;
 
+  /// Serializes this Meeting to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Meeting
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $MeetingCopyWith<Meeting> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -58,6 +62,8 @@ class _$MeetingCopyWithImpl<$Res, $Val extends Meeting>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Meeting
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -127,6 +133,8 @@ class __$$MeetingImplCopyWithImpl<$Res>
       _$MeetingImpl _value, $Res Function(_$MeetingImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Meeting
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -229,12 +237,14 @@ class _$MeetingImpl implements _Meeting {
             const DeepCollectionEquality().equals(other._slots, _slots));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, name, description, date,
       beginHour, endHour, const DeepCollectionEquality().hash(_slots));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Meeting
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$MeetingImplCopyWith<_$MeetingImpl> get copyWith =>
@@ -274,8 +284,11 @@ abstract class _Meeting implements Meeting {
   DateTime get endHour;
   @override
   List<Slot> get slots;
+
+  /// Create a copy of Meeting
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$MeetingImplCopyWith<_$MeetingImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -41,10 +41,25 @@ mixin _$AthleteDto {
   @JsonKey(name: 'isLicencie')
   bool get isLicensee => throw _privateConstructorUsedError;
   @JsonKey(name: 'isInvite')
-  bool get isGuest => throw _privateConstructorUsedError;
+  bool get isGuest =>
+      throw _privateConstructorUsedError; // Engagement-scoped fields (present only on the engagement endpoint).
+  @JsonKey(name: 'Performance')
+  int get performanceTime => throw _privateConstructorUsedError;
+  @JsonKey(name: 'performanceLabel')
+  String get performanceLabel => throw _privateConstructorUsedError;
+  @JsonKey(name: 'idClub')
+  int get clubId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'clubLabel')
+  String get clubLabel => throw _privateConstructorUsedError;
+  @JsonKey(name: 'isRemplacant')
+  bool get isSubstitute => throw _privateConstructorUsedError;
 
+  /// Serializes this AthleteDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of AthleteDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $AthleteDtoCopyWith<AthleteDto> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -66,7 +81,12 @@ abstract class $AthleteDtoCopyWith<$Res> {
       @JsonKey(name: 'nationaliteLabel') String nationality,
       @JsonKey(name: 'isValid') bool isValid,
       @JsonKey(name: 'isLicencie') bool isLicensee,
-      @JsonKey(name: 'isInvite') bool isGuest});
+      @JsonKey(name: 'isInvite') bool isGuest,
+      @JsonKey(name: 'Performance') int performanceTime,
+      @JsonKey(name: 'performanceLabel') String performanceLabel,
+      @JsonKey(name: 'idClub') int clubId,
+      @JsonKey(name: 'clubLabel') String clubLabel,
+      @JsonKey(name: 'isRemplacant') bool isSubstitute});
 }
 
 /// @nodoc
@@ -79,6 +99,8 @@ class _$AthleteDtoCopyWithImpl<$Res, $Val extends AthleteDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of AthleteDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -93,6 +115,11 @@ class _$AthleteDtoCopyWithImpl<$Res, $Val extends AthleteDto>
     Object? isValid = null,
     Object? isLicensee = null,
     Object? isGuest = null,
+    Object? performanceTime = null,
+    Object? performanceLabel = null,
+    Object? clubId = null,
+    Object? clubLabel = null,
+    Object? isSubstitute = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -139,6 +166,26 @@ class _$AthleteDtoCopyWithImpl<$Res, $Val extends AthleteDto>
           ? _value.isGuest
           : isGuest // ignore: cast_nullable_to_non_nullable
               as bool,
+      performanceTime: null == performanceTime
+          ? _value.performanceTime
+          : performanceTime // ignore: cast_nullable_to_non_nullable
+              as int,
+      performanceLabel: null == performanceLabel
+          ? _value.performanceLabel
+          : performanceLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      clubId: null == clubId
+          ? _value.clubId
+          : clubId // ignore: cast_nullable_to_non_nullable
+              as int,
+      clubLabel: null == clubLabel
+          ? _value.clubLabel
+          : clubLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      isSubstitute: null == isSubstitute
+          ? _value.isSubstitute
+          : isSubstitute // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -162,7 +209,12 @@ abstract class _$$AthleteDtoImplCopyWith<$Res>
       @JsonKey(name: 'nationaliteLabel') String nationality,
       @JsonKey(name: 'isValid') bool isValid,
       @JsonKey(name: 'isLicencie') bool isLicensee,
-      @JsonKey(name: 'isInvite') bool isGuest});
+      @JsonKey(name: 'isInvite') bool isGuest,
+      @JsonKey(name: 'Performance') int performanceTime,
+      @JsonKey(name: 'performanceLabel') String performanceLabel,
+      @JsonKey(name: 'idClub') int clubId,
+      @JsonKey(name: 'clubLabel') String clubLabel,
+      @JsonKey(name: 'isRemplacant') bool isSubstitute});
 }
 
 /// @nodoc
@@ -173,6 +225,8 @@ class __$$AthleteDtoImplCopyWithImpl<$Res>
       _$AthleteDtoImpl _value, $Res Function(_$AthleteDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of AthleteDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -187,6 +241,11 @@ class __$$AthleteDtoImplCopyWithImpl<$Res>
     Object? isValid = null,
     Object? isLicensee = null,
     Object? isGuest = null,
+    Object? performanceTime = null,
+    Object? performanceLabel = null,
+    Object? clubId = null,
+    Object? clubLabel = null,
+    Object? isSubstitute = null,
   }) {
     return _then(_$AthleteDtoImpl(
       id: null == id
@@ -233,6 +292,26 @@ class __$$AthleteDtoImplCopyWithImpl<$Res>
           ? _value.isGuest
           : isGuest // ignore: cast_nullable_to_non_nullable
               as bool,
+      performanceTime: null == performanceTime
+          ? _value.performanceTime
+          : performanceTime // ignore: cast_nullable_to_non_nullable
+              as int,
+      performanceLabel: null == performanceLabel
+          ? _value.performanceLabel
+          : performanceLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      clubId: null == clubId
+          ? _value.clubId
+          : clubId // ignore: cast_nullable_to_non_nullable
+              as int,
+      clubLabel: null == clubLabel
+          ? _value.clubLabel
+          : clubLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      isSubstitute: null == isSubstitute
+          ? _value.isSubstitute
+          : isSubstitute // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -251,7 +330,12 @@ class _$AthleteDtoImpl implements _AthleteDto {
       @JsonKey(name: 'nationaliteLabel') this.nationality = '',
       @JsonKey(name: 'isValid') this.isValid = false,
       @JsonKey(name: 'isLicencie') this.isLicensee = false,
-      @JsonKey(name: 'isInvite') this.isGuest = false});
+      @JsonKey(name: 'isInvite') this.isGuest = false,
+      @JsonKey(name: 'Performance') this.performanceTime = 0,
+      @JsonKey(name: 'performanceLabel') this.performanceLabel = '',
+      @JsonKey(name: 'idClub') this.clubId = 0,
+      @JsonKey(name: 'clubLabel') this.clubLabel = '',
+      @JsonKey(name: 'isRemplacant') this.isSubstitute = false});
 
   factory _$AthleteDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$AthleteDtoImplFromJson(json);
@@ -289,10 +373,26 @@ class _$AthleteDtoImpl implements _AthleteDto {
   @override
   @JsonKey(name: 'isInvite')
   final bool isGuest;
+// Engagement-scoped fields (present only on the engagement endpoint).
+  @override
+  @JsonKey(name: 'Performance')
+  final int performanceTime;
+  @override
+  @JsonKey(name: 'performanceLabel')
+  final String performanceLabel;
+  @override
+  @JsonKey(name: 'idClub')
+  final int clubId;
+  @override
+  @JsonKey(name: 'clubLabel')
+  final String clubLabel;
+  @override
+  @JsonKey(name: 'isRemplacant')
+  final bool isSubstitute;
 
   @override
   String toString() {
-    return 'AthleteDto(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest)';
+    return 'AthleteDto(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute)';
   }
 
   @override
@@ -316,10 +416,19 @@ class _$AthleteDtoImpl implements _AthleteDto {
             (identical(other.isValid, isValid) || other.isValid == isValid) &&
             (identical(other.isLicensee, isLicensee) ||
                 other.isLicensee == isLicensee) &&
-            (identical(other.isGuest, isGuest) || other.isGuest == isGuest));
+            (identical(other.isGuest, isGuest) || other.isGuest == isGuest) &&
+            (identical(other.performanceTime, performanceTime) ||
+                other.performanceTime == performanceTime) &&
+            (identical(other.performanceLabel, performanceLabel) ||
+                other.performanceLabel == performanceLabel) &&
+            (identical(other.clubId, clubId) || other.clubId == clubId) &&
+            (identical(other.clubLabel, clubLabel) ||
+                other.clubLabel == clubLabel) &&
+            (identical(other.isSubstitute, isSubstitute) ||
+                other.isSubstitute == isSubstitute));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -333,9 +442,16 @@ class _$AthleteDtoImpl implements _AthleteDto {
       nationality,
       isValid,
       isLicensee,
-      isGuest);
+      isGuest,
+      performanceTime,
+      performanceLabel,
+      clubId,
+      clubLabel,
+      isSubstitute);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of AthleteDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$AthleteDtoImplCopyWith<_$AthleteDtoImpl> get copyWith =>
@@ -351,17 +467,23 @@ class _$AthleteDtoImpl implements _AthleteDto {
 
 abstract class _AthleteDto implements AthleteDto {
   const factory _AthleteDto(
-      {@JsonKey(name: 'Id') final int id,
-      @JsonKey(name: 'NumeroLicence') final String licenseeNumber,
-      @JsonKey(name: 'Prenom') final String firstName,
-      @JsonKey(name: 'Nom') final String lastName,
-      @JsonKey(name: 'Sexe') final String gender,
-      @JsonKey(name: 'Annee', readValue: _readYear) final int year,
-      @JsonKey(name: 'nationaliteCode') final String nationalityCode,
-      @JsonKey(name: 'nationaliteLabel') final String nationality,
-      @JsonKey(name: 'isValid') final bool isValid,
-      @JsonKey(name: 'isLicencie') final bool isLicensee,
-      @JsonKey(name: 'isInvite') final bool isGuest}) = _$AthleteDtoImpl;
+          {@JsonKey(name: 'Id') final int id,
+          @JsonKey(name: 'NumeroLicence') final String licenseeNumber,
+          @JsonKey(name: 'Prenom') final String firstName,
+          @JsonKey(name: 'Nom') final String lastName,
+          @JsonKey(name: 'Sexe') final String gender,
+          @JsonKey(name: 'Annee', readValue: _readYear) final int year,
+          @JsonKey(name: 'nationaliteCode') final String nationalityCode,
+          @JsonKey(name: 'nationaliteLabel') final String nationality,
+          @JsonKey(name: 'isValid') final bool isValid,
+          @JsonKey(name: 'isLicencie') final bool isLicensee,
+          @JsonKey(name: 'isInvite') final bool isGuest,
+          @JsonKey(name: 'Performance') final int performanceTime,
+          @JsonKey(name: 'performanceLabel') final String performanceLabel,
+          @JsonKey(name: 'idClub') final int clubId,
+          @JsonKey(name: 'clubLabel') final String clubLabel,
+          @JsonKey(name: 'isRemplacant') final bool isSubstitute}) =
+      _$AthleteDtoImpl;
 
   factory _AthleteDto.fromJson(Map<String, dynamic> json) =
       _$AthleteDtoImpl.fromJson;
@@ -398,9 +520,28 @@ abstract class _AthleteDto implements AthleteDto {
   bool get isLicensee;
   @override
   @JsonKey(name: 'isInvite')
-  bool get isGuest;
+  bool
+      get isGuest; // Engagement-scoped fields (present only on the engagement endpoint).
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(name: 'Performance')
+  int get performanceTime;
+  @override
+  @JsonKey(name: 'performanceLabel')
+  String get performanceLabel;
+  @override
+  @JsonKey(name: 'idClub')
+  int get clubId;
+  @override
+  @JsonKey(name: 'clubLabel')
+  String get clubLabel;
+  @override
+  @JsonKey(name: 'isRemplacant')
+  bool get isSubstitute;
+
+  /// Create a copy of AthleteDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$AthleteDtoImplCopyWith<_$AthleteDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

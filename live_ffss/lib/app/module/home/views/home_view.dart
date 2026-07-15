@@ -85,7 +85,7 @@ class _HomeHero extends GetView<HomeController> {
               const SizedBox(width: AppSpacing.sm),
               UserAvatar(
                 size: 36,
-                backgroundColor: Colors.white.withOpacity(0.2),
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
               ),
             ],
           ),
@@ -282,31 +282,46 @@ class _HomeList extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Obx(() {
       final items = controller.filteredCompetitions;
-      if (items.isEmpty) {
-        final isLastViewed =
-            controller.selectedTemporal.value == TemporalFilter.lastViewed;
-        return EmptyState(
-          icon: Icons.event_busy,
-          title:
-              isLastViewed ? 'no_last_viewed'.tr : 'no_competitions_found'.tr,
-        );
-      }
-      return ListView.separated(
-        padding: AppSpacing.pageHorizontal,
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-        itemBuilder: (_, i) {
-          final competition = items[i];
-          return Obx(() => CompetitionCard(
-                competition: competition,
-                isFavorite: controller.favoriteIds.contains(competition.id),
-                onTap: () =>
-                    controller.navigateToCompetitionDetails(competition),
-                onToggleFavorite: () =>
-                    controller.toggleFavorite(competition.id),
-              ));
-        },
+      return RefreshIndicator(
+        onRefresh: controller.refreshVisible,
+        child: items.isEmpty
+            ? _emptyList()
+            : ListView.separated(
+                padding: AppSpacing.pageHorizontal,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: items.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: AppSpacing.sm),
+                itemBuilder: (_, i) {
+                  final competition = items[i];
+                  return Obx(() => CompetitionCard(
+                        competition: competition,
+                        isFavorite:
+                            controller.favoriteIds.contains(competition.id),
+                        onTap: () => controller
+                            .navigateToCompetitionDetails(competition),
+                        onToggleFavorite: () =>
+                            controller.toggleFavorite(competition.id),
+                      ));
+                },
+              ),
       );
     });
+  }
+
+  Widget _emptyList() {
+    final isLastViewed =
+        controller.selectedTemporal.value == TemporalFilter.lastViewed;
+    // A scrollable so pull-to-refresh works even with no results.
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        const SizedBox(height: AppSpacing.xl),
+        EmptyState(
+          icon: Icons.event_busy,
+          title: isLastViewed ? 'no_last_viewed'.tr : 'no_competitions_found'.tr,
+        ),
+      ],
+    );
   }
 }

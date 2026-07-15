@@ -196,7 +196,7 @@ class SlotView extends GetView<SlotController> {
               // Athlete avatar
               CircleAvatar(
                 radius: 25,
-                backgroundColor: Colors.blue.withOpacity(0.1),
+                backgroundColor: Colors.blue.withValues(alpha: 0.1),
                 child: Text(
                   athlete.firstName.isNotEmpty
                       ? athlete.firstName[0].toUpperCase()
@@ -262,8 +262,8 @@ class SlotView extends GetView<SlotController> {
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: athlete.gender == Gender.male
-                          ? Colors.blue.withOpacity(0.1)
-                          : Colors.pink.withOpacity(0.1),
+                          ? Colors.blue.withValues(alpha: 0.1)
+                          : Colors.pink.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: athlete.gender == Gender.male
@@ -396,9 +396,9 @@ class SlotView extends GetView<SlotController> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.05),
+        color: Colors.blue.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.withOpacity(0.2)),
+        border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -505,8 +505,8 @@ class SlotView extends GetView<SlotController> {
                 height: 50,
                 decoration: BoxDecoration(
                   color: isDisqualified
-                      ? Colors.red.withOpacity(0.1)
-                      : Colors.blue.withOpacity(0.1),
+                      ? Colors.red.withValues(alpha: 0.1)
+                      : Colors.blue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(
                     color: isDisqualified ? Colors.red : Colors.blue,

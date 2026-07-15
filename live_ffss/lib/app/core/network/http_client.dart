@@ -102,21 +102,26 @@ class HttpClient {
   Map<String, dynamic> _decode(http.Response response) {
     final status = response.statusCode;
 
+    // Decode bytes as UTF-8 ourselves. `response.body` uses the charset from
+    // the response Content-Type header, and FFSS omits it — so `http` falls
+    // back to latin-1 and mangles accented characters (é → Ã©).
+    final rawBody = utf8.decode(response.bodyBytes, allowMalformed: true);
+
     if (status == 401) {
       _notifyAuthFailure();
-      throw AuthException(_extractMessage(response.body) ?? 'Unauthorized');
+      throw AuthException(_extractMessage(rawBody) ?? 'Unauthorized');
     }
 
     if (status >= 400) {
       throw ApiException(
-        _extractMessage(response.body) ?? 'HTTP $status',
+        _extractMessage(rawBody) ?? 'HTTP $status',
         statusCode: status,
       );
     }
 
     final dynamic body;
     try {
-      body = jsonDecode(response.body);
+      body = jsonDecode(rawBody);
     } on FormatException catch (e) {
       throw ApiException('Invalid JSON: ${e.message}', statusCode: status);
     }

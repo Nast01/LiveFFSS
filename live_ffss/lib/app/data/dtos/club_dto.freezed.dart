@@ -35,8 +35,12 @@ mixin _$ClubDto {
   @JsonKey(name: 'officiels')
   List<RefereeDto> get referees => throw _privateConstructorUsedError;
 
+  /// Serializes this ClubDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of ClubDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ClubDtoCopyWith<ClubDto> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -65,6 +69,8 @@ class _$ClubDtoCopyWithImpl<$Res, $Val extends ClubDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ClubDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -134,6 +140,8 @@ class __$$ClubDtoImplCopyWithImpl<$Res>
       _$ClubDtoImpl _value, $Res Function(_$ClubDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ClubDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -250,7 +258,7 @@ class _$ClubDtoImpl implements _ClubDto {
             const DeepCollectionEquality().equals(other._referees, _referees));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -262,7 +270,9 @@ class _$ClubDtoImpl implements _ClubDto {
       const DeepCollectionEquality().hash(_athletes),
       const DeepCollectionEquality().hash(_referees));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ClubDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ClubDtoImplCopyWith<_$ClubDtoImpl> get copyWith =>
@@ -310,8 +320,11 @@ abstract class _ClubDto implements ClubDto {
   @override
   @JsonKey(name: 'officiels')
   List<RefereeDto> get referees;
+
+  /// Create a copy of ClubDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ClubDtoImplCopyWith<_$ClubDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

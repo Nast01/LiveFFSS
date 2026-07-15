@@ -28,9 +28,23 @@ mixin _$HeatDto {
   bool get done => throw _privateConstructorUsedError;
   @JsonKey(name: 'Numero', readValue: _readNumber)
   int get number => throw _privateConstructorUsedError;
+  @JsonKey(name: 'UpdatedAt')
+  String? get updatedAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'Debut')
+  String? get startDate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'Fin')
+  String? get endDate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'epreuve')
+  RaceDto? get race => throw _privateConstructorUsedError;
+  @JsonKey(name: 'resultats')
+  List<ResultDto> get results => throw _privateConstructorUsedError;
 
+  /// Serializes this HeatDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of HeatDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $HeatDtoCopyWith<HeatDto> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -43,7 +57,14 @@ abstract class $HeatDtoCopyWith<$Res> {
       {@JsonKey(name: 'Id') int id,
       @JsonKey(name: 'Nom') String name,
       @JsonKey(name: 'Fini') bool done,
-      @JsonKey(name: 'Numero', readValue: _readNumber) int number});
+      @JsonKey(name: 'Numero', readValue: _readNumber) int number,
+      @JsonKey(name: 'UpdatedAt') String? updatedAt,
+      @JsonKey(name: 'Debut') String? startDate,
+      @JsonKey(name: 'Fin') String? endDate,
+      @JsonKey(name: 'epreuve') RaceDto? race,
+      @JsonKey(name: 'resultats') List<ResultDto> results});
+
+  $RaceDtoCopyWith<$Res>? get race;
 }
 
 /// @nodoc
@@ -56,6 +77,8 @@ class _$HeatDtoCopyWithImpl<$Res, $Val extends HeatDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of HeatDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -63,6 +86,11 @@ class _$HeatDtoCopyWithImpl<$Res, $Val extends HeatDto>
     Object? name = null,
     Object? done = null,
     Object? number = null,
+    Object? updatedAt = freezed,
+    Object? startDate = freezed,
+    Object? endDate = freezed,
+    Object? race = freezed,
+    Object? results = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -81,7 +109,41 @@ class _$HeatDtoCopyWithImpl<$Res, $Val extends HeatDto>
           ? _value.number
           : number // ignore: cast_nullable_to_non_nullable
               as int,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      startDate: freezed == startDate
+          ? _value.startDate
+          : startDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      endDate: freezed == endDate
+          ? _value.endDate
+          : endDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      race: freezed == race
+          ? _value.race
+          : race // ignore: cast_nullable_to_non_nullable
+              as RaceDto?,
+      results: null == results
+          ? _value.results
+          : results // ignore: cast_nullable_to_non_nullable
+              as List<ResultDto>,
     ) as $Val);
+  }
+
+  /// Create a copy of HeatDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $RaceDtoCopyWith<$Res>? get race {
+    if (_value.race == null) {
+      return null;
+    }
+
+    return $RaceDtoCopyWith<$Res>(_value.race!, (value) {
+      return _then(_value.copyWith(race: value) as $Val);
+    });
   }
 }
 
@@ -96,7 +158,15 @@ abstract class _$$HeatDtoImplCopyWith<$Res> implements $HeatDtoCopyWith<$Res> {
       {@JsonKey(name: 'Id') int id,
       @JsonKey(name: 'Nom') String name,
       @JsonKey(name: 'Fini') bool done,
-      @JsonKey(name: 'Numero', readValue: _readNumber) int number});
+      @JsonKey(name: 'Numero', readValue: _readNumber) int number,
+      @JsonKey(name: 'UpdatedAt') String? updatedAt,
+      @JsonKey(name: 'Debut') String? startDate,
+      @JsonKey(name: 'Fin') String? endDate,
+      @JsonKey(name: 'epreuve') RaceDto? race,
+      @JsonKey(name: 'resultats') List<ResultDto> results});
+
+  @override
+  $RaceDtoCopyWith<$Res>? get race;
 }
 
 /// @nodoc
@@ -107,6 +177,8 @@ class __$$HeatDtoImplCopyWithImpl<$Res>
       _$HeatDtoImpl _value, $Res Function(_$HeatDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of HeatDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -114,6 +186,11 @@ class __$$HeatDtoImplCopyWithImpl<$Res>
     Object? name = null,
     Object? done = null,
     Object? number = null,
+    Object? updatedAt = freezed,
+    Object? startDate = freezed,
+    Object? endDate = freezed,
+    Object? race = freezed,
+    Object? results = null,
   }) {
     return _then(_$HeatDtoImpl(
       id: null == id
@@ -132,6 +209,26 @@ class __$$HeatDtoImplCopyWithImpl<$Res>
           ? _value.number
           : number // ignore: cast_nullable_to_non_nullable
               as int,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      startDate: freezed == startDate
+          ? _value.startDate
+          : startDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      endDate: freezed == endDate
+          ? _value.endDate
+          : endDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      race: freezed == race
+          ? _value.race
+          : race // ignore: cast_nullable_to_non_nullable
+              as RaceDto?,
+      results: null == results
+          ? _value._results
+          : results // ignore: cast_nullable_to_non_nullable
+              as List<ResultDto>,
     ));
   }
 }
@@ -140,10 +237,17 @@ class __$$HeatDtoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$HeatDtoImpl implements _HeatDto {
   const _$HeatDtoImpl(
-      {@JsonKey(name: 'Id') required this.id,
-      @JsonKey(name: 'Nom') required this.name,
-      @JsonKey(name: 'Fini') required this.done,
-      @JsonKey(name: 'Numero', readValue: _readNumber) required this.number});
+      {@JsonKey(name: 'Id') this.id = 0,
+      @JsonKey(name: 'Nom') this.name = '',
+      @JsonKey(name: 'Fini') this.done = false,
+      @JsonKey(name: 'Numero', readValue: _readNumber) this.number = 0,
+      @JsonKey(name: 'UpdatedAt') this.updatedAt,
+      @JsonKey(name: 'Debut') this.startDate,
+      @JsonKey(name: 'Fin') this.endDate,
+      @JsonKey(name: 'epreuve') this.race,
+      @JsonKey(name: 'resultats')
+      final List<ResultDto> results = const <ResultDto>[]})
+      : _results = results;
 
   factory _$HeatDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$HeatDtoImplFromJson(json);
@@ -160,10 +264,30 @@ class _$HeatDtoImpl implements _HeatDto {
   @override
   @JsonKey(name: 'Numero', readValue: _readNumber)
   final int number;
+  @override
+  @JsonKey(name: 'UpdatedAt')
+  final String? updatedAt;
+  @override
+  @JsonKey(name: 'Debut')
+  final String? startDate;
+  @override
+  @JsonKey(name: 'Fin')
+  final String? endDate;
+  @override
+  @JsonKey(name: 'epreuve')
+  final RaceDto? race;
+  final List<ResultDto> _results;
+  @override
+  @JsonKey(name: 'resultats')
+  List<ResultDto> get results {
+    if (_results is EqualUnmodifiableListView) return _results;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_results);
+  }
 
   @override
   String toString() {
-    return 'HeatDto(id: $id, name: $name, done: $done, number: $number)';
+    return 'HeatDto(id: $id, name: $name, done: $done, number: $number, updatedAt: $updatedAt, startDate: $startDate, endDate: $endDate, race: $race, results: $results)';
   }
 
   @override
@@ -174,14 +298,33 @@ class _$HeatDtoImpl implements _HeatDto {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.done, done) || other.done == done) &&
-            (identical(other.number, number) || other.number == number));
+            (identical(other.number, number) || other.number == number) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.startDate, startDate) ||
+                other.startDate == startDate) &&
+            (identical(other.endDate, endDate) || other.endDate == endDate) &&
+            (identical(other.race, race) || other.race == race) &&
+            const DeepCollectionEquality().equals(other._results, _results));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, done, number);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      name,
+      done,
+      number,
+      updatedAt,
+      startDate,
+      endDate,
+      race,
+      const DeepCollectionEquality().hash(_results));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of HeatDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$HeatDtoImplCopyWith<_$HeatDtoImpl> get copyWith =>
@@ -197,11 +340,16 @@ class _$HeatDtoImpl implements _HeatDto {
 
 abstract class _HeatDto implements HeatDto {
   const factory _HeatDto(
-      {@JsonKey(name: 'Id') required final int id,
-      @JsonKey(name: 'Nom') required final String name,
-      @JsonKey(name: 'Fini') required final bool done,
-      @JsonKey(name: 'Numero', readValue: _readNumber)
-      required final int number}) = _$HeatDtoImpl;
+          {@JsonKey(name: 'Id') final int id,
+          @JsonKey(name: 'Nom') final String name,
+          @JsonKey(name: 'Fini') final bool done,
+          @JsonKey(name: 'Numero', readValue: _readNumber) final int number,
+          @JsonKey(name: 'UpdatedAt') final String? updatedAt,
+          @JsonKey(name: 'Debut') final String? startDate,
+          @JsonKey(name: 'Fin') final String? endDate,
+          @JsonKey(name: 'epreuve') final RaceDto? race,
+          @JsonKey(name: 'resultats') final List<ResultDto> results}) =
+      _$HeatDtoImpl;
 
   factory _HeatDto.fromJson(Map<String, dynamic> json) = _$HeatDtoImpl.fromJson;
 
@@ -218,7 +366,25 @@ abstract class _HeatDto implements HeatDto {
   @JsonKey(name: 'Numero', readValue: _readNumber)
   int get number;
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(name: 'UpdatedAt')
+  String? get updatedAt;
+  @override
+  @JsonKey(name: 'Debut')
+  String? get startDate;
+  @override
+  @JsonKey(name: 'Fin')
+  String? get endDate;
+  @override
+  @JsonKey(name: 'epreuve')
+  RaceDto? get race;
+  @override
+  @JsonKey(name: 'resultats')
+  List<ResultDto> get results;
+
+  /// Create a copy of HeatDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$HeatDtoImplCopyWith<_$HeatDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

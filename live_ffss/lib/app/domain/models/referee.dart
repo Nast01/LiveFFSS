@@ -1,5 +1,7 @@
+// ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/club.dart';
 
 part 'referee.freezed.dart';
 part 'referee.g.dart';
@@ -22,6 +24,7 @@ class Referee with _$Referee {
     @Default(false) bool isGuest,
     @Default(false) bool isPrincipal,
     @Default(<int>[]) List<int> availabilities,
+    @JsonKey(includeFromJson: false, includeToJson: false) Club? club,
   }) = _Referee;
 
   factory Referee.fromJson(Map<String, dynamic> json) =>

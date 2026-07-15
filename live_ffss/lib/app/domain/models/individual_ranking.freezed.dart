@@ -26,8 +26,12 @@ mixin _$IndividualRanking {
   String get clubName => throw _privateConstructorUsedError;
   int get points => throw _privateConstructorUsedError;
 
+  /// Serializes this IndividualRanking to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of IndividualRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $IndividualRankingCopyWith<IndividualRanking> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -56,6 +60,8 @@ class _$IndividualRankingCopyWithImpl<$Res, $Val extends IndividualRanking>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of IndividualRanking
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -114,6 +120,8 @@ class __$$IndividualRankingImplCopyWithImpl<$Res>
       $Res Function(_$IndividualRankingImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of IndividualRanking
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -198,12 +206,14 @@ class _$IndividualRankingImpl implements _IndividualRanking {
             (identical(other.points, points) || other.points == points));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, position, athleteFirstName,
       athleteLastName, clubName, points);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of IndividualRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$IndividualRankingImplCopyWith<_$IndividualRankingImpl> get copyWith =>
@@ -239,8 +249,11 @@ abstract class _IndividualRanking implements IndividualRanking {
   String get clubName;
   @override
   int get points;
+
+  /// Create a copy of IndividualRanking
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$IndividualRankingImplCopyWith<_$IndividualRankingImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

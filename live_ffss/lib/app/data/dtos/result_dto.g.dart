@@ -8,21 +8,27 @@ part of 'result_dto.dart';
 
 _$ResultDtoImpl _$$ResultDtoImplFromJson(Map<String, dynamic> json) =>
     _$ResultDtoImpl(
-      id: json['Id'] as String,
-      isValid: json['isValid'] as bool,
-      status: (json['Statut'] as num).toInt(),
-      statusLabel: json['statutLabel'] as String,
+      id: _readId(json, 'Id') as String? ?? '',
+      isValid: json['isValid'] as bool? ?? false,
+      status: (json['Statut'] as num?)?.toInt() ?? 0,
+      statusLabel: json['statutLabel'] as String? ?? '',
       isDisqualified: json['isDisqualifie'] as bool? ?? false,
-      rank: (json['Rang'] as num).toInt(),
-      time: (json['Temps'] as num).toInt(),
-      timeLabel: json['tempsLabel'] as String,
+      rank: (json['Rang'] as num?)?.toInt() ?? 0,
+      time: (json['Temps'] as num?)?.toInt() ?? 0,
+      timeLabel: json['tempsLabel'] as String? ?? '',
       complement: json['complement'] as String?,
       complementLabel: json['complementLabel'] as String?,
       disqualificationCode: json['CodeDisqualification'] as String? ?? '',
-      disqualificationComment:
-          json['CommentaireDisqualification'] as String? ?? '',
-      heat: HeatDto.fromJson(json['serie'] as Map<String, dynamic>),
-      entry: EntryDto.fromJson(json['engagement'] as Map<String, dynamic>),
+      disqualificationReason:
+          _readDisqualificationReason(json, 'disqualificationReason')
+                  as String? ??
+              '',
+      heat: json['serie'] == null
+          ? null
+          : HeatDto.fromJson(json['serie'] as Map<String, dynamic>),
+      entry: json['engagement'] == null
+          ? null
+          : EntryDto.fromJson(json['engagement'] as Map<String, dynamic>),
       athletes: (json['athletes'] as List<dynamic>?)
               ?.map((e) => AthleteDto.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -49,7 +55,7 @@ Map<String, dynamic> _$$ResultDtoImplToJson(_$ResultDtoImpl instance) =>
       'complement': instance.complement,
       'complementLabel': instance.complementLabel,
       'CodeDisqualification': instance.disqualificationCode,
-      'CommentaireDisqualification': instance.disqualificationComment,
+      'disqualificationReason': instance.disqualificationReason,
       'serie': instance.heat,
       'engagement': instance.entry,
       'athletes': instance.athletes,

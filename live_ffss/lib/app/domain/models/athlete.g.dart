@@ -19,6 +19,11 @@ _$AthleteImpl _$$AthleteImplFromJson(Map<String, dynamic> json) =>
       isValid: json['isValid'] as bool,
       isLicensee: json['isLicensee'] as bool? ?? false,
       isGuest: json['isGuest'] as bool? ?? false,
+      performanceTime: (json['performanceTime'] as num?)?.toInt() ?? 0,
+      performanceLabel: json['performanceLabel'] as String? ?? '',
+      clubId: (json['clubId'] as num?)?.toInt() ?? 0,
+      clubLabel: json['clubLabel'] as String? ?? '',
+      isSubstitute: json['isSubstitute'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$AthleteImplToJson(_$AthleteImpl instance) =>
@@ -34,6 +39,11 @@ Map<String, dynamic> _$$AthleteImplToJson(_$AthleteImpl instance) =>
       'isValid': instance.isValid,
       'isLicensee': instance.isLicensee,
       'isGuest': instance.isGuest,
+      'performanceTime': instance.performanceTime,
+      'performanceLabel': instance.performanceLabel,
+      'clubId': instance.clubId,
+      'clubLabel': instance.clubLabel,
+      'isSubstitute': instance.isSubstitute,
     };
 
 const _$GenderEnumMap = {

@@ -63,22 +63,25 @@ Exceptions: `UserController` and `ProfileController` still have `Get.snackbar`/`
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-After creating/modifying a freezed file. `.freezed.dart` and `.g.dart` are committed alongside the hand-written source — they're treated as source, not build output.
+(On Windows use the full path: `C:\Users\nast0\dev\flutter_windows_3.22.2-stable\flutter\bin\dart.bat run build_runner ...`.)
+
+After creating/modifying a freezed file. `.freezed.dart` and `.g.dart` are committed alongside the hand-written source — they're treated as source, not build output. A `freezed`/`build_runner` version bump regenerates **all** `.freezed.dart`/`.g.dart` (100+ files) on the first run — expect a large, mechanical diff and commit it on its own.
 
 When `build_runner` regenerates other files via CRLF normalization (Windows quirk), commit them in a `chore: sync regenerated codegen output` cleanup commit if they accumulate.
 
 ## Tooling pins
 
-- Flutter 3.22.2 / Dart 3.4.3 (per `environment.sdk` constraint).
-- `build_runner: ^2.4.8` (NOT `^2.4.13` — that requires Dart `>=3.5.0`).
-- `freezed: ^2.5.2` (NOT `^2.5.7` — that requires `meta ^1.14.0`, but Flutter 3.22.2 pins `meta 1.12.0`).
+- **Actual SDK: Flutter 3.41.9 / Dart 3.11.5.** The `environment.sdk` constraint is `>=3.4.3 <4.0.0`, but the project depends on `intl ^0.20.2`, which Flutter 3.22.2 (intl 0.19.0) cannot resolve — so it runs on the newer SDK. The install folder is named `flutter_windows_3.22.2-stable` but is a **git clone currently checked out to tag `3.41.9`**; the name is misleading. To change version: `git -C <flutterRoot> checkout <tag>` then `flutter --version` (re-downloads the matching Dart SDK).
+- `build_runner: ^2.5.4`, `freezed: ^2.5.8`, `json_serializable: ^6.9.5`, `freezed_annotation: ^2.4.4`, `json_annotation: ^4.9.0`.
 - Analyzer: `strict-casts: true` + `strict-raw-types: true` are ON. Don't reintroduce `dynamic` coercions.
-- `flutter` may not be on bash PATH on Windows — fall back to `C:\Users\nast0\dev\flutter_windows_3.22.2-stable\flutter\bin\flutter.bat` (and `dart.bat`).
+- `flutter`/`dart` are not on bash PATH on Windows — use `C:\Users\nast0\dev\flutter_windows_3.22.2-stable\flutter\bin\flutter.bat` and `dart.bat`.
+- If `dart run build_runner` fails with `frontend_server.dart.snapshot not found`, the dart-sdk cache has drifted from the checked-out Flutter tag — re-run `flutter --version` to repopulate it (don't chase it as a code bug).
 
 ## API contract (FFSS, external, fixed)
 
 - Base URL: `https://ffss.fr` (single env). `AppConfig.fromEnv()` is the seam. Path templates (with `:id` placeholders) and the `replacePath(path, params)` helper live in `core/const/api_const.dart` (`ApiConstants`).
 - `HttpClient.get/post` returns the **full decoded body** as `Map<String, dynamic>`. Datasources extract `body['data']` themselves — `me` endpoint has fields at both top-level and nested under `data`, so unwrapping in HttpClient would lose info.
+- **UTF-8 decoding:** HttpClient decodes `utf8.decode(response.bodyBytes)`, NOT `response.body`. FFSS omits the charset in the response `Content-Type`, so `http` would fall back to latin-1 and mangle accents (`é` → `Ã©`). Never switch back to `response.body`.
 - Auth: `Authorization: Bearer <token>` from `TokenStorage`. NEVER pass token as a URL query parameter.
 - Success envelope: `success: true` (or absent). HttpClient throws `ApiException` on `success: false`, `AuthException` on 401, `ApiException` with statusCode on 4xx/5xx, `NetworkException` on `SocketException`/`TimeoutException`, `UnknownException` for anything else. **`AppException` rethrows pass through unchanged** — don't catch and re-wrap.
 - Single secure-storage key for the persisted user: `'user'` (JSON blob). Don't shred into per-field keys.

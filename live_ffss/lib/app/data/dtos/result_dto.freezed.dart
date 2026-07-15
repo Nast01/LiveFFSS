@@ -20,7 +20,7 @@ ResultDto _$ResultDtoFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$ResultDto {
-  @JsonKey(name: 'Id')
+  @JsonKey(name: 'Id', readValue: _readId)
   String get id => throw _privateConstructorUsedError;
   @JsonKey(name: 'isValid')
   bool get isValid => throw _privateConstructorUsedError;
@@ -42,12 +42,13 @@ mixin _$ResultDto {
   String? get complementLabel => throw _privateConstructorUsedError;
   @JsonKey(name: 'CodeDisqualification')
   String get disqualificationCode => throw _privateConstructorUsedError;
-  @JsonKey(name: 'CommentaireDisqualification')
-  String get disqualificationComment => throw _privateConstructorUsedError;
+  @JsonKey(
+      name: 'disqualificationReason', readValue: _readDisqualificationReason)
+  String get disqualificationReason => throw _privateConstructorUsedError;
   @JsonKey(name: 'serie')
-  HeatDto get heat => throw _privateConstructorUsedError;
+  HeatDto? get heat => throw _privateConstructorUsedError;
   @JsonKey(name: 'engagement')
-  EntryDto get entry => throw _privateConstructorUsedError;
+  EntryDto? get entry => throw _privateConstructorUsedError;
   @JsonKey(name: 'athletes')
   List<AthleteDto> get athletes => throw _privateConstructorUsedError;
   @JsonKey(name: 'isRecord')
@@ -65,8 +66,12 @@ mixin _$ResultDto {
   @JsonKey(name: 'TempsLive3')
   int get liveTime3 => throw _privateConstructorUsedError;
 
+  /// Serializes this ResultDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of ResultDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ResultDtoCopyWith<ResultDto> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -77,7 +82,7 @@ abstract class $ResultDtoCopyWith<$Res> {
       _$ResultDtoCopyWithImpl<$Res, ResultDto>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'Id') String id,
+      {@JsonKey(name: 'Id', readValue: _readId) String id,
       @JsonKey(name: 'isValid') bool isValid,
       @JsonKey(name: 'Statut') int status,
       @JsonKey(name: 'statutLabel') String statusLabel,
@@ -88,10 +93,12 @@ abstract class $ResultDtoCopyWith<$Res> {
       @JsonKey(name: 'complement') String? complement,
       @JsonKey(name: 'complementLabel') String? complementLabel,
       @JsonKey(name: 'CodeDisqualification') String disqualificationCode,
-      @JsonKey(name: 'CommentaireDisqualification')
-      String disqualificationComment,
-      @JsonKey(name: 'serie') HeatDto heat,
-      @JsonKey(name: 'engagement') EntryDto entry,
+      @JsonKey(
+          name: 'disqualificationReason',
+          readValue: _readDisqualificationReason)
+      String disqualificationReason,
+      @JsonKey(name: 'serie') HeatDto? heat,
+      @JsonKey(name: 'engagement') EntryDto? entry,
       @JsonKey(name: 'athletes') List<AthleteDto> athletes,
       @JsonKey(name: 'isRecord') bool isRecord,
       @JsonKey(name: 'isMeilleurPerformance') bool isBestPerformance,
@@ -101,8 +108,8 @@ abstract class $ResultDtoCopyWith<$Res> {
       @JsonKey(name: 'TempsLive2') int liveTime2,
       @JsonKey(name: 'TempsLive3') int liveTime3});
 
-  $HeatDtoCopyWith<$Res> get heat;
-  $EntryDtoCopyWith<$Res> get entry;
+  $HeatDtoCopyWith<$Res>? get heat;
+  $EntryDtoCopyWith<$Res>? get entry;
 }
 
 /// @nodoc
@@ -115,6 +122,8 @@ class _$ResultDtoCopyWithImpl<$Res, $Val extends ResultDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ResultDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -129,9 +138,9 @@ class _$ResultDtoCopyWithImpl<$Res, $Val extends ResultDto>
     Object? complement = freezed,
     Object? complementLabel = freezed,
     Object? disqualificationCode = null,
-    Object? disqualificationComment = null,
-    Object? heat = null,
-    Object? entry = null,
+    Object? disqualificationReason = null,
+    Object? heat = freezed,
+    Object? entry = freezed,
     Object? athletes = null,
     Object? isRecord = null,
     Object? isBestPerformance = null,
@@ -186,18 +195,18 @@ class _$ResultDtoCopyWithImpl<$Res, $Val extends ResultDto>
           ? _value.disqualificationCode
           : disqualificationCode // ignore: cast_nullable_to_non_nullable
               as String,
-      disqualificationComment: null == disqualificationComment
-          ? _value.disqualificationComment
-          : disqualificationComment // ignore: cast_nullable_to_non_nullable
+      disqualificationReason: null == disqualificationReason
+          ? _value.disqualificationReason
+          : disqualificationReason // ignore: cast_nullable_to_non_nullable
               as String,
-      heat: null == heat
+      heat: freezed == heat
           ? _value.heat
           : heat // ignore: cast_nullable_to_non_nullable
-              as HeatDto,
-      entry: null == entry
+              as HeatDto?,
+      entry: freezed == entry
           ? _value.entry
           : entry // ignore: cast_nullable_to_non_nullable
-              as EntryDto,
+              as EntryDto?,
       athletes: null == athletes
           ? _value.athletes
           : athletes // ignore: cast_nullable_to_non_nullable
@@ -233,18 +242,30 @@ class _$ResultDtoCopyWithImpl<$Res, $Val extends ResultDto>
     ) as $Val);
   }
 
+  /// Create a copy of ResultDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $HeatDtoCopyWith<$Res> get heat {
-    return $HeatDtoCopyWith<$Res>(_value.heat, (value) {
+  $HeatDtoCopyWith<$Res>? get heat {
+    if (_value.heat == null) {
+      return null;
+    }
+
+    return $HeatDtoCopyWith<$Res>(_value.heat!, (value) {
       return _then(_value.copyWith(heat: value) as $Val);
     });
   }
 
+  /// Create a copy of ResultDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $EntryDtoCopyWith<$Res> get entry {
-    return $EntryDtoCopyWith<$Res>(_value.entry, (value) {
+  $EntryDtoCopyWith<$Res>? get entry {
+    if (_value.entry == null) {
+      return null;
+    }
+
+    return $EntryDtoCopyWith<$Res>(_value.entry!, (value) {
       return _then(_value.copyWith(entry: value) as $Val);
     });
   }
@@ -259,7 +280,7 @@ abstract class _$$ResultDtoImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'Id') String id,
+      {@JsonKey(name: 'Id', readValue: _readId) String id,
       @JsonKey(name: 'isValid') bool isValid,
       @JsonKey(name: 'Statut') int status,
       @JsonKey(name: 'statutLabel') String statusLabel,
@@ -270,10 +291,12 @@ abstract class _$$ResultDtoImplCopyWith<$Res>
       @JsonKey(name: 'complement') String? complement,
       @JsonKey(name: 'complementLabel') String? complementLabel,
       @JsonKey(name: 'CodeDisqualification') String disqualificationCode,
-      @JsonKey(name: 'CommentaireDisqualification')
-      String disqualificationComment,
-      @JsonKey(name: 'serie') HeatDto heat,
-      @JsonKey(name: 'engagement') EntryDto entry,
+      @JsonKey(
+          name: 'disqualificationReason',
+          readValue: _readDisqualificationReason)
+      String disqualificationReason,
+      @JsonKey(name: 'serie') HeatDto? heat,
+      @JsonKey(name: 'engagement') EntryDto? entry,
       @JsonKey(name: 'athletes') List<AthleteDto> athletes,
       @JsonKey(name: 'isRecord') bool isRecord,
       @JsonKey(name: 'isMeilleurPerformance') bool isBestPerformance,
@@ -284,9 +307,9 @@ abstract class _$$ResultDtoImplCopyWith<$Res>
       @JsonKey(name: 'TempsLive3') int liveTime3});
 
   @override
-  $HeatDtoCopyWith<$Res> get heat;
+  $HeatDtoCopyWith<$Res>? get heat;
   @override
-  $EntryDtoCopyWith<$Res> get entry;
+  $EntryDtoCopyWith<$Res>? get entry;
 }
 
 /// @nodoc
@@ -297,6 +320,8 @@ class __$$ResultDtoImplCopyWithImpl<$Res>
       _$ResultDtoImpl _value, $Res Function(_$ResultDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ResultDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -311,9 +336,9 @@ class __$$ResultDtoImplCopyWithImpl<$Res>
     Object? complement = freezed,
     Object? complementLabel = freezed,
     Object? disqualificationCode = null,
-    Object? disqualificationComment = null,
-    Object? heat = null,
-    Object? entry = null,
+    Object? disqualificationReason = null,
+    Object? heat = freezed,
+    Object? entry = freezed,
     Object? athletes = null,
     Object? isRecord = null,
     Object? isBestPerformance = null,
@@ -368,18 +393,18 @@ class __$$ResultDtoImplCopyWithImpl<$Res>
           ? _value.disqualificationCode
           : disqualificationCode // ignore: cast_nullable_to_non_nullable
               as String,
-      disqualificationComment: null == disqualificationComment
-          ? _value.disqualificationComment
-          : disqualificationComment // ignore: cast_nullable_to_non_nullable
+      disqualificationReason: null == disqualificationReason
+          ? _value.disqualificationReason
+          : disqualificationReason // ignore: cast_nullable_to_non_nullable
               as String,
-      heat: null == heat
+      heat: freezed == heat
           ? _value.heat
           : heat // ignore: cast_nullable_to_non_nullable
-              as HeatDto,
-      entry: null == entry
+              as HeatDto?,
+      entry: freezed == entry
           ? _value.entry
           : entry // ignore: cast_nullable_to_non_nullable
-              as EntryDto,
+              as EntryDto?,
       athletes: null == athletes
           ? _value._athletes
           : athletes // ignore: cast_nullable_to_non_nullable
@@ -420,21 +445,23 @@ class __$$ResultDtoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ResultDtoImpl implements _ResultDto {
   const _$ResultDtoImpl(
-      {@JsonKey(name: 'Id') required this.id,
-      @JsonKey(name: 'isValid') required this.isValid,
-      @JsonKey(name: 'Statut') required this.status,
-      @JsonKey(name: 'statutLabel') required this.statusLabel,
+      {@JsonKey(name: 'Id', readValue: _readId) this.id = '',
+      @JsonKey(name: 'isValid') this.isValid = false,
+      @JsonKey(name: 'Statut') this.status = 0,
+      @JsonKey(name: 'statutLabel') this.statusLabel = '',
       @JsonKey(name: 'isDisqualifie') this.isDisqualified = false,
-      @JsonKey(name: 'Rang') required this.rank,
-      @JsonKey(name: 'Temps') required this.time,
-      @JsonKey(name: 'tempsLabel') required this.timeLabel,
+      @JsonKey(name: 'Rang') this.rank = 0,
+      @JsonKey(name: 'Temps') this.time = 0,
+      @JsonKey(name: 'tempsLabel') this.timeLabel = '',
       @JsonKey(name: 'complement') this.complement,
       @JsonKey(name: 'complementLabel') this.complementLabel,
       @JsonKey(name: 'CodeDisqualification') this.disqualificationCode = '',
-      @JsonKey(name: 'CommentaireDisqualification')
-      this.disqualificationComment = '',
-      @JsonKey(name: 'serie') required this.heat,
-      @JsonKey(name: 'engagement') required this.entry,
+      @JsonKey(
+          name: 'disqualificationReason',
+          readValue: _readDisqualificationReason)
+      this.disqualificationReason = '',
+      @JsonKey(name: 'serie') this.heat,
+      @JsonKey(name: 'engagement') this.entry,
       @JsonKey(name: 'athletes')
       final List<AthleteDto> athletes = const <AthleteDto>[],
       @JsonKey(name: 'isRecord') this.isRecord = false,
@@ -450,7 +477,7 @@ class _$ResultDtoImpl implements _ResultDto {
       _$$ResultDtoImplFromJson(json);
 
   @override
-  @JsonKey(name: 'Id')
+  @JsonKey(name: 'Id', readValue: _readId)
   final String id;
   @override
   @JsonKey(name: 'isValid')
@@ -483,14 +510,15 @@ class _$ResultDtoImpl implements _ResultDto {
   @JsonKey(name: 'CodeDisqualification')
   final String disqualificationCode;
   @override
-  @JsonKey(name: 'CommentaireDisqualification')
-  final String disqualificationComment;
+  @JsonKey(
+      name: 'disqualificationReason', readValue: _readDisqualificationReason)
+  final String disqualificationReason;
   @override
   @JsonKey(name: 'serie')
-  final HeatDto heat;
+  final HeatDto? heat;
   @override
   @JsonKey(name: 'engagement')
-  final EntryDto entry;
+  final EntryDto? entry;
   final List<AthleteDto> _athletes;
   @override
   @JsonKey(name: 'athletes')
@@ -524,7 +552,7 @@ class _$ResultDtoImpl implements _ResultDto {
 
   @override
   String toString() {
-    return 'ResultDto(id: $id, isValid: $isValid, status: $status, statusLabel: $statusLabel, isDisqualified: $isDisqualified, rank: $rank, time: $time, timeLabel: $timeLabel, complement: $complement, complementLabel: $complementLabel, disqualificationCode: $disqualificationCode, disqualificationComment: $disqualificationComment, heat: $heat, entry: $entry, athletes: $athletes, isRecord: $isRecord, isBestPerformance: $isBestPerformance, isFranceRecord: $isFranceRecord, points: $points, liveTime1: $liveTime1, liveTime2: $liveTime2, liveTime3: $liveTime3)';
+    return 'ResultDto(id: $id, isValid: $isValid, status: $status, statusLabel: $statusLabel, isDisqualified: $isDisqualified, rank: $rank, time: $time, timeLabel: $timeLabel, complement: $complement, complementLabel: $complementLabel, disqualificationCode: $disqualificationCode, disqualificationReason: $disqualificationReason, heat: $heat, entry: $entry, athletes: $athletes, isRecord: $isRecord, isBestPerformance: $isBestPerformance, isFranceRecord: $isFranceRecord, points: $points, liveTime1: $liveTime1, liveTime2: $liveTime2, liveTime3: $liveTime3)';
   }
 
   @override
@@ -549,9 +577,8 @@ class _$ResultDtoImpl implements _ResultDto {
                 other.complementLabel == complementLabel) &&
             (identical(other.disqualificationCode, disqualificationCode) ||
                 other.disqualificationCode == disqualificationCode) &&
-            (identical(
-                    other.disqualificationComment, disqualificationComment) ||
-                other.disqualificationComment == disqualificationComment) &&
+            (identical(other.disqualificationReason, disqualificationReason) ||
+                other.disqualificationReason == disqualificationReason) &&
             (identical(other.heat, heat) || other.heat == heat) &&
             (identical(other.entry, entry) || other.entry == entry) &&
             const DeepCollectionEquality().equals(other._athletes, _athletes) &&
@@ -570,7 +597,7 @@ class _$ResultDtoImpl implements _ResultDto {
                 other.liveTime3 == liveTime3));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -585,7 +612,7 @@ class _$ResultDtoImpl implements _ResultDto {
         complement,
         complementLabel,
         disqualificationCode,
-        disqualificationComment,
+        disqualificationReason,
         heat,
         entry,
         const DeepCollectionEquality().hash(_athletes),
@@ -598,7 +625,9 @@ class _$ResultDtoImpl implements _ResultDto {
         liveTime3
       ]);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ResultDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ResultDtoImplCopyWith<_$ResultDtoImpl> get copyWith =>
@@ -614,21 +643,23 @@ class _$ResultDtoImpl implements _ResultDto {
 
 abstract class _ResultDto implements ResultDto {
   const factory _ResultDto(
-      {@JsonKey(name: 'Id') required final String id,
-      @JsonKey(name: 'isValid') required final bool isValid,
-      @JsonKey(name: 'Statut') required final int status,
-      @JsonKey(name: 'statutLabel') required final String statusLabel,
+      {@JsonKey(name: 'Id', readValue: _readId) final String id,
+      @JsonKey(name: 'isValid') final bool isValid,
+      @JsonKey(name: 'Statut') final int status,
+      @JsonKey(name: 'statutLabel') final String statusLabel,
       @JsonKey(name: 'isDisqualifie') final bool isDisqualified,
-      @JsonKey(name: 'Rang') required final int rank,
-      @JsonKey(name: 'Temps') required final int time,
-      @JsonKey(name: 'tempsLabel') required final String timeLabel,
+      @JsonKey(name: 'Rang') final int rank,
+      @JsonKey(name: 'Temps') final int time,
+      @JsonKey(name: 'tempsLabel') final String timeLabel,
       @JsonKey(name: 'complement') final String? complement,
       @JsonKey(name: 'complementLabel') final String? complementLabel,
       @JsonKey(name: 'CodeDisqualification') final String disqualificationCode,
-      @JsonKey(name: 'CommentaireDisqualification')
-      final String disqualificationComment,
-      @JsonKey(name: 'serie') required final HeatDto heat,
-      @JsonKey(name: 'engagement') required final EntryDto entry,
+      @JsonKey(
+          name: 'disqualificationReason',
+          readValue: _readDisqualificationReason)
+      final String disqualificationReason,
+      @JsonKey(name: 'serie') final HeatDto? heat,
+      @JsonKey(name: 'engagement') final EntryDto? entry,
       @JsonKey(name: 'athletes') final List<AthleteDto> athletes,
       @JsonKey(name: 'isRecord') final bool isRecord,
       @JsonKey(name: 'isMeilleurPerformance') final bool isBestPerformance,
@@ -642,7 +673,7 @@ abstract class _ResultDto implements ResultDto {
       _$ResultDtoImpl.fromJson;
 
   @override
-  @JsonKey(name: 'Id')
+  @JsonKey(name: 'Id', readValue: _readId)
   String get id;
   @override
   @JsonKey(name: 'isValid')
@@ -675,14 +706,15 @@ abstract class _ResultDto implements ResultDto {
   @JsonKey(name: 'CodeDisqualification')
   String get disqualificationCode;
   @override
-  @JsonKey(name: 'CommentaireDisqualification')
-  String get disqualificationComment;
+  @JsonKey(
+      name: 'disqualificationReason', readValue: _readDisqualificationReason)
+  String get disqualificationReason;
   @override
   @JsonKey(name: 'serie')
-  HeatDto get heat;
+  HeatDto? get heat;
   @override
   @JsonKey(name: 'engagement')
-  EntryDto get entry;
+  EntryDto? get entry;
   @override
   @JsonKey(name: 'athletes')
   List<AthleteDto> get athletes;
@@ -707,8 +739,11 @@ abstract class _ResultDto implements ResultDto {
   @override
   @JsonKey(name: 'TempsLive3')
   int get liveTime3;
+
+  /// Create a copy of ResultDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ResultDtoImplCopyWith<_$ResultDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

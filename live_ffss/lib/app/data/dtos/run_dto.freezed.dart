@@ -43,8 +43,12 @@ mixin _$RunDto {
   @JsonKey(name: 'liveResults')
   List<LiveResultDto> get liveResults => throw _privateConstructorUsedError;
 
+  /// Serializes this RunDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of RunDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $RunDtoCopyWith<RunDto> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -79,6 +83,8 @@ class _$RunDtoCopyWithImpl<$Res, $Val extends RunDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of RunDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -142,6 +148,8 @@ class _$RunDtoCopyWithImpl<$Res, $Val extends RunDto>
     ) as $Val);
   }
 
+  /// Create a copy of RunDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $HeatDtoCopyWith<$Res>? get heat {
@@ -187,6 +195,8 @@ class __$$RunDtoImplCopyWithImpl<$Res>
       _$RunDtoImpl _value, $Res Function(_$RunDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of RunDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -338,7 +348,7 @@ class _$RunDtoImpl implements _RunDto {
                 .equals(other._liveResults, _liveResults));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -354,7 +364,9 @@ class _$RunDtoImpl implements _RunDto {
       heat,
       const DeepCollectionEquality().hash(_liveResults));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of RunDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RunDtoImplCopyWith<_$RunDtoImpl> get copyWith =>
@@ -418,8 +430,11 @@ abstract class _RunDto implements RunDto {
   @override
   @JsonKey(name: 'liveResults')
   List<LiveResultDto> get liveResults;
+
+  /// Create a copy of RunDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RunDtoImplCopyWith<_$RunDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

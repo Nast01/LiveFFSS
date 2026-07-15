@@ -66,8 +66,12 @@ mixin _$CompetitionDto {
   @JsonKey(name: 'JugePrincipal')
   String? get refereePrincipal => throw _privateConstructorUsedError;
 
+  /// Serializes this CompetitionDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of CompetitionDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $CompetitionDtoCopyWith<CompetitionDto> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -117,6 +121,8 @@ class _$CompetitionDtoCopyWithImpl<$Res, $Val extends CompetitionDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of CompetitionDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -245,6 +251,8 @@ class _$CompetitionDtoCopyWithImpl<$Res, $Val extends CompetitionDto>
     ) as $Val);
   }
 
+  /// Create a copy of CompetitionDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $CompetitionOrganismeDtoCopyWith<$Res> get organisme {
@@ -300,6 +308,8 @@ class __$$CompetitionDtoImplCopyWithImpl<$Res>
       _$CompetitionDtoImpl _value, $Res Function(_$CompetitionDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of CompetitionDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -589,7 +599,7 @@ class _$CompetitionDtoImpl implements _CompetitionDto {
                 other.refereePrincipal == refereePrincipal));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -619,7 +629,9 @@ class _$CompetitionDtoImpl implements _CompetitionDto {
         refereePrincipal
       ]);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of CompetitionDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$CompetitionDtoImplCopyWith<_$CompetitionDtoImpl> get copyWith =>
@@ -735,8 +747,11 @@ abstract class _CompetitionDto implements CompetitionDto {
   @override
   @JsonKey(name: 'JugePrincipal')
   String? get refereePrincipal;
+
+  /// Create a copy of CompetitionDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$CompetitionDtoImplCopyWith<_$CompetitionDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -761,8 +776,12 @@ mixin _$CompetitionOrganismeDto {
   @JsonKey(name: 'bonnet')
   String? get capUrl => throw _privateConstructorUsedError;
 
+  /// Serializes this CompetitionOrganismeDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of CompetitionOrganismeDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $CompetitionOrganismeDtoCopyWith<CompetitionOrganismeDto> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -793,6 +812,8 @@ class _$CompetitionOrganismeDtoCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of CompetitionOrganismeDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -860,6 +881,8 @@ class __$$CompetitionOrganismeDtoImplCopyWithImpl<$Res>
       $Res Function(_$CompetitionOrganismeDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of CompetitionOrganismeDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -953,12 +976,14 @@ class _$CompetitionOrganismeDtoImpl implements _CompetitionOrganismeDto {
             (identical(other.capUrl, capUrl) || other.capUrl == capUrl));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType, id, organizerName, clubFullName, shortName, logoUrl, capUrl);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of CompetitionOrganismeDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$CompetitionOrganismeDtoImplCopyWith<_$CompetitionOrganismeDtoImpl>
@@ -1004,8 +1029,11 @@ abstract class _CompetitionOrganismeDto implements CompetitionOrganismeDto {
   @override
   @JsonKey(name: 'bonnet')
   String? get capUrl;
+
+  /// Create a copy of CompetitionOrganismeDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$CompetitionOrganismeDtoImplCopyWith<_$CompetitionOrganismeDtoImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

@@ -25,8 +25,12 @@ mixin _$LiveResult {
   Entry? get entry => throw _privateConstructorUsedError;
   Result? get result => throw _privateConstructorUsedError;
 
+  /// Serializes this LiveResult to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of LiveResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $LiveResultCopyWith<LiveResult> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -53,6 +57,8 @@ class _$LiveResultCopyWithImpl<$Res, $Val extends LiveResult>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of LiveResult
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -81,6 +87,8 @@ class _$LiveResultCopyWithImpl<$Res, $Val extends LiveResult>
     ) as $Val);
   }
 
+  /// Create a copy of LiveResult
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $EntryCopyWith<$Res>? get entry {
@@ -93,6 +101,8 @@ class _$LiveResultCopyWithImpl<$Res, $Val extends LiveResult>
     });
   }
 
+  /// Create a copy of LiveResult
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ResultCopyWith<$Res>? get result {
@@ -130,6 +140,8 @@ class __$$LiveResultImplCopyWithImpl<$Res>
       _$LiveResultImpl _value, $Res Function(_$LiveResultImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of LiveResult
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -194,11 +206,13 @@ class _$LiveResultImpl implements _LiveResult {
             (identical(other.result, result) || other.result == result));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, number, entry, result);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of LiveResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$LiveResultImplCopyWith<_$LiveResultImpl> get copyWith =>
@@ -230,8 +244,11 @@ abstract class _LiveResult implements LiveResult {
   Entry? get entry;
   @override
   Result? get result;
+
+  /// Create a copy of LiveResult
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$LiveResultImplCopyWith<_$LiveResultImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

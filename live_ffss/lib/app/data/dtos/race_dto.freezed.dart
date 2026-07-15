@@ -33,8 +33,12 @@ mixin _$RaceDto {
   @JsonKey(name: 'categories')
   List<CategoryDto> get categories => throw _privateConstructorUsedError;
 
+  /// Serializes this RaceDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of RaceDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $RaceDtoCopyWith<RaceDto> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -65,6 +69,8 @@ class _$RaceDtoCopyWithImpl<$Res, $Val extends RaceDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of RaceDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -103,6 +109,8 @@ class _$RaceDtoCopyWithImpl<$Res, $Val extends RaceDto>
     ) as $Val);
   }
 
+  /// Create a copy of RaceDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $RaceDisciplineDtoCopyWith<$Res> get discipline {
@@ -140,6 +148,8 @@ class __$$RaceDtoImplCopyWithImpl<$Res>
       _$RaceDtoImpl _value, $Res Function(_$RaceDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of RaceDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -244,7 +254,7 @@ class _$RaceDtoImpl implements _RaceDto {
                 .equals(other._categories, _categories));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -255,7 +265,9 @@ class _$RaceDtoImpl implements _RaceDto {
       discipline,
       const DeepCollectionEquality().hash(_categories));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of RaceDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RaceDtoImplCopyWith<_$RaceDtoImpl> get copyWith =>
@@ -300,8 +312,11 @@ abstract class _RaceDto implements RaceDto {
   @override
   @JsonKey(name: 'categories')
   List<CategoryDto> get categories;
+
+  /// Create a copy of RaceDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RaceDtoImplCopyWith<_$RaceDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -325,8 +340,12 @@ mixin _$RaceDisciplineDto {
   @JsonKey(name: 'specialiteLabel')
   String get specialityLabel => throw _privateConstructorUsedError;
 
+  /// Serializes this RaceDisciplineDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of RaceDisciplineDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $RaceDisciplineDtoCopyWith<RaceDisciplineDto> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -356,6 +375,8 @@ class _$RaceDisciplineDtoCopyWithImpl<$Res, $Val extends RaceDisciplineDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of RaceDisciplineDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -420,6 +441,8 @@ class __$$RaceDisciplineDtoImplCopyWithImpl<$Res>
       $Res Function(_$RaceDisciplineDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of RaceDisciplineDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -515,12 +538,14 @@ class _$RaceDisciplineDtoImpl implements _RaceDisciplineDto {
                 other.specialityLabel == specialityLabel));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, name, nameEnglish, distance,
       athletesPerTeam, specialityId, specialityLabel);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of RaceDisciplineDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RaceDisciplineDtoImplCopyWith<_$RaceDisciplineDtoImpl> get copyWith =>
@@ -566,8 +591,11 @@ abstract class _RaceDisciplineDto implements RaceDisciplineDto {
   @override
   @JsonKey(name: 'specialiteLabel')
   String get specialityLabel;
+
+  /// Create a copy of RaceDisciplineDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RaceDisciplineDtoImplCopyWith<_$RaceDisciplineDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -10,20 +10,22 @@ part 'result_dto.g.dart';
 @freezed
 class ResultDto with _$ResultDto {
   const factory ResultDto({
-    @JsonKey(name: 'Id') required String id,
-    @JsonKey(name: 'isValid') required bool isValid,
-    @JsonKey(name: 'Statut') required int status,
-    @JsonKey(name: 'statutLabel') required String statusLabel,
+    @JsonKey(name: 'Id', readValue: _readId) @Default('') String id,
+    @JsonKey(name: 'isValid') @Default(false) bool isValid,
+    @JsonKey(name: 'Statut') @Default(0) int status,
+    @JsonKey(name: 'statutLabel') @Default('') String statusLabel,
     @JsonKey(name: 'isDisqualifie') @Default(false) bool isDisqualified,
-    @JsonKey(name: 'Rang') required int rank,
-    @JsonKey(name: 'Temps') required int time,
-    @JsonKey(name: 'tempsLabel') required String timeLabel,
+    @JsonKey(name: 'Rang') @Default(0) int rank,
+    @JsonKey(name: 'Temps') @Default(0) int time,
+    @JsonKey(name: 'tempsLabel') @Default('') String timeLabel,
     @JsonKey(name: 'complement') String? complement,
     @JsonKey(name: 'complementLabel') String? complementLabel,
     @JsonKey(name: 'CodeDisqualification') @Default('') String disqualificationCode,
-    @JsonKey(name: 'CommentaireDisqualification') @Default('') String disqualificationComment,
-    @JsonKey(name: 'serie') required HeatDto heat,
-    @JsonKey(name: 'engagement') required EntryDto entry,
+    @JsonKey(name: 'disqualificationReason', readValue: _readDisqualificationReason)
+    @Default('')
+    String disqualificationReason,
+    @JsonKey(name: 'serie') HeatDto? heat,
+    @JsonKey(name: 'engagement') EntryDto? entry,
     @JsonKey(name: 'athletes') @Default(<AthleteDto>[]) List<AthleteDto> athletes,
     @JsonKey(name: 'isRecord') @Default(false) bool isRecord,
     @JsonKey(name: 'isMeilleurPerformance') @Default(false) bool isBestPerformance,
@@ -36,4 +38,23 @@ class ResultDto with _$ResultDto {
 
   factory ResultDto.fromJson(Map<String, dynamic> json) =>
       _$ResultDtoFromJson(json);
+}
+
+// API doc says Resultat.Id is a Number, but legacy clients typed it as
+// String. Accept both shapes.
+Object? _readId(Map<dynamic, dynamic> map, String key) {
+  final raw = map[key];
+  if (raw == null) return '';
+  if (raw is String) return raw;
+  return raw.toString();
+}
+
+// New API exposes the field as `disqualificationReason`, but legacy clients
+// returned it as `CommentaireDisqualification`. Try both for compatibility.
+Object? _readDisqualificationReason(Map<dynamic, dynamic> map, String key) {
+  final fresh = map[key];
+  if (fresh is String && fresh.isNotEmpty) return fresh;
+  final legacy = map['CommentaireDisqualification'];
+  if (legacy is String) return legacy;
+  return '';
 }

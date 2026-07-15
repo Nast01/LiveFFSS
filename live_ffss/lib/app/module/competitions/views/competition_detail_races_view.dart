@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_races_controller.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 
 class CompetitionDetailRacesView
     extends GetView<CompetitionDetailRacesController> {
@@ -56,9 +58,9 @@ class CompetitionDetailRacesView
                     )
                   else
                     Column(
-                      children: controller.filteredRaces.map((race) {
-                        return _buildRaceItem(race.label, race.specialityLabel);
-                      }).toList(),
+                      children: controller.filteredRaces
+                          .map((race) => _buildRaceItem(race: race))
+                          .toList(),
                     ),
                 ],
               ),
@@ -73,7 +75,7 @@ class CompetitionDetailRacesView
     final controller = Get.find<CompetitionDetailRacesController>();
 
     return Obx(() {
-      return Container(
+      return SizedBox(
         height: 40,
         child: ListView(
           scrollDirection: Axis.horizontal,
@@ -120,11 +122,19 @@ class CompetitionDetailRacesView
     );
   }
 
-  Widget _buildRaceItem(String name, String type) {
+  Widget _buildRaceItem({required Race race}) {
+    final type = race.specialityLabel;
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
-        // Navigate to epreuve details or switch to epreuves tab
-        // Get.find<CompetitionDetailRacesController>().changeTab(1);
+        final controller = Get.find<CompetitionDetailRacesController>();
+        Get.toNamed(
+          Routes.raceDetail,
+          arguments: {
+            'race': race,
+            'competition': controller.competition.value,
+          },
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -156,7 +166,7 @@ class CompetitionDetailRacesView
             // Epreuve name
             Expanded(
               child: Text(
-                name,
+                race.label,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

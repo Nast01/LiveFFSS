@@ -36,8 +36,12 @@ mixin _$RaceFormatConfigurationDto {
   @JsonKey(name: 'categories', readValue: _readCategories)
   List<CategoryDto> get categories => throw _privateConstructorUsedError;
 
+  /// Serializes this RaceFormatConfigurationDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of RaceFormatConfigurationDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $RaceFormatConfigurationDtoCopyWith<RaceFormatConfigurationDto>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -73,6 +77,8 @@ class _$RaceFormatConfigurationDtoCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of RaceFormatConfigurationDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -116,6 +122,8 @@ class _$RaceFormatConfigurationDtoCopyWithImpl<$Res,
     ) as $Val);
   }
 
+  /// Create a copy of RaceFormatConfigurationDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $DisciplineDtoCopyWith<$Res> get discipline {
@@ -158,6 +166,8 @@ class __$$RaceFormatConfigurationDtoImplCopyWithImpl<$Res>
       $Res Function(_$RaceFormatConfigurationDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of RaceFormatConfigurationDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -270,7 +280,7 @@ class _$RaceFormatConfigurationDtoImpl implements _RaceFormatConfigurationDto {
                 .equals(other._categories, _categories));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -282,7 +292,9 @@ class _$RaceFormatConfigurationDtoImpl implements _RaceFormatConfigurationDto {
       discipline,
       const DeepCollectionEquality().hash(_categories));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of RaceFormatConfigurationDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RaceFormatConfigurationDtoImplCopyWith<_$RaceFormatConfigurationDtoImpl>
@@ -333,8 +345,11 @@ abstract class _RaceFormatConfigurationDto
   @override
   @JsonKey(name: 'categories', readValue: _readCategories)
   List<CategoryDto> get categories;
+
+  /// Create a copy of RaceFormatConfigurationDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RaceFormatConfigurationDtoImplCopyWith<_$RaceFormatConfigurationDtoImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

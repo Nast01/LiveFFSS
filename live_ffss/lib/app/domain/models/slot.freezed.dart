@@ -27,8 +27,12 @@ mixin _$Slot {
   RaceFormatDetail? get raceFormatDetail => throw _privateConstructorUsedError;
   List<Run> get runs => throw _privateConstructorUsedError;
 
+  /// Serializes this Slot to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Slot
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $SlotCopyWith<Slot> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -58,6 +62,8 @@ class _$SlotCopyWithImpl<$Res, $Val extends Slot>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Slot
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -96,6 +102,8 @@ class _$SlotCopyWithImpl<$Res, $Val extends Slot>
     ) as $Val);
   }
 
+  /// Create a copy of Slot
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $RaceFormatDetailCopyWith<$Res>? get raceFormatDetail {
@@ -135,6 +143,8 @@ class __$$SlotImplCopyWithImpl<$Res>
   __$$SlotImplCopyWithImpl(_$SlotImpl _value, $Res Function(_$SlotImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Slot
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -228,12 +238,14 @@ class _$SlotImpl implements _Slot {
             const DeepCollectionEquality().equals(other._runs, _runs));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, name, beginHour, endHour,
       raceFormatDetail, const DeepCollectionEquality().hash(_runs));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Slot
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$SlotImplCopyWith<_$SlotImpl> get copyWith =>
@@ -270,8 +282,11 @@ abstract class _Slot implements Slot {
   RaceFormatDetail? get raceFormatDetail;
   @override
   List<Run> get runs;
+
+  /// Create a copy of Slot
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SlotImplCopyWith<_$SlotImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

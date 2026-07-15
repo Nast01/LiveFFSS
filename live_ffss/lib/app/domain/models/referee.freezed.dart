@@ -35,9 +35,15 @@ mixin _$Referee {
   bool get isGuest => throw _privateConstructorUsedError;
   bool get isPrincipal => throw _privateConstructorUsedError;
   List<int> get availabilities => throw _privateConstructorUsedError;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Club? get club => throw _privateConstructorUsedError;
 
+  /// Serializes this Referee to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Referee
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $RefereeCopyWith<Referee> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -61,7 +67,10 @@ abstract class $RefereeCopyWith<$Res> {
       bool isLicensee,
       bool isGuest,
       bool isPrincipal,
-      List<int> availabilities});
+      List<int> availabilities,
+      @JsonKey(includeFromJson: false, includeToJson: false) Club? club});
+
+  $ClubCopyWith<$Res>? get club;
 }
 
 /// @nodoc
@@ -74,6 +83,8 @@ class _$RefereeCopyWithImpl<$Res, $Val extends Referee>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Referee
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -92,6 +103,7 @@ class _$RefereeCopyWithImpl<$Res, $Val extends Referee>
     Object? isGuest = null,
     Object? isPrincipal = null,
     Object? availabilities = null,
+    Object? club = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -154,7 +166,25 @@ class _$RefereeCopyWithImpl<$Res, $Val extends Referee>
           ? _value.availabilities
           : availabilities // ignore: cast_nullable_to_non_nullable
               as List<int>,
+      club: freezed == club
+          ? _value.club
+          : club // ignore: cast_nullable_to_non_nullable
+              as Club?,
     ) as $Val);
+  }
+
+  /// Create a copy of Referee
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ClubCopyWith<$Res>? get club {
+    if (_value.club == null) {
+      return null;
+    }
+
+    return $ClubCopyWith<$Res>(_value.club!, (value) {
+      return _then(_value.copyWith(club: value) as $Val);
+    });
   }
 }
 
@@ -180,7 +210,11 @@ abstract class _$$RefereeImplCopyWith<$Res> implements $RefereeCopyWith<$Res> {
       bool isLicensee,
       bool isGuest,
       bool isPrincipal,
-      List<int> availabilities});
+      List<int> availabilities,
+      @JsonKey(includeFromJson: false, includeToJson: false) Club? club});
+
+  @override
+  $ClubCopyWith<$Res>? get club;
 }
 
 /// @nodoc
@@ -191,6 +225,8 @@ class __$$RefereeImplCopyWithImpl<$Res>
       _$RefereeImpl _value, $Res Function(_$RefereeImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Referee
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -209,6 +245,7 @@ class __$$RefereeImplCopyWithImpl<$Res>
     Object? isGuest = null,
     Object? isPrincipal = null,
     Object? availabilities = null,
+    Object? club = freezed,
   }) {
     return _then(_$RefereeImpl(
       id: null == id
@@ -271,6 +308,10 @@ class __$$RefereeImplCopyWithImpl<$Res>
           ? _value._availabilities
           : availabilities // ignore: cast_nullable_to_non_nullable
               as List<int>,
+      club: freezed == club
+          ? _value.club
+          : club // ignore: cast_nullable_to_non_nullable
+              as Club?,
     ));
   }
 }
@@ -293,7 +334,8 @@ class _$RefereeImpl implements _Referee {
       this.isLicensee = false,
       this.isGuest = false,
       this.isPrincipal = false,
-      final List<int> availabilities = const <int>[]})
+      final List<int> availabilities = const <int>[],
+      @JsonKey(includeFromJson: false, includeToJson: false) this.club})
       : _availabilities = availabilities;
 
   factory _$RefereeImpl.fromJson(Map<String, dynamic> json) =>
@@ -340,8 +382,12 @@ class _$RefereeImpl implements _Referee {
   }
 
   @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final Club? club;
+
+  @override
   String toString() {
-    return 'Referee(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, level: $level, levelMax: $levelMax, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, isPrincipal: $isPrincipal, availabilities: $availabilities)';
+    return 'Referee(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, level: $level, levelMax: $levelMax, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, isPrincipal: $isPrincipal, availabilities: $availabilities, club: $club)';
   }
 
   @override
@@ -372,10 +418,11 @@ class _$RefereeImpl implements _Referee {
             (identical(other.isPrincipal, isPrincipal) ||
                 other.isPrincipal == isPrincipal) &&
             const DeepCollectionEquality()
-                .equals(other._availabilities, _availabilities));
+                .equals(other._availabilities, _availabilities) &&
+            (identical(other.club, club) || other.club == club));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -393,9 +440,12 @@ class _$RefereeImpl implements _Referee {
       isLicensee,
       isGuest,
       isPrincipal,
-      const DeepCollectionEquality().hash(_availabilities));
+      const DeepCollectionEquality().hash(_availabilities),
+      club);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Referee
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RefereeImplCopyWith<_$RefereeImpl> get copyWith =>
@@ -425,7 +475,9 @@ abstract class _Referee implements Referee {
       final bool isLicensee,
       final bool isGuest,
       final bool isPrincipal,
-      final List<int> availabilities}) = _$RefereeImpl;
+      final List<int> availabilities,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final Club? club}) = _$RefereeImpl;
 
   factory _Referee.fromJson(Map<String, dynamic> json) = _$RefereeImpl.fromJson;
 
@@ -460,7 +512,13 @@ abstract class _Referee implements Referee {
   @override
   List<int> get availabilities;
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Club? get club;
+
+  /// Create a copy of Referee
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RefereeImplCopyWith<_$RefereeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

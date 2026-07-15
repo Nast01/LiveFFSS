@@ -28,8 +28,12 @@ mixin _$Club {
   List<Athlete> get athletes => throw _privateConstructorUsedError;
   List<Referee> get referees => throw _privateConstructorUsedError;
 
+  /// Serializes this Club to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Club
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ClubCopyWith<Club> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -58,6 +62,8 @@ class _$ClubCopyWithImpl<$Res, $Val extends Club>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Club
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -126,6 +132,8 @@ class __$$ClubImplCopyWithImpl<$Res>
   __$$ClubImplCopyWithImpl(_$ClubImpl _value, $Res Function(_$ClubImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Club
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -235,7 +243,7 @@ class _$ClubImpl implements _Club {
             const DeepCollectionEquality().equals(other._referees, _referees));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -247,7 +255,9 @@ class _$ClubImpl implements _Club {
       const DeepCollectionEquality().hash(_athletes),
       const DeepCollectionEquality().hash(_referees));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Club
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ClubImplCopyWith<_$ClubImpl> get copyWith =>
@@ -287,8 +297,11 @@ abstract class _Club implements Club {
   List<Athlete> get athletes;
   @override
   List<Referee> get referees;
+
+  /// Create a copy of Club
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ClubImplCopyWith<_$ClubImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

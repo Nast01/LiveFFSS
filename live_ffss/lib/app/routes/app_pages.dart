@@ -5,7 +5,9 @@ import 'package:live_ffss/app/module/auth/bindings/user_binding.dart';
 import 'package:live_ffss/app/module/auth/views/login_view.dart';
 import 'package:live_ffss/app/module/auth/views/profile_view.dart';
 import 'package:live_ffss/app/module/competitions/bindings/competition_detail_binding.dart';
+import 'package:live_ffss/app/module/competitions/bindings/race_detail_binding.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_view.dart';
+import 'package:live_ffss/app/module/competitions/views/race_detail_view.dart';
 import 'package:live_ffss/app/module/favorites/bindings/favorites_binding.dart';
 import 'package:live_ffss/app/module/home/bindings/home_binding.dart';
 import 'package:live_ffss/app/module/main_shell/bindings/main_shell_binding.dart';
@@ -46,6 +48,11 @@ class AppPages {
       name: Routes.competitionDetail,
       page: () => const CompetitionDetailView(),
       binding: CompetitionDetailBinding(),
+    ),
+    GetPage(
+      name: Routes.raceDetail,
+      page: () => const RaceDetailView(),
+      binding: RaceDetailBinding(),
     ),
     GetPage(
       name: Routes.program,

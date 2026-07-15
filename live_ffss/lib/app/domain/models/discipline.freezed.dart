@@ -29,8 +29,12 @@ mixin _$Discipline {
   bool get isRelay => throw _privateConstructorUsedError;
   bool get hasTime => throw _privateConstructorUsedError;
 
+  /// Serializes this Discipline to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Discipline
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $DisciplineCopyWith<Discipline> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -62,6 +66,8 @@ class _$DisciplineCopyWithImpl<$Res, $Val extends Discipline>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Discipline
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -138,6 +144,8 @@ class __$$DisciplineImplCopyWithImpl<$Res>
       _$DisciplineImpl _value, $Res Function(_$DisciplineImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Discipline
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -248,12 +256,14 @@ class _$DisciplineImpl implements _Discipline {
             (identical(other.hasTime, hasTime) || other.hasTime == hasTime));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, name, speciality,
       specialityLabel, distance, numberOfAthletes, isRelay, hasTime);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Discipline
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$DisciplineImplCopyWith<_$DisciplineImpl> get copyWith =>
@@ -297,8 +307,11 @@ abstract class _Discipline implements Discipline {
   bool get isRelay;
   @override
   bool get hasTime;
+
+  /// Create a copy of Discipline
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$DisciplineImplCopyWith<_$DisciplineImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

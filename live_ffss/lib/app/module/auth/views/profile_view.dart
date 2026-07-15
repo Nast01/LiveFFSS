@@ -93,7 +93,7 @@ class ProfileView extends GetView<ProfileController> {
         gradient: LinearGradient(
           colors: [
             const Color(0xFF0275FF),
-            const Color(0xFF0275FF).withOpacity(0.8),
+            const Color(0xFF0275FF).withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -101,7 +101,7 @@ class ProfileView extends GetView<ProfileController> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0275FF).withOpacity(0.3),
+            color: const Color(0xFF0275FF).withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -111,7 +111,7 @@ class ProfileView extends GetView<ProfileController> {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundColor: Colors.white.withOpacity(0.2),
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
             child: Text(
               controller.userInitials,
               style: const TextStyle(
@@ -135,7 +135,7 @@ class ProfileView extends GetView<ProfileController> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(

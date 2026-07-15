@@ -14,6 +14,11 @@ extension AthleteMapper on AthleteDto {
         isValid: isValid,
         isLicensee: isLicensee,
         isGuest: isGuest,
+        performanceTime: performanceTime,
+        performanceLabel: performanceLabel,
+        clubId: clubId,
+        clubLabel: clubLabel,
+        isSubstitute: isSubstitute,
       );
 }
 

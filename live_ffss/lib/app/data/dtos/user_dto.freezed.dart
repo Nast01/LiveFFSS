@@ -24,8 +24,12 @@ mixin _$UserDto {
   String get type => throw _privateConstructorUsedError;
   UserDtoData get data => throw _privateConstructorUsedError;
 
+  /// Serializes this UserDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of UserDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $UserDtoCopyWith<UserDto> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -49,6 +53,8 @@ class _$UserDtoCopyWithImpl<$Res, $Val extends UserDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of UserDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -72,6 +78,8 @@ class _$UserDtoCopyWithImpl<$Res, $Val extends UserDto>
     ) as $Val);
   }
 
+  /// Create a copy of UserDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $UserDtoDataCopyWith<$Res> get data {
@@ -102,6 +110,8 @@ class __$$UserDtoImplCopyWithImpl<$Res>
       _$UserDtoImpl _value, $Res Function(_$UserDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of UserDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -157,11 +167,13 @@ class _$UserDtoImpl implements _UserDto {
             (identical(other.data, data) || other.data == data));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, label, type, data);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of UserDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$UserDtoImplCopyWith<_$UserDtoImpl> get copyWith =>
@@ -189,8 +201,11 @@ abstract class _UserDto implements UserDto {
   String get type;
   @override
   UserDtoData get data;
+
+  /// Create a copy of UserDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$UserDtoImplCopyWith<_$UserDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -210,8 +225,12 @@ mixin _$UserDtoData {
   String? get licenseeNumber => throw _privateConstructorUsedError;
   UserDtoClub? get club => throw _privateConstructorUsedError;
 
+  /// Serializes this UserDtoData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of UserDtoData
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $UserDtoDataCopyWith<UserDtoData> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -242,6 +261,8 @@ class _$UserDtoDataCopyWithImpl<$Res, $Val extends UserDtoData>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of UserDtoData
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -275,6 +296,8 @@ class _$UserDtoDataCopyWithImpl<$Res, $Val extends UserDtoData>
     ) as $Val);
   }
 
+  /// Create a copy of UserDtoData
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $UserDtoClubCopyWith<$Res>? get club {
@@ -315,6 +338,8 @@ class __$$UserDtoDataImplCopyWithImpl<$Res>
       _$UserDtoDataImpl _value, $Res Function(_$UserDtoDataImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of UserDtoData
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -396,12 +421,14 @@ class _$UserDtoDataImpl implements _UserDtoData {
             (identical(other.club, club) || other.club == club));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, role, lastName, firstName, licenseeNumber, club);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of UserDtoData
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$UserDtoDataImplCopyWith<_$UserDtoDataImpl> get copyWith =>
@@ -439,8 +466,11 @@ abstract class _UserDtoData implements UserDtoData {
   String? get licenseeNumber;
   @override
   UserDtoClub? get club;
+
+  /// Create a copy of UserDtoData
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$UserDtoDataImplCopyWith<_$UserDtoDataImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -453,8 +483,12 @@ UserDtoClub _$UserDtoClubFromJson(Map<String, dynamic> json) {
 mixin _$UserDtoClub {
   String get label => throw _privateConstructorUsedError;
 
+  /// Serializes this UserDtoClub to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of UserDtoClub
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $UserDtoClubCopyWith<UserDtoClub> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -478,6 +512,8 @@ class _$UserDtoClubCopyWithImpl<$Res, $Val extends UserDtoClub>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of UserDtoClub
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -511,6 +547,8 @@ class __$$UserDtoClubImplCopyWithImpl<$Res>
       _$UserDtoClubImpl _value, $Res Function(_$UserDtoClubImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of UserDtoClub
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -549,11 +587,13 @@ class _$UserDtoClubImpl implements _UserDtoClub {
             (identical(other.label, label) || other.label == label));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, label);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of UserDtoClub
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$UserDtoClubImplCopyWith<_$UserDtoClubImpl> get copyWith =>
@@ -575,8 +615,11 @@ abstract class _UserDtoClub implements UserDtoClub {
 
   @override
   String get label;
+
+  /// Create a copy of UserDtoClub
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$UserDtoClubImplCopyWith<_$UserDtoClubImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -32,8 +32,12 @@ mixin _$Run {
   Heat? get heat => throw _privateConstructorUsedError;
   List<LiveResult> get liveResults => throw _privateConstructorUsedError;
 
+  /// Serializes this Run to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Run
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $RunCopyWith<Run> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -67,6 +71,8 @@ class _$RunCopyWithImpl<$Res, $Val extends Run> implements $RunCopyWith<$Res> {
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Run
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -130,6 +136,8 @@ class _$RunCopyWithImpl<$Res, $Val extends Run> implements $RunCopyWith<$Res> {
     ) as $Val);
   }
 
+  /// Create a copy of Run
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $HeatCopyWith<$Res>? get heat {
@@ -172,6 +180,8 @@ class __$$RunImplCopyWithImpl<$Res> extends _$RunCopyWithImpl<$Res, _$RunImpl>
   __$$RunImplCopyWithImpl(_$RunImpl _value, $Res Function(_$RunImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Run
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -312,7 +322,7 @@ class _$RunImpl implements _Run {
                 .equals(other._liveResults, _liveResults));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -328,7 +338,9 @@ class _$RunImpl implements _Run {
       heat,
       const DeepCollectionEquality().hash(_liveResults));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Run
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RunImplCopyWith<_$RunImpl> get copyWith =>
@@ -380,8 +392,11 @@ abstract class _Run implements Run {
   Heat? get heat;
   @override
   List<LiveResult> get liveResults;
+
+  /// Create a copy of Run
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RunImplCopyWith<_$RunImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

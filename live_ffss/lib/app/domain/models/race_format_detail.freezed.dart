@@ -32,8 +32,12 @@ mixin _$RaceFormatDetail {
   int get spotsPerRace => throw _privateConstructorUsedError;
   int get qualifyingSpots => throw _privateConstructorUsedError;
 
+  /// Serializes this RaceFormatDetail to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of RaceFormatDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $RaceFormatDetailCopyWith<RaceFormatDetail> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -68,6 +72,8 @@ class _$RaceFormatDetailCopyWithImpl<$Res, $Val extends RaceFormatDetail>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of RaceFormatDetail
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -162,6 +168,8 @@ class __$$RaceFormatDetailImplCopyWithImpl<$Res>
       $Res Function(_$RaceFormatDetailImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of RaceFormatDetail
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -299,7 +307,7 @@ class _$RaceFormatDetailImpl implements _RaceFormatDetail {
                 other.qualifyingSpots == qualifyingSpots));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -315,7 +323,9 @@ class _$RaceFormatDetailImpl implements _RaceFormatDetail {
       spotsPerRace,
       qualifyingSpots);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of RaceFormatDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RaceFormatDetailImplCopyWith<_$RaceFormatDetailImpl> get copyWith =>
@@ -369,8 +379,11 @@ abstract class _RaceFormatDetail implements RaceFormatDetail {
   int get spotsPerRace;
   @override
   int get qualifyingSpots;
+
+  /// Create a copy of RaceFormatDetail
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RaceFormatDetailImplCopyWith<_$RaceFormatDetailImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

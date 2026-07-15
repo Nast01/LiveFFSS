@@ -46,8 +46,12 @@ mixin _$Competition {
   Club get organizerClub => throw _privateConstructorUsedError;
   String? get refereePrincipal => throw _privateConstructorUsedError;
 
+  /// Serializes this Competition to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Competition
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $CompetitionCopyWith<Competition> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -98,6 +102,8 @@ class _$CompetitionCopyWithImpl<$Res, $Val extends Competition>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Competition
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -231,6 +237,8 @@ class _$CompetitionCopyWithImpl<$Res, $Val extends Competition>
     ) as $Val);
   }
 
+  /// Create a copy of Competition
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ClubCopyWith<$Res> get organizerClub {
@@ -287,6 +295,8 @@ class __$$CompetitionImplCopyWithImpl<$Res>
       _$CompetitionImpl _value, $Res Function(_$CompetitionImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Competition
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -565,7 +575,7 @@ class _$CompetitionImpl implements _Competition {
                 other.refereePrincipal == refereePrincipal));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -596,7 +606,9 @@ class _$CompetitionImpl implements _Competition {
         refereePrincipal
       ]);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Competition
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$CompetitionImplCopyWith<_$CompetitionImpl> get copyWith =>
@@ -691,8 +703,11 @@ abstract class _Competition implements Competition {
   Club get organizerClub;
   @override
   String? get refereePrincipal;
+
+  /// Create a copy of Competition
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$CompetitionImplCopyWith<_$CompetitionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

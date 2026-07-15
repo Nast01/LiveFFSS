@@ -19,6 +19,11 @@ _$AthleteDtoImpl _$$AthleteDtoImplFromJson(Map<String, dynamic> json) =>
       isValid: json['isValid'] as bool? ?? false,
       isLicensee: json['isLicencie'] as bool? ?? false,
       isGuest: json['isInvite'] as bool? ?? false,
+      performanceTime: (json['Performance'] as num?)?.toInt() ?? 0,
+      performanceLabel: json['performanceLabel'] as String? ?? '',
+      clubId: (json['idClub'] as num?)?.toInt() ?? 0,
+      clubLabel: json['clubLabel'] as String? ?? '',
+      isSubstitute: json['isRemplacant'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$AthleteDtoImplToJson(_$AthleteDtoImpl instance) =>
@@ -34,4 +39,9 @@ Map<String, dynamic> _$$AthleteDtoImplToJson(_$AthleteDtoImpl instance) =>
       'isValid': instance.isValid,
       'isLicencie': instance.isLicensee,
       'isInvite': instance.isGuest,
+      'Performance': instance.performanceTime,
+      'performanceLabel': instance.performanceLabel,
+      'idClub': instance.clubId,
+      'clubLabel': instance.clubLabel,
+      'isRemplacant': instance.isSubstitute,
     };

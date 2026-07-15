@@ -23,8 +23,12 @@ mixin _$AuthTokenDto {
   String get token => throw _privateConstructorUsedError;
   String get expiration => throw _privateConstructorUsedError;
 
+  /// Serializes this AuthTokenDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of AuthTokenDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $AuthTokenDtoCopyWith<AuthTokenDto> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -48,6 +52,8 @@ class _$AuthTokenDtoCopyWithImpl<$Res, $Val extends AuthTokenDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of AuthTokenDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -86,6 +92,8 @@ class __$$AuthTokenDtoImplCopyWithImpl<$Res>
       _$AuthTokenDtoImpl _value, $Res Function(_$AuthTokenDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of AuthTokenDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -133,11 +141,13 @@ class _$AuthTokenDtoImpl implements _AuthTokenDto {
                 other.expiration == expiration));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, token, expiration);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of AuthTokenDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$AuthTokenDtoImplCopyWith<_$AuthTokenDtoImpl> get copyWith =>
@@ -163,8 +173,11 @@ abstract class _AuthTokenDto implements AuthTokenDto {
   String get token;
   @override
   String get expiration;
+
+  /// Create a copy of AuthTokenDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$AuthTokenDtoImplCopyWith<_$AuthTokenDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

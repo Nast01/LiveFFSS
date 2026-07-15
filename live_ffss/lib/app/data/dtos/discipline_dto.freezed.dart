@@ -37,8 +37,12 @@ mixin _$DisciplineDto {
   @JsonKey(name: 'hasTemps')
   bool get hasTime => throw _privateConstructorUsedError;
 
+  /// Serializes this DisciplineDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of DisciplineDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $DisciplineDtoCopyWith<DisciplineDto> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -70,6 +74,8 @@ class _$DisciplineDtoCopyWithImpl<$Res, $Val extends DisciplineDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of DisciplineDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -146,6 +152,8 @@ class __$$DisciplineDtoImplCopyWithImpl<$Res>
       _$DisciplineDtoImpl _value, $Res Function(_$DisciplineDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of DisciplineDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -260,12 +268,14 @@ class _$DisciplineDtoImpl implements _DisciplineDto {
             (identical(other.hasTime, hasTime) || other.hasTime == hasTime));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, name, speciality,
       specialityLabel, distance, numberOfAthletes, isRelay, hasTime);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of DisciplineDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$DisciplineDtoImplCopyWith<_$DisciplineDtoImpl> get copyWith =>
@@ -317,8 +327,11 @@ abstract class _DisciplineDto implements DisciplineDto {
   @override
   @JsonKey(name: 'hasTemps')
   bool get hasTime;
+
+  /// Create a copy of DisciplineDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$DisciplineDtoImplCopyWith<_$DisciplineDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

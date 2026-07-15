@@ -18,9 +18,13 @@ _$ResultImpl _$$ResultImplFromJson(Map<String, dynamic> json) => _$ResultImpl(
       complement: json['complement'] as String?,
       complementLabel: json['complementLabel'] as String?,
       disqualificationCode: json['disqualificationCode'] as String? ?? '',
-      disqualificationComment: json['disqualificationComment'] as String? ?? '',
-      heat: Heat.fromJson(json['heat'] as Map<String, dynamic>),
-      entry: Entry.fromJson(json['entry'] as Map<String, dynamic>),
+      disqualificationReason: json['disqualificationReason'] as String? ?? '',
+      heat: json['heat'] == null
+          ? null
+          : Heat.fromJson(json['heat'] as Map<String, dynamic>),
+      entry: json['entry'] == null
+          ? null
+          : Entry.fromJson(json['entry'] as Map<String, dynamic>),
       athletes: (json['athletes'] as List<dynamic>?)
               ?.map((e) => Athlete.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -47,7 +51,7 @@ Map<String, dynamic> _$$ResultImplToJson(_$ResultImpl instance) =>
       'complement': instance.complement,
       'complementLabel': instance.complementLabel,
       'disqualificationCode': instance.disqualificationCode,
-      'disqualificationComment': instance.disqualificationComment,
+      'disqualificationReason': instance.disqualificationReason,
       'heat': instance.heat,
       'entry': instance.entry,
       'athletes': instance.athletes,

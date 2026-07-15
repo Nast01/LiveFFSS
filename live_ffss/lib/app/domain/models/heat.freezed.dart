@@ -24,9 +24,18 @@ mixin _$Heat {
   String get name => throw _privateConstructorUsedError;
   bool get done => throw _privateConstructorUsedError;
   int get number => throw _privateConstructorUsedError;
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
+  DateTime? get startDate => throw _privateConstructorUsedError;
+  DateTime? get endDate => throw _privateConstructorUsedError;
+  Race? get race => throw _privateConstructorUsedError;
+  List<Result> get results => throw _privateConstructorUsedError;
 
+  /// Serializes this Heat to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Heat
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $HeatCopyWith<Heat> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -35,7 +44,18 @@ abstract class $HeatCopyWith<$Res> {
   factory $HeatCopyWith(Heat value, $Res Function(Heat) then) =
       _$HeatCopyWithImpl<$Res, Heat>;
   @useResult
-  $Res call({int id, String name, bool done, int number});
+  $Res call(
+      {int id,
+      String name,
+      bool done,
+      int number,
+      DateTime? updatedAt,
+      DateTime? startDate,
+      DateTime? endDate,
+      Race? race,
+      List<Result> results});
+
+  $RaceCopyWith<$Res>? get race;
 }
 
 /// @nodoc
@@ -48,6 +68,8 @@ class _$HeatCopyWithImpl<$Res, $Val extends Heat>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Heat
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -55,6 +77,11 @@ class _$HeatCopyWithImpl<$Res, $Val extends Heat>
     Object? name = null,
     Object? done = null,
     Object? number = null,
+    Object? updatedAt = freezed,
+    Object? startDate = freezed,
+    Object? endDate = freezed,
+    Object? race = freezed,
+    Object? results = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -73,7 +100,41 @@ class _$HeatCopyWithImpl<$Res, $Val extends Heat>
           ? _value.number
           : number // ignore: cast_nullable_to_non_nullable
               as int,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      startDate: freezed == startDate
+          ? _value.startDate
+          : startDate // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      endDate: freezed == endDate
+          ? _value.endDate
+          : endDate // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      race: freezed == race
+          ? _value.race
+          : race // ignore: cast_nullable_to_non_nullable
+              as Race?,
+      results: null == results
+          ? _value.results
+          : results // ignore: cast_nullable_to_non_nullable
+              as List<Result>,
     ) as $Val);
+  }
+
+  /// Create a copy of Heat
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $RaceCopyWith<$Res>? get race {
+    if (_value.race == null) {
+      return null;
+    }
+
+    return $RaceCopyWith<$Res>(_value.race!, (value) {
+      return _then(_value.copyWith(race: value) as $Val);
+    });
   }
 }
 
@@ -84,7 +145,19 @@ abstract class _$$HeatImplCopyWith<$Res> implements $HeatCopyWith<$Res> {
       __$$HeatImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id, String name, bool done, int number});
+  $Res call(
+      {int id,
+      String name,
+      bool done,
+      int number,
+      DateTime? updatedAt,
+      DateTime? startDate,
+      DateTime? endDate,
+      Race? race,
+      List<Result> results});
+
+  @override
+  $RaceCopyWith<$Res>? get race;
 }
 
 /// @nodoc
@@ -94,6 +167,8 @@ class __$$HeatImplCopyWithImpl<$Res>
   __$$HeatImplCopyWithImpl(_$HeatImpl _value, $Res Function(_$HeatImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Heat
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -101,6 +176,11 @@ class __$$HeatImplCopyWithImpl<$Res>
     Object? name = null,
     Object? done = null,
     Object? number = null,
+    Object? updatedAt = freezed,
+    Object? startDate = freezed,
+    Object? endDate = freezed,
+    Object? race = freezed,
+    Object? results = null,
   }) {
     return _then(_$HeatImpl(
       id: null == id
@@ -119,6 +199,26 @@ class __$$HeatImplCopyWithImpl<$Res>
           ? _value.number
           : number // ignore: cast_nullable_to_non_nullable
               as int,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      startDate: freezed == startDate
+          ? _value.startDate
+          : startDate // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      endDate: freezed == endDate
+          ? _value.endDate
+          : endDate // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      race: freezed == race
+          ? _value.race
+          : race // ignore: cast_nullable_to_non_nullable
+              as Race?,
+      results: null == results
+          ? _value._results
+          : results // ignore: cast_nullable_to_non_nullable
+              as List<Result>,
     ));
   }
 }
@@ -127,26 +227,52 @@ class __$$HeatImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$HeatImpl implements _Heat {
   const _$HeatImpl(
-      {required this.id,
-      required this.name,
-      required this.done,
-      required this.number});
+      {this.id = 0,
+      this.name = '',
+      this.done = false,
+      this.number = 0,
+      this.updatedAt,
+      this.startDate,
+      this.endDate,
+      this.race,
+      final List<Result> results = const <Result>[]})
+      : _results = results;
 
   factory _$HeatImpl.fromJson(Map<String, dynamic> json) =>
       _$$HeatImplFromJson(json);
 
   @override
+  @JsonKey()
   final int id;
   @override
+  @JsonKey()
   final String name;
   @override
+  @JsonKey()
   final bool done;
   @override
+  @JsonKey()
   final int number;
+  @override
+  final DateTime? updatedAt;
+  @override
+  final DateTime? startDate;
+  @override
+  final DateTime? endDate;
+  @override
+  final Race? race;
+  final List<Result> _results;
+  @override
+  @JsonKey()
+  List<Result> get results {
+    if (_results is EqualUnmodifiableListView) return _results;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_results);
+  }
 
   @override
   String toString() {
-    return 'Heat(id: $id, name: $name, done: $done, number: $number)';
+    return 'Heat(id: $id, name: $name, done: $done, number: $number, updatedAt: $updatedAt, startDate: $startDate, endDate: $endDate, race: $race, results: $results)';
   }
 
   @override
@@ -157,14 +283,33 @@ class _$HeatImpl implements _Heat {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.done, done) || other.done == done) &&
-            (identical(other.number, number) || other.number == number));
+            (identical(other.number, number) || other.number == number) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.startDate, startDate) ||
+                other.startDate == startDate) &&
+            (identical(other.endDate, endDate) || other.endDate == endDate) &&
+            (identical(other.race, race) || other.race == race) &&
+            const DeepCollectionEquality().equals(other._results, _results));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, done, number);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      name,
+      done,
+      number,
+      updatedAt,
+      startDate,
+      endDate,
+      race,
+      const DeepCollectionEquality().hash(_results));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Heat
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$HeatImplCopyWith<_$HeatImpl> get copyWith =>
@@ -180,10 +325,15 @@ class _$HeatImpl implements _Heat {
 
 abstract class _Heat implements Heat {
   const factory _Heat(
-      {required final int id,
-      required final String name,
-      required final bool done,
-      required final int number}) = _$HeatImpl;
+      {final int id,
+      final String name,
+      final bool done,
+      final int number,
+      final DateTime? updatedAt,
+      final DateTime? startDate,
+      final DateTime? endDate,
+      final Race? race,
+      final List<Result> results}) = _$HeatImpl;
 
   factory _Heat.fromJson(Map<String, dynamic> json) = _$HeatImpl.fromJson;
 
@@ -196,7 +346,20 @@ abstract class _Heat implements Heat {
   @override
   int get number;
   @override
-  @JsonKey(ignore: true)
+  DateTime? get updatedAt;
+  @override
+  DateTime? get startDate;
+  @override
+  DateTime? get endDate;
+  @override
+  Race? get race;
+  @override
+  List<Result> get results;
+
+  /// Create a copy of Heat
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$HeatImplCopyWith<_$HeatImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

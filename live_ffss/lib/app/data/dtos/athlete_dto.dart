@@ -18,6 +18,12 @@ class AthleteDto with _$AthleteDto {
     @JsonKey(name: 'isValid') @Default(false) bool isValid,
     @JsonKey(name: 'isLicencie') @Default(false) bool isLicensee,
     @JsonKey(name: 'isInvite') @Default(false) bool isGuest,
+    // Engagement-scoped fields (present only on the engagement endpoint).
+    @JsonKey(name: 'Performance') @Default(0) int performanceTime,
+    @JsonKey(name: 'performanceLabel') @Default('') String performanceLabel,
+    @JsonKey(name: 'idClub') @Default(0) int clubId,
+    @JsonKey(name: 'clubLabel') @Default('') String clubLabel,
+    @JsonKey(name: 'isRemplacant') @Default(false) bool isSubstitute,
   }) = _AthleteDto;
 
   factory AthleteDto.fromJson(Map<String, dynamic> json) =>

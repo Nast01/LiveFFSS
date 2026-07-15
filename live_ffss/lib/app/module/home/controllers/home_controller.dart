@@ -43,9 +43,9 @@ class HomeController extends GetxController {
     loadThisWeek();
   }
 
-  Future<void> loadCompetitions() async {
+  Future<void> loadCompetitions({bool showSpinner = true}) async {
     try {
-      isLoading.value = true;
+      if (showSpinner) isLoading.value = true;
       hasError.value = false;
       final loaded = await _competitionRepo.getAllCompetitions(
         type: CompetitionType.mixte,
@@ -64,13 +64,13 @@ class HomeController extends GetxController {
     } on AppException {
       hasError.value = true;
     } finally {
-      isLoading.value = false;
+      if (showSpinner) isLoading.value = false;
     }
   }
 
-  Future<void> loadThisWeek() async {
+  Future<void> loadThisWeek({bool showSpinner = true}) async {
     try {
-      isLoadingThisWeek.value = true;
+      if (showSpinner) isLoadingThisWeek.value = true;
       hasErrorThisWeek.value = false;
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
@@ -90,8 +90,16 @@ class HomeController extends GetxController {
     } on AppException {
       hasErrorThisWeek.value = true;
     } finally {
-      isLoadingThisWeek.value = false;
+      if (showSpinner) isLoadingThisWeek.value = false;
     }
+  }
+
+  /// Pull-to-refresh: reloads the currently displayed source without toggling
+  /// the full-screen spinner (the RefreshIndicator shows its own).
+  Future<void> refreshVisible() {
+    return selectedTemporal.value == TemporalFilter.thisWeek
+        ? loadThisWeek(showSpinner: false)
+        : loadCompetitions(showSpinner: false);
   }
 
   void setTemporal(TemporalFilter t) {

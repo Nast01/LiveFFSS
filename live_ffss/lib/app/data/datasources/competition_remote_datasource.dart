@@ -37,7 +37,6 @@ class CompetitionRemoteDataSourceImpl implements CompetitionRemoteDataSource {
         'debut': startDate,
         if (endDate != null) 'fin': endDate,
         'type': type.index,
-        'visibility': visibility.name,
         'length': pageSize,
         'start': pageSize * (page - 1),
         'order': 'DebutEngagement',

@@ -352,6 +352,50 @@ void main() {
     });
   });
 
+  group('HomeController.refreshVisible', () {
+    test('temporal=all reloads competitions without the full-screen spinner',
+        () async {
+      when(() => repo.getAllCompetitions(
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+          )).thenAnswer((_) async => [c(3)]);
+      controller.setTemporal(TemporalFilter.all);
+      controller.isLoading.value = false; // baseline (starts true at init)
+
+      final future = controller.refreshVisible();
+      // The RefreshIndicator shows its own spinner — the full-screen one stays off.
+      expect(controller.isLoading.value, isFalse);
+      await future;
+
+      expect(controller.competitions.map((x) => x.id), [3]);
+      verify(() => repo.getAllCompetitions(
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+          )).called(1);
+    });
+
+    test('temporal=thisWeek reloads this-week without toggling its spinner',
+        () async {
+      // Pre-fill the cache so setTemporal does not auto-fetch.
+      controller.thisWeekCompetitions.value = [c(1)];
+      controller.setTemporal(TemporalFilter.thisWeek);
+      when(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          )).thenAnswer((_) async => [c(9)]);
+
+      final future = controller.refreshVisible();
+      expect(controller.isLoadingThisWeek.value, isFalse);
+      await future;
+
+      expect(controller.thisWeekCompetitions.map((x) => x.id), [9]);
+      verify(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          )).called(1);
+    });
+  });
+
   group('HomeController.onInit', () {
     test('fires both loadCompetitions and loadThisWeek in parallel', () async {
       when(() => repo.getAllCompetitions(

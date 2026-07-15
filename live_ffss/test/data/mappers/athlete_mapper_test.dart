@@ -67,6 +67,40 @@ void main() {
       expect(dto.toDomain().gender, Gender.male);
     });
 
+    test('maps engagement-scoped fields (performance, club, substitute)', () {
+      const dto = AthleteDto(
+        id: 7,
+        firstName: 'Jean',
+        lastName: 'Dupont',
+        gender: 'M',
+        year: 2001,
+        performanceTime: 3421,
+        performanceLabel: '34.21',
+        clubId: 30,
+        clubLabel: 'SC Marseille',
+        isSubstitute: true,
+      );
+
+      final a = dto.toDomain();
+
+      expect(a.performanceTime, 3421);
+      expect(a.performanceLabel, '34.21');
+      expect(a.clubId, 30);
+      expect(a.clubLabel, 'SC Marseille');
+      expect(a.isSubstitute, isTrue);
+    });
+
+    test('engagement fields default when absent (non-engagement endpoints)', () {
+      const dto = AthleteDto(id: 1, firstName: 'A', lastName: 'B');
+
+      final a = dto.toDomain();
+
+      expect(a.performanceTime, 0);
+      expect(a.performanceLabel, '');
+      expect(a.clubLabel, '');
+      expect(a.isSubstitute, isFalse);
+    });
+
     test('JSON round-trip parses Annee as String into int', () {
       final dto = AthleteDto.fromJson(const {
         'Id': 42,

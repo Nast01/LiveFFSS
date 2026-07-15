@@ -32,8 +32,12 @@ mixin _$Race {
   bool get isEligibleToNationalRecord => throw _privateConstructorUsedError;
   List<Category> get categories => throw _privateConstructorUsedError;
 
+  /// Serializes this Race to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Race
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $RaceCopyWith<Race> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -66,6 +70,8 @@ class _$RaceCopyWithImpl<$Res, $Val extends Race>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Race
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -158,6 +164,8 @@ class __$$RaceImplCopyWithImpl<$Res>
   __$$RaceImplCopyWithImpl(_$RaceImpl _value, $Res Function(_$RaceImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Race
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -303,7 +311,7 @@ class _$RaceImpl implements _Race {
                 .equals(other._categories, _categories));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -319,7 +327,9 @@ class _$RaceImpl implements _Race {
       isEligibleToNationalRecord,
       const DeepCollectionEquality().hash(_categories));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Race
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RaceImplCopyWith<_$RaceImpl> get copyWith =>
@@ -371,8 +381,11 @@ abstract class _Race implements Race {
   bool get isEligibleToNationalRecord;
   @override
   List<Category> get categories;
+
+  /// Create a copy of Race
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RaceImplCopyWith<_$RaceImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

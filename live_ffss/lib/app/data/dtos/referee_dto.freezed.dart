@@ -51,8 +51,12 @@ mixin _$RefereeDto {
   @JsonKey(name: 'Jours', readValue: _readAvailabilities)
   List<int> get availabilities => throw _privateConstructorUsedError;
 
+  /// Serializes this RefereeDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of RefereeDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $RefereeDtoCopyWith<RefereeDto> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -92,6 +96,8 @@ class _$RefereeDtoCopyWithImpl<$Res, $Val extends RefereeDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of RefereeDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -211,6 +217,8 @@ class __$$RefereeDtoImplCopyWithImpl<$Res>
       _$RefereeDtoImpl _value, $Res Function(_$RefereeDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of RefereeDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -407,7 +415,7 @@ class _$RefereeDtoImpl implements _RefereeDto {
                 .equals(other._availabilities, _availabilities));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -427,7 +435,9 @@ class _$RefereeDtoImpl implements _RefereeDto {
       isPrincipal,
       const DeepCollectionEquality().hash(_availabilities));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of RefereeDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RefereeDtoImplCopyWith<_$RefereeDtoImpl> get copyWith =>
@@ -508,8 +518,11 @@ abstract class _RefereeDto implements RefereeDto {
   @override
   @JsonKey(name: 'Jours', readValue: _readAvailabilities)
   List<int> get availabilities;
+
+  /// Create a copy of RefereeDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RefereeDtoImplCopyWith<_$RefereeDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

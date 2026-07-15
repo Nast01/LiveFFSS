@@ -29,8 +29,12 @@ mixin _$LiveResultDto {
   @JsonKey(name: 'Resultat')
   ResultDto? get result => throw _privateConstructorUsedError;
 
+  /// Serializes this LiveResultDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of LiveResultDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $LiveResultDtoCopyWith<LiveResultDto> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -61,6 +65,8 @@ class _$LiveResultDtoCopyWithImpl<$Res, $Val extends LiveResultDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of LiveResultDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -89,6 +95,8 @@ class _$LiveResultDtoCopyWithImpl<$Res, $Val extends LiveResultDto>
     ) as $Val);
   }
 
+  /// Create a copy of LiveResultDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $EntryDtoCopyWith<$Res>? get entry {
@@ -101,6 +109,8 @@ class _$LiveResultDtoCopyWithImpl<$Res, $Val extends LiveResultDto>
     });
   }
 
+  /// Create a copy of LiveResultDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ResultDtoCopyWith<$Res>? get result {
@@ -142,6 +152,8 @@ class __$$LiveResultDtoImplCopyWithImpl<$Res>
       _$LiveResultDtoImpl _value, $Res Function(_$LiveResultDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of LiveResultDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -212,11 +224,13 @@ class _$LiveResultDtoImpl implements _LiveResultDto {
             (identical(other.result, result) || other.result == result));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, number, entry, result);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of LiveResultDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$LiveResultDtoImplCopyWith<_$LiveResultDtoImpl> get copyWith =>
@@ -253,8 +267,11 @@ abstract class _LiveResultDto implements LiveResultDto {
   @override
   @JsonKey(name: 'Resultat')
   ResultDto? get result;
+
+  /// Create a copy of LiveResultDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$LiveResultDtoImplCopyWith<_$LiveResultDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

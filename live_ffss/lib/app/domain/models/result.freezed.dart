@@ -31,9 +31,9 @@ mixin _$Result {
   String? get complement => throw _privateConstructorUsedError;
   String? get complementLabel => throw _privateConstructorUsedError;
   String get disqualificationCode => throw _privateConstructorUsedError;
-  String get disqualificationComment => throw _privateConstructorUsedError;
-  Heat get heat => throw _privateConstructorUsedError;
-  Entry get entry => throw _privateConstructorUsedError;
+  String get disqualificationReason => throw _privateConstructorUsedError;
+  Heat? get heat => throw _privateConstructorUsedError;
+  Entry? get entry => throw _privateConstructorUsedError;
   List<Athlete> get athletes => throw _privateConstructorUsedError;
   bool get isRecord => throw _privateConstructorUsedError;
   bool get isBestPerformance => throw _privateConstructorUsedError;
@@ -43,8 +43,12 @@ mixin _$Result {
   int get liveTime2 => throw _privateConstructorUsedError;
   int get liveTime3 => throw _privateConstructorUsedError;
 
+  /// Serializes this Result to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Result
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ResultCopyWith<Result> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -65,9 +69,9 @@ abstract class $ResultCopyWith<$Res> {
       String? complement,
       String? complementLabel,
       String disqualificationCode,
-      String disqualificationComment,
-      Heat heat,
-      Entry entry,
+      String disqualificationReason,
+      Heat? heat,
+      Entry? entry,
       List<Athlete> athletes,
       bool isRecord,
       bool isBestPerformance,
@@ -77,8 +81,8 @@ abstract class $ResultCopyWith<$Res> {
       int liveTime2,
       int liveTime3});
 
-  $HeatCopyWith<$Res> get heat;
-  $EntryCopyWith<$Res> get entry;
+  $HeatCopyWith<$Res>? get heat;
+  $EntryCopyWith<$Res>? get entry;
 }
 
 /// @nodoc
@@ -91,6 +95,8 @@ class _$ResultCopyWithImpl<$Res, $Val extends Result>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Result
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -105,9 +111,9 @@ class _$ResultCopyWithImpl<$Res, $Val extends Result>
     Object? complement = freezed,
     Object? complementLabel = freezed,
     Object? disqualificationCode = null,
-    Object? disqualificationComment = null,
-    Object? heat = null,
-    Object? entry = null,
+    Object? disqualificationReason = null,
+    Object? heat = freezed,
+    Object? entry = freezed,
     Object? athletes = null,
     Object? isRecord = null,
     Object? isBestPerformance = null,
@@ -162,18 +168,18 @@ class _$ResultCopyWithImpl<$Res, $Val extends Result>
           ? _value.disqualificationCode
           : disqualificationCode // ignore: cast_nullable_to_non_nullable
               as String,
-      disqualificationComment: null == disqualificationComment
-          ? _value.disqualificationComment
-          : disqualificationComment // ignore: cast_nullable_to_non_nullable
+      disqualificationReason: null == disqualificationReason
+          ? _value.disqualificationReason
+          : disqualificationReason // ignore: cast_nullable_to_non_nullable
               as String,
-      heat: null == heat
+      heat: freezed == heat
           ? _value.heat
           : heat // ignore: cast_nullable_to_non_nullable
-              as Heat,
-      entry: null == entry
+              as Heat?,
+      entry: freezed == entry
           ? _value.entry
           : entry // ignore: cast_nullable_to_non_nullable
-              as Entry,
+              as Entry?,
       athletes: null == athletes
           ? _value.athletes
           : athletes // ignore: cast_nullable_to_non_nullable
@@ -209,18 +215,30 @@ class _$ResultCopyWithImpl<$Res, $Val extends Result>
     ) as $Val);
   }
 
+  /// Create a copy of Result
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $HeatCopyWith<$Res> get heat {
-    return $HeatCopyWith<$Res>(_value.heat, (value) {
+  $HeatCopyWith<$Res>? get heat {
+    if (_value.heat == null) {
+      return null;
+    }
+
+    return $HeatCopyWith<$Res>(_value.heat!, (value) {
       return _then(_value.copyWith(heat: value) as $Val);
     });
   }
 
+  /// Create a copy of Result
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $EntryCopyWith<$Res> get entry {
-    return $EntryCopyWith<$Res>(_value.entry, (value) {
+  $EntryCopyWith<$Res>? get entry {
+    if (_value.entry == null) {
+      return null;
+    }
+
+    return $EntryCopyWith<$Res>(_value.entry!, (value) {
       return _then(_value.copyWith(entry: value) as $Val);
     });
   }
@@ -245,9 +263,9 @@ abstract class _$$ResultImplCopyWith<$Res> implements $ResultCopyWith<$Res> {
       String? complement,
       String? complementLabel,
       String disqualificationCode,
-      String disqualificationComment,
-      Heat heat,
-      Entry entry,
+      String disqualificationReason,
+      Heat? heat,
+      Entry? entry,
       List<Athlete> athletes,
       bool isRecord,
       bool isBestPerformance,
@@ -258,9 +276,9 @@ abstract class _$$ResultImplCopyWith<$Res> implements $ResultCopyWith<$Res> {
       int liveTime3});
 
   @override
-  $HeatCopyWith<$Res> get heat;
+  $HeatCopyWith<$Res>? get heat;
   @override
-  $EntryCopyWith<$Res> get entry;
+  $EntryCopyWith<$Res>? get entry;
 }
 
 /// @nodoc
@@ -271,6 +289,8 @@ class __$$ResultImplCopyWithImpl<$Res>
       _$ResultImpl _value, $Res Function(_$ResultImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Result
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -285,9 +305,9 @@ class __$$ResultImplCopyWithImpl<$Res>
     Object? complement = freezed,
     Object? complementLabel = freezed,
     Object? disqualificationCode = null,
-    Object? disqualificationComment = null,
-    Object? heat = null,
-    Object? entry = null,
+    Object? disqualificationReason = null,
+    Object? heat = freezed,
+    Object? entry = freezed,
     Object? athletes = null,
     Object? isRecord = null,
     Object? isBestPerformance = null,
@@ -342,18 +362,18 @@ class __$$ResultImplCopyWithImpl<$Res>
           ? _value.disqualificationCode
           : disqualificationCode // ignore: cast_nullable_to_non_nullable
               as String,
-      disqualificationComment: null == disqualificationComment
-          ? _value.disqualificationComment
-          : disqualificationComment // ignore: cast_nullable_to_non_nullable
+      disqualificationReason: null == disqualificationReason
+          ? _value.disqualificationReason
+          : disqualificationReason // ignore: cast_nullable_to_non_nullable
               as String,
-      heat: null == heat
+      heat: freezed == heat
           ? _value.heat
           : heat // ignore: cast_nullable_to_non_nullable
-              as Heat,
-      entry: null == entry
+              as Heat?,
+      entry: freezed == entry
           ? _value.entry
           : entry // ignore: cast_nullable_to_non_nullable
-              as Entry,
+              as Entry?,
       athletes: null == athletes
           ? _value._athletes
           : athletes // ignore: cast_nullable_to_non_nullable
@@ -405,9 +425,9 @@ class _$ResultImpl implements _Result {
       this.complement,
       this.complementLabel,
       this.disqualificationCode = '',
-      this.disqualificationComment = '',
-      required this.heat,
-      required this.entry,
+      this.disqualificationReason = '',
+      this.heat,
+      this.entry,
       final List<Athlete> athletes = const <Athlete>[],
       this.isRecord = false,
       this.isBestPerformance = false,
@@ -447,11 +467,11 @@ class _$ResultImpl implements _Result {
   final String disqualificationCode;
   @override
   @JsonKey()
-  final String disqualificationComment;
+  final String disqualificationReason;
   @override
-  final Heat heat;
+  final Heat? heat;
   @override
-  final Entry entry;
+  final Entry? entry;
   final List<Athlete> _athletes;
   @override
   @JsonKey()
@@ -485,7 +505,7 @@ class _$ResultImpl implements _Result {
 
   @override
   String toString() {
-    return 'Result(id: $id, isValid: $isValid, status: $status, statusLabel: $statusLabel, isDisqualified: $isDisqualified, rank: $rank, time: $time, timeLabel: $timeLabel, complement: $complement, complementLabel: $complementLabel, disqualificationCode: $disqualificationCode, disqualificationComment: $disqualificationComment, heat: $heat, entry: $entry, athletes: $athletes, isRecord: $isRecord, isBestPerformance: $isBestPerformance, isFranceRecord: $isFranceRecord, points: $points, liveTime1: $liveTime1, liveTime2: $liveTime2, liveTime3: $liveTime3)';
+    return 'Result(id: $id, isValid: $isValid, status: $status, statusLabel: $statusLabel, isDisqualified: $isDisqualified, rank: $rank, time: $time, timeLabel: $timeLabel, complement: $complement, complementLabel: $complementLabel, disqualificationCode: $disqualificationCode, disqualificationReason: $disqualificationReason, heat: $heat, entry: $entry, athletes: $athletes, isRecord: $isRecord, isBestPerformance: $isBestPerformance, isFranceRecord: $isFranceRecord, points: $points, liveTime1: $liveTime1, liveTime2: $liveTime2, liveTime3: $liveTime3)';
   }
 
   @override
@@ -510,9 +530,8 @@ class _$ResultImpl implements _Result {
                 other.complementLabel == complementLabel) &&
             (identical(other.disqualificationCode, disqualificationCode) ||
                 other.disqualificationCode == disqualificationCode) &&
-            (identical(
-                    other.disqualificationComment, disqualificationComment) ||
-                other.disqualificationComment == disqualificationComment) &&
+            (identical(other.disqualificationReason, disqualificationReason) ||
+                other.disqualificationReason == disqualificationReason) &&
             (identical(other.heat, heat) || other.heat == heat) &&
             (identical(other.entry, entry) || other.entry == entry) &&
             const DeepCollectionEquality().equals(other._athletes, _athletes) &&
@@ -531,7 +550,7 @@ class _$ResultImpl implements _Result {
                 other.liveTime3 == liveTime3));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -546,7 +565,7 @@ class _$ResultImpl implements _Result {
         complement,
         complementLabel,
         disqualificationCode,
-        disqualificationComment,
+        disqualificationReason,
         heat,
         entry,
         const DeepCollectionEquality().hash(_athletes),
@@ -559,7 +578,9 @@ class _$ResultImpl implements _Result {
         liveTime3
       ]);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Result
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ResultImplCopyWith<_$ResultImpl> get copyWith =>
@@ -586,9 +607,9 @@ abstract class _Result implements Result {
       final String? complement,
       final String? complementLabel,
       final String disqualificationCode,
-      final String disqualificationComment,
-      required final Heat heat,
-      required final Entry entry,
+      final String disqualificationReason,
+      final Heat? heat,
+      final Entry? entry,
       final List<Athlete> athletes,
       final bool isRecord,
       final bool isBestPerformance,
@@ -623,11 +644,11 @@ abstract class _Result implements Result {
   @override
   String get disqualificationCode;
   @override
-  String get disqualificationComment;
+  String get disqualificationReason;
   @override
-  Heat get heat;
+  Heat? get heat;
   @override
-  Entry get entry;
+  Entry? get entry;
   @override
   List<Athlete> get athletes;
   @override
@@ -644,8 +665,11 @@ abstract class _Result implements Result {
   int get liveTime2;
   @override
   int get liveTime3;
+
+  /// Create a copy of Result
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ResultImplCopyWith<_$ResultImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

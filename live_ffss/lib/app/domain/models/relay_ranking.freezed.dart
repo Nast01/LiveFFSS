@@ -25,8 +25,12 @@ mixin _$RelayRanking {
   String get teamName => throw _privateConstructorUsedError;
   int get points => throw _privateConstructorUsedError;
 
+  /// Serializes this RelayRanking to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of RelayRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $RelayRankingCopyWith<RelayRanking> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -50,6 +54,8 @@ class _$RelayRankingCopyWithImpl<$Res, $Val extends RelayRanking>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of RelayRanking
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -98,6 +104,8 @@ class __$$RelayRankingImplCopyWithImpl<$Res>
       _$RelayRankingImpl _value, $Res Function(_$RelayRankingImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of RelayRanking
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -171,12 +179,14 @@ class _$RelayRankingImpl implements _RelayRanking {
             (identical(other.points, points) || other.points == points));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, position, clubName, teamName, points);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of RelayRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RelayRankingImplCopyWith<_$RelayRankingImpl> get copyWith =>
@@ -208,8 +218,11 @@ abstract class _RelayRanking implements RelayRanking {
   String get teamName;
   @override
   int get points;
+
+  /// Create a copy of RelayRanking
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RelayRankingImplCopyWith<_$RelayRankingImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

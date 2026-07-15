@@ -24,8 +24,12 @@ mixin _$ClubRanking {
   String get clubName => throw _privateConstructorUsedError;
   int get points => throw _privateConstructorUsedError;
 
+  /// Serializes this ClubRanking to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of ClubRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ClubRankingCopyWith<ClubRanking> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -49,6 +53,8 @@ class _$ClubRankingCopyWithImpl<$Res, $Val extends ClubRanking>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ClubRanking
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -92,6 +98,8 @@ class __$$ClubRankingImplCopyWithImpl<$Res>
       _$ClubRankingImpl _value, $Res Function(_$ClubRankingImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ClubRanking
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -152,11 +160,13 @@ class _$ClubRankingImpl implements _ClubRanking {
             (identical(other.points, points) || other.points == points));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, position, clubName, points);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ClubRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ClubRankingImplCopyWith<_$ClubRankingImpl> get copyWith =>
@@ -185,8 +195,11 @@ abstract class _ClubRanking implements ClubRanking {
   String get clubName;
   @override
   int get points;
+
+  /// Create a copy of ClubRanking
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ClubRankingImplCopyWith<_$ClubRankingImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

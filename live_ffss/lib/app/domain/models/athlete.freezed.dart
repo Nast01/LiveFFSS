@@ -30,10 +30,25 @@ mixin _$Athlete {
   String get nationality => throw _privateConstructorUsedError;
   bool get isValid => throw _privateConstructorUsedError;
   bool get isLicensee => throw _privateConstructorUsedError;
-  bool get isGuest => throw _privateConstructorUsedError;
+  bool get isGuest =>
+      throw _privateConstructorUsedError; // Engagement-scoped: seed performance + club label + substitute flag.
+// Populated only when the athlete comes from the engagement endpoint.
+  int get performanceTime => throw _privateConstructorUsedError;
+  String get performanceLabel => throw _privateConstructorUsedError;
+  int get clubId => throw _privateConstructorUsedError;
+  String get clubLabel => throw _privateConstructorUsedError;
+  bool get isSubstitute =>
+      throw _privateConstructorUsedError; // Back-reference, populated by ClubMapper or by join logic.
+// Excluded from JSON to avoid Club <-> Athlete recursion.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Club? get club => throw _privateConstructorUsedError;
 
+  /// Serializes this Athlete to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Athlete
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $AthleteCopyWith<Athlete> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -53,7 +68,15 @@ abstract class $AthleteCopyWith<$Res> {
       String nationality,
       bool isValid,
       bool isLicensee,
-      bool isGuest});
+      bool isGuest,
+      int performanceTime,
+      String performanceLabel,
+      int clubId,
+      String clubLabel,
+      bool isSubstitute,
+      @JsonKey(includeFromJson: false, includeToJson: false) Club? club});
+
+  $ClubCopyWith<$Res>? get club;
 }
 
 /// @nodoc
@@ -66,6 +89,8 @@ class _$AthleteCopyWithImpl<$Res, $Val extends Athlete>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Athlete
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -80,6 +105,12 @@ class _$AthleteCopyWithImpl<$Res, $Val extends Athlete>
     Object? isValid = null,
     Object? isLicensee = null,
     Object? isGuest = null,
+    Object? performanceTime = null,
+    Object? performanceLabel = null,
+    Object? clubId = null,
+    Object? clubLabel = null,
+    Object? isSubstitute = null,
+    Object? club = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -126,7 +157,45 @@ class _$AthleteCopyWithImpl<$Res, $Val extends Athlete>
           ? _value.isGuest
           : isGuest // ignore: cast_nullable_to_non_nullable
               as bool,
+      performanceTime: null == performanceTime
+          ? _value.performanceTime
+          : performanceTime // ignore: cast_nullable_to_non_nullable
+              as int,
+      performanceLabel: null == performanceLabel
+          ? _value.performanceLabel
+          : performanceLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      clubId: null == clubId
+          ? _value.clubId
+          : clubId // ignore: cast_nullable_to_non_nullable
+              as int,
+      clubLabel: null == clubLabel
+          ? _value.clubLabel
+          : clubLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      isSubstitute: null == isSubstitute
+          ? _value.isSubstitute
+          : isSubstitute // ignore: cast_nullable_to_non_nullable
+              as bool,
+      club: freezed == club
+          ? _value.club
+          : club // ignore: cast_nullable_to_non_nullable
+              as Club?,
     ) as $Val);
+  }
+
+  /// Create a copy of Athlete
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ClubCopyWith<$Res>? get club {
+    if (_value.club == null) {
+      return null;
+    }
+
+    return $ClubCopyWith<$Res>(_value.club!, (value) {
+      return _then(_value.copyWith(club: value) as $Val);
+    });
   }
 }
 
@@ -148,7 +217,16 @@ abstract class _$$AthleteImplCopyWith<$Res> implements $AthleteCopyWith<$Res> {
       String nationality,
       bool isValid,
       bool isLicensee,
-      bool isGuest});
+      bool isGuest,
+      int performanceTime,
+      String performanceLabel,
+      int clubId,
+      String clubLabel,
+      bool isSubstitute,
+      @JsonKey(includeFromJson: false, includeToJson: false) Club? club});
+
+  @override
+  $ClubCopyWith<$Res>? get club;
 }
 
 /// @nodoc
@@ -159,6 +237,8 @@ class __$$AthleteImplCopyWithImpl<$Res>
       _$AthleteImpl _value, $Res Function(_$AthleteImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Athlete
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -173,6 +253,12 @@ class __$$AthleteImplCopyWithImpl<$Res>
     Object? isValid = null,
     Object? isLicensee = null,
     Object? isGuest = null,
+    Object? performanceTime = null,
+    Object? performanceLabel = null,
+    Object? clubId = null,
+    Object? clubLabel = null,
+    Object? isSubstitute = null,
+    Object? club = freezed,
   }) {
     return _then(_$AthleteImpl(
       id: null == id
@@ -219,6 +305,30 @@ class __$$AthleteImplCopyWithImpl<$Res>
           ? _value.isGuest
           : isGuest // ignore: cast_nullable_to_non_nullable
               as bool,
+      performanceTime: null == performanceTime
+          ? _value.performanceTime
+          : performanceTime // ignore: cast_nullable_to_non_nullable
+              as int,
+      performanceLabel: null == performanceLabel
+          ? _value.performanceLabel
+          : performanceLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      clubId: null == clubId
+          ? _value.clubId
+          : clubId // ignore: cast_nullable_to_non_nullable
+              as int,
+      clubLabel: null == clubLabel
+          ? _value.clubLabel
+          : clubLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      isSubstitute: null == isSubstitute
+          ? _value.isSubstitute
+          : isSubstitute // ignore: cast_nullable_to_non_nullable
+              as bool,
+      club: freezed == club
+          ? _value.club
+          : club // ignore: cast_nullable_to_non_nullable
+              as Club?,
     ));
   }
 }
@@ -237,7 +347,13 @@ class _$AthleteImpl implements _Athlete {
       required this.nationality,
       required this.isValid,
       this.isLicensee = false,
-      this.isGuest = false});
+      this.isGuest = false,
+      this.performanceTime = 0,
+      this.performanceLabel = '',
+      this.clubId = 0,
+      this.clubLabel = '',
+      this.isSubstitute = false,
+      @JsonKey(includeFromJson: false, includeToJson: false) this.club});
 
   factory _$AthleteImpl.fromJson(Map<String, dynamic> json) =>
       _$$AthleteImplFromJson(json);
@@ -266,10 +382,32 @@ class _$AthleteImpl implements _Athlete {
   @override
   @JsonKey()
   final bool isGuest;
+// Engagement-scoped: seed performance + club label + substitute flag.
+// Populated only when the athlete comes from the engagement endpoint.
+  @override
+  @JsonKey()
+  final int performanceTime;
+  @override
+  @JsonKey()
+  final String performanceLabel;
+  @override
+  @JsonKey()
+  final int clubId;
+  @override
+  @JsonKey()
+  final String clubLabel;
+  @override
+  @JsonKey()
+  final bool isSubstitute;
+// Back-reference, populated by ClubMapper or by join logic.
+// Excluded from JSON to avoid Club <-> Athlete recursion.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final Club? club;
 
   @override
   String toString() {
-    return 'Athlete(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest)';
+    return 'Athlete(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute, club: $club)';
   }
 
   @override
@@ -293,10 +431,20 @@ class _$AthleteImpl implements _Athlete {
             (identical(other.isValid, isValid) || other.isValid == isValid) &&
             (identical(other.isLicensee, isLicensee) ||
                 other.isLicensee == isLicensee) &&
-            (identical(other.isGuest, isGuest) || other.isGuest == isGuest));
+            (identical(other.isGuest, isGuest) || other.isGuest == isGuest) &&
+            (identical(other.performanceTime, performanceTime) ||
+                other.performanceTime == performanceTime) &&
+            (identical(other.performanceLabel, performanceLabel) ||
+                other.performanceLabel == performanceLabel) &&
+            (identical(other.clubId, clubId) || other.clubId == clubId) &&
+            (identical(other.clubLabel, clubLabel) ||
+                other.clubLabel == clubLabel) &&
+            (identical(other.isSubstitute, isSubstitute) ||
+                other.isSubstitute == isSubstitute) &&
+            (identical(other.club, club) || other.club == club));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -310,9 +458,17 @@ class _$AthleteImpl implements _Athlete {
       nationality,
       isValid,
       isLicensee,
-      isGuest);
+      isGuest,
+      performanceTime,
+      performanceLabel,
+      clubId,
+      clubLabel,
+      isSubstitute,
+      club);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Athlete
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$AthleteImplCopyWith<_$AthleteImpl> get copyWith =>
@@ -338,7 +494,14 @@ abstract class _Athlete implements Athlete {
       required final String nationality,
       required final bool isValid,
       final bool isLicensee,
-      final bool isGuest}) = _$AthleteImpl;
+      final bool isGuest,
+      final int performanceTime,
+      final String performanceLabel,
+      final int clubId,
+      final String clubLabel,
+      final bool isSubstitute,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final Club? club}) = _$AthleteImpl;
 
   factory _Athlete.fromJson(Map<String, dynamic> json) = _$AthleteImpl.fromJson;
 
@@ -363,9 +526,29 @@ abstract class _Athlete implements Athlete {
   @override
   bool get isLicensee;
   @override
-  bool get isGuest;
+  bool
+      get isGuest; // Engagement-scoped: seed performance + club label + substitute flag.
+// Populated only when the athlete comes from the engagement endpoint.
   @override
-  @JsonKey(ignore: true)
+  int get performanceTime;
+  @override
+  String get performanceLabel;
+  @override
+  int get clubId;
+  @override
+  String get clubLabel;
+  @override
+  bool
+      get isSubstitute; // Back-reference, populated by ClubMapper or by join logic.
+// Excluded from JSON to avoid Club <-> Athlete recursion.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Club? get club;
+
+  /// Create a copy of Athlete
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$AthleteImplCopyWith<_$AthleteImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
