@@ -268,8 +268,10 @@ Per CLAUDE.md: logic layers only, no widget tests.
   athletes; filtering across all four fields; load failure (`AppException` →
   `hasError`); `writeState` transitions on success and on `RfidException`.
 - `test/presentation/modules/competitions/controllers/competition_detail_controller_test.dart`
-  — existing test needs the extra `RfidWriter` mock; add `canWriteBracelets`
-  assertions in both directions.
+  — **new file**. `CompetitionDetailController` has no test today (the only
+  competition controller without one). Since this spec changes its
+  constructor, add the test: `canWriteBracelets` in both directions, plus
+  `toggleFavorite` delegating to `UserPreferencesService`.
 
 `NfcRfidWriterImpl` is **not** unit-tested. It is a thin adapter over
 `nfc_manager`; mocking it would test the plugin, not our code. It is
@@ -312,7 +314,12 @@ Add to both `en_US.dart` and `fr_FR.dart`:
 | `bracelet_not_writable` | This bracelet is not writable | Ce bracelet n'est pas inscriptible |
 | `bracelet_too_small` | This bracelet's memory is too small | La mémoire de ce bracelet est trop petite |
 | `nfc_disabled` | NFC is turned off | Le NFC est désactivé |
+| `nfc_unsupported` | This device cannot write bracelets | Cet appareil ne peut pas écrire de bracelet |
 | `finish` | Done | Terminé |
+
+`nfc_unsupported` is what `UnsupportedRfidWriter` throws. The UI hides the
+entry point on those platforms, so it should never surface — it exists so
+that a wiring mistake produces a readable message instead of a raw exception.
 
 ### Existing keys to reuse — do not redefine
 
