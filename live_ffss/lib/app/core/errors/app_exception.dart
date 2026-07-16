@@ -25,3 +25,7 @@ class AuthException extends AppException {
 class UnknownException extends AppException {
   const UnknownException(super.message);
 }
+
+class RfidException extends AppException {
+  const RfidException(super.message);
+}
