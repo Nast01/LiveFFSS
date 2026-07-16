@@ -394,24 +394,28 @@ C:\Users\nast0\dev\flutter_windows_3.22.2-stable\flutter\bin\flutter.bat pub add
 
 Expected: `pubspec.yaml` gains `nfc_manager: ^<version>` under `dependencies`.
 
-- [ ] **Step 2: Determine where `NdefAndroid` comes from**
-
-`nfc_manager` v4 is a suite: the Android types may be re-exported by the main
-package or may live in a companion `nfc_manager_android` package. Find out
-before writing code rather than guessing an import.
+- [ ] **Step 2: Confirm the resolved version**
 
 ```bash
-C:\Users\nast0\dev\flutter_windows_3.22.2-stable\flutter\bin\dart.bat pub deps --style=list | grep -i nfc
-grep -rn "NdefAndroid" ~/AppData/Local/Pub/Cache/hosted/pub.dev/nfc_manager-*/lib/ | head
+C:\Users\nast0\dev\flutter_windows_3.22.2-stable\flutter\bin\dart.bat pub deps --style=list | grep -iE "nfc_manager|ndef_record"
 ```
 
-Decision rule:
-- If `NdefAndroid` is exported from `nfc_manager/lib/nfc_manager.dart`, the
-  single import `package:nfc_manager/nfc_manager.dart` is enough.
-- If `pub deps` lists a separate `nfc_manager_android` package, also import
-  `package:nfc_manager_android/nfc_manager_android.dart`.
+Expected: `nfc_manager 4.2.1` and `ndef_record 1.4.2`.
 
-Use exactly one of the two shapes in Step 4 — never both "just in case".
+**Step 4's code was verified against exactly these versions** by reading the
+resolved package source. Three entry points live inside the single
+`nfc_manager` package — there is no separate `nfc_manager_android` pub
+package, and `nfc_manager.dart` does **not** re-export the record types:
+
+| Import | Provides |
+|---|---|
+| `package:nfc_manager/nfc_manager.dart` | `NfcManager`, `NfcAvailability`, `NfcPollingOption`, `NfcTag` |
+| `package:nfc_manager/nfc_manager_android.dart` | `NdefAndroid` (fields `maxSize`, `isWritable`; `from`, `writeNdefMessage`) |
+| `package:nfc_manager/ndef_record.dart` | `NdefMessage`, `NdefRecord`, `TypeNameFormat` |
+
+If `pub deps` reports a different version, **stop and escalate** rather than
+adapting Step 4's code from memory — these symbol names were wrong once
+already (see "Notes for the reviewer").
 
 - [ ] **Step 3: Add the Android permission**
 
@@ -423,9 +427,8 @@ In `android/app/src/main/AndroidManifest.xml`, add as the first child of `<manif
 
 - [ ] **Step 4: Write the implementation**
 
-Create `lib/app/core/rfid/nfc_rfid_writer_impl.dart` (the last import line
-depends on Step 2's finding — drop it if `nfc_manager` re-exports the Android
-types itself):
+Create `lib/app/core/rfid/nfc_rfid_writer_impl.dart`. All three `nfc_manager`
+entry points are needed — see the table in Step 2 for what each provides:
 
 ```dart
 import 'dart:async';
@@ -434,8 +437,9 @@ import 'dart:typed_data';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/rfid/ndef_text_record.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
+import 'package:nfc_manager/ndef_record.dart';
 import 'package:nfc_manager/nfc_manager.dart';
-import 'package:nfc_manager_android/nfc_manager_android.dart';
+import 'package:nfc_manager/nfc_manager_android.dart';
 
 /// Android bracelet writer built on `nfc_manager`.
 ///
@@ -457,7 +461,7 @@ class NfcRfidWriterImpl implements RfidWriter {
 
     final message = NdefMessage(records: [
       NdefRecord(
-        typeNameFormat: TypeNameFormat.nfcWellKnown,
+        typeNameFormat: TypeNameFormat.wellKnown,
         type: Uint8List.fromList([0x54]), // 'T' — well-known Text record
         identifier: Uint8List(0),
         payload: ndefTextPayload(payload),
@@ -479,9 +483,9 @@ class NfcRfidWriterImpl implements RfidWriter {
             }
             // Compare encoded bytes, not String.length: `.length` counts
             // UTF-16 code units, so an accented name would slip past this
-            // check onto a chip too small to hold it. toByteData() also
+            // check onto a chip too small to hold it. byteLength also
             // accounts for record headers, not just the text.
-            if (message.toByteData().lengthInBytes > ndef.maxSize) {
+            if (message.byteLength > ndef.maxSize) {
               throw const RfidException('bracelet_too_small');
             }
             await ndef.writeNdefMessage(message);
@@ -1613,6 +1617,11 @@ The NFC icon must not appear in the competition header, and nothing may throw.
 
 ## Notes for the reviewer
 
-- **`nfc_manager` version drift.** This plan was written against the v4 API (`checkAvailability`, `startSession({pollingOptions, onDiscovered})`, `NdefAndroid.from`, `writeNdefMessage`). If `pub add` resolves to a different major, stop and reconcile with the package's README before writing Task 4's implementation from memory.
+- **`nfc_manager` API — corrected after a first attempt.** Task 4 was originally written from the package's published docs and was **wrong in three ways**, caught when an implementer inspected the resolved source at v4.2.1 rather than trusting the plan:
+  - `TypeNameFormat.nfcWellKnown` does not exist — the enum arm is `wellKnown`.
+  - `NdefMessage.toByteData()` does not exist — the capacity check uses `NdefMessage.byteLength`, which already sums record headers.
+  - There is no `nfc_manager_android` pub package. Three entry points live inside `nfc_manager` itself, and `nfc_manager.dart` does **not** re-export the record types.
+
+  Step 2's table is now verified against the installed source. If `pub deps` shows anything other than `nfc_manager 4.2.1` / `ndef_record 1.4.2`, treat Step 4's code as unverified again and escalate rather than adapting it from memory.
 - **The plugin README's text-record example is wrong.** It writes `utf8.encode(text)` as a Text payload with no status byte or language code. Task 3 exists precisely to not follow it.
 - **iOS is deliberately unbuilt.** `UnsupportedRfidWriter` covers it. Enabling it later needs the Core NFC entitlement, `NFCReaderUsageDescription`, an `NdefIos` write path, and very likely an `IPHONEOS_DEPLOYMENT_TARGET` bump from the current 12.0.
