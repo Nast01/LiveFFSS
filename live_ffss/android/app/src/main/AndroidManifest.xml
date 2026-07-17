@@ -1,5 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.NFC"/>
+    <!-- Without this, the NFC permission above implicitly declares
+         android.hardware.nfc as REQUIRED, which hides the app from every
+         Android device without an NFC chip on the Play Store. Bracelet
+         writing is opportunistic (Android-only, icon hidden elsewhere), so
+         the feature must stay optional at the store-filtering level too. -->
+    <uses-feature android:name="android.hardware.nfc" android:required="false"/>
     <application
         android:label="live_ffss"
         android:name="${applicationName}"

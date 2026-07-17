@@ -29,6 +29,14 @@ class _RfidWriterViewState extends State<RfidWriterView> {
     super.initState();
     // The sheet is opened by the view, never by the controller — controllers
     // must not call Get.dialog / showModalBottomSheet.
+    //
+    // The `isCurrent` guard is not just defensive: Retry lives INSIDE the
+    // sheet (see _WriteSheet), so pressing it drives `writeState` back to
+    // `waiting` while the sheet route is still on top and this page's route
+    // is no longer current. Without the guard, that would open a second
+    // sheet stacked on the first. Dismissing the top one then runs
+    // `cancelWrite` via `whenComplete`, killing the write behind a sheet
+    // that is still showing "Approchez le bracelet".
     _writeStateWorker = ever<RfidWriteState>(_controller.writeState, (state) {
       if (state == RfidWriteState.waiting && ModalRoute.of(context)?.isCurrent == true) {
         _openSheet();

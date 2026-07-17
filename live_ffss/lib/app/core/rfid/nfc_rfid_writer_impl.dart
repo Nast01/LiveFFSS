@@ -34,20 +34,6 @@ class NfcRfidWriterImpl implements RfidWriter {
 
   @override
   Future<void> write(String payload) async {
-    final availability = await NfcManager.instance.checkAvailability();
-    if (availability != NfcAvailability.enabled) {
-      throw const RfidException('nfc_disabled');
-    }
-
-    final message = NdefMessage(records: [
-      NdefRecord(
-        typeNameFormat: TypeNameFormat.wellKnown,
-        type: Uint8List.fromList([0x54]), // 'T' — well-known Text record
-        identifier: Uint8List(0),
-        payload: ndefTextPayload(payload),
-      ),
-    ]);
-
     final completer = Completer<void>();
     _pending = completer;
 
@@ -56,10 +42,32 @@ class NfcRfidWriterImpl implements RfidWriter {
     // `isCompleted` alone would not stop that second chip from being written.
     var written = false;
 
+    // checkAvailability() and the NdefMessage construction are inside this
+    // try too: a MissingPluginException/PlatformException from either would
+    // otherwise escape as a raw non-AppException, which the controller's
+    // `on AppException` catch does not match — leaving `writeState` stuck on
+    // `waiting` ("Approchez le bracelet") with no way out but Annuler.
     // The session is stopped in `finally` — a session left open blocks every
     // later write AND keeps this callback live, so the next bracelet touched
     // would be silently written with this payload.
     try {
+      final availability = await NfcManager.instance.checkAvailability();
+      if (availability == NfcAvailability.disabled) {
+        throw const RfidException('nfc_disabled');
+      }
+      if (availability != NfcAvailability.enabled) {
+        throw const RfidException('nfc_unsupported');
+      }
+
+      final message = NdefMessage(records: [
+        NdefRecord(
+          typeNameFormat: TypeNameFormat.wellKnown,
+          type: Uint8List.fromList([0x54]), // 'T' — well-known Text record
+          identifier: Uint8List(0),
+          payload: ndefTextPayload(payload),
+        ),
+      ]);
+
       await NfcManager.instance.startSession(
         pollingOptions: {NfcPollingOption.iso14443},
         onDiscovered: (tag) async {

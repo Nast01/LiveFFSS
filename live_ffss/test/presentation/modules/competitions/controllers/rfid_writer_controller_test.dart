@@ -39,8 +39,8 @@ void main() {
         club: club,
       );
 
-  final nantes = const Club(id: 1, name: 'SC Nantes');
-  final rennes = const Club(id: 2, name: 'SN Rennes');
+  const nantes = Club(id: 1, name: 'SC Nantes');
+  const rennes = Club(id: 2, name: 'SN Rennes');
 
   setUp(() {
     repo = _MockClubRepo();
@@ -155,7 +155,7 @@ void main() {
   });
 
   group('writeBracelet', () {
-    final jean = Athlete(
+    const jean = Athlete(
       id: 1,
       licenseeNumber: '123456',
       firstName: 'Jean',
@@ -247,7 +247,7 @@ void main() {
       // Otherwise `selected` flips to the second athlete and the FIRST
       // write's success reports itself against them — the wrong name under a
       // green check.
-      final marie = Athlete(
+      const marie = Athlete(
         id: 2,
         licenseeNumber: '999888',
         firstName: 'Marie',
