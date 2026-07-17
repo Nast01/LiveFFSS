@@ -18,5 +18,11 @@ void main() {
     test('RfidException is an AppException so controllers catch it', () {
       expect(const RfidException('nfc_unsupported'), isA<AppException>());
     });
+
+    test('cancel is a no-op rather than a throw', () {
+      // The UI calls cancel() unconditionally when its sheet closes; on a
+      // platform with no NFC that must not blow up.
+      expect(const UnsupportedRfidWriter().cancel(), completes);
+    });
   });
 }

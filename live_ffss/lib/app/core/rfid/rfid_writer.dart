@@ -12,7 +12,18 @@ abstract class RfidWriter {
   ///
   /// Throws [RfidException] with a translation key as its message on any
   /// failure (unwritable chip, insufficient capacity, NFC turned off).
+  ///
+  /// Never completes on its own if no bracelet is presented — [cancel] is
+  /// what releases it.
   Future<void> write(String payload);
+
+  /// Aborts an in-flight [write] and releases the hardware.
+  ///
+  /// Mandatory before starting another write: while a session is open its tag
+  /// callback stays live, so the next bracelet presented would be silently
+  /// written with the abandoned payload. Safe to call when nothing is
+  /// in flight.
+  Future<void> cancel();
 }
 
 /// The no-op implementation used on iOS, web, and desktop.
@@ -29,4 +40,7 @@ class UnsupportedRfidWriter implements RfidWriter {
   @override
   Future<void> write(String payload) async =>
       throw const RfidException('nfc_unsupported');
+
+  @override
+  Future<void> cancel() async {}
 }

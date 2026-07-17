@@ -14,10 +14,23 @@ import 'package:nfc_manager/nfc_manager_android.dart';
 /// would only assert that the plugin was called. Verified on a device with a
 /// real bracelet.
 class NfcRfidWriterImpl implements RfidWriter {
-  const NfcRfidWriterImpl();
+  NfcRfidWriterImpl();
+
+  /// The in-flight write, so [cancel] can release it. `startSession` returns
+  /// as soon as reader mode is on — it does not wait for a tag — so this
+  /// completer is the only thing that ever ends a write.
+  Completer<void>? _pending;
 
   @override
   bool get isSupported => true;
+
+  @override
+  Future<void> cancel() async {
+    final pending = _pending;
+    if (pending != null && !pending.isCompleted) {
+      pending.completeError(const RfidException('bracelet_write_cancelled'));
+    }
+  }
 
   @override
   Future<void> write(String payload) async {
@@ -36,13 +49,21 @@ class NfcRfidWriterImpl implements RfidWriter {
     ]);
 
     final completer = Completer<void>();
+    _pending = completer;
+
+    // The plugin does not await this callback, so a second bracelet can fire
+    // it again between the write finishing and the session actually closing.
+    // `isCompleted` alone would not stop that second chip from being written.
+    var written = false;
 
     // The session is stopped in `finally` — a session left open blocks every
-    // later write.
+    // later write AND keeps this callback live, so the next bracelet touched
+    // would be silently written with this payload.
     try {
       await NfcManager.instance.startSession(
         pollingOptions: {NfcPollingOption.iso14443},
         onDiscovered: (tag) async {
+          if (written) return;
           try {
             final ndef = NdefAndroid.from(tag);
             if (ndef == null || !ndef.isWritable) {
@@ -55,6 +76,7 @@ class NfcRfidWriterImpl implements RfidWriter {
             if (message.byteLength > ndef.maxSize) {
               throw const RfidException('bracelet_too_small');
             }
+            written = true;
             await ndef.writeNdefMessage(message);
             if (!completer.isCompleted) completer.complete();
           } on RfidException catch (e) {
@@ -74,7 +96,15 @@ class NfcRfidWriterImpl implements RfidWriter {
     } catch (e) {
       throw const RfidException('bracelet_write_failed');
     } finally {
-      await NfcManager.instance.stopSession();
+      _pending = null;
+      // A throwing `finally` would replace the in-flight exception, turning a
+      // specific key like `bracelet_too_small` into a raw PlatformException
+      // that the controller's `on AppException` catch would not even match.
+      // Failing to close a session we are abandoning anyway is not worth
+      // destroying the real error for.
+      try {
+        await NfcManager.instance.stopSession();
+      } catch (_) {}
     }
   }
 }
