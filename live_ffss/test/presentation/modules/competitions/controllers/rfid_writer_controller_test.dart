@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
@@ -78,14 +80,21 @@ void main() {
     });
 
     test('deduplicates by athlete id, first occurrence wins', () async {
+      // The two copies must be distinguishable, otherwise a last-wins
+      // implementation passes a test named "first occurrence wins".
       when(() => repo.getClubs(1)).thenAnswer((_) async => [
-            nantes.copyWith(athletes: [athlete(1, 'Jean', 'DUPONT')]),
-            rennes.copyWith(athletes: [athlete(1, 'Jean', 'DUPONT')]),
+            nantes.copyWith(
+              athletes: [athlete(1, 'Jean', 'DUPONT', licence: 'FIRST')],
+            ),
+            rennes.copyWith(
+              athletes: [athlete(1, 'Jean', 'DUPONT', licence: 'SECOND')],
+            ),
           ]);
 
       await controller.loadAthletes(1);
 
       expect(controller.allAthletes.length, 1);
+      expect(controller.allAthletes.single.licenseeNumber, 'FIRST');
     });
 
     test('sets hasError when the repository throws an AppException', () async {
@@ -232,6 +241,34 @@ void main() {
 
     test('payloadFor exposes what will be written, for the UI preview', () {
       expect(controller.payloadFor(jean), '123456;DUPONT');
+    });
+
+    test('a second write while one is in flight is ignored', () async {
+      // Otherwise `selected` flips to the second athlete and the FIRST
+      // write's success reports itself against them — the wrong name under a
+      // green check.
+      final marie = Athlete(
+        id: 2,
+        licenseeNumber: '999888',
+        firstName: 'Marie',
+        lastName: 'DURAND',
+        gender: Gender.female,
+        year: 2005,
+        nationalityCode: 'FRA',
+        nationality: 'France',
+        isValid: true,
+      );
+      final inFlight = Completer<void>();
+      when(() => writer.write('123456;DUPONT'))
+          .thenAnswer((_) => inFlight.future);
+
+      unawaited(controller.writeBracelet(jean));
+      await controller.writeBracelet(marie);
+
+      expect(controller.selected.value, jean);
+      verifyNever(() => writer.write('999888;DURAND'));
+
+      inFlight.complete();
     });
   });
 }

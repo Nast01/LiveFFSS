@@ -94,6 +94,12 @@ class RfidWriterController extends GetxController {
   String payloadFor(Athlete athlete) => braceletPayload(athlete);
 
   Future<void> writeBracelet(Athlete athlete) async {
+    // One bracelet at a time. Without this, a second call while the first is
+    // in flight overwrites `selected`, and the first write's success then
+    // reports itself against the second athlete — the wrong name on a green
+    // check. The modal sheet makes this hard to reach by hand, but the rule
+    // belongs here, not in the view that happens to enforce it today.
+    if (writeState.value == RfidWriteState.waiting) return;
     selected.value = athlete;
     writeState.value = RfidWriteState.waiting;
     message.value = null;
