@@ -150,8 +150,14 @@ The abstraction plus the stub used on every non-Android platform. No plugin yet 
 **Interfaces:**
 - Produces:
   - `class RfidException extends AppException` — `const RfidException(String message)`
-  - `abstract class RfidWriter` — `bool get isSupported`, `Future<void> write(String payload)`
+  - `abstract class RfidWriter` — `bool get isSupported`, `Future<void> write(String payload)`, `Future<void> cancel()`
   - `class UnsupportedRfidWriter implements RfidWriter`
+
+**Why `cancel()` exists.** Without it, the UI's *Annuler* button cannot keep
+its promise: the NFC session stays open and its tag callback stays live, so
+the **next** bracelet presented gets silently written with the cancelled
+athlete's payload. `write()` also never completes if no tag is ever
+presented, so `cancel()` is the only thing that releases it.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -177,6 +183,12 @@ void main() {
 
     test('RfidException is an AppException so controllers catch it', () {
       expect(const RfidException('nfc_unsupported'), isA<AppException>());
+    });
+
+    test('cancel is a no-op rather than a throw', () {
+      // The UI calls cancel() unconditionally when its sheet closes; on a
+      // platform with no NFC that must not blow up.
+      expect(const UnsupportedRfidWriter().cancel(), completes);
     });
   });
 }
@@ -219,7 +231,18 @@ abstract class RfidWriter {
   ///
   /// Throws [RfidException] with a translation key as its message on any
   /// failure (unwritable chip, insufficient capacity, NFC turned off).
+  ///
+  /// Never completes on its own if no bracelet is presented — [cancel] is
+  /// what releases it.
   Future<void> write(String payload);
+
+  /// Aborts an in-flight [write] and releases the hardware.
+  ///
+  /// Mandatory before starting another write: while a session is open its tag
+  /// callback stays live, so the next bracelet presented would be silently
+  /// written with the abandoned payload. Safe to call when nothing is
+  /// in flight.
+  Future<void> cancel();
 }
 
 /// The no-op implementation used on iOS, web, and desktop.
@@ -236,6 +259,9 @@ class UnsupportedRfidWriter implements RfidWriter {
   @override
   Future<void> write(String payload) async =>
       throw const RfidException('nfc_unsupported');
+
+  @override
+  Future<void> cancel() async {}
 }
 ```
 
@@ -447,10 +473,23 @@ import 'package:nfc_manager/nfc_manager_android.dart';
 /// would only assert that the plugin was called. Verified on a device with a
 /// real bracelet.
 class NfcRfidWriterImpl implements RfidWriter {
-  const NfcRfidWriterImpl();
+  NfcRfidWriterImpl();
+
+  /// The in-flight write, so [cancel] can release it. `startSession` returns
+  /// as soon as reader mode is on — it does not wait for a tag — so this
+  /// completer is the only thing that ever ends a write.
+  Completer<void>? _pending;
 
   @override
   bool get isSupported => true;
+
+  @override
+  Future<void> cancel() async {
+    final pending = _pending;
+    if (pending != null && !pending.isCompleted) {
+      pending.completeError(const RfidException('bracelet_write_cancelled'));
+    }
+  }
 
   @override
   Future<void> write(String payload) async {
@@ -469,13 +508,21 @@ class NfcRfidWriterImpl implements RfidWriter {
     ]);
 
     final completer = Completer<void>();
+    _pending = completer;
+
+    // The plugin does not await this callback, so a second bracelet can fire
+    // it again between the write finishing and the session actually closing.
+    // `isCompleted` alone would not stop that second chip from being written.
+    var written = false;
 
     // The session is stopped in `finally` — a session left open blocks every
-    // later write.
+    // later write AND keeps this callback live, so the next bracelet touched
+    // would be silently written with this payload.
     try {
       await NfcManager.instance.startSession(
         pollingOptions: {NfcPollingOption.iso14443},
         onDiscovered: (tag) async {
+          if (written) return;
           try {
             final ndef = NdefAndroid.from(tag);
             if (ndef == null || !ndef.isWritable) {
@@ -488,6 +535,7 @@ class NfcRfidWriterImpl implements RfidWriter {
             if (message.byteLength > ndef.maxSize) {
               throw const RfidException('bracelet_too_small');
             }
+            written = true;
             await ndef.writeNdefMessage(message);
             if (!completer.isCompleted) completer.complete();
           } on RfidException catch (e) {
@@ -507,7 +555,15 @@ class NfcRfidWriterImpl implements RfidWriter {
     } catch (e) {
       throw const RfidException('bracelet_write_failed');
     } finally {
-      await NfcManager.instance.stopSession();
+      _pending = null;
+      // A throwing `finally` would replace the in-flight exception, turning a
+      // specific key like `bracelet_too_small` into a raw PlatformException
+      // that the controller's `on AppException` catch would not even match.
+      // Failing to close a session we are abandoning anyway is not worth
+      // destroying the real error for.
+      try {
+        await NfcManager.instance.stopSession();
+      } catch (_) {}
     }
   }
 }
@@ -607,6 +663,7 @@ Append to the map in `lib/app/core/translations/fr_FR.dart`, before the closing 
   'bracelet_too_small': 'La mémoire de ce bracelet est trop petite',
   'nfc_disabled': 'Le NFC est désactivé',
   'nfc_unsupported': "Cet appareil ne peut pas écrire de bracelet",
+  'bracelet_write_cancelled': 'Écriture annulée',
   'finish': 'Terminé',
 ```
 
@@ -625,6 +682,7 @@ Append to the map in `lib/app/core/translations/en_US.dart`, before the closing 
   'bracelet_too_small': "This bracelet's memory is too small",
   'nfc_disabled': 'NFC is turned off',
   'nfc_unsupported': 'This device cannot write bracelets',
+  'bracelet_write_cancelled': 'Write cancelled',
   'finish': 'Done',
 ```
 
@@ -659,7 +717,7 @@ git commit -m "feat(rfid): add bracelet writer translation keys"
   - `Future<void> loadAthletes(int competitionId)`
   - `void setSearchQuery(String value)`
   - `Future<void> writeBracelet(Athlete athlete)`
-  - `void cancelWrite()`
+  - `Future<void> cancelWrite()`
   - `String payloadFor(Athlete athlete)`
   - fields: `competition`, `allAthletes`, `filteredAthletes`, `searchQuery`, `isLoading`, `hasError`, `selected`, `writeState`, `message`
 
@@ -853,12 +911,51 @@ void main() {
 
     test('cancelWrite returns to idle and clears the selection', () async {
       when(() => writer.write(any())).thenAnswer((_) async {});
+      when(() => writer.cancel()).thenAnswer((_) async {});
       await controller.writeBracelet(jean);
 
-      controller.cancelWrite();
+      await controller.cancelWrite();
 
       expect(controller.writeState.value, RfidWriteState.idle);
       expect(controller.selected.value, isNull);
+    });
+
+    test('cancelWrite releases the hardware', () async {
+      // Without this the NFC session stays open and the next bracelet
+      // presented gets silently written with the cancelled athlete's payload.
+      when(() => writer.cancel()).thenAnswer((_) async {});
+
+      await controller.cancelWrite();
+
+      verify(() => writer.cancel()).called(1);
+    });
+
+    test('a cancelled write does not report an error at the user', () async {
+      // cancel() makes the in-flight write reject; the user who pressed
+      // Annuler must not get an error popped at them for getting what they
+      // asked for.
+      when(() => writer.cancel()).thenAnswer((_) async {});
+      when(() => writer.write(any())).thenAnswer((_) async {
+        await controller.cancelWrite();
+        throw const RfidException('bracelet_write_cancelled');
+      });
+
+      await controller.writeBracelet(jean);
+
+      expect(controller.writeState.value, RfidWriteState.idle);
+      expect(controller.message.value, isNull);
+    });
+
+    test('a write completing after a cancel does not report success', () async {
+      when(() => writer.cancel()).thenAnswer((_) async {});
+      when(() => writer.write(any())).thenAnswer((_) async {
+        await controller.cancelWrite();
+      });
+
+      await controller.writeBracelet(jean);
+
+      expect(controller.writeState.value, RfidWriteState.idle);
+      expect(controller.message.value, isNull);
     });
 
     test('payloadFor exposes what will be written, for the UI preview', () {
@@ -982,18 +1079,26 @@ class RfidWriterController extends GetxController {
     message.value = null;
     try {
       await _rfidWriter.write(braceletPayload(athlete));
+      if (writeState.value != RfidWriteState.waiting) return;
       writeState.value = RfidWriteState.success;
       message.value = const UiMessageSuccess('bracelet_written');
     } on AppException catch (e) {
+      // A cancelled write rejects too. `cancelWrite` has already moved us out
+      // of `waiting`, and the user who pressed Annuler does not want an error
+      // popped at them for getting what they asked for.
+      if (writeState.value != RfidWriteState.waiting) return;
       writeState.value = RfidWriteState.error;
       message.value = UiMessageError(e.message);
     }
   }
 
-  void cancelWrite() {
+  Future<void> cancelWrite() async {
     writeState.value = RfidWriteState.idle;
     selected.value = null;
     message.value = null;
+    // Releases the hardware. Without this the session stays open and the next
+    // bracelet presented is silently written with the abandoned payload.
+    await _rfidWriter.cancel();
   }
 }
 ```
@@ -1134,6 +1239,10 @@ class _RfidWriterViewState extends State<RfidWriterView> {
       enableDrag: false,
       backgroundColor: AppColors.surface,
       builder: (_) => const _WriteSheet(),
+      // Fires however the sheet closes — Annuler, Terminé, or a back gesture.
+      // It MUST run on every one of those: it is what releases the NFC
+      // session, and a session left open silently writes this payload to the
+      // next bracelet presented.
     ).whenComplete(_controller.cancelWrite);
   }
 
@@ -1604,6 +1713,8 @@ Read the bracelet with NFC Tools (or any generic NFC reader). It must show a **T
 - NFC turned off in Android settings → expect "Le NFC est désactivé".
 - A read-only or non-NDEF tag → expect "Ce bracelet n'est pas inscriptible".
 - Cancel the sheet mid-wait, then immediately write again → the second write must work. A failure here means the session was not stopped in `finally`.
+- **The cancelled-session trap (regression check).** Tap athlete A, wait for "Approchez le bracelet", press *Annuler* WITHOUT presenting anything, then touch a blank bracelet to the phone. That bracelet must stay **blank** — read it with NFC Tools to confirm. If it holds A's payload, `cancel()` is not releasing the session and the bug the Task 4 review found is back. Repeat with *Terminé* after a successful write, then touch a second blank bracelet: it too must stay blank.
+- **A factory-fresh bracelet.** Note what happens on a brand-new, never-written chip: if it reports "Ce bracelet n'est pas inscriptible", the known gap above is real and needs `NdefFormatableAndroid`. Report the outcome either way — this test is what decides it.
 
 - [ ] **Step 5: Confirm the button is hidden off-Android**
 
@@ -1625,3 +1736,4 @@ The NFC icon must not appear in the competition header, and nothing may throw.
   Step 2's table is now verified against the installed source. If `pub deps` shows anything other than `nfc_manager 4.2.1` / `ndef_record 1.4.2`, treat Step 4's code as unverified again and escalate rather than adapting it from memory.
 - **The plugin README's text-record example is wrong.** It writes `utf8.encode(text)` as a Text payload with no status byte or language code. Task 3 exists precisely to not follow it.
 - **iOS is deliberately unbuilt.** `UnsupportedRfidWriter` covers it. Enabling it later needs the Core NFC entitlement, `NFCReaderUsageDescription`, an `NdefIos` write path, and very likely an `IPHONEOS_DEPLOYMENT_TARGET` bump from the current 12.0.
+- **Known gap — factory-fresh bracelets.** `NdefAndroid.from()` returns `null` for a chip that is NDEF-*formatable* but not yet NDEF-formatted, which this code reports as `bracelet_not_writable`. If the bracelets in real use ship unformatted, a volunteer unboxing a new batch hits that error on every one. Decision (2026-07-17): wait for Task 10's device test to say whether real bracelets are affected rather than write untestable formatting code speculatively. If they are, the plugin ships `NdefFormatableAndroid` for exactly this.
