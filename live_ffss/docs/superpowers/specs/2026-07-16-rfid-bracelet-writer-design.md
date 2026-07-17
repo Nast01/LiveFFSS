@@ -59,8 +59,16 @@ for the same reason: an external dependency the app talks to through a seam.
 abstract class RfidWriter {
   bool get isSupported;
   Future<void> write(String payload);
+  Future<void> cancel();
 }
 ```
+
+`cancel()` is not optional polish. Without it the *Annuler* button cannot keep
+its promise: the NFC session stays open with its tag callback live, and the
+**next** bracelet presented gets silently written with the cancelled athlete's
+payload. `write()` also never completes on its own if no bracelet is ever
+presented — `startSession` returns as soon as reader mode is on, it does not
+wait for a tag — so `cancel()` is the only thing that releases it.
 
 - `NfcRfidWriterImpl` — the Android path via `nfc_manager`:
   `NdefAndroid.from(tag)` → check `isWritable` → `writeNdefMessage`.
@@ -116,6 +124,14 @@ detail, exactly like `race_detail`.
 - `lib/app/core/rfid/nfc_rfid_writer_impl.dart` — the Android `nfc_manager`
   adapter.
 - `lib/app/core/rfid/bracelet_payload.dart` — the pure payload function.
+- `lib/app/core/rfid/ndef_text_record.dart` — `Uint8List ndefTextPayload(String
+  text, {String languageCode = 'en'})`, the bytes of an NFC Forum well-known
+  Text record: `[status byte][language code][UTF-8 text]`. Split out because it
+  is pure and testable while the plugin adapter around it is not. The plugin's
+  README shows a bare `utf8.encode(text)` as a Text payload, which omits the
+  header and renders as garbage in third-party readers — being readable by a
+  generic NFC app is the whole reason this format was chosen, so the header is
+  not optional.
 - `lib/app/module/competitions/controllers/rfid_writer_controller.dart`
 - `lib/app/module/competitions/views/rfid_writer_view.dart`
 - `lib/app/module/competitions/bindings/rfid_writer_binding.dart` —
@@ -220,9 +236,9 @@ controllers.
 
 Tapping an athlete opens a `showModalBottomSheet` driven by `writeState`:
 
-- **`waiting`** — animated NFC icon, "Approchez le bracelet du téléphone",
-  and the exact payload in monospace (`123456;DUPONT`). *Annuler* button
-  closes the NFC session.
+- **`waiting`** — NFC icon, "Approchez le bracelet du téléphone", and the
+  exact payload in monospace (`123456;DUPONT`). *Annuler* releases the NFC
+  session via `cancel()`.
 - **`success`** — green check, "Bracelet écrit", *Terminé* button. The sheet
   stays open until the user acts: auto-dismissing would leave doubt about
   what was just written, and volunteers write bracelets in a run while
@@ -315,6 +331,7 @@ Add to both `en_US.dart` and `fr_FR.dart`:
 | `bracelet_too_small` | This bracelet's memory is too small | La mémoire de ce bracelet est trop petite |
 | `nfc_disabled` | NFC is turned off | Le NFC est désactivé |
 | `nfc_unsupported` | This device cannot write bracelets | Cet appareil ne peut pas écrire de bracelet |
+| `bracelet_write_cancelled` | Write cancelled | Écriture annulée |
 | `finish` | Done | Terminé |
 
 `nfc_unsupported` is what `UnsupportedRfidWriter` throws. The UI hides the

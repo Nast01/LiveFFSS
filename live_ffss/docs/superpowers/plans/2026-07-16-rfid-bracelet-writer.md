@@ -1758,6 +1758,7 @@ Read the bracelet with NFC Tools (or any generic NFC reader). It must show a **T
 - Cancel the sheet mid-wait, then immediately write again → the second write must work. A failure here means the session was not stopped in `finally`.
 - **The cancelled-session trap (regression check).** Tap athlete A, wait for "Approchez le bracelet", press *Annuler* WITHOUT presenting anything, then touch a blank bracelet to the phone. That bracelet must stay **blank** — read it with NFC Tools to confirm. If it holds A's payload, `cancel()` is not releasing the session and the bug the Task 4 review found is back. Repeat with *Terminé* after a successful write, then touch a second blank bracelet: it too must stay blank.
 - **A factory-fresh bracelet.** Note what happens on a brand-new, never-written chip: if it reports "Ce bracelet n'est pas inscriptible", the known gap above is real and needs `NdefFormatableAndroid`. Report the outcome either way — this test is what decides it.
+- **Nothing happens at all?** The session polls `NfcPollingOption.iso14443` only, which covers NTAG/MIFARE (ISO 14443-A). If the real bracelets use ISO 15693 chips (ICODE SLIX is common in sports wristbands), `onDiscovered` never fires: the sheet waits forever with no error and no diagnostic. Nothing in this project pins the bracelet hardware, so this test is what settles it. The fix is one word — add `NfcPollingOption.iso15693` to the set.
 
 - [ ] **Step 5: Confirm the button is hidden off-Android**
 
