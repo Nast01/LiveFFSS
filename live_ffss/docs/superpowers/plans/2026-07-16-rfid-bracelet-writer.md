@@ -410,7 +410,7 @@ The adapter over `nfc_manager`. Not unit-tested — mocking it would test the pl
 
 **Interfaces:**
 - Consumes: `RfidWriter`, `RfidException` (Task 2); `ndefTextPayload` (Task 3)
-- Produces: `class NfcRfidWriterImpl implements RfidWriter` — `const NfcRfidWriterImpl()`
+- Produces: `class NfcRfidWriterImpl implements RfidWriter` — `NfcRfidWriterImpl()`, **not** const: it holds the in-flight `Completer` that `cancel()` releases
 
 - [ ] **Step 1: Add the dependency**
 
@@ -616,7 +616,7 @@ Insert after the `// 3. HTTP` block and before `// 4. Auth data layer`:
     // is a declared target.
     Get.put<RfidWriter>(
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android
-          ? const NfcRfidWriterImpl()
+          ? NfcRfidWriterImpl() // not const — holds the in-flight Completer
           : const UnsupportedRfidWriter(),
       permanent: true,
     );
