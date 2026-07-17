@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/config/app_config.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
+import 'package:live_ffss/app/core/rfid/nfc_rfid_writer_impl.dart';
+import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
@@ -45,6 +48,17 @@ class InitialBinding {
         config: Get.find<AppConfig>(),
         tokenStorage: Get.find<TokenStorage>(),
       ),
+      permanent: true,
+    );
+
+    // 3b. RFID bracelet writer. Android-only; every other platform gets the
+    // stub and the UI hides its entry point. `defaultTargetPlatform` rather
+    // than dart:io's `Platform.isAndroid` — the latter throws on web, and web
+    // is a declared target.
+    Get.put<RfidWriter>(
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+          ? NfcRfidWriterImpl() // not const — holds the in-flight Completer
+          : const UnsupportedRfidWriter(),
       permanent: true,
     );
 
