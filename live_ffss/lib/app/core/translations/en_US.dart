@@ -243,4 +243,18 @@ final Map<String, String> enUS = {
   'english': 'English',
   'french': 'French',
   'change_language': 'Change Language',
+
+  // NFC Bracelets
+  'bracelets': 'Bracelets',
+  'write_bracelet': 'Write a bracelet',
+  'search_athlete': 'Search for an athlete',
+  'approach_bracelet': 'Hold the bracelet near the phone',
+  'bracelet_written': 'Bracelet written',
+  'bracelet_write_failed': 'Could not write the bracelet',
+  'bracelet_not_writable': 'This bracelet is not writable',
+  'bracelet_too_small': "This bracelet's memory is too small",
+  'nfc_disabled': 'NFC is turned off',
+  'nfc_unsupported': 'This device cannot write bracelets',
+  'bracelet_write_cancelled': 'Write cancelled',
+  'finish': 'Done',
 };
