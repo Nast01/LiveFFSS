@@ -11,6 +11,7 @@ import 'package:live_ffss/app/module/competitions/views/competition_detail_point
 import 'package:live_ffss/app/module/competitions/views/competition_detail_races_view.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/competition_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/home_wave.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 
 class CompetitionDetailView extends GetView<CompetitionDetailController> {
   const CompetitionDetailView({super.key});
@@ -79,6 +80,15 @@ class _CompetitionDetailHeader extends GetView<CompetitionDetailController> {
                 onPressed: Get.back,
               ),
               const Spacer(),
+              if (controller.canWriteBracelets)
+                IconButton(
+                  icon: const Icon(Icons.nfc, color: Colors.white, size: 26),
+                  tooltip: 'write_bracelet'.tr,
+                  onPressed: () => Get.toNamed<void>(
+                    Routes.rfidWriter,
+                    arguments: competition,
+                  ),
+                ),
               Obx(() {
                 final favored =
                     controller.favoriteIds.contains(competition.id);
