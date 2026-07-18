@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
+import 'package:live_ffss/app/domain/models/event_structure.dart';
+import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
 import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
@@ -56,9 +58,7 @@ class _OverviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final structure = row.structure;
-    final summary = structure == null || !structure.isDefined
-        ? 'not_defined'.tr
-        : structure.chain.map((t) => t.labelKey.tr).join(' → ');
+    final summary = _summaryFor(structure);
     return Card(
       margin: EdgeInsets.zero,
       child: ListTile(
@@ -91,5 +91,14 @@ class _OverviewCard extends StatelessWidget {
         trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
       ),
     );
+  }
+
+  String _summaryFor(EventStructure? structure) {
+    if (structure == null || !structure.isDefined) return 'not_defined'.tr;
+    final chain = structure.chain;
+    if (chain.length == 1 && chain.single == RoundType.finale) {
+      return 'direct_final'.tr;
+    }
+    return chain.map((t) => t.labelKey.tr).join(' → ');
   }
 }
