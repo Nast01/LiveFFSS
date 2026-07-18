@@ -54,23 +54,11 @@ class StructureEditorController extends GetxController {
 
   void proposeDefault() {
     final s = structure.value!;
-    final plans =
-        proposeLevels(entryCount: _args.entryCount, spotsPerRace: s.spotsPerRace);
-    final levels = <RoundLevel>[];
-    List<int> previousIds = const [];
-    for (final plan in plans) {
-      final races = <ProgrammeRace>[];
-      for (var n = 1; n <= plan.raceCount; n++) {
-        races.add(ProgrammeRace(
-          id: _programme.allocateId(),
-          number: n,
-          // opt2 default: every race is fed by all races of the previous level.
-          sourceRaceIds: previousIds,
-        ));
-      }
-      levels.add(RoundLevel(type: plan.type, races: races));
-      previousIds = races.map((r) => r.id).toList();
-    }
+    final levels = buildDefaultLevels(
+      entryCount: _args.entryCount,
+      spotsPerRace: s.spotsPerRace,
+      allocateId: _programme.allocateId,
+    );
     _commit(s.copyWith(levels: levels));
   }
 

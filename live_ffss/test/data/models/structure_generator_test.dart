@@ -37,4 +37,53 @@ void main() {
       expect(proposeLevels(entryCount: 0, spotsPerRace: 8), isEmpty);
     });
   });
+
+  group('buildDefaultLevels', () {
+    test('allocates a unique id per race across all levels', () {
+      var counter = 0;
+      final levels = buildDefaultLevels(
+        entryCount: 20,
+        spotsPerRace: 8,
+        allocateId: () => ++counter,
+      );
+      final ids = levels.expand((l) => l.races).map((r) => r.id).toList();
+      expect(ids.toSet().length, ids.length);
+      expect(ids, [1, 2, 3, 4]); // 3 séries + 1 finale
+    });
+
+    test('opt2 wires every race to all races of the previous level', () {
+      var counter = 0;
+      final levels = buildDefaultLevels(
+        entryCount: 20,
+        spotsPerRace: 8,
+        allocateId: () => ++counter,
+      );
+      final serieIds = levels[0].races.map((r) => r.id).toList();
+      final finale = levels[1].races.single;
+      expect(finale.sourceRaceIds, serieIds);
+    });
+
+    test('the first level has no source races', () {
+      var counter = 0;
+      final levels = buildDefaultLevels(
+        entryCount: 20,
+        spotsPerRace: 8,
+        allocateId: () => ++counter,
+      );
+      for (final race in levels.first.races) {
+        expect(race.sourceRaceIds, isEmpty);
+      }
+    });
+
+    test('no entries → no levels, allocateId never called', () {
+      var calls = 0;
+      final levels = buildDefaultLevels(
+        entryCount: 0,
+        spotsPerRace: 8,
+        allocateId: () => ++calls,
+      );
+      expect(levels, isEmpty);
+      expect(calls, 0);
+    });
+  });
 }

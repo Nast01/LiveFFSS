@@ -35,16 +35,38 @@ class StructureOverviewView extends GetView<ProgrammeController> {
           title: 'no_structures'.tr,
         );
       }
-      return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.sm,
-          AppSpacing.xs,
-          AppSpacing.sm,
-          AppSpacing.lg,
-        ),
-        itemCount: controller.rows.length,
-        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-        itemBuilder: (_, i) => _OverviewCard(row: controller.rows[i]),
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.sm,
+              AppSpacing.xs,
+              AppSpacing.sm,
+              0,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: controller.generateAllDefaults,
+                icon: const Icon(Icons.bolt),
+                label: Text('generate_default_all'.tr),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.sm,
+                AppSpacing.xs,
+                AppSpacing.sm,
+                AppSpacing.lg,
+              ),
+              itemCount: controller.rows.length,
+              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (_, i) => _OverviewCard(row: controller.rows[i]),
+            ),
+          ),
+        ],
       );
     });
   }

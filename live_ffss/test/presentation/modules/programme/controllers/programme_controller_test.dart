@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
@@ -10,7 +12,9 @@ import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
+import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
+import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -27,6 +31,7 @@ void main() {
 
   const cadets = Category(id: 7, name: 'Cadets');
   const juniors = Category(id: 8, name: 'Juniors');
+  const seniors = Category(id: 9, name: 'Seniors');
 
   Race race(int id, String name, List<Category> cats) => Race(
         id: id,
@@ -149,5 +154,61 @@ void main() {
     // Everything else on the row is preserved, not refetched.
     expect(controller.rows.single.entryCount, 1);
     expect(controller.rows.single.raceLabel, '100m');
+  });
+
+  test(
+      'generateAllDefaults fills only the undefined rows and persists once',
+      () async {
+    when(() => raceRepo.getRaces(42)).thenAnswer(
+      (_) async => [race(100, '100m', [cadets, juniors, seniors])],
+    );
+    when(() => raceRepo.getEntries(100)).thenAnswer((_) async => [
+          entry(1, 100, cadets),
+          entry(2, 100, juniors),
+          entry(3, 100, seniors),
+        ]);
+
+    const existing = EventStructure(
+      raceId: 100,
+      categoryId: 8, // juniors: already defined
+      raceLabel: '100m',
+      categoryLabel: 'Juniors',
+      levels: [
+        RoundLevel(type: RoundType.finale, races: [
+          ProgrammeRace(id: 1, number: 1),
+        ]),
+      ],
+    );
+    when(() => storage.read(key: 'programme_42')).thenAnswer(
+      (_) async => jsonEncode(
+        const CompetitionProgramme(
+          competitionId: 42,
+          nextLocalId: 2,
+          structures: [existing],
+        ).toJson(),
+      ),
+    );
+
+    controller.onInit();
+    await controller.load(competition);
+
+    final juniorsBefore =
+        controller.rows.firstWhere((r) => r.categoryId == 8);
+    expect(juniorsBefore.structure, existing);
+    final cadetsBefore = controller.rows.firstWhere((r) => r.categoryId == 7);
+    expect(cadetsBefore.structure, isNull);
+
+    await controller.generateAllDefaults();
+
+    final cadetsRow = controller.rows.firstWhere((r) => r.categoryId == 7);
+    final seniorsRow = controller.rows.firstWhere((r) => r.categoryId == 9);
+    final juniorsRow = controller.rows.firstWhere((r) => r.categoryId == 8);
+
+    expect(cadetsRow.structure, isNotNull);
+    expect(seniorsRow.structure, isNotNull);
+    expect(juniorsRow.structure, existing); // left untouched
+
+    verify(() => storage.write(
+        key: 'programme_42', value: any(named: 'value'))).called(1);
   });
 }

@@ -1,3 +1,4 @@
+import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 
 /// A proposed level: its round type and how many races it holds. The caller
@@ -25,4 +26,30 @@ List<LevelPlan> proposeLevels({
     (type: RoundType.serie, raceCount: series),
     (type: RoundType.finale, raceCount: 1),
   ];
+}
+
+/// Materialises [proposeLevels] into `RoundLevel`s with allocated
+/// `ProgrammeRace`s. Each race is opt2-wired: fed by every race of the
+/// previous level (empty `sourceRaceIds` for the first level).
+List<RoundLevel> buildDefaultLevels({
+  required int entryCount,
+  required int spotsPerRace,
+  required int Function() allocateId,
+}) {
+  final plans = proposeLevels(entryCount: entryCount, spotsPerRace: spotsPerRace);
+  final levels = <RoundLevel>[];
+  List<int> previousIds = const [];
+  for (final plan in plans) {
+    final races = <ProgrammeRace>[];
+    for (var n = 1; n <= plan.raceCount; n++) {
+      races.add(ProgrammeRace(
+        id: allocateId(),
+        number: n,
+        sourceRaceIds: previousIds,
+      ));
+    }
+    levels.add(RoundLevel(type: plan.type, races: races));
+    previousIds = races.map((r) => r.id).toList();
+  }
+  return levels;
 }
