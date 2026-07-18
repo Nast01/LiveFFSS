@@ -39,16 +39,30 @@ class ProgrammeController extends GetxController {
   final RxBool hasError = false.obs;
   final RxList<OverviewRow> rows = <OverviewRow>[].obs;
 
+  // Kept so it can be disposed in onClose — _programme is a permanent service,
+  // so an undisposed worker would retain this (lazyPut) controller for the
+  // app's lifetime.
+  Worker? _structuresWorker;
+
   @override
   void onInit() {
     super.onInit();
-    ever<CompetitionProgramme?>(_programme.current, (_) => _refreshStructures());
+    _structuresWorker = ever<CompetitionProgramme?>(
+      _programme.current,
+      (_) => _refreshStructures(),
+    );
     final arg = Get.arguments;
     if (arg is Competition) {
       load(arg);
     } else {
       isLoading.value = false;
     }
+  }
+
+  @override
+  void onClose() {
+    _structuresWorker?.dispose();
+    super.onClose();
   }
 
   void changeTab(int index) => currentTabIndex.value = index;
