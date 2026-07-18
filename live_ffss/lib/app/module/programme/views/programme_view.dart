@@ -5,6 +5,7 @@ import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
+import 'package:live_ffss/app/module/programme/views/schedule_view.dart';
 import 'package:live_ffss/app/module/programme/views/structure_overview_view.dart';
 import 'package:live_ffss/app/presentation/shared/home_wave.dart';
 
@@ -27,7 +28,7 @@ class ProgrammeView extends GetView<ProgrammeController> {
                     index: controller.currentTabIndex.value,
                     children: const [
                       StructureOverviewView(),
-                      _SchedulePlaceholder(),
+                      ScheduleView(),
                     ],
                   )),
             ),
@@ -118,17 +119,5 @@ class _Pill extends GetView<ProgrammeController> {
         ),
       );
     });
-  }
-}
-
-// Plan B replaces this with the scheduling view.
-class _SchedulePlaceholder extends StatelessWidget {
-  const _SchedulePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('programme'.tr, style: AppTypography.subtitle),
-    );
   }
 }
