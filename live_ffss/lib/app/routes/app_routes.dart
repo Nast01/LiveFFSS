@@ -11,5 +11,6 @@ abstract class Routes {
   static const raceDetail = '/race-detail';
   static const program = '/program';
   static const slot = '/slot';
+  static const programme = '/programme';
   // Add other routes here
 }

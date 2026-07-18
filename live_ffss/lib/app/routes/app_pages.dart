@@ -14,6 +14,8 @@ import 'package:live_ffss/app/module/main_shell/bindings/main_shell_binding.dart
 import 'package:live_ffss/app/module/main_shell/views/main_shell_view.dart';
 import 'package:live_ffss/app/module/program/bindings/program_binding.dart';
 import 'package:live_ffss/app/module/program/views/program_view.dart';
+import 'package:live_ffss/app/module/programme/bindings/programme_binding.dart';
+import 'package:live_ffss/app/module/programme/views/programme_view.dart';
 import 'package:live_ffss/app/module/slot/bindings/slot_binding.dart';
 import 'package:live_ffss/app/module/slot/views/slot_view.dart';
 // Import other views and bindings as needed
@@ -48,6 +50,11 @@ class AppPages {
       name: Routes.competitionDetail,
       page: () => const CompetitionDetailView(),
       binding: CompetitionDetailBinding(),
+    ),
+    GetPage(
+      name: Routes.programme,
+      page: () => const ProgrammeView(),
+      binding: ProgrammeBinding(),
     ),
     GetPage(
       name: Routes.raceDetail,

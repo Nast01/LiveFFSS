@@ -11,6 +11,7 @@ import 'package:live_ffss/app/module/competitions/views/competition_detail_point
 import 'package:live_ffss/app/module/competitions/views/competition_detail_races_view.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/competition_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/home_wave.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 
 class CompetitionDetailView extends GetView<CompetitionDetailController> {
   const CompetitionDetailView({super.key});
@@ -79,6 +80,14 @@ class _CompetitionDetailHeader extends GetView<CompetitionDetailController> {
                 onPressed: Get.back,
               ),
               const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.event_note, color: Colors.white),
+                tooltip: 'programme'.tr,
+                onPressed: () => Get.toNamed<void>(
+                  Routes.programme,
+                  arguments: competition,
+                ),
+              ),
               Obx(() {
                 final favored =
                     controller.favoriteIds.contains(competition.id);
