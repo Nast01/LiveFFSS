@@ -263,4 +263,21 @@ final Map<String, String> enUS = {
   'round_finale': 'Final',
   'round_unknown': 'Round',
   'no_structures': 'No event to structure',
+
+  // Programme scheduling
+  'sites': 'Sites',
+  'add_site': 'Add a site',
+  'site_name': 'Site name',
+  'site_cotier': 'coastal',
+  'site_sable': 'sand',
+  'no_sites': 'No site yet — add one',
+  'no_days': 'Competition dates unknown',
+  'unscheduled': 'Unscheduled',
+  'add_race': 'Add a race',
+  'schedule_overlap': 'Overlaps another race on this site',
+  'min_short': 'min',
+  'day_overview': 'Day overview',
+  'duration': 'Duration',
+  'no_placement_here': 'No race here',
+  'pick_time': 'Pick time',
 };

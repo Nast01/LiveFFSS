@@ -263,4 +263,21 @@ final Map<String, String> frFR = {
   'round_finale': 'Finale',
   'round_unknown': 'Tour',
   'no_structures': 'Aucune épreuve à structurer',
+
+  // Programme scheduling
+  'sites': 'Sites',
+  'add_site': 'Ajouter un site',
+  'site_name': 'Nom du site',
+  'site_cotier': 'côtier',
+  'site_sable': 'sable',
+  'no_sites': 'Aucun site — ajoutez-en un',
+  'no_days': 'Dates de compétition inconnues',
+  'unscheduled': 'Non planifiées',
+  'add_race': 'Ajouter une course',
+  'schedule_overlap': 'Chevauche une autre course sur ce site',
+  'min_short': 'min',
+  'day_overview': 'Vue journée',
+  'duration': 'Durée',
+  'no_placement_here': 'Aucune course ici',
+  'pick_time': "Choisir l'heure",
 };
