@@ -1439,11 +1439,45 @@ void main() {
     expect(meetings.single.date, DateTime(2026, 6, 13));
     final slots = meetings.single.slots;
     expect(slots.length, 1);
+    // The slot carries the event's real spots/race, and leaves the FFSS
+    // discipline `level` empty (the lean model has no discipline).
+    expect(slots.single.raceFormatDetail!.spotsPerRace, 8);
+    expect(slots.single.raceFormatDetail!.level, '');
     final runs = slots.single.runs;
     expect(runs.length, 1);
     expect(runs.single.beginTime, DateTime(2026, 6, 13, 9, 0));
     expect(runs.single.endTime, DateTime(2026, 6, 13, 9, 10));
     expect(runs.single.status, RunStatus.waiting);
+  });
+
+  test('the slot spans its runs, out of source order', () {
+    final meetings = programmeToMeetings(
+      prog([
+        ProgrammeRace(id: 2, number: 2, placement: at(9, 20)),
+        ProgrammeRace(id: 1, number: 1, placement: at(9, 0)),
+      ]),
+      competitionName: 'Champ',
+    );
+    final slot = meetings.single.slots.single;
+    expect(slot.beginHour, DateTime(2026, 6, 13, 9, 0));
+    expect(slot.endHour, DateTime(2026, 6, 13, 9, 30));
+  });
+
+  test('races on different days produce one meeting each', () {
+    final meetings = programmeToMeetings(
+      prog([
+        ProgrammeRace(
+            id: 1,
+            number: 1,
+            placement: RacePlacement(
+                siteId: 1, beginHour: DateTime(2026, 6, 14, 9))),
+        ProgrammeRace(id: 2, number: 2, placement: at(9, 0)),
+      ]),
+      competitionName: 'Champ',
+    );
+    expect(meetings.length, 2);
+    expect(meetings.map((m) => m.date),
+        containsAll([DateTime(2026, 6, 13), DateTime(2026, 6, 14)]));
   });
 
   test('two races of the same level+day group under one slot', () {
@@ -1459,10 +1493,12 @@ void main() {
   });
 
   test("the meeting spans its races' earliest begin to latest end", () {
+    // Source order is REVERSED (latest-ending race first) so a positional
+    // first/last regression would fail — only a true min/max passes.
     final meetings = programmeToMeetings(
       prog([
-        ProgrammeRace(id: 1, number: 1, placement: at(9, 0)),
         ProgrammeRace(id: 2, number: 2, placement: at(9, 30, dur: 20)),
+        ProgrammeRace(id: 1, number: 1, placement: at(9, 0)),
       ]),
       competitionName: 'Champ',
     );
@@ -1518,6 +1554,7 @@ List<Meeting> programmeToMeetings(
           raceLabel: s.raceLabel,
           categoryLabel: s.categoryLabel,
           level: level,
+          spotsPerRace: s.spotsPerRace,
           raceLocalId: r.id,
           raceNumber: r.number,
           begin: placement.beginHour,
@@ -1584,11 +1621,16 @@ List<Meeting> programmeToMeetings(
           label: _roundName(level.type),
           fullLabel: _roundName(level.type),
           levelLabel: '',
-          level: _roundName(level.type),
+          // FFSS `level`/`niveau` carries the DISCIPLINE (côtier/eau-plate),
+          // not the round stage — the lean model has no discipline field, so
+          // leave it empty rather than pollute it with a round name (which the
+          // beach/swimming string-matching would then misclassify). The round
+          // stage lives in `label`/`fullLabel`/`order`.
+          level: '',
           numberOfRun: ofSlot.length,
           qualificationMethod: '',
           qualificationMethodLabel: '',
-          spotsPerRace: 0,
+          spotsPerRace: ofSlot.first.spotsPerRace,
           qualifyingSpots: level.qualifiersPerRace,
         ),
         runs: runs,
@@ -1622,6 +1664,9 @@ String _roundName(RoundType type) => switch (type) {
       RoundType.unknown => 'Round',
     };
 
+// Throwaway slot id from (structure raceId, level index). Assumes < 100
+// levels per structure (série/quart/demi/finale — always a handful); the real
+// FFSS sync reconciles these ids anyway.
 int _slotId((int, int) key) => key.$1 * 100 + key.$2;
 
 class _Placed {
@@ -1631,6 +1676,7 @@ class _Placed {
     required this.raceLabel,
     required this.categoryLabel,
     required this.level,
+    required this.spotsPerRace,
     required this.raceLocalId,
     required this.raceNumber,
     required this.begin,
@@ -1643,6 +1689,7 @@ class _Placed {
   final String raceLabel;
   final String categoryLabel;
   final RoundLevel level;
+  final int spotsPerRace;
   final int raceLocalId;
   final int raceNumber;
   final DateTime begin;
