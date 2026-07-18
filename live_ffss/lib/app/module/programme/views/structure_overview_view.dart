@@ -74,7 +74,7 @@ class _OverviewCard extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: Icon(Icons.chevron_right, color: AppColors.textMuted),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
       ),
     );
   }
