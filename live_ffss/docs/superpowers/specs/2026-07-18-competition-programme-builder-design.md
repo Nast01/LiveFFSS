@@ -49,138 +49,108 @@ The codebase was mapped before this design (see the exploration on the
 | Schedulable unit? | **The individual race** (one série, one quart, the finale) — default 10 min, editable. |
 | Athlete seeding / draw? | **Out of scope.** Structure + schedule only; races are empty containers. |
 | Sites? | **Defined once per competition** (name + type côtier/sable), reused each day. |
-| Data shape? | **Reuse the FFSS domain classes** (Meeting/Slot/Run/Heat/RaceFormatDetail), organised by time; the per-épreuve structure view is a derived pivot. |
+| Data shape? | **Lean authoring model** stored locally; the FFSS tree (Meeting/Slot/Run/RaceFormatDetail) is materialised from it by a 1:1 mapper at sync time, so it stays saveable to FFSS. |
 
 ## Architecture
 
-### The FFSS classes are the building blocks; the FFSS tree is the sync shape
+### Storage model = a lean authoring model
 
-Every substantive entity is a **reused FFSS domain class** — no FFSS class is
-forked. What each concept maps to:
-
-| Concept | FFSS class reused |
-|---|---|
-| Individual race + its placement (site, time) | `Run` (already has `site`, `beginTime`, `endTime`) |
-| Round-level's qualifiers / spots | `RaceFormatDetail` (the "partie": `level`, `order`, `qualifyingSpots`, `spotsPerRace`) |
-| Série identity | `Heat` |
-| Épreuve / category | `Race` / `Category` (referenced by id + denormalised label) |
-| Day | `Meeting` |
-| Day × round-level grouping | `Slot` (créneau) |
-
-The full FFSS tree — `Meeting → Slot(+RaceFormatDetail) → Run → Heat → Race`
-— is the shape the app **syncs to and serialises as**. But it is organised by
-*time*, and a race defined during authoring has no time yet, so the FFSS tree
-cannot be the primary on-device store. Instead:
-
-- **On-device storage is structure-oriented** (authoring-friendly), so an
-  unscheduled race simply has no placement.
-- **The FFSS time-tree (`Meeting → Slot → Run`) is derived** from the
-  scheduled races — for the day-schedule view and for sync. `Meeting`s
-  materialise per day that has scheduled races; `Slot`s per (day ×
-  round-level).
-
-The placement is not a separate type: it is the `Run`'s own `site`,
-`beginTime`, `endTime`, left empty until the race is scheduled. The operator
-picks `beginHour` and a duration (default 10 min); the app computes
-`endTime = beginHour + duration` and stores both, as `Run` already holds both.
-
-### Storage model (structure-oriented, authoring-friendly)
-
-Thin authoring containers group the reused FFSS classes:
-
-```
-EventStructure                       ← one per (épreuve × category) with rounds defined
-├─ int raceId, int categoryId
-├─ String raceLabel, categoryLabel   ← denormalised for offline display
-└─ List<RoundLevel> levels           ← ordered: série → quart → demi → finale
-
-RoundLevel
-├─ RoundType type
-├─ RaceFormatDetail formatDetail     ← FFSS class: qualifiers, spots per race, order
-└─ List<Run> races                   ← FFSS class: série 1, série 2… placement empty until scheduled
-                                        (each Run → its Heat for série identity)
-```
-
-`EventStructure` and `RoundLevel` are the only new *containers* — they hold
-FFSS classes, they do not replace them. This is the structure view made
-primary (it is authored first); the schedule is a set of placements on the
-`Run`s plus the derived `Meeting` tree.
-
-### New types (only what FFSS lacks)
-
-- `enum RoundType { serie, quart, demi, finale }` — shared, typed. It also
-  **replaces the `SlotController` string-matching** and closes the
-  `TODO(batch-6): typed enum`. A `RoundType` is derived from / written to
-  `RaceFormatDetail.level`.
-- `enum SiteType { cotier, sable }` — extensible; eau-plate later.
-- `ProgrammeSite { String id; String name; SiteType type }` — FFSS has no
-  site entity (`Run.site` is a free string); declared sites populate
-  `Run.site`.
-
-### Offline-first identity and the local sidecar
-
-Reusing the FFSS classes means their `int id` is a *server* id. Records
-authored offline have no server id yet, so:
-
-- **Authored records (`Run`, `Heat`, `RaceFormatDetail`) get temporary
-  negative `int` ids** (decreasing from `-1`). This keeps the FFSS classes
-  unchanged and keyed by `int id`. The derived `Meeting`/`Slot` records are
-  built at sync time and take their ids from the server response. Sync
-  assigns real (positive) ids and rewrites references. A negative id
-  therefore also *means* "not yet synced".
-- **A local sidecar** holds what has no home in the FFSS classes:
-  - `Map<int, List<int>> raceSources` — the opt1/opt2 wiring: for each race
-    (Run) at level N+1, the ids of the source races at level N. `opt2` = all
-    previous-level races; `opt1` = a chosen subset. Empty at the séries
-    level.
-  - Dirty tracking (which records need pushing) — derived from negative ids
-    plus an explicit set for edited synced records.
-
-### Root, persistence, sync
+The on-device store is a small, purpose-built model — **not** the FFSS
+classes. FFSS `Run`/`RaceFormatDetail` carry required fields (`Run.beginTime`,
+`status`, labels…) meant for races already scheduled and fetched from FFSS;
+authoring a race that has no time yet must not force sentinel values. So the
+store is lean, and the FFSS tree is built from it only at sync time (next
+section).
 
 ```
 CompetitionProgramme                 ← local root, one per competition
 ├─ int competitionId
-├─ List<ProgrammeSite> sites
-├─ List<EventStructure> structures   ← the authoring store (see Storage model)
-└─ sidecar: raceSources · dirty set  ← local-only metadata
+├─ int nextLocalId                   ← counter for local entity ids
+├─ List<ProgrammeSite> sites         ← declared once; the site editor is Plan B
+└─ List<EventStructure> structures
+
+ProgrammeSite { int id; String name; SiteType type }
+
+EventStructure                       ← rounds of one (épreuve × category)
+├─ int raceId, int categoryId        ← FFSS ids, referenced
+├─ String raceLabel, categoryLabel   ← denormalised for offline display
+├─ int spotsPerRace                  ← race size (default 8); drives the arithmetic
+└─ List<RoundLevel> levels           ← ordered: série → quart → demi → finale
+
+RoundLevel
+├─ RoundType type
+├─ int qualifiersPerRace             ← 0 = unset; metadata, no computation in v1
+└─ List<ProgrammeRace> races
+
+ProgrammeRace
+├─ int id                            ← local, from nextLocalId; stable
+├─ int number                        ← série 1 → 1
+├─ List<int> sourceRaceIds           ← opt1/opt2 wiring: ids of feeding races at level N-1
+└─ RacePlacement? placement          ← null = unscheduled (Plan B fills this)
+
+RacePlacement { int siteId; DateTime beginHour; int durationMinutes }
 ```
 
-The FFSS `Meeting → Slot → Run` tree is **not stored**; it is derived from
-the scheduled `Run`s at sync time.
+`endHour` is a computed getter (`beginHour + durationMinutes`) in a
+presentation extension — never stored, so it cannot drift from the duration.
 
-- **Persistence:** serialised to the **FFSS DTO JSON shape** (via the
-  existing DTOs' `toJson`) plus the sidecar, stored locally per competition.
-  Storage format == sync format — one representation. Backing store:
-  `flutter_secure_storage` keyed `programme_<competitionId>` (zero new deps,
-  matches how favorites/user persist). If a programme grows beyond a few tens
-  of KB in practice, swap the backing store for a file via `path_provider`;
-  the `ProgrammeService` interface does not change.
+Two new enums, both with an `unknown` arm per the project convention:
+`enum RoundType { serie, quart, demi, finale, unknown }` — the authoring round
+stage, **ours**, not read from any FFSS field — and
+`enum SiteType { cotier, sable, unknown }`.
+
+All of these are **pure freezed domain models** with generated
+`toJson`/`fromJson`. Local persistence writes the root's own JSON — no DTO
+mapping on the storage path.
+
+### FFSS is the sync target, built by a mapper
+
+The FFSS tree is what the app **syncs to**, materialised from the lean model
+when pushing — never stored:
+
+| Lean model | → FFSS class at sync |
+|---|---|
+| a scheduled `ProgrammeRace` + its `RacePlacement` | `Run` (`site`, `beginTime`, `endTime`) |
+| a `RoundLevel` (type + qualifiers/spots) | `RaceFormatDetail` (the "partie") |
+| the day of a placement | `Meeting` (réunion) |
+| a (day × round-level) group | `Slot` (créneau) |
+| `EventStructure.raceId/categoryId` | `Race` / `Category` (referenced) |
+
+The mapping is 1:1 by construction, so "saveable to FFSS" holds. The mapper,
+and the id reconciliation it needs, live behind the sync seam (below) and are
+**deferred** until FFSS documents the write endpoints — designing them
+precisely against undocumented endpoints would be speculative. Plan A builds
+the seam interface and its stub; not the mapper.
+
+### Persistence and sync seam
+
 - **`ProgrammeService`** (a `GetxService`, registered in `InitialBinding`
-  like `UserPreferencesService`): loads/saves the `CompetitionProgramme`,
-  exposes it reactively, and is the single source of truth on-device.
+  like `UserPreferencesService`): loads/saves the `CompetitionProgramme` for a
+  competition, exposes it reactively, allocates local ids from `nextLocalId`,
+  and is the single source of truth on-device. Backing store:
+  `flutter_secure_storage`, key `programme_<competitionId>`, the root's own
+  JSON (zero new deps, matches favorites/user). Swap to a file via
+  `path_provider` if a programme ever grows beyond a few tens of KB; the
+  service interface does not change.
 - **Sync** — `ProgrammeRepository → ProgrammeRemoteDataSource`, following the
-  `ResultRepository` seam pattern:
-  - Meetings push through the existing `MeetingRemoteDataSource`
-    (create/delete) — works today.
-  - Slots, runs and parties push through `ProgrammeRemoteDataSource` methods
-    that **throw `UnimplementedError`** until FFSS documents the endpoints.
-  - The local store is the source of truth until then; the feature is fully
-    functional offline. Full sync detail (id reconciliation, conflict
-    resolution) is **deferred** with the stub — designing it precisely
-    against undocumented endpoints would be speculative.
+  `ResultRepository` seam: meetings push through the existing
+  `MeetingRepository`; slots/runs/parties push through
+  `ProgrammeRemoteDataSource` methods that **throw `UnimplementedError`** until
+  FFSS documents the endpoints. The local store is the source of truth until
+  then; the feature is fully functional offline.
 
 ### Two projections over one store
 
-The structure store is primary and authored first. Both user-facing trees are
+The lean store is primary and authored first. Both user-facing trees are
 projections of it:
 
-- **The structure/bracket view** reads the store directly: `EventStructure →
-  RoundLevel → Run`.
-- **The schedule view and FFSS sync** derive the time-tree: take every `Run`
-  with a placement, group by day into `Meeting`s and by (day × round-level)
-  into `Slot`s. A race with no placement is simply absent from this
-  projection — it is the "unscheduled" set the scheduling palette draws from.
+- **The structure / bracket view** reads the store directly: `EventStructure →
+  RoundLevel → ProgrammeRace`.
+- **The schedule view and FFSS sync** take every `ProgrammeRace` with a
+  `placement`, group by day and by (day × round-level), and (for sync)
+  materialise the `Meeting → Slot → Run` tree. A race with `placement == null`
+  is simply absent — it is the "unscheduled" set the scheduling palette draws
+  from (Plan B).
 
 ### Module and entry point
 
@@ -348,11 +318,11 @@ of the bracket:
 - **Conflicts:** appending to the next free slot avoids them by
   construction; a manual time edit that overlaps another race **on the same
   site** raises a warning.
-- **Data:** placing a race = setting its `Run`'s `site` + `beginTime` +
-  `endTime`. Races of the same round-level on the same day are grouped under
-  one `Slot` (créneau) inside the day's `Meeting` — grouping done by the data
-  layer, invisible in the UI. Everything stays local, ready to push to FFSS
-  when the endpoints land.
+- **Data:** placing a race = setting its `ProgrammeRace.placement` (`siteId`,
+  `beginHour`, `durationMinutes`). At sync, races of the same round-level on
+  the same day materialise as one `Slot` (créneau) inside the day's `Meeting`
+  — grouping done by the sync mapper, invisible in the UI. Everything stays
+  local, ready to push to FFSS when the endpoints land.
 
 ## Controller discipline
 
@@ -369,17 +339,11 @@ Per CLAUDE.md — logic layers only, mocktail, no widget tests:
 
 - **Round arithmetic** (the pure default-generation and `ceil(entries /
   spotsPerRace)` logic): unit-tested directly.
-- **Structure pivot** (grouping Runs/Heats into the per-épreuve bracket
-  model): unit-tested.
-- **`ProgrammeService`** (load/save round-trip, temporary-id allocation,
-  sidecar wiring persistence): mock the storage, verify serialization and
-  reactive state.
+- **`ProgrammeService`** (load/save round-trip, local-id allocation, wiring
+  persistence): mock the storage, verify serialization and reactive state.
 - **Controllers** (structure editor, scheduler): mock `ProgrammeService` /
   repositories, verify state transitions — add/remove level, compute counts,
   set wiring, place race at next free slot, overlap warning.
-- **`RoundType` ↔ `RaceFormatDetail.level` mapping** and the `SlotController`
-  string-matching replacement: unit-tested, including the `unknown`/legacy
-  fallback.
 - No widget tests for the bracket / timeline; verify visually with
   `flutter run`.
 
@@ -387,15 +351,14 @@ Per CLAUDE.md — logic layers only, mocktail, no widget tests:
 
 Two implementation plans, each independently shippable and testable:
 
-1. **Plan A — Structure:** the data model + `ProgrammeService` + sync seam,
-   the `RoundType`/`SiteType` enums (and the `SlotController` replacement),
-   the two-tab shell + entry point, the structure overview (2A), the
-   structure editor (2B) with default generation and opt1/opt2 wiring, and
-   the read-only bracket.
+1. **Plan A — Structure:** the lean data model + `ProgrammeService` + sync
+   seam, the `RoundType`/`SiteType` enums, the two-tab shell + entry point,
+   the structure overview (2A), the structure editor (2B) with default
+   generation and opt1/opt2 wiring, and the read-only bracket.
 2. **Plan B — Scheduling:** the sites editor (3A), the per-day per-site
    timeline + unscheduled palette with tap-to-append (3B), the day overview
-   grid, duration/override, overlap warnings, and the `Run`
-   site/time placement wiring into the data model.
+   grid, duration/override, overlap warnings, filling each
+   `ProgrammeRace.placement`, and the FFSS `Meeting → Slot → Run` sync mapper.
 
 ## Out of scope
 
