@@ -276,8 +276,5 @@ final Map<String, String> enUS = {
   'add_race': 'Add a race',
   'schedule_overlap': 'Overlaps another race on this site',
   'min_short': 'min',
-  'day_overview': 'Day overview',
-  'duration': 'Duration',
   'no_placement_here': 'No race here',
-  'pick_time': 'Pick time',
 };

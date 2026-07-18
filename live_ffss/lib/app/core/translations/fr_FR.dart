@@ -276,8 +276,5 @@ final Map<String, String> frFR = {
   'add_race': 'Ajouter une course',
   'schedule_overlap': 'Chevauche une autre course sur ce site',
   'min_short': 'min',
-  'day_overview': 'Vue journée',
-  'duration': 'Durée',
   'no_placement_here': 'Aucune course ici',
-  'pick_time': "Choisir l'heure",
 };

@@ -87,13 +87,15 @@ class _DayBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 44,
-      child: Obx(() => ListView.separated(
+      child: Obx(() {
+        final selectedIndex = controller.selectedDayIndex.value;
+        return ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: AppSpacing.pageHorizontal,
             itemCount: controller.days.length,
             separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
             itemBuilder: (_, i) {
-              final active = controller.selectedDayIndex.value == i;
+              final active = selectedIndex == i;
               final day = controller.days[i];
               return GestureDetector(
                 onTap: () => controller.selectedDayIndex.value = i,
@@ -114,7 +116,8 @@ class _DayBar extends StatelessWidget {
                 ),
               );
             },
-          )),
+          );
+      }),
     );
   }
 }
@@ -179,14 +182,13 @@ class _PlacedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = item.placement!;
-    final label =
-        '${item.raceLabel} · ${item.categoryLabel} · ${item.roundType.labelKey.tr} ${item.number}';
     return Card(
       margin: EdgeInsets.zero,
       child: ListTile(
         leading: Text(FormatConst.timeFormat.format(p.beginHour),
             style: AppTypography.body),
-        title: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title:
+            Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Text(
             '${FormatConst.timeFormat.format(p.beginHour)}–${FormatConst.timeFormat.format(p.endHour)} · ${p.durationMinutes} ${'min_short'.tr}'),
         trailing: Row(
@@ -222,6 +224,8 @@ class _UnscheduledPalette extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final items = controller.unscheduled;
+      final siteId = controller.selectedSiteId.value;
+      final day = controller.selectedDay;
       return Container(
         constraints: const BoxConstraints(maxHeight: 160),
         color: AppColors.surface,
@@ -238,12 +242,10 @@ class _UnscheduledPalette extends StatelessWidget {
                 itemCount: items.length,
                 itemBuilder: (_, i) {
                   final item = items[i];
-                  final siteId = controller.selectedSiteId.value;
-                  final day = controller.selectedDay;
                   return ListTile(
                     dense: true,
                     title: Text(
-                      '${item.raceLabel} · ${item.categoryLabel} · ${item.roundType.labelKey.tr} ${item.number}',
+                      item.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

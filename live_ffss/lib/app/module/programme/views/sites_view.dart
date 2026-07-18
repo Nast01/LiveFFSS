@@ -107,7 +107,7 @@ class SitesView extends StatelessWidget {
                 }
                 Navigator.of(ctx).pop();
               },
-              child: Text('add_site'.tr),
+              child: Text(site == null ? 'add_site'.tr : 'save'.tr),
             ),
           ],
         ),
