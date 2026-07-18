@@ -4,10 +4,12 @@ import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
+import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 
 class StructureOverviewView extends GetView<ProgrammeController> {
   const StructureOverviewView({super.key});
@@ -60,8 +62,20 @@ class _OverviewCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: ListTile(
-        // Task 10 wires onTap to open the structure editor.
-        onTap: () {},
+        onTap: () => Get.toNamed<void>(
+          Routes.structureEditor,
+          arguments: StructureEditorArgs(
+            competitionId: Get.find<ProgrammeController>()
+                .competition
+                .value!
+                .id,
+            raceId: row.raceId,
+            categoryId: row.categoryId,
+            raceLabel: row.raceLabel,
+            categoryLabel: row.categoryLabel,
+            entryCount: row.entryCount,
+          ),
+        ),
         title: Text(
           '${row.raceLabel} · ${row.categoryLabel}',
           style: AppTypography.body,

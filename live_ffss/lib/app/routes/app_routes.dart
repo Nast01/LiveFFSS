@@ -12,5 +12,6 @@ abstract class Routes {
   static const program = '/program';
   static const slot = '/slot';
   static const programme = '/programme';
+  static const structureEditor = '/structure-editor';
   // Add other routes here
 }
