@@ -8,7 +8,8 @@ part of 'round_level.dart';
 
 _$RoundLevelImpl _$$RoundLevelImplFromJson(Map<String, dynamic> json) =>
     _$RoundLevelImpl(
-      type: $enumDecode(_$RoundTypeEnumMap, json['type']),
+      type: $enumDecode(_$RoundTypeEnumMap, json['type'],
+          unknownValue: RoundType.unknown),
       qualifiersPerRace: (json['qualifiersPerRace'] as num?)?.toInt() ?? 0,
       races: (json['races'] as List<dynamic>?)
               ?.map((e) => ProgrammeRace.fromJson(e as Map<String, dynamic>))

@@ -1,3 +1,4 @@
+// ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'programme_site.freezed.dart';
@@ -10,7 +11,7 @@ class ProgrammeSite with _$ProgrammeSite {
   const factory ProgrammeSite({
     required int id,
     required String name,
-    required SiteType type,
+    @JsonKey(unknownEnumValue: SiteType.unknown) required SiteType type,
   }) = _ProgrammeSite;
 
   factory ProgrammeSite.fromJson(Map<String, dynamic> json) =>

@@ -1,3 +1,4 @@
+// ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 
@@ -9,7 +10,7 @@ enum RoundType { serie, quart, demi, finale, unknown }
 @freezed
 class RoundLevel with _$RoundLevel {
   const factory RoundLevel({
-    required RoundType type,
+    @JsonKey(unknownEnumValue: RoundType.unknown) required RoundType type,
     // Operator metadata; drives no computation in v1 (no seeding).
     @Default(0) int qualifiersPerRace,
     @Default(<ProgrammeRace>[]) List<ProgrammeRace> races,

@@ -9,6 +9,13 @@ void main() {
       final json = site.toJson();
       expect(ProgrammeSite.fromJson(json), site);
     });
+
+    test('decodes an unrecognized type string to SiteType.unknown', () {
+      final site = ProgrammeSite.fromJson(
+        <String, dynamic>{'id': 1, 'name': 'x', 'type': 'kayak'},
+      );
+      expect(site.type, SiteType.unknown);
+    });
   });
 
   group('RacePlacement', () {

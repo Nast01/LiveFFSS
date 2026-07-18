@@ -20,6 +20,7 @@ RoundLevel _$RoundLevelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$RoundLevel {
+  @JsonKey(unknownEnumValue: RoundType.unknown)
   RoundType get type =>
       throw _privateConstructorUsedError; // Operator metadata; drives no computation in v1 (no seeding).
   int get qualifiersPerRace => throw _privateConstructorUsedError;
@@ -41,7 +42,10 @@ abstract class $RoundLevelCopyWith<$Res> {
           RoundLevel value, $Res Function(RoundLevel) then) =
       _$RoundLevelCopyWithImpl<$Res, RoundLevel>;
   @useResult
-  $Res call({RoundType type, int qualifiersPerRace, List<ProgrammeRace> races});
+  $Res call(
+      {@JsonKey(unknownEnumValue: RoundType.unknown) RoundType type,
+      int qualifiersPerRace,
+      List<ProgrammeRace> races});
 }
 
 /// @nodoc
@@ -88,7 +92,10 @@ abstract class _$$RoundLevelImplCopyWith<$Res>
       __$$RoundLevelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({RoundType type, int qualifiersPerRace, List<ProgrammeRace> races});
+  $Res call(
+      {@JsonKey(unknownEnumValue: RoundType.unknown) RoundType type,
+      int qualifiersPerRace,
+      List<ProgrammeRace> races});
 }
 
 /// @nodoc
@@ -129,7 +136,7 @@ class __$$RoundLevelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$RoundLevelImpl implements _RoundLevel {
   const _$RoundLevelImpl(
-      {required this.type,
+      {@JsonKey(unknownEnumValue: RoundType.unknown) required this.type,
       this.qualifiersPerRace = 0,
       final List<ProgrammeRace> races = const <ProgrammeRace>[]})
       : _races = races;
@@ -138,6 +145,7 @@ class _$RoundLevelImpl implements _RoundLevel {
       _$$RoundLevelImplFromJson(json);
 
   @override
+  @JsonKey(unknownEnumValue: RoundType.unknown)
   final RoundType type;
 // Operator metadata; drives no computation in v1 (no seeding).
   @override
@@ -191,7 +199,8 @@ class _$RoundLevelImpl implements _RoundLevel {
 
 abstract class _RoundLevel implements RoundLevel {
   const factory _RoundLevel(
-      {required final RoundType type,
+      {@JsonKey(unknownEnumValue: RoundType.unknown)
+      required final RoundType type,
       final int qualifiersPerRace,
       final List<ProgrammeRace> races}) = _$RoundLevelImpl;
 
@@ -199,6 +208,7 @@ abstract class _RoundLevel implements RoundLevel {
       _$RoundLevelImpl.fromJson;
 
   @override
+  @JsonKey(unknownEnumValue: RoundType.unknown)
   RoundType
       get type; // Operator metadata; drives no computation in v1 (no seeding).
   @override

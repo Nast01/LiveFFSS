@@ -69,4 +69,12 @@ void main() {
     expect(race.placement, isNull);
     expect(race.sourceRaceIds, isEmpty);
   });
+
+  test('RoundLevel decodes an unrecognized type string to RoundType.unknown',
+      () {
+    final level = RoundLevel.fromJson(
+      <String, dynamic>{'type': 'repechage', 'races': <dynamic>[]},
+    );
+    expect(level.type, RoundType.unknown);
+  });
 }

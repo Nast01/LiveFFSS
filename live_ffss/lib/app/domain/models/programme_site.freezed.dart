@@ -22,6 +22,7 @@ ProgrammeSite _$ProgrammeSiteFromJson(Map<String, dynamic> json) {
 mixin _$ProgrammeSite {
   int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
+  @JsonKey(unknownEnumValue: SiteType.unknown)
   SiteType get type => throw _privateConstructorUsedError;
 
   /// Serializes this ProgrammeSite to a JSON map.
@@ -40,7 +41,10 @@ abstract class $ProgrammeSiteCopyWith<$Res> {
           ProgrammeSite value, $Res Function(ProgrammeSite) then) =
       _$ProgrammeSiteCopyWithImpl<$Res, ProgrammeSite>;
   @useResult
-  $Res call({int id, String name, SiteType type});
+  $Res call(
+      {int id,
+      String name,
+      @JsonKey(unknownEnumValue: SiteType.unknown) SiteType type});
 }
 
 /// @nodoc
@@ -87,7 +91,10 @@ abstract class _$$ProgrammeSiteImplCopyWith<$Res>
       __$$ProgrammeSiteImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id, String name, SiteType type});
+  $Res call(
+      {int id,
+      String name,
+      @JsonKey(unknownEnumValue: SiteType.unknown) SiteType type});
 }
 
 /// @nodoc
@@ -128,7 +135,9 @@ class __$$ProgrammeSiteImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ProgrammeSiteImpl implements _ProgrammeSite {
   const _$ProgrammeSiteImpl(
-      {required this.id, required this.name, required this.type});
+      {required this.id,
+      required this.name,
+      @JsonKey(unknownEnumValue: SiteType.unknown) required this.type});
 
   factory _$ProgrammeSiteImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProgrammeSiteImplFromJson(json);
@@ -138,6 +147,7 @@ class _$ProgrammeSiteImpl implements _ProgrammeSite {
   @override
   final String name;
   @override
+  @JsonKey(unknownEnumValue: SiteType.unknown)
   final SiteType type;
 
   @override
@@ -179,6 +189,7 @@ abstract class _ProgrammeSite implements ProgrammeSite {
   const factory _ProgrammeSite(
       {required final int id,
       required final String name,
+      @JsonKey(unknownEnumValue: SiteType.unknown)
       required final SiteType type}) = _$ProgrammeSiteImpl;
 
   factory _ProgrammeSite.fromJson(Map<String, dynamic> json) =
@@ -189,6 +200,7 @@ abstract class _ProgrammeSite implements ProgrammeSite {
   @override
   String get name;
   @override
+  @JsonKey(unknownEnumValue: SiteType.unknown)
   SiteType get type;
 
   /// Create a copy of ProgrammeSite
