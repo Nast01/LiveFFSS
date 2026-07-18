@@ -3,6 +3,7 @@ import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 
 /// One line of the structure overview: an épreuve × category, its entry count,
@@ -40,6 +41,7 @@ class ProgrammeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    ever<CompetitionProgramme?>(_programme.current, (_) => _refreshStructures());
     final arg = Get.arguments;
     if (arg is Competition) {
       load(arg);
@@ -89,5 +91,23 @@ class ProgrammeController extends GetxController {
       if (s.raceId == raceId && s.categoryId == categoryId) return s;
     }
     return null;
+  }
+
+  /// Re-derives each row's `structure` from the current stored programme,
+  /// without refetching races/entries. Keeps the overview in sync after an
+  /// operator edits a structure elsewhere and returns.
+  void _refreshStructures() {
+    if (rows.isEmpty) return;
+    rows.value = [
+      for (final row in rows)
+        OverviewRow(
+          raceId: row.raceId,
+          categoryId: row.categoryId,
+          raceLabel: row.raceLabel,
+          categoryLabel: row.categoryLabel,
+          entryCount: row.entryCount,
+          structure: _structureFor(row.raceId, row.categoryId),
+        ),
+    ];
   }
 }

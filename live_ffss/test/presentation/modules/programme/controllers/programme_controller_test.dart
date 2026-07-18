@@ -7,7 +7,9 @@ import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/category.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
+import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
 import 'package:mocktail/mocktail.dart';
@@ -69,11 +71,16 @@ void main() {
     organizerClub: Club(id: 1, name: 'Club'),
   );
 
+  late _MockStorage storage;
+
   setUp(() {
     raceRepo = _MockRaceRepo();
-    final storage = _MockStorage();
+    storage = _MockStorage();
     when(() => storage.read(key: any(named: 'key')))
         .thenAnswer((_) async => null);
+    when(() => storage.write(
+        key: any(named: 'key'),
+        value: any(named: 'value'))).thenAnswer((_) async {});
     service = ProgrammeService(storage);
     controller = ProgrammeController(raceRepo, service);
   });
@@ -111,5 +118,36 @@ void main() {
   test('changeTab updates the tab index', () {
     controller.changeTab(1);
     expect(controller.currentTabIndex.value, 1);
+  });
+
+  test(
+      'rows are re-derived when the stored programme changes after load()',
+      () async {
+    when(() => raceRepo.getRaces(42))
+        .thenAnswer((_) async => [race(100, '100m', [cadets])]);
+    when(() => raceRepo.getEntries(100))
+        .thenAnswer((_) async => [entry(1, 100, cadets)]);
+
+    // onInit() registers the ever() worker that watches the stored
+    // programme; production code relies on GetX's Get.put to trigger it.
+    controller.onInit();
+    await controller.load(competition);
+    expect(controller.rows.single.structure, isNull);
+
+    const structure = EventStructure(
+      raceId: 100,
+      categoryId: 7,
+      raceLabel: '100m',
+      categoryLabel: 'Cadets',
+    );
+    await service.save(
+      const CompetitionProgramme(competitionId: 42, structures: [structure]),
+    );
+
+    expect(controller.rows.single.structure, isNotNull);
+    expect(controller.rows.single.structure!.raceId, 100);
+    // Everything else on the row is preserved, not refetched.
+    expect(controller.rows.single.entryCount, 1);
+    expect(controller.rows.single.raceLabel, '100m');
   });
 }
