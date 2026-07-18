@@ -215,6 +215,7 @@ class _AthleteRow extends GetView<RfidWriterController> {
 
   @override
   Widget build(BuildContext context) {
+    final club = athlete.club?.name;
     return Card(
       margin: EdgeInsets.zero,
       child: ListTile(
@@ -222,19 +223,21 @@ class _AthleteRow extends GetView<RfidWriterController> {
         title: Text(
           '${athlete.lastName} ${athlete.firstName}',
           style: AppTypography.body,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         // The licence number is what goes on the chip: showing it is how a
-        // volunteer notices they picked the wrong athlete.
-        subtitle: Text(athlete.licenseeNumber, style: AppTypography.caption),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (athlete.club != null)
-              Text(athlete.club!.name, style: AppTypography.caption),
-            const SizedBox(width: AppSpacing.xs),
-            const Icon(Icons.chevron_right),
-          ],
+        // volunteer notices they picked the wrong athlete. The club name rides
+        // in the subtitle rather than `trailing`: a variable-length Text in the
+        // trailing slot overflows and leaves the whole ListTile unsized on a
+        // narrow screen or with a long club name.
+        subtitle: Text(
+          club == null ? athlete.licenseeNumber : '${athlete.licenseeNumber} · $club',
+          style: AppTypography.caption,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
+        trailing: const Icon(Icons.chevron_right),
       ),
     );
   }
