@@ -27,5 +27,5 @@ Map<String, dynamic> _$$EventStructureImplToJson(
       'raceLabel': instance.raceLabel,
       'categoryLabel': instance.categoryLabel,
       'spotsPerRace': instance.spotsPerRace,
-      'levels': instance.levels.map((e) => e.toJson()).toList(),
+      'levels': instance.levels,
     };

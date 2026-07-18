@@ -20,7 +20,7 @@ Map<String, dynamic> _$$RoundLevelImplToJson(_$RoundLevelImpl instance) =>
     <String, dynamic>{
       'type': _$RoundTypeEnumMap[instance.type]!,
       'qualifiersPerRace': instance.qualifiersPerRace,
-      'races': instance.races.map((e) => e.toJson()).toList(),
+      'races': instance.races,
     };
 
 const _$RoundTypeEnumMap = {

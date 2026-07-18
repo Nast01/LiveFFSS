@@ -26,6 +26,6 @@ Map<String, dynamic> _$$CompetitionProgrammeImplToJson(
     <String, dynamic>{
       'competitionId': instance.competitionId,
       'nextLocalId': instance.nextLocalId,
-      'sites': instance.sites.map((e) => e.toJson()).toList(),
-      'structures': instance.structures.map((e) => e.toJson()).toList(),
+      'sites': instance.sites,
+      'structures': instance.structures,
     };

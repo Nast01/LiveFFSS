@@ -16,6 +16,8 @@
 - **Codegen:** after creating/editing a freezed file, run
   `C:\Users\nast0\dev\flutter_windows_3.22.2-stable\flutter\bin\dart.bat run build_runner build --delete-conflicting-outputs`. Commit the generated `.freezed.dart`/`.g.dart` alongside the source (they are treated as source here).
 - **Analyzer is strict:** `strict-casts: true`, `strict-raw-types: true`. No `dynamic` coercions.
+- **Never hand-edit a generated `.freezed.dart`/`.g.dart`** — build_runner overwrites it. If a round-trip needs work, fix the model or the test, not the generated file.
+- **`explicit_to_json` is false** (no `build.yaml`): `toJson()` leaves nested freezed objects as raw objects; `jsonEncode` serialises them recursively. A model round-trip test must go through the JSON string — `fromJson(jsonDecode(jsonEncode(x.toJson())))` — not a bare `fromJson(x.toJson())`, which fails on nested objects. This matches how `ProgrammeService` persists.
 - **Freezed idiom:** file starts with imports, then `part '<name>.freezed.dart';` then `part '<name>.g.dart';`; `@freezed class X with _$X { const factory X({...}) = _X; factory X.fromJson(Map<String, dynamic> json) => _$XFromJson(json); }`. Enums are bare `enum X { ..., unknown }` at file top, `unknown` last.
 - **Domain models carry no `@JsonKey`** (French keys live only on DTOs). These new models are pure domain.
 - **Controller discipline (enforced by review):** no `Get.snackbar` / `Get.dialog` / `.tr` / `Get.context!` / `BuildContext` params in controllers; user feedback via `Rxn<UiMessage>`; constructor injection only, never `Get.find()` in a controller body; catch `AppException`, never raw `Exception`.
@@ -179,6 +181,8 @@ git commit -m "feat(programme): add ProgrammeSite and RacePlacement models"
 Create `test/data/models/competition_programme_test.dart`:
 
 ```dart
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
@@ -226,7 +230,16 @@ void main() {
   );
 
   test('round-trips the full tree through JSON', () {
-    expect(CompetitionProgramme.fromJson(programme.toJson()), programme);
+    // This project has no build.yaml, so json_serializable runs with
+    // explicit_to_json:false: toJson() leaves nested freezed objects as-is,
+    // and jsonEncode recursively serialises them. This mirrors how
+    // ProgrammeService actually persists (jsonEncode(toJson()) →
+    // jsonDecode → fromJson) — round-tripping through the JSON string is the
+    // real path, not a bare fromJson(toJson()).
+    final restored = CompetitionProgramme.fromJson(
+      jsonDecode(jsonEncode(programme.toJson())) as Map<String, dynamic>,
+    );
+    expect(restored, programme);
   });
 
   test('defaults: empty programme has nextLocalId 1 and no structures', () {

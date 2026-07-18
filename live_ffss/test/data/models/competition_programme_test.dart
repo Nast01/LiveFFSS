@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
@@ -17,10 +19,10 @@ void main() {
         categoryLabel: 'Cadets',
         spotsPerRace: 8,
         levels: [
-          RoundLevel(
+          const RoundLevel(
             type: RoundType.serie,
             qualifiersPerRace: 2,
-            races: const [
+            races: [
               ProgrammeRace(id: 1, number: 1),
               ProgrammeRace(id: 2, number: 2),
             ],
@@ -45,7 +47,14 @@ void main() {
   );
 
   test('round-trips the full tree through JSON', () {
-    expect(CompetitionProgramme.fromJson(programme.toJson()), programme);
+    // explicit_to_json is false (no build.yaml): toJson() leaves nested
+    // freezed objects as-is; jsonEncode serialises them recursively. This
+    // mirrors how ProgrammeService persists (jsonEncode(toJson()) →
+    // jsonDecode → fromJson), which is the real round-trip path.
+    final restored = CompetitionProgramme.fromJson(
+      jsonDecode(jsonEncode(programme.toJson())) as Map<String, dynamic>,
+    );
+    expect(restored, programme);
   });
 
   test('defaults: empty programme has nextLocalId 1 and no structures', () {

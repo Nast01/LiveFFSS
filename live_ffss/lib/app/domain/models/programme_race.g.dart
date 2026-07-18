@@ -24,5 +24,5 @@ Map<String, dynamic> _$$ProgrammeRaceImplToJson(_$ProgrammeRaceImpl instance) =>
       'id': instance.id,
       'number': instance.number,
       'sourceRaceIds': instance.sourceRaceIds,
-      'placement': instance.placement?.toJson(),
+      'placement': instance.placement,
     };
