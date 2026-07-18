@@ -257,8 +257,6 @@ final Map<String, String> frFR = {
   'propose_structure': 'Proposer une structure',
   'generate_default_all': 'Générer une structure par défaut (tout)',
   'view_bracket': 'Voir le bracket',
-  'all_to_all': 'toutes → toutes',
-  'customize': 'personnaliser',
   'round_serie': 'Séries',
   'round_quart': 'Quarts',
   'round_demi': 'Demies',

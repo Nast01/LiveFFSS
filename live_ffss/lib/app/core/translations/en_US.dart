@@ -257,8 +257,6 @@ final Map<String, String> enUS = {
   'propose_structure': 'Propose a structure',
   'generate_default_all': 'Generate a default structure (all)',
   'view_bracket': 'View bracket',
-  'all_to_all': 'all → all',
-  'customize': 'customize',
   'round_serie': 'Heats',
   'round_quart': 'Quarters',
   'round_demi': 'Semis',
