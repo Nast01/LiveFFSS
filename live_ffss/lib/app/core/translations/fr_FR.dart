@@ -283,4 +283,5 @@ final Map<String, String> frFR = {
   'edit_item': 'Modifier',
   'no_programme': 'Programme non défini',
   'results_coming_soon': 'Résultats à venir',
+  'no_structure_defined': 'Structure non définie',
 };

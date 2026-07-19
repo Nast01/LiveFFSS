@@ -283,4 +283,5 @@ final Map<String, String> enUS = {
   'edit_item': 'Edit',
   'no_programme': 'No programme defined',
   'results_coming_soon': 'Results coming soon',
+  'no_structure_defined': 'No structure defined',
 };
