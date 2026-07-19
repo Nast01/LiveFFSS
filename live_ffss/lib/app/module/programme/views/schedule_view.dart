@@ -319,8 +319,6 @@ class _Timeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      // Depend on the programme so reflows rebuild; rowsFor reads current.
-      controller.selectedSiteId.value;
       final rows = controller.rowsFor(siteId, day);
       if (rows.isEmpty) {
         return EmptyState(icon: Icons.schedule, title: 'no_placement_here'.tr);

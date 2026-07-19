@@ -21,17 +21,20 @@ class ScheduleController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _worker = ever<CompetitionProgramme?>(_programme.current, (_) {
-      if (selectedSiteId.value == null && sites.isNotEmpty) {
-        selectedSiteId.value = sites.first.id;
-      }
-    });
+    _worker = ever<CompetitionProgramme?>(_programme.current, (_) => _ensureValidSite());
   }
 
   @override
   void onClose() {
     _worker?.dispose();
     super.onClose();
+  }
+
+  void _ensureValidSite() {
+    final ids = sites.map((s) => s.id).toSet();
+    if (selectedSiteId.value == null || !ids.contains(selectedSiteId.value)) {
+      selectedSiteId.value = sites.isEmpty ? null : sites.first.id;
+    }
   }
 
   CompetitionProgramme? get _p => _programme.current.value;
@@ -47,9 +50,7 @@ class ScheduleController extends GetxController {
     competition.value = comp;
     days.value = planner.competitionDays(comp?.beginDate, comp?.endDate);
     selectedDayIndex.value = 0;
-    if (selectedSiteId.value == null && sites.isNotEmpty) {
-      selectedSiteId.value = sites.first.id;
-    }
+    _ensureValidSite();
   }
 
   List<planner.ScheduleRow> rowsFor(int siteId, DateTime day) {

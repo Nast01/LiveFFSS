@@ -114,6 +114,9 @@ List<Meeting> programmeToMeetings(
           label: _roundName(ref.level.type),
           fullLabel: _roundName(ref.level.type),
           levelLabel: '',
+          // FFSS `level`/`niveau` carries the DISCIPLINE (côtier/eau-plate),
+          // not the round stage — leave it empty; the round stage lives in
+          // `label`/`fullLabel`/`order`.
           level: '',
           numberOfRun: ofSlot.length,
           qualificationMethod: '',

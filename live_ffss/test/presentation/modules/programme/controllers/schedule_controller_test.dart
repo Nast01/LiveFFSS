@@ -135,4 +135,48 @@ void main() {
     await controller.setDayStart(1, day, 8 * 60 + 30);
     expect(controller.rowsFor(1, day).single.begin, DateTime(2026, 6, 13, 8, 30));
   });
+
+  group('site deletion reconciliation', () {
+    CompetitionProgramme seedTwoSites() => const CompetitionProgramme(
+          competitionId: 42,
+          nextLocalId: 100,
+          sites: [
+            ProgrammeSite(id: 1, name: 'Côtier 1', type: SiteType.cotier),
+            ProgrammeSite(id: 2, name: 'Côtier 2', type: SiteType.cotier),
+          ],
+        );
+
+    test('deleting the selected site reselects the first remaining site',
+        () async {
+      await service.save(seedTwoSites());
+      controller = ScheduleController(service);
+      controller.onInit();
+      controller.setCompetition(withDates);
+      expect(controller.selectedSiteId.value, 1);
+
+      await service.save(service.current.value!.copyWith(
+        sites: const [
+          ProgrammeSite(id: 2, name: 'Côtier 2', type: SiteType.cotier),
+        ],
+      ));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.selectedSiteId.value, 2);
+    });
+
+    test('deleting the last site clears the selection', () async {
+      await service.save(seed());
+      controller = ScheduleController(service);
+      controller.onInit();
+      controller.setCompetition(withDates);
+      expect(controller.selectedSiteId.value, 1);
+
+      await service.save(
+        service.current.value!.copyWith(sites: const []),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.selectedSiteId.value, null);
+    });
+  });
 }

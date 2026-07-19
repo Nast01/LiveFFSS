@@ -55,7 +55,7 @@ void main() {
     expect(p.sites, isEmpty);
   });
 
-  test('an unscheduled race has a null placement', () {
+  test('an unscheduled race carries its source race ids', () {
     const race = ProgrammeRace(id: 1, number: 1);
     expect(race.sourceRaceIds, isEmpty);
   });
