@@ -7,45 +7,62 @@ import 'package:live_ffss/app/domain/models/run.dart';
 import 'package:live_ffss/app/domain/models/schedule_planner.dart';
 import 'package:live_ffss/app/domain/models/slot.dart';
 
-/// Materialises the lean authoring model into the FFSS `Meeting → Slot → Run`
-/// tree — the shape FFSS expects on write. Pure and deterministic; the actual
-/// network push waits on the FFSS créneau/course endpoints (see the stubbed
-/// `ProgrammeRemoteDataSource`). Only scheduled races (with a placement)
-/// appear: one Meeting per day, one Slot per (day × round-level), one Run per
-/// race. Ids are the authoring local ids; the real sync will reconcile them.
+/// Materialises the block schedule into the FFSS `Meeting → Slot → Run` tree.
+/// Pure and deterministic; the network push waits on the FFSS créneau/course
+/// endpoints (see the stubbed `ProgrammeRemoteDataSource`). Only **race**
+/// blocks appear — manual items have no FFSS course equivalent and are
+/// omitted. One Meeting per day, one Slot per (structure raceId × level index),
+/// one Run per race block, times derived from the block sequence.
 List<Meeting> programmeToMeetings(
   CompetitionProgramme p, {
   required String competitionName,
 }) {
-  // Collect (structure, level, race, placement) for every scheduled race.
-  final scheduled = <_Placed>[];
+  // Index every race → (structure, level, level index) for label/format lookup.
+  final index = <int, _RaceRef>{};
   for (final s in p.structures) {
     for (var li = 0; li < s.levels.length; li++) {
       final level = s.levels[li];
       for (final r in level.races) {
-        final placement = r.placement;
-        if (placement == null) continue;
-        scheduled.add(_Placed(
+        index[r.id] = _RaceRef(
           structureRaceId: s.raceId,
-          structureLevelIndex: li,
+          levelIndex: li,
+          level: level,
           raceLabel: s.raceLabel,
           categoryLabel: s.categoryLabel,
-          level: level,
           spotsPerRace: s.spotsPerRace,
-          raceLocalId: r.id,
           raceNumber: r.number,
-          begin: placement.beginHour,
-          end: placementEnd(placement),
-          site: placement.siteId,
-        ));
+        );
       }
     }
   }
-  if (scheduled.isEmpty) return const [];
 
-  // Group by day.
+  // Derive begin/end for every race block, grouped by day.
+  final siteDays = <(int, DateTime)>[];
+  for (final b in p.blocks) {
+    final key = (b.siteId, DateTime(b.day.year, b.day.month, b.day.day));
+    if (!siteDays.contains(key)) siteDays.add(key);
+  }
+
+  final placed = <_Placed>[];
+  for (final key in siteDays) {
+    for (final row in scheduleRows(p, key.$1, key.$2)) {
+      final raceId = row.block.raceId;
+      if (raceId == null) continue; // skip manual blocks
+      final ref = index[raceId];
+      if (ref == null) continue;
+      placed.add(_Placed(
+        ref: ref,
+        raceLocalId: raceId,
+        site: key.$1,
+        begin: row.begin,
+        end: row.end,
+      ));
+    }
+  }
+  if (placed.isEmpty) return const [];
+
   final days = <DateTime>[];
-  for (final pl in scheduled) {
+  for (final pl in placed) {
     final day = DateTime(pl.begin.year, pl.begin.month, pl.begin.day);
     if (!days.any((d) => sameDay(d, day))) days.add(day);
   }
@@ -53,12 +70,11 @@ List<Meeting> programmeToMeetings(
 
   final meetings = <Meeting>[];
   for (final day in days) {
-    final ofDay = scheduled.where((pl) => sameDay(pl.begin, day)).toList();
+    final ofDay = placed.where((pl) => sameDay(pl.begin, day)).toList();
 
-    // Group the day's races by (structure raceId × level index) → one Slot.
     final slotKeys = <(int, int)>[];
     for (final pl in ofDay) {
-      final key = (pl.structureRaceId, pl.structureLevelIndex);
+      final key = (pl.ref.structureRaceId, pl.ref.levelIndex);
       if (!slotKeys.contains(key)) slotKeys.add(key);
     }
 
@@ -66,49 +82,44 @@ List<Meeting> programmeToMeetings(
     for (final key in slotKeys) {
       final ofSlot = ofDay
           .where((pl) =>
-              pl.structureRaceId == key.$1 &&
-              pl.structureLevelIndex == key.$2)
+              pl.ref.structureRaceId == key.$1 && pl.ref.levelIndex == key.$2)
           .toList()
         ..sort((a, b) => a.begin.compareTo(b.begin));
-      final level = ofSlot.first.level;
+      final ref = ofSlot.first.ref;
       final runs = [
         for (final pl in ofSlot)
           Run(
             id: pl.raceLocalId,
-            name: '${_roundName(level.type)} ${pl.raceNumber}',
-            label: '${pl.raceLabel} · ${pl.categoryLabel}',
+            name: '${_roundName(pl.ref.level.type)} ${pl.ref.raceNumber}',
+            label: '${pl.ref.raceLabel} · ${pl.ref.categoryLabel}',
             fullLabel:
-                '${pl.raceLabel} · ${pl.categoryLabel} · ${_roundName(level.type)} ${pl.raceNumber}',
+                '${pl.ref.raceLabel} · ${pl.ref.categoryLabel} · ${_roundName(pl.ref.level.type)} ${pl.ref.raceNumber}',
             status: RunStatus.waiting,
             statusLabel: '',
             site: pl.site.toString(),
             beginTime: pl.begin,
             endTime: pl.end,
-            heat: Heat(number: pl.raceNumber),
+            heat: Heat(number: pl.ref.raceNumber),
           ),
       ];
       slots.add(Slot(
         id: _slotId(key),
-        name: '${ofSlot.first.raceLabel} · ${_roundName(level.type)}',
+        name: '${ref.raceLabel} · ${_roundName(ref.level.type)}',
         beginHour: runs.first.beginTime,
-        endHour: runs.map((r) => r.endTime).reduce((a, b) => a.isAfter(b) ? a : b),
+        endHour:
+            runs.map((r) => r.endTime).reduce((a, b) => a.isAfter(b) ? a : b),
         raceFormatDetail: RaceFormatDetail(
           id: _slotId(key),
           order: key.$2,
-          label: _roundName(level.type),
-          fullLabel: _roundName(level.type),
+          label: _roundName(ref.level.type),
+          fullLabel: _roundName(ref.level.type),
           levelLabel: '',
-          // FFSS `level`/`niveau` carries the DISCIPLINE (côtier/eau-plate),
-          // not the round stage — the lean model has no discipline field, so
-          // leave it empty rather than pollute it with a round name (which the
-          // beach/swimming string-matching would then misclassify). The round
-          // stage lives in `label`/`fullLabel`/`order`.
           level: '',
           numberOfRun: ofSlot.length,
           qualificationMethod: '',
           qualificationMethodLabel: '',
-          spotsPerRace: ofSlot.first.spotsPerRace,
-          qualifyingSpots: level.qualifiersPerRace,
+          spotsPerRace: ref.spotsPerRace,
+          qualifyingSpots: ref.level.qualifiersPerRace,
         ),
         runs: runs,
       ));
@@ -131,8 +142,6 @@ List<Meeting> programmeToMeetings(
   return meetings;
 }
 
-/// A non-localised round name for the FFSS labels (the FFSS side stores plain
-/// strings; this is not shown in-app, so it is not translated).
 String _roundName(RoundType type) => switch (type) {
       RoundType.serie => 'Series',
       RoundType.quart => 'Quarter',
@@ -141,35 +150,40 @@ String _roundName(RoundType type) => switch (type) {
       RoundType.unknown => 'Round',
     };
 
-// Throwaway slot id from (structure raceId, level index). Assumes < 100
-// levels per structure (série/quart/demi/finale — always a handful); the real
-// FFSS sync reconciles these ids anyway.
+// Throwaway slot id from (structure raceId, level index). Assumes < 100 levels
+// per structure; the real FFSS sync reconciles these ids anyway.
 int _slotId((int, int) key) => key.$1 * 100 + key.$2;
+
+class _RaceRef {
+  _RaceRef({
+    required this.structureRaceId,
+    required this.levelIndex,
+    required this.level,
+    required this.raceLabel,
+    required this.categoryLabel,
+    required this.spotsPerRace,
+    required this.raceNumber,
+  });
+  final int structureRaceId;
+  final int levelIndex;
+  final RoundLevel level;
+  final String raceLabel;
+  final String categoryLabel;
+  final int spotsPerRace;
+  final int raceNumber;
+}
 
 class _Placed {
   _Placed({
-    required this.structureRaceId,
-    required this.structureLevelIndex,
-    required this.raceLabel,
-    required this.categoryLabel,
-    required this.level,
-    required this.spotsPerRace,
+    required this.ref,
     required this.raceLocalId,
-    required this.raceNumber,
+    required this.site,
     required this.begin,
     required this.end,
-    required this.site,
   });
-
-  final int structureRaceId;
-  final int structureLevelIndex;
-  final String raceLabel;
-  final String categoryLabel;
-  final RoundLevel level;
-  final int spotsPerRace;
+  final _RaceRef ref;
   final int raceLocalId;
-  final int raceNumber;
+  final int site;
   final DateTime begin;
   final DateTime end;
-  final int site;
 }

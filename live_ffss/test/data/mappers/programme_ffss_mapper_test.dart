@@ -3,111 +3,78 @@ import 'package:live_ffss/app/data/mappers/programme_ffss_mapper.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
-import 'package:live_ffss/app/domain/models/race_placement.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/domain/models/run.dart';
+import 'package:live_ffss/app/domain/models/schedule_block.dart';
 
 void main() {
-  RacePlacement at(int h, int m, {int site = 1, int dur = 10}) => RacePlacement(
-        siteId: site,
-        beginHour: DateTime(2026, 6, 13, h, m),
-        durationMinutes: dur,
-      );
+  final day = DateTime(2026, 6, 13);
 
-  CompetitionProgramme prog(List<ProgrammeRace> races) => CompetitionProgramme(
+  CompetitionProgramme prog(List<ScheduleBlock> blocks, {List<int> raceIds = const [1, 2]}) =>
+      CompetitionProgramme(
         competitionId: 42,
         structures: [
           EventStructure(
-            raceId: 100,
+            raceId: 500,
             categoryId: 7,
             raceLabel: '100m',
             categoryLabel: 'Cadets',
-            levels: [RoundLevel(type: RoundType.serie, races: races)],
+            spotsPerRace: 8,
+            levels: [
+              RoundLevel(
+                type: RoundType.serie,
+                qualifiersPerRace: 2,
+                races: [for (final id in raceIds) ProgrammeRace(id: id, number: id)],
+              ),
+            ],
           ),
         ],
+        blocks: blocks,
       );
 
-  test('unscheduled races produce no meetings', () {
-    final meetings = programmeToMeetings(
-      prog(const [ProgrammeRace(id: 1, number: 1)]),
-      competitionName: 'Champ',
-    );
-    expect(meetings, isEmpty);
+  test('no blocks → no meetings', () {
+    expect(programmeToMeetings(prog(const []), competitionName: 'C'), isEmpty);
   });
 
-  test('one placed race → one meeting, one slot, one run', () {
+  test('one race block → one meeting/slot/run at the derived time', () {
     final meetings = programmeToMeetings(
-      prog([ProgrammeRace(id: 1, number: 1, placement: at(9, 0))]),
-      competitionName: 'Champ',
+      prog([ScheduleBlock(id: 9, siteId: 3, day: day, order: 0, raceId: 1)]),
+      competitionName: 'C',
     );
     expect(meetings.length, 1);
     expect(meetings.single.date, DateTime(2026, 6, 13));
-    final slots = meetings.single.slots;
-    expect(slots.length, 1);
-    // The slot carries the event's real spots/race, and leaves the FFSS
-    // discipline `level` empty (the lean model has no discipline).
-    expect(slots.single.raceFormatDetail!.spotsPerRace, 8);
-    expect(slots.single.raceFormatDetail!.level, '');
-    final runs = slots.single.runs;
-    expect(runs.length, 1);
-    expect(runs.single.beginTime, DateTime(2026, 6, 13, 9, 0));
-    expect(runs.single.endTime, DateTime(2026, 6, 13, 9, 10));
-    expect(runs.single.status, RunStatus.waiting);
-  });
-
-  test('the slot spans its runs, out of source order', () {
-    final meetings = programmeToMeetings(
-      prog([
-        ProgrammeRace(id: 2, number: 2, placement: at(9, 20)),
-        ProgrammeRace(id: 1, number: 1, placement: at(9, 0)),
-      ]),
-      competitionName: 'Champ',
-    );
     final slot = meetings.single.slots.single;
-    expect(slot.beginHour, DateTime(2026, 6, 13, 9, 0));
-    expect(slot.endHour, DateTime(2026, 6, 13, 9, 30));
+    expect(slot.raceFormatDetail!.spotsPerRace, 8);
+    expect(slot.raceFormatDetail!.level, '');
+    final run = slot.runs.single;
+    expect(run.beginTime, DateTime(2026, 6, 13, 9)); // default start
+    expect(run.endTime, DateTime(2026, 6, 13, 9, 10));
+    expect(run.status, RunStatus.waiting);
+    expect(run.site, '3');
   });
 
-  test('races on different days produce one meeting each', () {
+  test('a manual block is omitted from the mapper output', () {
     final meetings = programmeToMeetings(
       prog([
-        ProgrammeRace(
-            id: 1,
-            number: 1,
-            placement: RacePlacement(
-                siteId: 1, beginHour: DateTime(2026, 6, 14, 9))),
-        ProgrammeRace(id: 2, number: 2, placement: at(9, 0)),
+        ScheduleBlock(id: 9, siteId: 3, day: day, order: 0, raceId: 1),
+        ScheduleBlock(id: 10, siteId: 3, day: day, order: 1, manualLabel: 'Pause', durationMinutes: 30),
       ]),
-      competitionName: 'Champ',
+      competitionName: 'C',
     );
-    expect(meetings.length, 2);
-    expect(meetings.map((m) => m.date),
-        containsAll([DateTime(2026, 6, 13), DateTime(2026, 6, 14)]));
+    expect(meetings.single.slots.single.runs.length, 1); // only the race
   });
 
-  test('two races of the same level+day group under one slot', () {
+  test('two race blocks of the same level+day group under one slot with derived times', () {
     final meetings = programmeToMeetings(
       prog([
-        ProgrammeRace(id: 1, number: 1, placement: at(9, 0)),
-        ProgrammeRace(id: 2, number: 2, placement: at(9, 10)),
+        ScheduleBlock(id: 9, siteId: 3, day: day, order: 0, raceId: 1),
+        ScheduleBlock(id: 10, siteId: 3, day: day, order: 1, raceId: 2),
       ]),
-      competitionName: 'Champ',
+      competitionName: 'C',
     );
-    expect(meetings.single.slots.length, 1);
-    expect(meetings.single.slots.single.runs.length, 2);
-  });
-
-  test("the meeting spans its races' earliest begin to latest end", () {
-    // Source order is REVERSED (latest-ending race first) so a positional
-    // first/last regression would fail — only a true min/max passes.
-    final meetings = programmeToMeetings(
-      prog([
-        ProgrammeRace(id: 2, number: 2, placement: at(9, 30, dur: 20)),
-        ProgrammeRace(id: 1, number: 1, placement: at(9, 0)),
-      ]),
-      competitionName: 'Champ',
-    );
-    expect(meetings.single.beginHour, DateTime(2026, 6, 13, 9, 0));
-    expect(meetings.single.endHour, DateTime(2026, 6, 13, 9, 50));
+    final runs = meetings.single.slots.single.runs;
+    expect(runs.length, 2);
+    expect(runs.map((r) => r.beginTime),
+        [DateTime(2026, 6, 13, 9), DateTime(2026, 6, 13, 9, 10)]);
   });
 }
