@@ -1,15 +1,14 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
+import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
-import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/programme_site.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/programme/controllers/schedule_controller.dart';
-import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockStorage extends Mock implements FlutterSecureStorage {}
@@ -24,7 +23,6 @@ void main() {
   const competition = Competition(
     id: 42,
     name: 'Championnat',
-    beginDate: null,
     statusCode: 0,
     statusLabel: '',
     speciality: 1,
@@ -47,13 +45,15 @@ void main() {
     beginDate: DateTime(2026, 6, 13),
     endDate: DateTime(2026, 6, 14),
   );
+  final day = DateTime(2026, 6, 13);
 
   CompetitionProgramme seed() => const CompetitionProgramme(
         competitionId: 42,
+        nextLocalId: 100,
         sites: [ProgrammeSite(id: 1, name: 'Côtier 1', type: SiteType.cotier)],
         structures: [
           EventStructure(
-            raceId: 100,
+            raceId: 500,
             categoryId: 7,
             raceLabel: '100m',
             categoryLabel: 'Cadets',
@@ -69,76 +69,70 @@ void main() {
 
   setUp(() async {
     storage = _MockStorage();
-    when(() => storage.read(key: any(named: 'key')))
-        .thenAnswer((_) async => null);
-    when(() => storage.write(
-        key: any(named: 'key'),
-        value: any(named: 'value'))).thenAnswer((_) async {});
+    when(() => storage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
+    when(() => storage.write(key: any(named: 'key'), value: any(named: 'value')))
+        .thenAnswer((_) async {});
     service = ProgrammeService(storage);
     await service.save(seed());
     controller = ScheduleController(service);
+    controller.setCompetition(withDates);
   });
 
-  test('setCompetition derives the day list and defaults the site', () {
-    controller.setCompetition(withDates);
+  test('setCompetition derives days and defaults the site', () {
     expect(controller.days, [DateTime(2026, 6, 13), DateTime(2026, 6, 14)]);
     expect(controller.selectedSiteId.value, 1);
   });
 
-  test('unscheduled lists races with no placement', () {
-    controller.setCompetition(withDates);
+  test('unscheduled lists races with no block', () {
     expect(controller.unscheduled.map((i) => i.raceId), [10, 11]);
   });
 
-  test('place puts a race at the day start, then the next appends after it',
-      () async {
-    controller.setCompetition(withDates);
-    final day = DateTime(2026, 6, 13);
-
-    await controller.place(10, 1, day);
-    await controller.place(11, 1, day);
-
-    final placed = controller.placedOn(1, day);
-    expect(placed.map((i) => i.raceId), [10, 11]);
-    expect(placed[0].placement!.beginHour, DateTime(2026, 6, 13, 9));
-    expect(placed[1].placement!.beginHour, DateTime(2026, 6, 13, 9, 10));
+  test('addRace appends a race block; the next appends after it', () async {
+    await controller.addRace(10, 1, day);
+    await controller.addRace(11, 1, day);
+    final rows = controller.rowsFor(1, day);
+    expect(rows.map((r) => r.block.raceId), [10, 11]);
+    expect(rows[0].begin, DateTime(2026, 6, 13, 9));
+    expect(rows[1].begin, DateTime(2026, 6, 13, 9, 10));
     expect(controller.unscheduled, isEmpty);
   });
 
-  test('unschedule returns a race to the palette', () async {
-    controller.setCompetition(withDates);
-    final day = DateTime(2026, 6, 13);
-    await controller.place(10, 1, day);
+  test('addManual inserts a manual block into the sequence', () async {
+    await controller.addRace(10, 1, day);
+    await controller.addManual('Pause', 30, 1, day);
+    final rows = controller.rowsFor(1, day);
+    expect(rows[1].block.manualLabel, 'Pause');
+    expect(rows[1].begin, DateTime(2026, 6, 13, 9, 10));
+  });
 
-    await controller.unschedule(10);
+  test('reorder moves a block and reflows times', () async {
+    await controller.addRace(10, 1, day);
+    await controller.addRace(11, 1, day);
+    await controller.reorder(1, day, 1, 0);
+    final rows = controller.rowsFor(1, day);
+    expect(rows.map((r) => r.block.raceId), [11, 10]);
+    expect(rows[0].begin, DateTime(2026, 6, 13, 9));
+  });
 
-    expect(controller.placedOn(1, day), isEmpty);
+  test('setDuration reflows following blocks', () async {
+    await controller.addRace(10, 1, day);
+    await controller.addRace(11, 1, day);
+    final firstBlockId = controller.rowsFor(1, day).first.block.id;
+    await controller.setDuration(firstBlockId, 20);
+    expect(controller.rowsFor(1, day)[1].begin, DateTime(2026, 6, 13, 9, 20));
+  });
+
+  test('removeBlock on a race returns it to the palette', () async {
+    await controller.addRace(10, 1, day);
+    final blockId = controller.rowsFor(1, day).single.block.id;
+    await controller.removeBlock(blockId);
+    expect(controller.rowsFor(1, day), isEmpty);
     expect(controller.unscheduled.map((i) => i.raceId), contains(10));
   });
 
-  test('setDuration extending into the next race is rejected with a message',
-      () async {
-    controller.setCompetition(withDates);
-    final day = DateTime(2026, 6, 13);
-    await controller.place(10, 1, day); // 09:00-09:10
-    await controller.place(11, 1, day); // 09:10-09:20
-
-    await controller.setDuration(10, 20); // would run 09:00-09:20, overlapping 11
-
-    // rejected: duration unchanged, error message set
-    final r10 = controller.placedOn(1, day).firstWhere((i) => i.raceId == 10);
-    expect(r10.placement!.durationMinutes, 10);
-    expect(controller.message.value, isA<UiMessageError>());
-  });
-
-  test('setDuration with no conflict applies', () async {
-    controller.setCompetition(withDates);
-    final day = DateTime(2026, 6, 13);
-    await controller.place(10, 1, day);
-
-    await controller.setDuration(10, 15);
-
-    final r10 = controller.placedOn(1, day).single;
-    expect(r10.placement!.durationMinutes, 15);
+  test('setDayStart shifts all derived times', () async {
+    await controller.addRace(10, 1, day);
+    await controller.setDayStart(1, day, 8 * 60 + 30);
+    expect(controller.rowsFor(1, day).single.begin, DateTime(2026, 6, 13, 8, 30));
   });
 }

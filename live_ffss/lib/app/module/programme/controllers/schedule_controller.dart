@@ -3,9 +3,7 @@ import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/programme_site.dart';
-import 'package:live_ffss/app/domain/models/race_placement.dart';
-import 'package:live_ffss/app/domain/models/schedule_planner.dart';
-import 'package:live_ffss/app/presentation/shared/ui_message.dart';
+import 'package:live_ffss/app/domain/models/schedule_planner.dart' as planner;
 
 class ScheduleController extends GetxController {
   ScheduleController(this._programme);
@@ -16,14 +14,12 @@ class ScheduleController extends GetxController {
   final RxList<DateTime> days = <DateTime>[].obs;
   final RxInt selectedDayIndex = 0.obs;
   final Rxn<int> selectedSiteId = Rxn<int>();
-  final Rxn<UiMessage> message = Rxn<UiMessage>();
 
   Worker? _worker;
 
   @override
   void onInit() {
     super.onInit();
-    // Default the selected site once sites exist / change.
     _worker = ever<CompetitionProgramme?>(_programme.current, (_) {
       if (selectedSiteId.value == null && sites.isNotEmpty) {
         selectedSiteId.value = sites.first.id;
@@ -41,84 +37,79 @@ class ScheduleController extends GetxController {
 
   List<ProgrammeSite> get sites => _p?.sites ?? const [];
 
-  DateTime? get selectedDay =>
-      days.isEmpty ? null : days[selectedDayIndex.value.clamp(0, days.length - 1)];
+  DateTime? get selectedDay => days.isEmpty
+      ? null
+      : days[selectedDayIndex.value.clamp(0, days.length - 1)];
 
-  /// Idempotent: recomputes the day list from the competition's dates and
-  /// defaults the selected site. Safe to call on every rebuild.
   void setCompetition(Competition? comp) {
     if (comp == competition.value) return;
     competition.value = comp;
-    days.value = competitionDays(comp?.beginDate, comp?.endDate);
+    days.value = planner.competitionDays(comp?.beginDate, comp?.endDate);
     selectedDayIndex.value = 0;
     if (selectedSiteId.value == null && sites.isNotEmpty) {
       selectedSiteId.value = sites.first.id;
     }
   }
 
-  List<ScheduleItem> get unscheduled {
+  List<planner.ScheduleRow> rowsFor(int siteId, DateTime day) {
     final p = _p;
-    if (p == null) return const [];
-    final items = allScheduleItems(p).where((i) => i.placement == null).toList()
-      ..sort((a, b) {
-        final byLabel = a.raceLabel.compareTo(b.raceLabel);
-        if (byLabel != 0) return byLabel;
-        return a.number.compareTo(b.number);
-      });
-    return items;
+    return p == null ? const [] : planner.scheduleRows(p, siteId, day);
   }
 
-  List<ScheduleItem> placedOn(int siteId, DateTime day) {
+  List<planner.ScheduleItem> get unscheduled {
     final p = _p;
-    if (p == null) return const [];
-    final items = allScheduleItems(p)
-        .where((i) =>
-            i.placement != null &&
-            i.placement!.siteId == siteId &&
-            sameDay(i.placement!.beginHour, day))
-        .toList()
-      ..sort((a, b) => a.placement!.beginHour.compareTo(b.placement!.beginHour));
-    return items;
+    return p == null ? const [] : planner.unscheduledRaces(p);
   }
 
-  Future<void> place(int raceId, int siteId, DateTime day) async {
+  int startMinutesFor(int siteId, DateTime day) {
+    final p = _p;
+    return p == null ? planner.defaultStartMinutes : planner.dayStartMinutes(p, siteId, day);
+  }
+
+  Future<void> addRace(int raceId, int siteId, DateTime day) async {
+    if (_p == null) return;
+    final id = _programme.allocateId();
+    await _programme.save(planner.addRaceBlock(_programme.current.value!, id, raceId, siteId, day));
+  }
+
+  Future<void> addManual(String label, int minutes, int siteId, DateTime day) async {
+    final trimmed = label.trim();
+    if (trimmed.isEmpty || minutes < 1 || _p == null) return;
+    final id = _programme.allocateId();
+    await _programme.save(
+        planner.addManualBlock(_programme.current.value!, id, trimmed, minutes, siteId, day));
+  }
+
+  Future<void> reorder(int siteId, DateTime day, int oldIndex, int newIndex) async {
     final p = _p;
     if (p == null) return;
-    final existing = placedOn(siteId, day).map((i) => i.placement!).toList();
-    final start = nextFreeStart(day: day, onSiteDay: existing);
-    await _programme.save(setPlacement(
-      p,
-      raceId,
-      RacePlacement(siteId: siteId, beginHour: start),
-    ));
+    await _programme.save(planner.reorderBlocks(p, siteId, day, oldIndex, newIndex));
   }
 
-  Future<void> setDuration(int raceId, int minutes) async {
+  Future<void> setDuration(int blockId, int minutes) async {
     if (minutes < 1) return;
     final p = _p;
     if (p == null) return;
-    RacePlacement? current;
-    for (final i in allScheduleItems(p)) {
-      if (i.raceId == raceId) {
-        current = i.placement;
-        break;
-      }
-    }
-    if (current == null) return;
-    final candidate = current.copyWith(durationMinutes: minutes);
-    final others = placedOn(current.siteId, current.beginHour)
-        .where((i) => i.raceId != raceId)
-        .map((i) => i.placement!);
-    if (overlaps(candidate: candidate, others: others)) {
-      message.value = const UiMessageError('schedule_overlap');
-      return;
-    }
-    await _programme.save(setPlacement(p, raceId, candidate));
+    await _programme.save(planner.setBlockDuration(p, blockId, minutes));
   }
 
-  Future<void> unschedule(int raceId) async {
+  Future<void> setManualLabel(int blockId, String label) async {
+    final trimmed = label.trim();
+    if (trimmed.isEmpty) return;
     final p = _p;
     if (p == null) return;
-    await _programme.save(setPlacement(p, raceId, null));
+    await _programme.save(planner.setManualLabel(p, blockId, trimmed));
+  }
+
+  Future<void> removeBlock(int blockId) async {
+    final p = _p;
+    if (p == null) return;
+    await _programme.save(planner.removeBlock(p, blockId));
+  }
+
+  Future<void> setDayStart(int siteId, DateTime day, int minutes) async {
+    final p = _p;
+    if (p == null) return;
+    await _programme.save(planner.setDayStart(p, siteId, day, minutes));
   }
 }
