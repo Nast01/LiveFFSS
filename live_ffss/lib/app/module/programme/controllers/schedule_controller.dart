@@ -117,35 +117,13 @@ class ScheduleController extends GetxController {
 
   planner.ScheduleItem? scheduleItemFor(int raceId) {
     final p = _p;
-    if (p == null) return null;
-    for (final s in p.structures) {
-      for (final l in s.levels) {
-        for (final r in l.races) {
-          if (r.id == raceId) {
-            return planner.ScheduleItem(
-              raceId: r.id,
-              raceLabel: s.raceLabel,
-              categoryLabel: s.categoryLabel,
-              roundType: l.type,
-              number: r.number,
-            );
-          }
-        }
-      }
-    }
-    return null;
+    return p == null ? null : planner.raceItemFor(p, raceId);
   }
 
   RoundType roundOf(int raceId) {
     final p = _p;
-    if (p == null) return RoundType.unknown;
-    for (final s in p.structures) {
-      for (final l in s.levels) {
-        for (final r in l.races) {
-          if (r.id == raceId) return l.type;
-        }
-      }
-    }
-    return RoundType.unknown;
+    return p == null
+        ? RoundType.unknown
+        : (planner.raceItemFor(p, raceId)?.roundType ?? RoundType.unknown);
   }
 }

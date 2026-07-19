@@ -106,6 +106,41 @@ List<ScheduleItem> unscheduledRaces(CompetitionProgramme p) {
   return items;
 }
 
+/// The [ScheduleItem] (label / round / number) for a scheduled race, found by
+/// its [ProgrammeRace] id. Null if [raceId] is not a race in any structure.
+ScheduleItem? raceItemFor(CompetitionProgramme p, int raceId) {
+  for (final s in p.structures) {
+    for (final l in s.levels) {
+      for (final r in l.races) {
+        if (r.id == raceId) {
+          return ScheduleItem(
+            raceId: r.id,
+            raceLabel: s.raceLabel,
+            categoryLabel: s.categoryLabel,
+            roundType: l.type,
+            number: r.number,
+          );
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/// The owning [EventStructure.raceId] — the FFSS `Race.id` — for a
+/// [ProgrammeRace] id, so a scheduled block can be bridged to a domain race.
+/// Null if [blockRaceId] is not found.
+int? structureRaceIdFor(CompetitionProgramme p, int blockRaceId) {
+  for (final s in p.structures) {
+    for (final l in s.levels) {
+      for (final r in l.races) {
+        if (r.id == blockRaceId) return s.raceId;
+      }
+    }
+  }
+  return null;
+}
+
 int _nextOrder(CompetitionProgramme p, int siteId, DateTime day) {
   var max = -1;
   for (final b in p.blocks) {
