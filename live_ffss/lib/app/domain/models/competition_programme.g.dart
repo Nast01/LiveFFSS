@@ -19,6 +19,14 @@ _$CompetitionProgrammeImpl _$$CompetitionProgrammeImplFromJson(
               ?.map((e) => EventStructure.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const <EventStructure>[],
+      blocks: (json['blocks'] as List<dynamic>?)
+              ?.map((e) => ScheduleBlock.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <ScheduleBlock>[],
+      dayStarts: (json['dayStarts'] as List<dynamic>?)
+              ?.map((e) => SiteDayStart.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <SiteDayStart>[],
     );
 
 Map<String, dynamic> _$$CompetitionProgrammeImplToJson(
@@ -28,4 +36,6 @@ Map<String, dynamic> _$$CompetitionProgrammeImplToJson(
       'nextLocalId': instance.nextLocalId,
       'sites': instance.sites,
       'structures': instance.structures,
+      'blocks': instance.blocks,
+      'dayStarts': instance.dayStarts,
     };

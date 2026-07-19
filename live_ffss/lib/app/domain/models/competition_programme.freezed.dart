@@ -25,6 +25,8 @@ mixin _$CompetitionProgramme {
   int get nextLocalId => throw _privateConstructorUsedError;
   List<ProgrammeSite> get sites => throw _privateConstructorUsedError;
   List<EventStructure> get structures => throw _privateConstructorUsedError;
+  List<ScheduleBlock> get blocks => throw _privateConstructorUsedError;
+  List<SiteDayStart> get dayStarts => throw _privateConstructorUsedError;
 
   /// Serializes this CompetitionProgramme to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -46,7 +48,9 @@ abstract class $CompetitionProgrammeCopyWith<$Res> {
       {int competitionId,
       int nextLocalId,
       List<ProgrammeSite> sites,
-      List<EventStructure> structures});
+      List<EventStructure> structures,
+      List<ScheduleBlock> blocks,
+      List<SiteDayStart> dayStarts});
 }
 
 /// @nodoc
@@ -69,6 +73,8 @@ class _$CompetitionProgrammeCopyWithImpl<$Res,
     Object? nextLocalId = null,
     Object? sites = null,
     Object? structures = null,
+    Object? blocks = null,
+    Object? dayStarts = null,
   }) {
     return _then(_value.copyWith(
       competitionId: null == competitionId
@@ -87,6 +93,14 @@ class _$CompetitionProgrammeCopyWithImpl<$Res,
           ? _value.structures
           : structures // ignore: cast_nullable_to_non_nullable
               as List<EventStructure>,
+      blocks: null == blocks
+          ? _value.blocks
+          : blocks // ignore: cast_nullable_to_non_nullable
+              as List<ScheduleBlock>,
+      dayStarts: null == dayStarts
+          ? _value.dayStarts
+          : dayStarts // ignore: cast_nullable_to_non_nullable
+              as List<SiteDayStart>,
     ) as $Val);
   }
 }
@@ -103,7 +117,9 @@ abstract class _$$CompetitionProgrammeImplCopyWith<$Res>
       {int competitionId,
       int nextLocalId,
       List<ProgrammeSite> sites,
-      List<EventStructure> structures});
+      List<EventStructure> structures,
+      List<ScheduleBlock> blocks,
+      List<SiteDayStart> dayStarts});
 }
 
 /// @nodoc
@@ -123,6 +139,8 @@ class __$$CompetitionProgrammeImplCopyWithImpl<$Res>
     Object? nextLocalId = null,
     Object? sites = null,
     Object? structures = null,
+    Object? blocks = null,
+    Object? dayStarts = null,
   }) {
     return _then(_$CompetitionProgrammeImpl(
       competitionId: null == competitionId
@@ -141,6 +159,14 @@ class __$$CompetitionProgrammeImplCopyWithImpl<$Res>
           ? _value._structures
           : structures // ignore: cast_nullable_to_non_nullable
               as List<EventStructure>,
+      blocks: null == blocks
+          ? _value._blocks
+          : blocks // ignore: cast_nullable_to_non_nullable
+              as List<ScheduleBlock>,
+      dayStarts: null == dayStarts
+          ? _value._dayStarts
+          : dayStarts // ignore: cast_nullable_to_non_nullable
+              as List<SiteDayStart>,
     ));
   }
 }
@@ -152,9 +178,13 @@ class _$CompetitionProgrammeImpl implements _CompetitionProgramme {
       {required this.competitionId,
       this.nextLocalId = 1,
       final List<ProgrammeSite> sites = const <ProgrammeSite>[],
-      final List<EventStructure> structures = const <EventStructure>[]})
+      final List<EventStructure> structures = const <EventStructure>[],
+      final List<ScheduleBlock> blocks = const <ScheduleBlock>[],
+      final List<SiteDayStart> dayStarts = const <SiteDayStart>[]})
       : _sites = sites,
-        _structures = structures;
+        _structures = structures,
+        _blocks = blocks,
+        _dayStarts = dayStarts;
 
   factory _$CompetitionProgrammeImpl.fromJson(Map<String, dynamic> json) =>
       _$$CompetitionProgrammeImplFromJson(json);
@@ -183,9 +213,27 @@ class _$CompetitionProgrammeImpl implements _CompetitionProgramme {
     return EqualUnmodifiableListView(_structures);
   }
 
+  final List<ScheduleBlock> _blocks;
+  @override
+  @JsonKey()
+  List<ScheduleBlock> get blocks {
+    if (_blocks is EqualUnmodifiableListView) return _blocks;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_blocks);
+  }
+
+  final List<SiteDayStart> _dayStarts;
+  @override
+  @JsonKey()
+  List<SiteDayStart> get dayStarts {
+    if (_dayStarts is EqualUnmodifiableListView) return _dayStarts;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_dayStarts);
+  }
+
   @override
   String toString() {
-    return 'CompetitionProgramme(competitionId: $competitionId, nextLocalId: $nextLocalId, sites: $sites, structures: $structures)';
+    return 'CompetitionProgramme(competitionId: $competitionId, nextLocalId: $nextLocalId, sites: $sites, structures: $structures, blocks: $blocks, dayStarts: $dayStarts)';
   }
 
   @override
@@ -199,7 +247,10 @@ class _$CompetitionProgrammeImpl implements _CompetitionProgramme {
                 other.nextLocalId == nextLocalId) &&
             const DeepCollectionEquality().equals(other._sites, _sites) &&
             const DeepCollectionEquality()
-                .equals(other._structures, _structures));
+                .equals(other._structures, _structures) &&
+            const DeepCollectionEquality().equals(other._blocks, _blocks) &&
+            const DeepCollectionEquality()
+                .equals(other._dayStarts, _dayStarts));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -209,7 +260,9 @@ class _$CompetitionProgrammeImpl implements _CompetitionProgramme {
       competitionId,
       nextLocalId,
       const DeepCollectionEquality().hash(_sites),
-      const DeepCollectionEquality().hash(_structures));
+      const DeepCollectionEquality().hash(_structures),
+      const DeepCollectionEquality().hash(_blocks),
+      const DeepCollectionEquality().hash(_dayStarts));
 
   /// Create a copy of CompetitionProgramme
   /// with the given fields replaced by the non-null parameter values.
@@ -234,7 +287,9 @@ abstract class _CompetitionProgramme implements CompetitionProgramme {
       {required final int competitionId,
       final int nextLocalId,
       final List<ProgrammeSite> sites,
-      final List<EventStructure> structures}) = _$CompetitionProgrammeImpl;
+      final List<EventStructure> structures,
+      final List<ScheduleBlock> blocks,
+      final List<SiteDayStart> dayStarts}) = _$CompetitionProgrammeImpl;
 
   factory _CompetitionProgramme.fromJson(Map<String, dynamic> json) =
       _$CompetitionProgrammeImpl.fromJson;
@@ -247,6 +302,10 @@ abstract class _CompetitionProgramme implements CompetitionProgramme {
   List<ProgrammeSite> get sites;
   @override
   List<EventStructure> get structures;
+  @override
+  List<ScheduleBlock> get blocks;
+  @override
+  List<SiteDayStart> get dayStarts;
 
   /// Create a copy of CompetitionProgramme
   /// with the given fields replaced by the non-null parameter values.
