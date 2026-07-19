@@ -3,6 +3,7 @@ import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/programme_site.dart';
+import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/domain/models/schedule_planner.dart' as planner;
 
 class ScheduleController extends GetxController {
@@ -111,5 +112,39 @@ class ScheduleController extends GetxController {
     final p = _p;
     if (p == null) return;
     await _programme.save(planner.setDayStart(p, siteId, day, minutes));
+  }
+
+  planner.ScheduleItem? scheduleItemFor(int raceId) {
+    final p = _p;
+    if (p == null) return null;
+    for (final s in p.structures) {
+      for (final l in s.levels) {
+        for (final r in l.races) {
+          if (r.id == raceId) {
+            return planner.ScheduleItem(
+              raceId: r.id,
+              raceLabel: s.raceLabel,
+              categoryLabel: s.categoryLabel,
+              roundType: l.type,
+              number: r.number,
+            );
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  RoundType roundOf(int raceId) {
+    final p = _p;
+    if (p == null) return RoundType.unknown;
+    for (final s in p.structures) {
+      for (final l in s.levels) {
+        for (final r in l.races) {
+          if (r.id == raceId) return l.type;
+        }
+      }
+    }
+    return RoundType.unknown;
   }
 }

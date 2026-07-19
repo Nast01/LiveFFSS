@@ -274,7 +274,11 @@ final Map<String, String> frFR = {
   'no_days': 'Dates de compétition inconnues',
   'unscheduled': 'Non planifiées',
   'add_race': 'Ajouter une course',
-  'schedule_overlap': 'Chevauche une autre course sur ce site',
   'min_short': 'min',
   'no_placement_here': 'Aucune course ici',
+  'add_manual_item': 'Ajouter un item',
+  'manual_label': 'Libellé',
+  'duration_min': 'Durée (min)',
+  'starts_at': 'Départ',
+  'edit_item': 'Modifier',
 };

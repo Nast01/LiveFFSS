@@ -274,7 +274,11 @@ final Map<String, String> enUS = {
   'no_days': 'Competition dates unknown',
   'unscheduled': 'Unscheduled',
   'add_race': 'Add a race',
-  'schedule_overlap': 'Overlaps another race on this site',
   'min_short': 'min',
   'no_placement_here': 'No race here',
+  'add_manual_item': 'Add an item',
+  'manual_label': 'Label',
+  'duration_min': 'Duration (min)',
+  'starts_at': 'Starts',
+  'edit_item': 'Edit',
 };
