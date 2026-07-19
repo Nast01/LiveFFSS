@@ -14,9 +14,6 @@ _$ProgrammeRaceImpl _$$ProgrammeRaceImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => (e as num).toInt())
               .toList() ??
           const <int>[],
-      placement: json['placement'] == null
-          ? null
-          : RacePlacement.fromJson(json['placement'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$ProgrammeRaceImplToJson(_$ProgrammeRaceImpl instance) =>
@@ -24,5 +21,4 @@ Map<String, dynamic> _$$ProgrammeRaceImplToJson(_$ProgrammeRaceImpl instance) =>
       'id': instance.id,
       'number': instance.number,
       'sourceRaceIds': instance.sourceRaceIds,
-      'placement': instance.placement,
     };

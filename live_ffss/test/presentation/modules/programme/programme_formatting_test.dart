@@ -1,19 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
-import 'package:live_ffss/app/domain/models/race_placement.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 
 void main() {
-  test('endHour is beginHour plus the duration', () {
-    final p = RacePlacement(
-      siteId: 1,
-      beginHour: DateTime(2026, 6, 13, 9),
-      durationMinutes: 10,
-    );
-    expect(p.endHour, DateTime(2026, 6, 13, 9, 10));
-  });
-
   test('RoundType.labelKey maps each arm to a translation key', () {
     expect(RoundType.serie.labelKey, 'round_serie');
     expect(RoundType.quart.labelKey, 'round_quart');

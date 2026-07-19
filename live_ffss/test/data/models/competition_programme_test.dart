@@ -4,11 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
-import 'package:live_ffss/app/domain/models/race_placement.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 
 void main() {
-  final programme = CompetitionProgramme(
+  const programme = CompetitionProgramme(
     competitionId: 42,
     nextLocalId: 5,
     structures: [
@@ -19,7 +18,7 @@ void main() {
         categoryLabel: 'Cadets',
         spotsPerRace: 8,
         levels: [
-          const RoundLevel(
+          RoundLevel(
             type: RoundType.serie,
             qualifiersPerRace: 2,
             races: [
@@ -30,15 +29,7 @@ void main() {
           RoundLevel(
             type: RoundType.finale,
             races: [
-              ProgrammeRace(
-                id: 3,
-                number: 1,
-                sourceRaceIds: const [1, 2],
-                placement: RacePlacement(
-                  siteId: 9,
-                  beginHour: DateTime(2026, 6, 13, 9, 30),
-                ),
-              ),
+              ProgrammeRace(id: 3, number: 1, sourceRaceIds: [1, 2]),
             ],
           ),
         ],
@@ -66,7 +57,6 @@ void main() {
 
   test('an unscheduled race has a null placement', () {
     const race = ProgrammeRace(id: 1, number: 1);
-    expect(race.placement, isNull);
     expect(race.sourceRaceIds, isEmpty);
   });
 

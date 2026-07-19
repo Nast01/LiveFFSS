@@ -24,9 +24,7 @@ mixin _$ProgrammeRace {
   int get number =>
       throw _privateConstructorUsedError; // opt1/opt2 wiring: ids of the feeding races at the previous level.
 // Empty at the séries level and for opt2-with-no-selection.
-  List<int> get sourceRaceIds =>
-      throw _privateConstructorUsedError; // null until the race is scheduled (Plan B fills this).
-  RacePlacement? get placement => throw _privateConstructorUsedError;
+  List<int> get sourceRaceIds => throw _privateConstructorUsedError;
 
   /// Serializes this ProgrammeRace to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -44,10 +42,7 @@ abstract class $ProgrammeRaceCopyWith<$Res> {
           ProgrammeRace value, $Res Function(ProgrammeRace) then) =
       _$ProgrammeRaceCopyWithImpl<$Res, ProgrammeRace>;
   @useResult
-  $Res call(
-      {int id, int number, List<int> sourceRaceIds, RacePlacement? placement});
-
-  $RacePlacementCopyWith<$Res>? get placement;
+  $Res call({int id, int number, List<int> sourceRaceIds});
 }
 
 /// @nodoc
@@ -68,7 +63,6 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
     Object? id = null,
     Object? number = null,
     Object? sourceRaceIds = null,
-    Object? placement = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -83,25 +77,7 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
           ? _value.sourceRaceIds
           : sourceRaceIds // ignore: cast_nullable_to_non_nullable
               as List<int>,
-      placement: freezed == placement
-          ? _value.placement
-          : placement // ignore: cast_nullable_to_non_nullable
-              as RacePlacement?,
     ) as $Val);
-  }
-
-  /// Create a copy of ProgrammeRace
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $RacePlacementCopyWith<$Res>? get placement {
-    if (_value.placement == null) {
-      return null;
-    }
-
-    return $RacePlacementCopyWith<$Res>(_value.placement!, (value) {
-      return _then(_value.copyWith(placement: value) as $Val);
-    });
   }
 }
 
@@ -113,11 +89,7 @@ abstract class _$$ProgrammeRaceImplCopyWith<$Res>
       __$$ProgrammeRaceImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {int id, int number, List<int> sourceRaceIds, RacePlacement? placement});
-
-  @override
-  $RacePlacementCopyWith<$Res>? get placement;
+  $Res call({int id, int number, List<int> sourceRaceIds});
 }
 
 /// @nodoc
@@ -136,7 +108,6 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
     Object? id = null,
     Object? number = null,
     Object? sourceRaceIds = null,
-    Object? placement = freezed,
   }) {
     return _then(_$ProgrammeRaceImpl(
       id: null == id
@@ -151,10 +122,6 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
           ? _value._sourceRaceIds
           : sourceRaceIds // ignore: cast_nullable_to_non_nullable
               as List<int>,
-      placement: freezed == placement
-          ? _value.placement
-          : placement // ignore: cast_nullable_to_non_nullable
-              as RacePlacement?,
     ));
   }
 }
@@ -165,8 +132,7 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
   const _$ProgrammeRaceImpl(
       {required this.id,
       required this.number,
-      final List<int> sourceRaceIds = const <int>[],
-      this.placement})
+      final List<int> sourceRaceIds = const <int>[]})
       : _sourceRaceIds = sourceRaceIds;
 
   factory _$ProgrammeRaceImpl.fromJson(Map<String, dynamic> json) =>
@@ -189,13 +155,9 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
     return EqualUnmodifiableListView(_sourceRaceIds);
   }
 
-// null until the race is scheduled (Plan B fills this).
-  @override
-  final RacePlacement? placement;
-
   @override
   String toString() {
-    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds, placement: $placement)';
+    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds)';
   }
 
   @override
@@ -206,15 +168,13 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.number, number) || other.number == number) &&
             const DeepCollectionEquality()
-                .equals(other._sourceRaceIds, _sourceRaceIds) &&
-            (identical(other.placement, placement) ||
-                other.placement == placement));
+                .equals(other._sourceRaceIds, _sourceRaceIds));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, number,
-      const DeepCollectionEquality().hash(_sourceRaceIds), placement);
+      const DeepCollectionEquality().hash(_sourceRaceIds));
 
   /// Create a copy of ProgrammeRace
   /// with the given fields replaced by the non-null parameter values.
@@ -236,8 +196,7 @@ abstract class _ProgrammeRace implements ProgrammeRace {
   const factory _ProgrammeRace(
       {required final int id,
       required final int number,
-      final List<int> sourceRaceIds,
-      final RacePlacement? placement}) = _$ProgrammeRaceImpl;
+      final List<int> sourceRaceIds}) = _$ProgrammeRaceImpl;
 
   factory _ProgrammeRace.fromJson(Map<String, dynamic> json) =
       _$ProgrammeRaceImpl.fromJson;
@@ -248,10 +207,7 @@ abstract class _ProgrammeRace implements ProgrammeRace {
   int get number; // opt1/opt2 wiring: ids of the feeding races at the previous level.
 // Empty at the séries level and for opt2-with-no-selection.
   @override
-  List<int>
-      get sourceRaceIds; // null until the race is scheduled (Plan B fills this).
-  @override
-  RacePlacement? get placement;
+  List<int> get sourceRaceIds;
 
   /// Create a copy of ProgrammeRace
   /// with the given fields replaced by the non-null parameter values.

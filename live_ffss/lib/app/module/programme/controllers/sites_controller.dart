@@ -41,6 +41,6 @@ class SitesController extends GetxController {
     // Drop the site AND clear any race placed on it, so nothing dangles.
     final withoutSite =
         p.copyWith(sites: p.sites.where((s) => s.id != id).toList());
-    await _programme.save(clearPlacementsForSite(withoutSite, id));
+    await _programme.save(clearBlocksForSite(withoutSite, id));
   }
 }
