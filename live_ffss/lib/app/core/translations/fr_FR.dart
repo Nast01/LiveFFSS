@@ -282,4 +282,5 @@ final Map<String, String> frFR = {
   'starts_at': 'Départ',
   'edit_item': 'Modifier',
   'no_programme': 'Programme non défini',
+  'results_coming_soon': 'Résultats à venir',
 };

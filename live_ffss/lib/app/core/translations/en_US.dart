@@ -282,4 +282,5 @@ final Map<String, String> enUS = {
   'starts_at': 'Starts',
   'edit_item': 'Edit',
   'no_programme': 'No programme defined',
+  'results_coming_soon': 'Results coming soon',
 };
