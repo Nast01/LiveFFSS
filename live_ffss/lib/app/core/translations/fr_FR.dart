@@ -281,4 +281,5 @@ final Map<String, String> frFR = {
   'duration_min': 'Durée (min)',
   'starts_at': 'Départ',
   'edit_item': 'Modifier',
+  'no_programme': 'Programme non défini',
 };

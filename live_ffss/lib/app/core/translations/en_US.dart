@@ -281,4 +281,5 @@ final Map<String, String> enUS = {
   'duration_min': 'Duration (min)',
   'starts_at': 'Starts',
   'edit_item': 'Edit',
+  'no_programme': 'No programme defined',
 };
