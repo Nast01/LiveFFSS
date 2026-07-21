@@ -171,6 +171,9 @@ class _AthleteList extends GetView<RfidWriterController> {
 
   @override
   Widget build(BuildContext context) {
+    // The Scaffold uses SafeArea(bottom: false) for an edge-to-edge list, so the
+    // scroll content must clear the system navigation bar itself.
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
     return Obx(() {
       if (controller.isLoading.value) {
         return const LoadingIndicator();
@@ -194,11 +197,11 @@ class _AthleteList extends GetView<RfidWriterController> {
         );
       }
       return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           AppSpacing.sm,
           AppSpacing.xs,
           AppSpacing.sm,
-          AppSpacing.lg,
+          AppSpacing.lg + bottomInset,
         ),
         itemCount: athletes.length,
         separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
