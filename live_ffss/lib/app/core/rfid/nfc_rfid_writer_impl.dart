@@ -115,4 +115,64 @@ class NfcRfidWriterImpl implements RfidWriter {
       } catch (_) {}
     }
   }
+
+  @override
+  Stream<String> readBracelets() {
+    late StreamController<String> controller;
+    controller = StreamController<String>(
+      onListen: () async {
+        try {
+          final availability = await NfcManager.instance.checkAvailability();
+          if (availability == NfcAvailability.disabled) {
+            controller.addError(const RfidException('nfc_disabled'));
+            await controller.close();
+            return;
+          }
+          if (availability != NfcAvailability.enabled) {
+            controller.addError(const RfidException('nfc_unsupported'));
+            await controller.close();
+            return;
+          }
+          await NfcManager.instance.startSession(
+            pollingOptions: {NfcPollingOption.iso14443},
+            onDiscovered: (tag) async {
+              final text = _readBraceletText(tag);
+              if (text == null) {
+                // Unreadable tag: report it but keep the session open so the
+                // next bracelet can still be read.
+                controller.addError(const RfidException('bracelet_unreadable'));
+              } else {
+                controller.add(text);
+              }
+            },
+          );
+        } catch (_) {
+          controller.addError(const RfidException('bracelet_unreadable'));
+          await controller.close();
+        }
+      },
+      onCancel: () async {
+        try {
+          await NfcManager.instance.stopSession();
+        } catch (_) {}
+      },
+    );
+    return controller.stream;
+  }
+
+  /// Reads the first well-known Text ('T') record of a discovered tag from its
+  /// cached NDEF message, or null if there is none / it does not decode.
+  String? _readBraceletText(NfcTag tag) {
+    final ndef = NdefAndroid.from(tag);
+    final message = ndef?.cachedNdefMessage;
+    if (message == null) return null;
+    for (final record in message.records) {
+      if (record.typeNameFormat == TypeNameFormat.wellKnown &&
+          record.type.length == 1 &&
+          record.type[0] == 0x54) {
+        return decodeNdefText(record.payload);
+      }
+    }
+    return null;
+  }
 }

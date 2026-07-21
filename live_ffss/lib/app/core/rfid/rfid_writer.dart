@@ -17,6 +17,13 @@ abstract class RfidWriter {
   /// what releases it.
   Future<void> write(String payload);
 
+  /// Opens a continuous NFC read session and emits the raw NDEF-text payload
+  /// (`<licenseeNumber>;<lastName>`) of each bracelet presented. A tag with no
+  /// readable text record delivers an [RfidException] error event WITHOUT
+  /// closing the stream — the session keeps polling. Cancelling the
+  /// subscription stops the session.
+  Stream<String> readBracelets();
+
   /// Aborts an in-flight [write] and releases the hardware.
   ///
   /// Mandatory before starting another write: while a session is open its tag
@@ -40,6 +47,10 @@ class UnsupportedRfidWriter implements RfidWriter {
   @override
   Future<void> write(String payload) async =>
       throw const RfidException('nfc_unsupported');
+
+  @override
+  Stream<String> readBracelets() =>
+      Stream<String>.error(const RfidException('nfc_unsupported'));
 
   @override
   Future<void> cancel() async {}

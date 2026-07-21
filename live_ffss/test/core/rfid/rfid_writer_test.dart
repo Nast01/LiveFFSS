@@ -24,5 +24,17 @@ void main() {
       // platform with no NFC that must not blow up.
       expect(const UnsupportedRfidWriter().cancel(), completes);
     });
+
+    test('UnsupportedRfidWriter.readBracelets emits an nfc_unsupported error',
+        () {
+      const writer = UnsupportedRfidWriter();
+      expect(
+        writer.readBracelets(),
+        emitsError(
+          isA<RfidException>()
+              .having((e) => e.message, 'message', 'nfc_unsupported'),
+        ),
+      );
+    });
   });
 }
