@@ -1,0 +1,126 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:live_ffss/app/core/theme/app_colors.dart';
+import 'package:live_ffss/app/core/theme/app_spacing.dart';
+import 'package:live_ffss/app/core/theme/app_typography.dart';
+import 'package:live_ffss/app/domain/models/event_structure.dart';
+import 'package:live_ffss/app/domain/models/round_level.dart';
+import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
+import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
+import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
+import 'package:live_ffss/app/presentation/shared/empty_state.dart';
+import 'package:live_ffss/app/presentation/shared/error_state.dart';
+import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
+
+class StructureOverviewView extends GetView<ProgrammeController> {
+  const StructureOverviewView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (controller.isLoading.value) return const LoadingIndicator();
+      if (controller.hasError.value) {
+        return ErrorState(
+          message: 'error_occured'.tr,
+          onRetry: () {
+            final comp = controller.competition.value;
+            if (comp != null) controller.load(comp);
+          },
+        );
+      }
+      if (controller.rows.isEmpty) {
+        return EmptyState(
+          icon: Icons.rule_folder_outlined,
+          title: 'no_structures'.tr,
+        );
+      }
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.sm,
+              AppSpacing.xs,
+              AppSpacing.sm,
+              0,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: controller.generateAllDefaults,
+                icon: const Icon(Icons.bolt),
+                label: Text('generate_default_all'.tr),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.sm,
+                AppSpacing.xs,
+                AppSpacing.sm,
+                AppSpacing.lg,
+              ),
+              itemCount: controller.rows.length,
+              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (_, i) => _OverviewCard(row: controller.rows[i]),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+}
+
+class _OverviewCard extends StatelessWidget {
+  const _OverviewCard({required this.row});
+
+  final OverviewRow row;
+
+  @override
+  Widget build(BuildContext context) {
+    final structure = row.structure;
+    final summary = _summaryFor(structure);
+    return Card(
+      margin: EdgeInsets.zero,
+      child: ListTile(
+        onTap: () => Get.toNamed<void>(
+          Routes.structureEditor,
+          arguments: StructureEditorArgs(
+            competitionId: Get.find<ProgrammeController>()
+                .competition
+                .value!
+                .id,
+            raceId: row.raceId,
+            categoryId: row.categoryId,
+            raceLabel: row.raceLabel,
+            categoryLabel: row.categoryLabel,
+            entryCount: row.entryCount,
+          ),
+        ),
+        title: Text(
+          '${row.raceLabel} · ${row.categoryLabel}',
+          style: AppTypography.body,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          '${row.entryCount} ${'engaged'.tr} · $summary',
+          style: AppTypography.caption,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+      ),
+    );
+  }
+
+  String _summaryFor(EventStructure? structure) {
+    if (structure == null || !structure.isDefined) return 'not_defined'.tr;
+    final chain = structure.chain;
+    if (chain.length == 1 && chain.single == RoundType.finale) {
+      return 'direct_final'.tr;
+    }
+    return chain.map((t) => t.labelKey.tr).join(' → ');
+  }
+}

@@ -8,6 +8,7 @@ import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_controller.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_clubs_view.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_points_view.dart';
+import 'package:live_ffss/app/module/competitions/views/competition_detail_programme_view.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_races_view.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/competition_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/home_wave.dart';
@@ -42,6 +43,7 @@ class CompetitionDetailView extends GetView<CompetitionDetailController> {
                       index: controller.currentTabIndex.value,
                       children: const [
                         CompetitionDetailRacesView(),
+                        CompetitionDetailProgrammeView(),
                         CompetitionDetailClubsView(),
                         CompetitionDetailPointsView(),
                       ],
@@ -89,6 +91,14 @@ class _CompetitionDetailHeader extends GetView<CompetitionDetailController> {
                     arguments: competition,
                   ),
                 ),
+              IconButton(
+                icon: const Icon(Icons.event_note, color: Colors.white),
+                tooltip: 'programme'.tr,
+                onPressed: () => Get.toNamed<void>(
+                  Routes.programme,
+                  arguments: competition,
+                ),
+              ),
               Obx(() {
                 final favored =
                     controller.favoriteIds.contains(competition.id);
@@ -154,9 +164,11 @@ class _CompetitionDetailHeader extends GetView<CompetitionDetailController> {
               children: [
                 _DetailPill(label: 'events'.tr, index: 0),
                 const SizedBox(width: AppSpacing.sm),
-                _DetailPill(label: 'clubs'.tr, index: 1),
+                _DetailPill(label: 'programme'.tr, index: 1),
                 const SizedBox(width: AppSpacing.sm),
-                _DetailPill(label: 'points'.tr, index: 2),
+                _DetailPill(label: 'clubs'.tr, index: 2),
+                const SizedBox(width: AppSpacing.sm),
+                _DetailPill(label: 'points'.tr, index: 3),
               ],
             ),
           ),

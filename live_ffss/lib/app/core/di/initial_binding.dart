@@ -15,6 +15,7 @@ import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/race_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/ranking_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/result_remote_datasource.dart';
+import 'package:live_ffss/app/data/datasources/programme_remote_datasource.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/competition_repository.dart';
@@ -22,8 +23,10 @@ import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/repositories/ranking_repository.dart';
 import 'package:live_ffss/app/data/repositories/result_repository.dart';
+import 'package:live_ffss/app/data/repositories/programme_repository.dart';
 import 'package:live_ffss/app/data/services/user_preferences_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
+import 'package:live_ffss/app/data/services/programme_service.dart';
 
 class InitialBinding {
   InitialBinding._();
@@ -136,6 +139,16 @@ class InitialBinding {
       permanent: true,
     );
 
+    // 5g. Programme sync seam (stub — FFSS write endpoints TBD; see datasource)
+    Get.put<ProgrammeRemoteDataSource>(
+      ProgrammeRemoteDataSourceImpl(),
+      permanent: true,
+    );
+    Get.put<ProgrammeRepository>(
+      ProgrammeRepositoryImpl(Get.find<ProgrammeRemoteDataSource>()),
+      permanent: true,
+    );
+
     // 8. Long-lived state holders (depend on the auth repo)
     await Get.putAsync<UserService>(
       () async => UserService(Get.find<AuthRepository>()).init(),
@@ -147,6 +160,9 @@ class InitialBinding {
       () async => UserPreferencesService(
         Get.find<FlutterSecureStorage>(),
       ).init(),
+    );
+    await Get.putAsync<ProgrammeService>(
+      () async => ProgrammeService(Get.find<FlutterSecureStorage>()),
     );
 
     // 9. Session expiration handling

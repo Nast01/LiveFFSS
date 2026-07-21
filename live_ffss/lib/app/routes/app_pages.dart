@@ -5,9 +5,11 @@ import 'package:live_ffss/app/module/auth/bindings/user_binding.dart';
 import 'package:live_ffss/app/module/auth/views/login_view.dart';
 import 'package:live_ffss/app/module/auth/views/profile_view.dart';
 import 'package:live_ffss/app/module/competitions/bindings/competition_detail_binding.dart';
+import 'package:live_ffss/app/module/competitions/bindings/race_course_binding.dart';
 import 'package:live_ffss/app/module/competitions/bindings/race_detail_binding.dart';
 import 'package:live_ffss/app/module/competitions/bindings/rfid_writer_binding.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_view.dart';
+import 'package:live_ffss/app/module/competitions/views/race_course_view.dart';
 import 'package:live_ffss/app/module/competitions/views/race_detail_view.dart';
 import 'package:live_ffss/app/module/competitions/views/rfid_writer_view.dart';
 import 'package:live_ffss/app/module/favorites/bindings/favorites_binding.dart';
@@ -16,6 +18,10 @@ import 'package:live_ffss/app/module/main_shell/bindings/main_shell_binding.dart
 import 'package:live_ffss/app/module/main_shell/views/main_shell_view.dart';
 import 'package:live_ffss/app/module/program/bindings/program_binding.dart';
 import 'package:live_ffss/app/module/program/views/program_view.dart';
+import 'package:live_ffss/app/module/programme/bindings/programme_binding.dart';
+import 'package:live_ffss/app/module/programme/bindings/structure_editor_binding.dart';
+import 'package:live_ffss/app/module/programme/views/programme_view.dart';
+import 'package:live_ffss/app/module/programme/views/structure_editor_view.dart';
 import 'package:live_ffss/app/module/slot/bindings/slot_binding.dart';
 import 'package:live_ffss/app/module/slot/views/slot_view.dart';
 // Import other views and bindings as needed
@@ -52,6 +58,16 @@ class AppPages {
       binding: CompetitionDetailBinding(),
     ),
     GetPage(
+      name: Routes.programme,
+      page: () => const ProgrammeView(),
+      binding: ProgrammeBinding(),
+    ),
+    GetPage(
+      name: Routes.structureEditor,
+      page: () => const StructureEditorView(),
+      binding: StructureEditorBinding(),
+    ),
+    GetPage(
       name: Routes.raceDetail,
       page: () => const RaceDetailView(),
       binding: RaceDetailBinding(),
@@ -60,6 +76,11 @@ class AppPages {
       name: Routes.rfidWriter,
       page: () => const RfidWriterView(),
       binding: RfidWriterBinding(),
+    ),
+    GetPage(
+      name: Routes.raceCourse,
+      page: () => const RaceCourseView(),
+      binding: RaceCourseBinding(),
     ),
     GetPage(
       name: Routes.program,

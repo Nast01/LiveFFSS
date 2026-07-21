@@ -12,5 +12,8 @@ abstract class Routes {
   static const program = '/program';
   static const slot = '/slot';
   static const rfidWriter = '/rfid-writer';
+  static const programme = '/programme';
+  static const structureEditor = '/structure-editor';
+  static const raceCourse = '/race-course';
   // Add other routes here
 }
