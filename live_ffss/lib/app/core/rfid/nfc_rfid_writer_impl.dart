@@ -136,13 +136,19 @@ class NfcRfidWriterImpl implements RfidWriter {
           await NfcManager.instance.startSession(
             pollingOptions: {NfcPollingOption.iso14443},
             onDiscovered: (tag) async {
-              final text = _readBraceletText(tag);
-              if (text == null) {
-                // Unreadable tag: report it but keep the session open so the
-                // next bracelet can still be read.
+              // The plugin does not await this callback, so a throw here escapes
+              // as an unhandled async error the outer try cannot catch. Guard it
+              // so a malformed tag reports "unreadable" and the session keeps
+              // polling — mirroring write()'s onDiscovered.
+              try {
+                final text = _readBraceletText(tag);
+                if (text == null) {
+                  controller.addError(const RfidException('bracelet_unreadable'));
+                } else {
+                  controller.add(text);
+                }
+              } catch (_) {
                 controller.addError(const RfidException('bracelet_unreadable'));
-              } else {
-                controller.add(text);
               }
             },
           );
