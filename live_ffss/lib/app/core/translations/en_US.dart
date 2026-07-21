@@ -298,4 +298,8 @@ final Map<String, String> enUS = {
   'no_programme': 'No programme defined',
   'results_coming_soon': 'Results coming soon',
   'no_structure_defined': 'No structure defined',
+  'approach_bracelets': 'Hold each bracelet near the phone',
+  'present_count': 'present',
+  'not_entered': 'Not entered',
+  'bracelet_unreadable': 'Unreadable bracelet',
 };

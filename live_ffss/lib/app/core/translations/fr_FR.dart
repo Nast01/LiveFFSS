@@ -298,4 +298,8 @@ final Map<String, String> frFR = {
   'no_programme': 'Programme non défini',
   'results_coming_soon': 'Résultats à venir',
   'no_structure_defined': 'Structure non définie',
+  'approach_bracelets': 'Approchez les bracelets à scanner',
+  'present_count': 'présents',
+  'not_entered': 'Non engagé',
+  'bracelet_unreadable': 'Bracelet illisible',
 };

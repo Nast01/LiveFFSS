@@ -280,10 +280,6 @@ class RaceDetailController extends GetxController {
     attendance[athlete.id] = status;
   }
 
-  // TODO(rfid): wire the NFC/RFID bracelet reader to resolve an athlete by
-  // bracelet id and mark them present. Placeholder for now.
-  void scanRfid() {}
-
   bool get canScanBracelets => _rfidWriter.isSupported;
 
   /// Starts a continuous bracelet-read session. Each scanned bracelet whose

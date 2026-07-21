@@ -38,15 +38,10 @@ class RaceDetailEntriesView extends GetView<RaceDetailController> {
             ),
             child: Column(
               children: [
-                _ScanButton(
-                  onPressed: () {
-                    controller.scanRfid();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('rfid_coming_soon'.tr)),
-                    );
-                  },
-                ),
-                const SizedBox(height: AppSpacing.xs),
+                if (controller.canScanBracelets) ...[
+                  _ScanButton(onPressed: () => _openScanSheet(context)),
+                  const SizedBox(height: AppSpacing.xs),
+                ],
                 Row(
                   children: [
                     Text(
@@ -85,6 +80,15 @@ class RaceDetailEntriesView extends GetView<RaceDetailController> {
         ],
       );
     });
+  }
+
+  void _openScanSheet(BuildContext context) {
+    controller.startScan();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      builder: (_) => const _ScanSheet(),
+    ).whenComplete(controller.stopScan);
   }
 }
 
@@ -358,5 +362,89 @@ class _StatusChip extends GetView<RaceDetailController> {
         ),
       );
     });
+  }
+}
+
+class _ScanSheet extends GetView<RaceDetailController> {
+  const _ScanSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: AppSpacing.pageAll,
+        child: Obx(() {
+          final log = controller.scanLog;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.nfc, size: 56, color: AppColors.primary),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'approach_bracelets'.tr,
+                style: AppTypography.subtitle,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '${controller.presentCount.value} ${'present_count'.tr}',
+                style: AppTypography.body.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.statusFinished,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              if (log.isNotEmpty)
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 220),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: log.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: AppSpacing.xs),
+                    itemBuilder: (_, i) => _ScanLogRow(result: log[i]),
+                  ),
+                ),
+              const SizedBox(height: AppSpacing.md),
+              TextButton(
+                onPressed: Get.back<void>,
+                child: Text('finish'.tr),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _ScanLogRow extends StatelessWidget {
+  const _ScanLogRow({required this.result});
+
+  final ScanResult result;
+
+  @override
+  Widget build(BuildContext context) {
+    final (String text, Color color) = switch (result.outcome) {
+      ScanOutcome.present => (result.label, AppColors.statusFinished),
+      ScanOutcome.notEntered =>
+        ('${result.label} · ${'not_entered'.tr}', AppColors.statusWaiting),
+      // For unreadable rows the label IS the RfidException translation key.
+      ScanOutcome.unreadable => (result.label.tr, AppColors.statusError),
+    };
+    return Row(
+      children: [
+        Icon(Icons.circle, size: 10, color: color),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            text,
+            style: AppTypography.body,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 }
