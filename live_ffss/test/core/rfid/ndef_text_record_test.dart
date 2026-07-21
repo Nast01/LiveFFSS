@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/rfid/ndef_text_record.dart';
@@ -33,6 +34,25 @@ void main() {
         () => ndefTextPayload('A', languageCode: 'x' * 64),
         throwsA(isA<ArgumentError>()),
       );
+    });
+  });
+
+  group('decodeNdefText', () {
+    test('round-trips ndefTextPayload', () {
+      expect(decodeNdefText(ndefTextPayload('123456;DUPONT')), '123456;DUPONT');
+    });
+
+    test('handles a non-ASCII last name', () {
+      expect(decodeNdefText(ndefTextPayload('99;CRÉPEAU')), '99;CRÉPEAU');
+    });
+
+    test('returns null on an empty payload', () {
+      expect(decodeNdefText(Uint8List(0)), isNull);
+    });
+
+    test('returns null when the language length overruns', () {
+      // status byte says a 63-byte language code, but only one more byte follows.
+      expect(decodeNdefText(Uint8List.fromList([0x3F, 0x65])), isNull);
     });
   });
 }

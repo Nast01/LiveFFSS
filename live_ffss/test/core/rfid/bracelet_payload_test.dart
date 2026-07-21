@@ -43,4 +43,18 @@ void main() {
       expect(braceletPayload(athlete(lastName: '')), '123456;');
     });
   });
+
+  group('parseBraceletLicence', () {
+    test('extracts the licence from licence;lastName', () {
+      expect(parseBraceletLicence('123456;DUPONT'), '123456');
+    });
+
+    test('returns the whole string when there is no separator', () {
+      expect(parseBraceletLicence('123456'), '123456');
+    });
+
+    test('trims surrounding whitespace', () {
+      expect(parseBraceletLicence(' 123456 ;X'), '123456');
+    });
+  });
 }

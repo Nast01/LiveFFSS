@@ -25,3 +25,18 @@ Uint8List ndefTextPayload(String text, {String languageCode = 'en'}) {
     ...utf8.encode(text),
   ]);
 }
+
+/// Decodes an NDEF well-known Text ('T') record payload — `[status][language
+/// code][text]` — back to its text, or null if malformed. Inverse of
+/// [ndefTextPayload]. Assumes UTF-8 (the encoding we write); a UTF-16 payload
+/// that fails `utf8.decode` returns null.
+String? decodeNdefText(Uint8List payload) {
+  if (payload.isEmpty) return null;
+  final langLen = payload[0] & 0x3F;
+  if (1 + langLen > payload.length) return null;
+  try {
+    return utf8.decode(payload.sublist(1 + langLen));
+  } catch (_) {
+    return null;
+  }
+}

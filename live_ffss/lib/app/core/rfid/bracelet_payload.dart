@@ -13,3 +13,8 @@ String braceletPayload(Athlete athlete) {
       athlete.lastName.replaceAll(braceletFieldSeparator, ' ');
   return '${athlete.licenseeNumber}$braceletFieldSeparator$lastName';
 }
+
+/// The licence number carried by a bracelet payload (`<licence>;<lastName>`) —
+/// the field the attendance scanner matches against [Athlete.licenseeNumber].
+String parseBraceletLicence(String payload) =>
+    payload.split(braceletFieldSeparator).first.trim();
