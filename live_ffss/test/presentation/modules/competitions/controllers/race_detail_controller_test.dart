@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
@@ -18,9 +21,12 @@ class _MockRaceRepo extends Mock implements RaceRepository {}
 
 class _MockClubRepo extends Mock implements ClubRepository {}
 
+class _MockRfidWriter extends Mock implements RfidWriter {}
+
 void main() {
   late _MockRaceRepo raceRepo;
   late _MockClubRepo clubRepo;
+  late _MockRfidWriter rfidWriter;
   late RaceDetailController controller;
 
   Race makeRace(int id) => Race(
@@ -92,9 +98,10 @@ void main() {
   setUp(() {
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
+    rfidWriter = _MockRfidWriter();
     when(() => raceRepo.getHeats(any())).thenAnswer((_) async => const []);
     when(() => clubRepo.getClubs(any())).thenAnswer((_) async => const []);
-    controller = RaceDetailController(raceRepo, clubRepo);
+    controller = RaceDetailController(raceRepo, clubRepo, rfidWriter);
     controller.race.value = makeRace(10);
     controller.competition.value = makeCompetition(99);
   });
@@ -533,6 +540,90 @@ void main() {
         const Heat(id: 1, name: 'S1', done: false, number: 1).liveStatus,
         HeatLiveStatus.unofficial,
       );
+    });
+  });
+
+  group('startScan', () {
+    late StreamController<String> scanStream;
+
+    Athlete scanAthlete(int id, String lastName, String licence) => Athlete(
+          id: id,
+          licenseeNumber: licence,
+          firstName: 'X',
+          lastName: lastName,
+          gender: Gender.female,
+          year: 2000,
+          nationalityCode: '',
+          nationality: '',
+          isValid: true,
+        );
+
+    Entry scanEntry(List<Athlete> athletes) => Entry(
+          id: 1,
+          category: const Category(id: 1, name: 'Senior'),
+          status: 1,
+          statusLabel: 'Engagé',
+          athletes: athletes,
+        );
+
+    setUp(() {
+      scanStream = StreamController<String>();
+      when(() => rfidWriter.readBracelets())
+          .thenAnswer((_) => scanStream.stream);
+    });
+
+    tearDown(() {
+      // Not awaited: an unlistened single-subscription StreamController's
+      // close() future never completes (no listener to deliver the done
+      // event to), which would hang this tearDown for the whole test's
+      // timeout in tests that never call startScan().
+      if (!scanStream.isClosed) scanStream.close();
+    });
+
+    test('a matching bracelet marks the athlete present', () async {
+      final jean = scanAthlete(1, 'DUPONT', '123');
+      controller.entries.value = [scanEntry([jean])];
+      controller.startScan();
+      scanStream.add('123;DUPONT');
+      await pumpEventQueue();
+      expect(controller.attendanceOf(jean), AttendanceStatus.present);
+      expect(controller.presentCount.value, 1);
+      expect(controller.scanLog.first.outcome, ScanOutcome.present);
+    });
+
+    test('an unknown licence logs notEntered and leaves attendance', () async {
+      final jean = scanAthlete(1, 'DUPONT', '123');
+      controller.entries.value = [scanEntry([jean])];
+      controller.startScan();
+      scanStream.add('999;NOBODY');
+      await pumpEventQueue();
+      expect(controller.attendanceOf(jean), AttendanceStatus.waiting);
+      expect(controller.scanLog.first.outcome, ScanOutcome.notEntered);
+      expect(controller.presentCount.value, 0);
+    });
+
+    test('a stream error logs unreadable', () async {
+      controller.startScan();
+      scanStream.addError(const RfidException('bracelet_unreadable'));
+      await pumpEventQueue();
+      expect(controller.scanLog.first.outcome, ScanOutcome.unreadable);
+      expect(controller.scanLog.first.label, 'bracelet_unreadable');
+    });
+
+    test('stopScan cancels the subscription; later events are ignored', () async {
+      final jean = scanAthlete(1, 'DUPONT', '123');
+      controller.entries.value = [scanEntry([jean])];
+      controller.startScan();
+      controller.stopScan();
+      scanStream.add('123;DUPONT');
+      await pumpEventQueue();
+      expect(controller.attendanceOf(jean), AttendanceStatus.waiting);
+      expect(controller.isScanning.value, isFalse);
+    });
+
+    test('canScanBracelets reflects the writer', () {
+      when(() => rfidWriter.isSupported).thenReturn(true);
+      expect(controller.canScanBracelets, isTrue);
     });
   });
 }

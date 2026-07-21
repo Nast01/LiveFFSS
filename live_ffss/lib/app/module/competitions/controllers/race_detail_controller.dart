@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/core/rfid/bracelet_payload.dart';
+import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
@@ -13,10 +15,11 @@ import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/result.dart';
 
 class RaceDetailController extends GetxController {
-  RaceDetailController(this._raceRepo, this._clubRepo);
+  RaceDetailController(this._raceRepo, this._clubRepo, this._rfidWriter);
 
   final RaceRepository _raceRepo;
   final ClubRepository _clubRepo;
+  final RfidWriter _rfidWriter;
 
   static const Duration _pollInterval = Duration(seconds: 10);
 
@@ -43,6 +46,11 @@ class RaceDetailController extends GetxController {
 
   /// How the flat athlete list is ordered. Drives [sortedAthletes].
   final Rx<AthleteSortMode> sortMode = AthleteSortMode.name.obs;
+
+  final RxBool isScanning = false.obs;
+  final RxList<ScanResult> scanLog = <ScanResult>[].obs;
+  final RxInt presentCount = 0.obs;
+  StreamSubscription<String>? _scanSub;
 
   // Resolved at first load and reused across polls. Shared by heats (club
   // labels) and entries (cap images). [_athleteClubIndexFuture] de-dupes
@@ -78,6 +86,7 @@ class RaceDetailController extends GetxController {
   @override
   void onClose() {
     _pollTimer?.cancel();
+    _scanSub?.cancel();
     super.onClose();
   }
 
@@ -275,6 +284,54 @@ class RaceDetailController extends GetxController {
   // bracelet id and mark them present. Placeholder for now.
   void scanRfid() {}
 
+  bool get canScanBracelets => _rfidWriter.isSupported;
+
+  /// Starts a continuous bracelet-read session. Each scanned bracelet whose
+  /// licence matches an engaged athlete sets that athlete present. Idempotent
+  /// while already scanning.
+  void startScan() {
+    if (isScanning.value) return;
+    scanLog.clear();
+    presentCount.value = 0;
+    isScanning.value = true;
+    _scanSub = _rfidWriter.readBracelets().listen(
+      _onScanPayload,
+      onError: (Object e) {
+        final key = e is RfidException ? e.message : 'bracelet_unreadable';
+        scanLog.insert(0, ScanResult(key, ScanOutcome.unreadable));
+      },
+    );
+  }
+
+  void _onScanPayload(String payload) {
+    final licence = parseBraceletLicence(payload);
+    Athlete? match;
+    for (final e in entries) {
+      for (final a in e.athletes) {
+        if (a.licenseeNumber == licence) {
+          match = a;
+          break;
+        }
+      }
+      if (match != null) break;
+    }
+    if (match == null) {
+      scanLog.insert(0, ScanResult(licence, ScanOutcome.notEntered));
+      return;
+    }
+    attendance[match.id] = AttendanceStatus.present;
+    scanLog.insert(
+        0, ScanResult('${match.lastName} ${match.firstName}', ScanOutcome.present));
+    presentCount.value++;
+  }
+
+  /// Stops the read session and releases the NFC hardware.
+  void stopScan() {
+    _scanSub?.cancel();
+    _scanSub = null;
+    isScanning.value = false;
+  }
+
   Future<Map<int, Club>> _buildAthleteClubIndex(int competitionId) async {
     final clubs = await _clubRepo.getClubs(competitionId);
     final index = <int, Club>{};
@@ -311,6 +368,18 @@ class RaceDetailController extends GetxController {
 }
 
 enum AttendanceStatus { waiting, present, absent }
+
+enum ScanOutcome { present, notEntered, unreadable }
+
+/// One line in the scan log: a display label plus the outcome (which the view
+/// maps to a colour / translation). For `unreadable` the label is the
+/// `RfidException` message key (e.g. `nfc_disabled`, `bracelet_unreadable`).
+class ScanResult {
+  const ScanResult(this.label, this.outcome);
+
+  final String label;
+  final ScanOutcome outcome;
+}
 
 enum AthleteSortMode { name, club, attendance }
 
