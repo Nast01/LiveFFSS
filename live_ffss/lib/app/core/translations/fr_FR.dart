@@ -114,7 +114,6 @@ final Map<String, String> frFR = {
   'sort_name': 'Nom',
   'sort_club': 'Club',
   'sort_status': 'Présence',
-  'rfid_coming_soon': 'Scan RFID bientôt disponible',
   'attendance_waiting': 'En attente',
   'attendance_present': 'Présent',
   'attendance_absent': 'Absent',
@@ -254,7 +253,7 @@ final Map<String, String> frFR = {
   'bracelet_not_writable': "Ce bracelet n'est pas inscriptible",
   'bracelet_too_small': 'La mémoire de ce bracelet est trop petite',
   'nfc_disabled': 'Le NFC est désactivé',
-  'nfc_unsupported': "Cet appareil ne peut pas écrire de bracelet",
+  'nfc_unsupported': 'Cet appareil ne gère pas le NFC',
   'bracelet_write_cancelled': 'Écriture annulée',
   'finish': 'Terminé',
 

@@ -115,7 +115,6 @@ final Map<String, String> enUS = {
   'sort_name': 'Name',
   'sort_club': 'Club',
   'sort_status': 'Attendance',
-  'rfid_coming_soon': 'RFID scan coming soon',
   'attendance_waiting': 'Waiting',
   'attendance_present': 'Present',
   'attendance_absent': 'Absent',
@@ -254,7 +253,7 @@ final Map<String, String> enUS = {
   'bracelet_not_writable': 'This bracelet is not writable',
   'bracelet_too_small': "This bracelet's memory is too small",
   'nfc_disabled': 'NFC is turned off',
-  'nfc_unsupported': 'This device cannot write bracelets',
+  'nfc_unsupported': "This device doesn't support NFC",
   'bracelet_write_cancelled': 'Write cancelled',
   'finish': 'Done',
 
