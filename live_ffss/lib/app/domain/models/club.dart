@@ -13,6 +13,9 @@ class Club with _$Club {
     String? shortName,
     String? logoUrl,
     String? capUrl,
+    // Split out of the FFSS bucket organisme: [id] is the guest club's own id,
+    // not an FFSS organisme id, so it must never be used to fetch a detail.
+    @Default(false) bool isGuest,
     @Default(<Athlete>[]) List<Athlete> athletes,
     @Default(<Referee>[]) List<Referee> referees,
   }) = _Club;

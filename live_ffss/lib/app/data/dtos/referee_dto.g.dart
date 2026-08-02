@@ -22,6 +22,10 @@ _$RefereeDtoImpl _$$RefereeDtoImplFromJson(Map<String, dynamic> json) =>
       isLicensee: json['isLicencie'] as bool? ?? false,
       isGuest: json['isInvite'] as bool? ?? false,
       isPrincipal: json['Principal'] as bool? ?? false,
+      clubId: (json['idClub'] as num?)?.toInt() ?? 0,
+      clubLabel: json['clubLabel'] as String? ?? '',
+      refereeClubId: (json['idOfficielClub'] as num?)?.toInt() ?? 0,
+      refereeClubLabel: json['officielClubLabel'] as String? ?? '',
       availabilities: (_readAvailabilities(json, 'Jours') as List<dynamic>?)
               ?.map((e) => (e as num).toInt())
               .toList() ??
@@ -44,5 +48,9 @@ Map<String, dynamic> _$$RefereeDtoImplToJson(_$RefereeDtoImpl instance) =>
       'isLicencie': instance.isLicensee,
       'isInvite': instance.isGuest,
       'Principal': instance.isPrincipal,
+      'idClub': instance.clubId,
+      'clubLabel': instance.clubLabel,
+      'idOfficielClub': instance.refereeClubId,
+      'officielClubLabel': instance.refereeClubLabel,
       'Jours': instance.availabilities,
     };

@@ -12,6 +12,7 @@ _$ClubImpl _$$ClubImplFromJson(Map<String, dynamic> json) => _$ClubImpl(
       shortName: json['shortName'] as String?,
       logoUrl: json['logoUrl'] as String?,
       capUrl: json['capUrl'] as String?,
+      isGuest: json['isGuest'] as bool? ?? false,
       athletes: (json['athletes'] as List<dynamic>?)
               ?.map((e) => Athlete.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -29,6 +30,7 @@ Map<String, dynamic> _$$ClubImplToJson(_$ClubImpl instance) =>
       'shortName': instance.shortName,
       'logoUrl': instance.logoUrl,
       'capUrl': instance.capUrl,
+      'isGuest': instance.isGuest,
       'athletes': instance.athletes,
       'referees': instance.referees,
     };

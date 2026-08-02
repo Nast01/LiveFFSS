@@ -1,17 +1,30 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/datasources/club_remote_datasource.dart';
+import 'package:live_ffss/app/data/dtos/athlete_dto.dart';
 import 'package:live_ffss/app/data/dtos/club_dto.dart';
+import 'package:live_ffss/app/data/mappers/club_mapper.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockDataSource extends Mock implements ClubRemoteDataSource {}
 
+AthleteDto _athlete(int id, int clubId, String clubLabel) => AthleteDto(
+      id: id,
+      firstName: 'A$id',
+      lastName: 'B$id',
+      gender: 'M',
+      year: 2000,
+      isValid: true,
+      clubId: clubId,
+      clubLabel: clubLabel,
+    );
+
 void main() {
   late _MockDataSource ds;
   late ClubRepository repo;
 
-  ClubDto makeDto(int id, String name) =>
-      ClubDto(id: id, name: name);
+  ClubDto makeDto(int id, String name) => ClubDto(id: id, name: name);
 
   setUp(() {
     ds = _MockDataSource();
@@ -32,6 +45,24 @@ void main() {
       expect(list.first.athletes, isEmpty);
       verify(() => ds.getClubs(42)).called(1);
     });
+
+    test('splits the FFSS bucket organisme into its member clubs', () async {
+      when(() => ds.getClubs(any())).thenAnswer((_) async => [
+            makeDto(1, 'Alpha'),
+            ClubDto(
+              id: ffssBucketOrganismeId,
+              name: 'FFSS',
+              athletes: [
+                _athlete(10, 800, 'Guest Alpha'),
+                _athlete(11, 900, 'Guest Bravo'),
+              ],
+            ),
+          ]);
+
+      final list = await repo.getClubs(42);
+
+      expect(list.map((c) => c.id), [1, 800, 900]);
+    });
   });
 
   group('ClubRepository.getClubDetail', () {
@@ -44,6 +75,71 @@ void main() {
       expect(club.id, 7);
       expect(club.name, 'Solo');
       verify(() => ds.getClubDetail(7)).called(1);
+    });
+
+    test('picks the requested club when the payload is the FFSS bucket',
+        () async {
+      when(() => ds.getClubDetail(any())).thenAnswer((_) async => ClubDto(
+            id: ffssBucketOrganismeId,
+            name: 'FFSS',
+            athletes: [
+              _athlete(10, 800, 'Guest Alpha'),
+              _athlete(11, 900, 'Guest Bravo'),
+            ],
+          ));
+
+      final club = await repo.getClubDetail(900);
+
+      expect(club.id, 900);
+      expect(club.name, 'Guest Bravo');
+    });
+
+    test('falls back to the first split club when none matches', () async {
+      when(() => ds.getClubDetail(any())).thenAnswer((_) async => ClubDto(
+            id: ffssBucketOrganismeId,
+            name: 'FFSS',
+            athletes: [_athlete(10, 800, 'Guest Alpha')],
+          ));
+
+      final club = await repo.getClubDetail(ffssBucketOrganismeId);
+
+      expect(club.id, 800);
+    });
+  });
+
+  group('ClubRepository.getClubDetails', () {
+    test('resolves each id once, deduping and dropping non-positive ids',
+        () async {
+      when(() => ds.getClubDetail(any())).thenAnswer((i) async => makeDto(
+          i.positionalArguments.first as int,
+          'Club ${i.positionalArguments.first}'));
+
+      final byId = await repo.getClubDetails([7, 7, 9, 0, -1]);
+
+      expect(byId.keys.toList()..sort(), [7, 9]);
+      expect(byId[7]!.name, 'Club 7');
+      verify(() => ds.getClubDetail(7)).called(1);
+      verify(() => ds.getClubDetail(9)).called(1);
+      verifyNever(() => ds.getClubDetail(0));
+    });
+
+    test('is best-effort: a failing club is skipped, the others resolve',
+        () async {
+      when(() => ds.getClubDetail(7))
+          .thenThrow(const NetworkException('offline'));
+      when(() => ds.getClubDetail(9))
+          .thenAnswer((_) async => makeDto(9, 'Club 9'));
+
+      final byId = await repo.getClubDetails([7, 9]);
+
+      expect(byId.keys, [9]);
+    });
+
+    test('an empty request makes no call', () async {
+      final byId = await repo.getClubDetails(const []);
+
+      expect(byId, isEmpty);
+      verifyNever(() => ds.getClubDetail(any()));
     });
   });
 }

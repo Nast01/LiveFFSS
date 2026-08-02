@@ -21,8 +21,17 @@ class RefereeDto with _$RefereeDto {
     @JsonKey(name: 'isLicencie') @Default(false) bool isLicensee,
     @JsonKey(name: 'isInvite') @Default(false) bool isGuest,
     @JsonKey(name: 'Principal') @Default(false) bool isPrincipal,
+    // An officiel row carries two club references: `idClub`/`clubLabel` is the
+    // club they are attached to for this competition (the only one filled for a
+    // guest), `idOfficielClub`/`officielClubLabel` is their licensed club.
+    // ClubMapper picks between them when splitting the FFSS bucket organisme.
+    @JsonKey(name: 'idClub') @Default(0) int clubId,
+    @JsonKey(name: 'clubLabel') @Default('') String clubLabel,
+    @JsonKey(name: 'idOfficielClub') @Default(0) int refereeClubId,
+    @JsonKey(name: 'officielClubLabel') @Default('') String refereeClubLabel,
     @JsonKey(name: 'Jours', readValue: _readAvailabilities)
-    @Default(<int>[]) List<int> availabilities,
+    @Default(<int>[])
+    List<int> availabilities,
   }) = _RefereeDto;
 
   factory RefereeDto.fromJson(Map<String, dynamic> json) =>

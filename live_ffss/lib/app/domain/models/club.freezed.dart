@@ -24,7 +24,10 @@ mixin _$Club {
   String get name => throw _privateConstructorUsedError;
   String? get shortName => throw _privateConstructorUsedError;
   String? get logoUrl => throw _privateConstructorUsedError;
-  String? get capUrl => throw _privateConstructorUsedError;
+  String? get capUrl =>
+      throw _privateConstructorUsedError; // Split out of the FFSS bucket organisme: [id] is the guest club's own id,
+// not an FFSS organisme id, so it must never be used to fetch a detail.
+  bool get isGuest => throw _privateConstructorUsedError;
   List<Athlete> get athletes => throw _privateConstructorUsedError;
   List<Referee> get referees => throw _privateConstructorUsedError;
 
@@ -48,6 +51,7 @@ abstract class $ClubCopyWith<$Res> {
       String? shortName,
       String? logoUrl,
       String? capUrl,
+      bool isGuest,
       List<Athlete> athletes,
       List<Referee> referees});
 }
@@ -72,6 +76,7 @@ class _$ClubCopyWithImpl<$Res, $Val extends Club>
     Object? shortName = freezed,
     Object? logoUrl = freezed,
     Object? capUrl = freezed,
+    Object? isGuest = null,
     Object? athletes = null,
     Object? referees = null,
   }) {
@@ -96,6 +101,10 @@ class _$ClubCopyWithImpl<$Res, $Val extends Club>
           ? _value.capUrl
           : capUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      isGuest: null == isGuest
+          ? _value.isGuest
+          : isGuest // ignore: cast_nullable_to_non_nullable
+              as bool,
       athletes: null == athletes
           ? _value.athletes
           : athletes // ignore: cast_nullable_to_non_nullable
@@ -121,6 +130,7 @@ abstract class _$$ClubImplCopyWith<$Res> implements $ClubCopyWith<$Res> {
       String? shortName,
       String? logoUrl,
       String? capUrl,
+      bool isGuest,
       List<Athlete> athletes,
       List<Referee> referees});
 }
@@ -142,6 +152,7 @@ class __$$ClubImplCopyWithImpl<$Res>
     Object? shortName = freezed,
     Object? logoUrl = freezed,
     Object? capUrl = freezed,
+    Object? isGuest = null,
     Object? athletes = null,
     Object? referees = null,
   }) {
@@ -166,6 +177,10 @@ class __$$ClubImplCopyWithImpl<$Res>
           ? _value.capUrl
           : capUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      isGuest: null == isGuest
+          ? _value.isGuest
+          : isGuest // ignore: cast_nullable_to_non_nullable
+              as bool,
       athletes: null == athletes
           ? _value._athletes
           : athletes // ignore: cast_nullable_to_non_nullable
@@ -187,6 +202,7 @@ class _$ClubImpl implements _Club {
       this.shortName,
       this.logoUrl,
       this.capUrl,
+      this.isGuest = false,
       final List<Athlete> athletes = const <Athlete>[],
       final List<Referee> referees = const <Referee>[]})
       : _athletes = athletes,
@@ -205,6 +221,11 @@ class _$ClubImpl implements _Club {
   final String? logoUrl;
   @override
   final String? capUrl;
+// Split out of the FFSS bucket organisme: [id] is the guest club's own id,
+// not an FFSS organisme id, so it must never be used to fetch a detail.
+  @override
+  @JsonKey()
+  final bool isGuest;
   final List<Athlete> _athletes;
   @override
   @JsonKey()
@@ -225,7 +246,7 @@ class _$ClubImpl implements _Club {
 
   @override
   String toString() {
-    return 'Club(id: $id, name: $name, shortName: $shortName, logoUrl: $logoUrl, capUrl: $capUrl, athletes: $athletes, referees: $referees)';
+    return 'Club(id: $id, name: $name, shortName: $shortName, logoUrl: $logoUrl, capUrl: $capUrl, isGuest: $isGuest, athletes: $athletes, referees: $referees)';
   }
 
   @override
@@ -239,6 +260,7 @@ class _$ClubImpl implements _Club {
                 other.shortName == shortName) &&
             (identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl) &&
             (identical(other.capUrl, capUrl) || other.capUrl == capUrl) &&
+            (identical(other.isGuest, isGuest) || other.isGuest == isGuest) &&
             const DeepCollectionEquality().equals(other._athletes, _athletes) &&
             const DeepCollectionEquality().equals(other._referees, _referees));
   }
@@ -252,6 +274,7 @@ class _$ClubImpl implements _Club {
       shortName,
       logoUrl,
       capUrl,
+      isGuest,
       const DeepCollectionEquality().hash(_athletes),
       const DeepCollectionEquality().hash(_referees));
 
@@ -278,6 +301,7 @@ abstract class _Club implements Club {
       final String? shortName,
       final String? logoUrl,
       final String? capUrl,
+      final bool isGuest,
       final List<Athlete> athletes,
       final List<Referee> referees}) = _$ClubImpl;
 
@@ -292,7 +316,11 @@ abstract class _Club implements Club {
   @override
   String? get logoUrl;
   @override
-  String? get capUrl;
+  String?
+      get capUrl; // Split out of the FFSS bucket organisme: [id] is the guest club's own id,
+// not an FFSS organisme id, so it must never be used to fetch a detail.
+  @override
+  bool get isGuest;
   @override
   List<Athlete> get athletes;
   @override

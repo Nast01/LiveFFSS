@@ -47,7 +47,19 @@ mixin _$RefereeDto {
   @JsonKey(name: 'isInvite')
   bool get isGuest => throw _privateConstructorUsedError;
   @JsonKey(name: 'Principal')
-  bool get isPrincipal => throw _privateConstructorUsedError;
+  bool get isPrincipal =>
+      throw _privateConstructorUsedError; // An officiel row carries two club references: `idClub`/`clubLabel` is the
+// club they are attached to for this competition (the only one filled for a
+// guest), `idOfficielClub`/`officielClubLabel` is their licensed club.
+// ClubMapper picks between them when splitting the FFSS bucket organisme.
+  @JsonKey(name: 'idClub')
+  int get clubId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'clubLabel')
+  String get clubLabel => throw _privateConstructorUsedError;
+  @JsonKey(name: 'idOfficielClub')
+  int get refereeClubId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'officielClubLabel')
+  String get refereeClubLabel => throw _privateConstructorUsedError;
   @JsonKey(name: 'Jours', readValue: _readAvailabilities)
   List<int> get availabilities => throw _privateConstructorUsedError;
 
@@ -82,6 +94,10 @@ abstract class $RefereeDtoCopyWith<$Res> {
       @JsonKey(name: 'isLicencie') bool isLicensee,
       @JsonKey(name: 'isInvite') bool isGuest,
       @JsonKey(name: 'Principal') bool isPrincipal,
+      @JsonKey(name: 'idClub') int clubId,
+      @JsonKey(name: 'clubLabel') String clubLabel,
+      @JsonKey(name: 'idOfficielClub') int refereeClubId,
+      @JsonKey(name: 'officielClubLabel') String refereeClubLabel,
       @JsonKey(name: 'Jours', readValue: _readAvailabilities)
       List<int> availabilities});
 }
@@ -115,6 +131,10 @@ class _$RefereeDtoCopyWithImpl<$Res, $Val extends RefereeDto>
     Object? isLicensee = null,
     Object? isGuest = null,
     Object? isPrincipal = null,
+    Object? clubId = null,
+    Object? clubLabel = null,
+    Object? refereeClubId = null,
+    Object? refereeClubLabel = null,
     Object? availabilities = null,
   }) {
     return _then(_value.copyWith(
@@ -174,6 +194,22 @@ class _$RefereeDtoCopyWithImpl<$Res, $Val extends RefereeDto>
           ? _value.isPrincipal
           : isPrincipal // ignore: cast_nullable_to_non_nullable
               as bool,
+      clubId: null == clubId
+          ? _value.clubId
+          : clubId // ignore: cast_nullable_to_non_nullable
+              as int,
+      clubLabel: null == clubLabel
+          ? _value.clubLabel
+          : clubLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      refereeClubId: null == refereeClubId
+          ? _value.refereeClubId
+          : refereeClubId // ignore: cast_nullable_to_non_nullable
+              as int,
+      refereeClubLabel: null == refereeClubLabel
+          ? _value.refereeClubLabel
+          : refereeClubLabel // ignore: cast_nullable_to_non_nullable
+              as String,
       availabilities: null == availabilities
           ? _value.availabilities
           : availabilities // ignore: cast_nullable_to_non_nullable
@@ -205,6 +241,10 @@ abstract class _$$RefereeDtoImplCopyWith<$Res>
       @JsonKey(name: 'isLicencie') bool isLicensee,
       @JsonKey(name: 'isInvite') bool isGuest,
       @JsonKey(name: 'Principal') bool isPrincipal,
+      @JsonKey(name: 'idClub') int clubId,
+      @JsonKey(name: 'clubLabel') String clubLabel,
+      @JsonKey(name: 'idOfficielClub') int refereeClubId,
+      @JsonKey(name: 'officielClubLabel') String refereeClubLabel,
       @JsonKey(name: 'Jours', readValue: _readAvailabilities)
       List<int> availabilities});
 }
@@ -236,6 +276,10 @@ class __$$RefereeDtoImplCopyWithImpl<$Res>
     Object? isLicensee = null,
     Object? isGuest = null,
     Object? isPrincipal = null,
+    Object? clubId = null,
+    Object? clubLabel = null,
+    Object? refereeClubId = null,
+    Object? refereeClubLabel = null,
     Object? availabilities = null,
   }) {
     return _then(_$RefereeDtoImpl(
@@ -295,6 +339,22 @@ class __$$RefereeDtoImplCopyWithImpl<$Res>
           ? _value.isPrincipal
           : isPrincipal // ignore: cast_nullable_to_non_nullable
               as bool,
+      clubId: null == clubId
+          ? _value.clubId
+          : clubId // ignore: cast_nullable_to_non_nullable
+              as int,
+      clubLabel: null == clubLabel
+          ? _value.clubLabel
+          : clubLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      refereeClubId: null == refereeClubId
+          ? _value.refereeClubId
+          : refereeClubId // ignore: cast_nullable_to_non_nullable
+              as int,
+      refereeClubLabel: null == refereeClubLabel
+          ? _value.refereeClubLabel
+          : refereeClubLabel // ignore: cast_nullable_to_non_nullable
+              as String,
       availabilities: null == availabilities
           ? _value._availabilities
           : availabilities // ignore: cast_nullable_to_non_nullable
@@ -321,6 +381,10 @@ class _$RefereeDtoImpl implements _RefereeDto {
       @JsonKey(name: 'isLicencie') this.isLicensee = false,
       @JsonKey(name: 'isInvite') this.isGuest = false,
       @JsonKey(name: 'Principal') this.isPrincipal = false,
+      @JsonKey(name: 'idClub') this.clubId = 0,
+      @JsonKey(name: 'clubLabel') this.clubLabel = '',
+      @JsonKey(name: 'idOfficielClub') this.refereeClubId = 0,
+      @JsonKey(name: 'officielClubLabel') this.refereeClubLabel = '',
       @JsonKey(name: 'Jours', readValue: _readAvailabilities)
       final List<int> availabilities = const <int>[]})
       : _availabilities = availabilities;
@@ -370,6 +434,22 @@ class _$RefereeDtoImpl implements _RefereeDto {
   @override
   @JsonKey(name: 'Principal')
   final bool isPrincipal;
+// An officiel row carries two club references: `idClub`/`clubLabel` is the
+// club they are attached to for this competition (the only one filled for a
+// guest), `idOfficielClub`/`officielClubLabel` is their licensed club.
+// ClubMapper picks between them when splitting the FFSS bucket organisme.
+  @override
+  @JsonKey(name: 'idClub')
+  final int clubId;
+  @override
+  @JsonKey(name: 'clubLabel')
+  final String clubLabel;
+  @override
+  @JsonKey(name: 'idOfficielClub')
+  final int refereeClubId;
+  @override
+  @JsonKey(name: 'officielClubLabel')
+  final String refereeClubLabel;
   final List<int> _availabilities;
   @override
   @JsonKey(name: 'Jours', readValue: _readAvailabilities)
@@ -381,7 +461,7 @@ class _$RefereeDtoImpl implements _RefereeDto {
 
   @override
   String toString() {
-    return 'RefereeDto(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, level: $level, levelMax: $levelMax, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, isPrincipal: $isPrincipal, availabilities: $availabilities)';
+    return 'RefereeDto(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, level: $level, levelMax: $levelMax, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, isPrincipal: $isPrincipal, clubId: $clubId, clubLabel: $clubLabel, refereeClubId: $refereeClubId, refereeClubLabel: $refereeClubLabel, availabilities: $availabilities)';
   }
 
   @override
@@ -411,29 +491,41 @@ class _$RefereeDtoImpl implements _RefereeDto {
             (identical(other.isGuest, isGuest) || other.isGuest == isGuest) &&
             (identical(other.isPrincipal, isPrincipal) ||
                 other.isPrincipal == isPrincipal) &&
+            (identical(other.clubId, clubId) || other.clubId == clubId) &&
+            (identical(other.clubLabel, clubLabel) ||
+                other.clubLabel == clubLabel) &&
+            (identical(other.refereeClubId, refereeClubId) ||
+                other.refereeClubId == refereeClubId) &&
+            (identical(other.refereeClubLabel, refereeClubLabel) ||
+                other.refereeClubLabel == refereeClubLabel) &&
             const DeepCollectionEquality()
                 .equals(other._availabilities, _availabilities));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      licenseeNumber,
-      firstName,
-      lastName,
-      gender,
-      year,
-      level,
-      levelMax,
-      nationalityCode,
-      nationality,
-      isValid,
-      isLicensee,
-      isGuest,
-      isPrincipal,
-      const DeepCollectionEquality().hash(_availabilities));
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        licenseeNumber,
+        firstName,
+        lastName,
+        gender,
+        year,
+        level,
+        levelMax,
+        nationalityCode,
+        nationality,
+        isValid,
+        isLicensee,
+        isGuest,
+        isPrincipal,
+        clubId,
+        clubLabel,
+        refereeClubId,
+        refereeClubLabel,
+        const DeepCollectionEquality().hash(_availabilities)
+      ]);
 
   /// Create a copy of RefereeDto
   /// with the given fields replaced by the non-null parameter values.
@@ -467,6 +559,10 @@ abstract class _RefereeDto implements RefereeDto {
       @JsonKey(name: 'isLicencie') final bool isLicensee,
       @JsonKey(name: 'isInvite') final bool isGuest,
       @JsonKey(name: 'Principal') final bool isPrincipal,
+      @JsonKey(name: 'idClub') final int clubId,
+      @JsonKey(name: 'clubLabel') final String clubLabel,
+      @JsonKey(name: 'idOfficielClub') final int refereeClubId,
+      @JsonKey(name: 'officielClubLabel') final String refereeClubLabel,
       @JsonKey(name: 'Jours', readValue: _readAvailabilities)
       final List<int> availabilities}) = _$RefereeDtoImpl;
 
@@ -514,7 +610,23 @@ abstract class _RefereeDto implements RefereeDto {
   bool get isGuest;
   @override
   @JsonKey(name: 'Principal')
-  bool get isPrincipal;
+  bool
+      get isPrincipal; // An officiel row carries two club references: `idClub`/`clubLabel` is the
+// club they are attached to for this competition (the only one filled for a
+// guest), `idOfficielClub`/`officielClubLabel` is their licensed club.
+// ClubMapper picks between them when splitting the FFSS bucket organisme.
+  @override
+  @JsonKey(name: 'idClub')
+  int get clubId;
+  @override
+  @JsonKey(name: 'clubLabel')
+  String get clubLabel;
+  @override
+  @JsonKey(name: 'idOfficielClub')
+  int get refereeClubId;
+  @override
+  @JsonKey(name: 'officielClubLabel')
+  String get refereeClubLabel;
   @override
   @JsonKey(name: 'Jours', readValue: _readAvailabilities)
   List<int> get availabilities;
