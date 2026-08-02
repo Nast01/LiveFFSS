@@ -42,6 +42,10 @@ mixin _$AthleteDto {
   bool get isLicensee => throw _privateConstructorUsedError;
   @JsonKey(name: 'isInvite')
   bool get isGuest =>
+      throw _privateConstructorUsedError; // A guest has no FFSS licence: this stands in for `NumeroLicence`.
+// Observed as both an int and a String, hence the coercion.
+  @JsonKey(name: 'idInvite', readValue: _readGuestId)
+  String get guestId =>
       throw _privateConstructorUsedError; // Engagement-scoped fields (present only on the engagement endpoint).
   @JsonKey(name: 'Performance')
   int get performanceTime => throw _privateConstructorUsedError;
@@ -82,6 +86,7 @@ abstract class $AthleteDtoCopyWith<$Res> {
       @JsonKey(name: 'isValid') bool isValid,
       @JsonKey(name: 'isLicencie') bool isLicensee,
       @JsonKey(name: 'isInvite') bool isGuest,
+      @JsonKey(name: 'idInvite', readValue: _readGuestId) String guestId,
       @JsonKey(name: 'Performance') int performanceTime,
       @JsonKey(name: 'performanceLabel') String performanceLabel,
       @JsonKey(name: 'idClub') int clubId,
@@ -115,6 +120,7 @@ class _$AthleteDtoCopyWithImpl<$Res, $Val extends AthleteDto>
     Object? isValid = null,
     Object? isLicensee = null,
     Object? isGuest = null,
+    Object? guestId = null,
     Object? performanceTime = null,
     Object? performanceLabel = null,
     Object? clubId = null,
@@ -166,6 +172,10 @@ class _$AthleteDtoCopyWithImpl<$Res, $Val extends AthleteDto>
           ? _value.isGuest
           : isGuest // ignore: cast_nullable_to_non_nullable
               as bool,
+      guestId: null == guestId
+          ? _value.guestId
+          : guestId // ignore: cast_nullable_to_non_nullable
+              as String,
       performanceTime: null == performanceTime
           ? _value.performanceTime
           : performanceTime // ignore: cast_nullable_to_non_nullable
@@ -210,6 +220,7 @@ abstract class _$$AthleteDtoImplCopyWith<$Res>
       @JsonKey(name: 'isValid') bool isValid,
       @JsonKey(name: 'isLicencie') bool isLicensee,
       @JsonKey(name: 'isInvite') bool isGuest,
+      @JsonKey(name: 'idInvite', readValue: _readGuestId) String guestId,
       @JsonKey(name: 'Performance') int performanceTime,
       @JsonKey(name: 'performanceLabel') String performanceLabel,
       @JsonKey(name: 'idClub') int clubId,
@@ -241,6 +252,7 @@ class __$$AthleteDtoImplCopyWithImpl<$Res>
     Object? isValid = null,
     Object? isLicensee = null,
     Object? isGuest = null,
+    Object? guestId = null,
     Object? performanceTime = null,
     Object? performanceLabel = null,
     Object? clubId = null,
@@ -292,6 +304,10 @@ class __$$AthleteDtoImplCopyWithImpl<$Res>
           ? _value.isGuest
           : isGuest // ignore: cast_nullable_to_non_nullable
               as bool,
+      guestId: null == guestId
+          ? _value.guestId
+          : guestId // ignore: cast_nullable_to_non_nullable
+              as String,
       performanceTime: null == performanceTime
           ? _value.performanceTime
           : performanceTime // ignore: cast_nullable_to_non_nullable
@@ -331,6 +347,7 @@ class _$AthleteDtoImpl implements _AthleteDto {
       @JsonKey(name: 'isValid') this.isValid = false,
       @JsonKey(name: 'isLicencie') this.isLicensee = false,
       @JsonKey(name: 'isInvite') this.isGuest = false,
+      @JsonKey(name: 'idInvite', readValue: _readGuestId) this.guestId = '',
       @JsonKey(name: 'Performance') this.performanceTime = 0,
       @JsonKey(name: 'performanceLabel') this.performanceLabel = '',
       @JsonKey(name: 'idClub') this.clubId = 0,
@@ -373,6 +390,11 @@ class _$AthleteDtoImpl implements _AthleteDto {
   @override
   @JsonKey(name: 'isInvite')
   final bool isGuest;
+// A guest has no FFSS licence: this stands in for `NumeroLicence`.
+// Observed as both an int and a String, hence the coercion.
+  @override
+  @JsonKey(name: 'idInvite', readValue: _readGuestId)
+  final String guestId;
 // Engagement-scoped fields (present only on the engagement endpoint).
   @override
   @JsonKey(name: 'Performance')
@@ -392,7 +414,7 @@ class _$AthleteDtoImpl implements _AthleteDto {
 
   @override
   String toString() {
-    return 'AthleteDto(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute)';
+    return 'AthleteDto(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, guestId: $guestId, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute)';
   }
 
   @override
@@ -417,6 +439,7 @@ class _$AthleteDtoImpl implements _AthleteDto {
             (identical(other.isLicensee, isLicensee) ||
                 other.isLicensee == isLicensee) &&
             (identical(other.isGuest, isGuest) || other.isGuest == isGuest) &&
+            (identical(other.guestId, guestId) || other.guestId == guestId) &&
             (identical(other.performanceTime, performanceTime) ||
                 other.performanceTime == performanceTime) &&
             (identical(other.performanceLabel, performanceLabel) ||
@@ -443,6 +466,7 @@ class _$AthleteDtoImpl implements _AthleteDto {
       isValid,
       isLicensee,
       isGuest,
+      guestId,
       performanceTime,
       performanceLabel,
       clubId,
@@ -467,23 +491,24 @@ class _$AthleteDtoImpl implements _AthleteDto {
 
 abstract class _AthleteDto implements AthleteDto {
   const factory _AthleteDto(
-          {@JsonKey(name: 'Id') final int id,
-          @JsonKey(name: 'NumeroLicence') final String licenseeNumber,
-          @JsonKey(name: 'Prenom') final String firstName,
-          @JsonKey(name: 'Nom') final String lastName,
-          @JsonKey(name: 'Sexe') final String gender,
-          @JsonKey(name: 'Annee', readValue: _readYear) final int year,
-          @JsonKey(name: 'nationaliteCode') final String nationalityCode,
-          @JsonKey(name: 'nationaliteLabel') final String nationality,
-          @JsonKey(name: 'isValid') final bool isValid,
-          @JsonKey(name: 'isLicencie') final bool isLicensee,
-          @JsonKey(name: 'isInvite') final bool isGuest,
-          @JsonKey(name: 'Performance') final int performanceTime,
-          @JsonKey(name: 'performanceLabel') final String performanceLabel,
-          @JsonKey(name: 'idClub') final int clubId,
-          @JsonKey(name: 'clubLabel') final String clubLabel,
-          @JsonKey(name: 'isRemplacant') final bool isSubstitute}) =
-      _$AthleteDtoImpl;
+      {@JsonKey(name: 'Id') final int id,
+      @JsonKey(name: 'NumeroLicence') final String licenseeNumber,
+      @JsonKey(name: 'Prenom') final String firstName,
+      @JsonKey(name: 'Nom') final String lastName,
+      @JsonKey(name: 'Sexe') final String gender,
+      @JsonKey(name: 'Annee', readValue: _readYear) final int year,
+      @JsonKey(name: 'nationaliteCode') final String nationalityCode,
+      @JsonKey(name: 'nationaliteLabel') final String nationality,
+      @JsonKey(name: 'isValid') final bool isValid,
+      @JsonKey(name: 'isLicencie') final bool isLicensee,
+      @JsonKey(name: 'isInvite') final bool isGuest,
+      @JsonKey(name: 'idInvite', readValue: _readGuestId) final String guestId,
+      @JsonKey(name: 'Performance') final int performanceTime,
+      @JsonKey(name: 'performanceLabel') final String performanceLabel,
+      @JsonKey(name: 'idClub') final int clubId,
+      @JsonKey(name: 'clubLabel') final String clubLabel,
+      @JsonKey(name: 'isRemplacant')
+      final bool isSubstitute}) = _$AthleteDtoImpl;
 
   factory _AthleteDto.fromJson(Map<String, dynamic> json) =
       _$AthleteDtoImpl.fromJson;
@@ -521,7 +546,12 @@ abstract class _AthleteDto implements AthleteDto {
   @override
   @JsonKey(name: 'isInvite')
   bool
-      get isGuest; // Engagement-scoped fields (present only on the engagement endpoint).
+      get isGuest; // A guest has no FFSS licence: this stands in for `NumeroLicence`.
+// Observed as both an int and a String, hence the coercion.
+  @override
+  @JsonKey(name: 'idInvite', readValue: _readGuestId)
+  String
+      get guestId; // Engagement-scoped fields (present only on the engagement endpoint).
   @override
   @JsonKey(name: 'Performance')
   int get performanceTime;

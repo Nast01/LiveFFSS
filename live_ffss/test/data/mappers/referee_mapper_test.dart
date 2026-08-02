@@ -70,5 +70,34 @@ void main() {
       expect(r.isPrincipal, false);
       expect(r.availabilities, isEmpty);
     });
+
+    test('CHE is rewritten to the sport code SUI', () {
+      const dto = RefereeDto(
+        id: 1,
+        firstName: 'X',
+        lastName: 'Y',
+        nationalityCode: 'CHE',
+        nationality: 'Suisse',
+      );
+
+      final r = dto.toDomain();
+
+      expect(r.nationalityCode, 'SUI');
+      expect(r.nationality, 'Suisse');
+    });
+
+    test('a guest officiel still uses NumeroLicence', () {
+      // Unlike athletes, officiels are never identified by idInvite.
+      final dto = RefereeDto.fromJson(const {
+        'Id': 1,
+        'NumeroLicence': '777',
+        'Prenom': 'X',
+        'Nom': 'Y',
+        'isInvite': true,
+        'idInvite': 'INV-42',
+      });
+
+      expect(dto.toDomain().licenseeNumber, '777');
+    });
   });
 }

@@ -12,7 +12,7 @@ extension RefereeMapper on RefereeDto {
         year: year,
         level: level,
         levelMax: levelMax,
-        nationalityCode: nationalityCode,
+        nationalityCode: normalizeNationalityCode(nationalityCode),
         nationality: nationality,
         isValid: isValid,
         isLicensee: isLicensee,

@@ -18,6 +18,11 @@ class AthleteDto with _$AthleteDto {
     @JsonKey(name: 'isValid') @Default(false) bool isValid,
     @JsonKey(name: 'isLicencie') @Default(false) bool isLicensee,
     @JsonKey(name: 'isInvite') @Default(false) bool isGuest,
+    // A guest has no FFSS licence: this stands in for `NumeroLicence`.
+    // Observed as both an int and a String, hence the coercion.
+    @JsonKey(name: 'idInvite', readValue: _readGuestId)
+    @Default('')
+    String guestId,
     // Engagement-scoped fields (present only on the engagement endpoint).
     @JsonKey(name: 'Performance') @Default(0) int performanceTime,
     @JsonKey(name: 'performanceLabel') @Default('') String performanceLabel,
@@ -34,4 +39,10 @@ Object? _readYear(Map<dynamic, dynamic> map, String key) {
   final raw = map[key];
   if (raw is String) return int.tryParse(raw) ?? 0;
   return raw;
+}
+
+Object? _readGuestId(Map<dynamic, dynamic> map, String key) {
+  final raw = map[key];
+  if (raw == null) return '';
+  return raw is String ? raw : raw.toString();
 }
