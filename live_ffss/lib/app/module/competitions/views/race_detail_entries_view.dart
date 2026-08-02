@@ -5,8 +5,8 @@ import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
-import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_detail_controller.dart';
+import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
@@ -174,7 +174,12 @@ class _AthleteRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _ClubCap(club: athlete.club, fallbackLabel: athlete.clubLabel),
+          ClubAvatar(
+            club: athlete.club,
+            size: 40,
+            shape: ClubAvatarShape.circle,
+            fallbackLabel: athlete.clubLabel,
+          ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
@@ -218,76 +223,6 @@ class _AthleteRow extends StatelessWidget {
   }
 }
 
-class _ClubCap extends StatelessWidget {
-  const _ClubCap({required this.club, required this.fallbackLabel});
-
-  final Club? club;
-
-  /// Used for the initial + colour when [club] is unresolved (no club index).
-  final String fallbackLabel;
-
-  static const double _size = 40.0;
-
-  @override
-  Widget build(BuildContext context) {
-    // Prefer the cap image, then the club logo; both fall back to a coloured
-    // initial (chained via errorBuilder so a broken URL degrades gracefully).
-    final urls = <String>[
-      if (club?.capUrl?.isNotEmpty == true) club!.capUrl!,
-      if (club?.logoUrl?.isNotEmpty == true) club!.logoUrl!,
-    ];
-
-    return Container(
-      width: _size,
-      height: _size,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        shape: BoxShape.circle,
-        border: Border.all(color: AppColors.border),
-      ),
-      child: _imageOrInitial(urls, 0),
-    );
-  }
-
-  Widget _imageOrInitial(List<String> urls, int index) {
-    if (index >= urls.length) {
-      return _ClubInitial(club: club, fallback: fallbackLabel);
-    }
-    return Image.network(
-      urls[index],
-      fit: BoxFit.cover,
-      width: _size,
-      height: _size,
-      errorBuilder: (_, __, ___) => _imageOrInitial(urls, index + 1),
-    );
-  }
-}
-
-class _ClubInitial extends StatelessWidget {
-  const _ClubInitial({required this.club, required this.fallback});
-
-  final Club? club;
-  final String fallback;
-
-  @override
-  Widget build(BuildContext context) {
-    final source =
-        club?.name.isNotEmpty == true ? club!.name : fallback;
-    final initial = source.isNotEmpty ? source[0].toUpperCase() : '?';
-
-    return Center(
-      child: Text(
-        initial,
-        style: AppTypography.title.copyWith(
-          color: AppColors.textPrimary,
-          fontSize: 16,
-        ),
-      ),
-    );
-  }
-}
-
 class _StatusChip extends GetView<RaceDetailController> {
   const _StatusChip({required this.athlete});
 
@@ -306,8 +241,7 @@ class _StatusChip extends GetView<RaceDetailController> {
       };
 
   Future<void> _pickStatus(BuildContext context, Offset globalPosition) async {
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
     final selected = await showMenu<AttendanceStatus>(
       context: context,
       position: RelativeRect.fromRect(
@@ -427,8 +361,10 @@ class _ScanLogRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final (String text, Color color) = switch (result.outcome) {
       ScanOutcome.present => (result.label, AppColors.statusFinished),
-      ScanOutcome.notEntered =>
-        ('${result.label} · ${'not_entered'.tr}', AppColors.statusWaiting),
+      ScanOutcome.notEntered => (
+          '${result.label} · ${'not_entered'.tr}',
+          AppColors.statusWaiting
+        ),
       // For unreadable rows the label IS the RfidException translation key.
       ScanOutcome.unreadable => (result.label.tr, AppColors.statusError),
     };

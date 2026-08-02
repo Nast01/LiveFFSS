@@ -47,9 +47,13 @@ void main() {
         availabilities: const [],
       );
 
+  setUpAll(() => registerFallbackValue(<int>[]));
+
   setUp(() {
     repo = _MockRepo();
     controller = CompetitionDetailClubsController(repo);
+    when(() => repo.getClubDetails(any()))
+        .thenAnswer((_) async => <int, Club>{});
   });
 
   group('CompetitionDetailClubsController.loadClubs', () {
@@ -76,6 +80,99 @@ void main() {
 
       expect(controller.hasError.value, true);
       expect(controller.allClubs, isEmpty);
+    });
+  });
+
+  group('CompetitionDetailClubsController club images', () {
+    // The competition's `organismes` endpoint carries no logo/bonnet at all —
+    // only `organisme/:id` does — so the tab has to backfill them.
+    test('backfills clubs the list returned without an image', () async {
+      when(() => repo.getClubs(any()))
+          .thenAnswer((_) async => [c(1, 'Alpha'), c(2, 'Bravo')]);
+      when(() => repo.getClubDetails(any())).thenAnswer((_) async => {
+            1: const Club(id: 1, name: 'Alpha', logoUrl: 'https://x/logo.png'),
+          });
+
+      await controller.loadClubs(99);
+      await pumpEventQueue();
+
+      expect(controller.allClubs.first.logoUrl, 'https://x/logo.png');
+      expect(controller.filteredClubs.first.logoUrl, 'https://x/logo.png');
+    });
+
+    test('the backfill keeps members the detail endpoint does not return',
+        () async {
+      when(() => repo.getClubs(any())).thenAnswer((_) async => [
+            Club(id: 1, name: 'Alpha', athletes: [athlete('Alice', 'Doe')]),
+          ]);
+      when(() => repo.getClubDetails(any())).thenAnswer((_) async => {
+            1: const Club(
+              id: 1,
+              name: 'Alpha',
+              logoUrl: 'https://x/logo.png',
+              capUrl: 'https://x/cap.png',
+            ),
+          });
+
+      await controller.loadClubs(99);
+      await pumpEventQueue();
+
+      final club = controller.allClubs.single;
+      expect(club.logoUrl, 'https://x/logo.png');
+      expect(club.capUrl, 'https://x/cap.png');
+      expect(club.athletes, hasLength(1));
+    });
+
+    test('clubs that already carry an image are not refetched', () async {
+      when(() => repo.getClubs(any())).thenAnswer((_) async => [
+            const Club(id: 1, name: 'Alpha', logoUrl: 'https://x/logo.png'),
+            const Club(id: 2, name: 'Bravo', capUrl: 'https://x/cap.png'),
+            c(3, 'Charlie'),
+          ]);
+
+      await controller.loadClubs(99);
+      await pumpEventQueue();
+
+      final requested =
+          verify(() => repo.getClubDetails(captureAny())).captured.single;
+      expect((requested as Iterable<int>).toList(), [3]);
+    });
+
+    test('guest clubs are never fetched: their id is not an FFSS organisme',
+        () async {
+      when(() => repo.getClubs(any())).thenAnswer((_) async => [
+            c(1, 'Alpha'),
+            const Club(id: 800, name: 'Guest Alpha', isGuest: true),
+          ]);
+
+      await controller.loadClubs(99);
+      await pumpEventQueue();
+
+      final requested =
+          verify(() => repo.getClubDetails(captureAny())).captured.single;
+      expect((requested as Iterable<int>).toList(), [1]);
+    });
+
+    test('a backfill with only guest clubs makes no call at all', () async {
+      when(() => repo.getClubs(any())).thenAnswer((_) async =>
+          [const Club(id: 800, name: 'Guest Alpha', isGuest: true)]);
+
+      await controller.loadClubs(99);
+      await pumpEventQueue();
+
+      verifyNever(() => repo.getClubDetails(any()));
+    });
+
+    test('a failed backfill leaves the list untouched', () async {
+      when(() => repo.getClubs(any())).thenAnswer((_) async => [c(1, 'Alpha')]);
+      when(() => repo.getClubDetails(any()))
+          .thenThrow(const NetworkException('offline'));
+
+      await controller.loadClubs(99);
+      await pumpEventQueue();
+
+      expect(controller.allClubs.single.logoUrl, isNull);
+      expect(controller.hasError.value, isFalse);
     });
   });
 

@@ -8,6 +8,7 @@ import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/referee.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_clubs_controller.dart';
+import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
@@ -30,8 +31,8 @@ class CompetitionDetailClubsView
             if (controller.hasError.value) {
               return ErrorState(
                 message: 'error_occured'.tr,
-                onRetry: () => controller
-                    .loadClubs(controller.competition.value?.id ?? 0),
+                onRetry: () =>
+                    controller.loadClubs(controller.competition.value?.id ?? 0),
               );
             }
             if (controller.filteredClubs.isEmpty) {
@@ -40,11 +41,10 @@ class CompetitionDetailClubsView
                 title: 'no_clubs_found'.tr,
               );
             }
-            final searchActive =
-                controller.searchQuery.value.trim().isNotEmpty;
+            final searchActive = controller.searchQuery.value.trim().isNotEmpty;
             return RefreshIndicator(
-              onRefresh: () => controller
-                  .loadClubs(controller.competition.value?.id ?? 0),
+              onRefresh: () =>
+                  controller.loadClubs(controller.competition.value?.id ?? 0),
               child: ListView.separated(
                 padding: AppSpacing.pageHorizontal,
                 itemCount: controller.filteredClubs.length,
@@ -145,7 +145,7 @@ class _ClubCard extends StatelessWidget {
             vertical: AppSpacing.xs,
           ),
           childrenPadding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          leading: _ClubThumbnail(club: club),
+          leading: ClubAvatar(club: club),
           title: Text(
             club.name,
             style: AppTypography.title.copyWith(fontSize: 14),
@@ -174,51 +174,6 @@ class _ClubCard extends StatelessWidget {
             ],
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ClubThumbnail extends StatelessWidget {
-  const _ClubThumbnail({required this.club});
-
-  final Club club;
-
-  @override
-  Widget build(BuildContext context) {
-    final logoUrl = club.logoUrl;
-    if (logoUrl == null || logoUrl.isEmpty) {
-      return _ClubThumbnailFallback();
-    }
-    return ClipRRect(
-      borderRadius: AppRadius.smRadius,
-      child: Image.network(
-        logoUrl,
-        width: 48,
-        height: 48,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _ClubThumbnailFallback(),
-        loadingBuilder: (_, child, progress) =>
-            progress == null ? child : _ClubThumbnailFallback(),
-      ),
-    );
-  }
-}
-
-class _ClubThumbnailFallback extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceMuted,
-        borderRadius: AppRadius.smRadius,
-      ),
-      child: const Icon(
-        Icons.groups,
-        color: AppColors.primary,
-        size: 24,
       ),
     );
   }

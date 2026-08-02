@@ -69,7 +69,12 @@ void main() {
     int number = 1,
     List<Result> results = const [],
   }) =>
-      Heat(id: id, name: 'S$number', done: false, number: number, results: results);
+      Heat(
+          id: id,
+          name: 'S$number',
+          done: false,
+          number: number,
+          results: results);
 
   Result resultWithAthlete(int athleteId) {
     final athlete = Athlete(
@@ -309,6 +314,28 @@ void main() {
       verify(() => clubRepo.getClubDetail(77)).called(1);
     });
 
+    test('never backfills a guest club: its id is not an FFSS organisme',
+        () async {
+      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
+            makeEntry(id: 1, clubName: 'X', athletes: [
+              athlete(5, clubId: 800),
+            ]),
+          ]);
+      when(() => clubRepo.getClubs(any())).thenAnswer((_) async => [
+            Club(
+              id: 800,
+              name: 'Guest Alpha',
+              isGuest: true,
+              athletes: [athlete(5, clubId: 800).copyWith(club: null)],
+            ),
+          ]);
+
+      await controller.loadEntries();
+      await pumpEventQueue();
+
+      verifyNever(() => clubRepo.getClubDetail(any()));
+    });
+
     test('backfill fetches each club once, deduped across athletes', () async {
       when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
             makeEntry(id: 1, clubName: 'X', athletes: [
@@ -457,12 +484,9 @@ void main() {
     });
 
     test('sortMode attendance groups by status then name', () {
-      final present =
-          makeAthlete(id: 1, firstName: 'A', lastName: 'Zzz');
-      final waiting =
-          makeAthlete(id: 2, firstName: 'B', lastName: 'Yyy');
-      final absent =
-          makeAthlete(id: 3, firstName: 'C', lastName: 'Xxx');
+      final present = makeAthlete(id: 1, firstName: 'A', lastName: 'Zzz');
+      final waiting = makeAthlete(id: 2, firstName: 'B', lastName: 'Yyy');
+      final absent = makeAthlete(id: 3, firstName: 'C', lastName: 'Xxx');
       controller.entries.value = [
         entryWithAthletes(1, [present, waiting, absent]),
       ];
@@ -582,7 +606,9 @@ void main() {
 
     test('a matching bracelet marks the athlete present', () async {
       final jean = scanAthlete(1, 'DUPONT', '123');
-      controller.entries.value = [scanEntry([jean])];
+      controller.entries.value = [
+        scanEntry([jean])
+      ];
       controller.startScan();
       scanStream.add('123;DUPONT');
       await pumpEventQueue();
@@ -593,7 +619,9 @@ void main() {
 
     test('an unknown licence logs notEntered and leaves attendance', () async {
       final jean = scanAthlete(1, 'DUPONT', '123');
-      controller.entries.value = [scanEntry([jean])];
+      controller.entries.value = [
+        scanEntry([jean])
+      ];
       controller.startScan();
       scanStream.add('999;NOBODY');
       await pumpEventQueue();
@@ -610,9 +638,12 @@ void main() {
       expect(controller.scanLog.first.label, 'bracelet_unreadable');
     });
 
-    test('stopScan cancels the subscription; later events are ignored', () async {
+    test('stopScan cancels the subscription; later events are ignored',
+        () async {
       final jean = scanAthlete(1, 'DUPONT', '123');
-      controller.entries.value = [scanEntry([jean])];
+      controller.entries.value = [
+        scanEntry([jean])
+      ];
       controller.startScan();
       controller.stopScan();
       scanStream.add('123;DUPONT');

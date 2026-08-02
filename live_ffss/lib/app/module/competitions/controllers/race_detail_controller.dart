@@ -41,8 +41,7 @@ class RaceDetailController extends GetxController {
   /// [attendanceOf] — a missing key means the default [AttendanceStatus.waiting]
   /// (athletes start "en attente marshalling"). NOT cleared on reload/poll so a
   /// pull-to-refresh keeps the marshaller's validations.
-  final RxMap<int, AttendanceStatus> attendance =
-      <int, AttendanceStatus>{}.obs;
+  final RxMap<int, AttendanceStatus> attendance = <int, AttendanceStatus>{}.obs;
 
   /// How the flat athlete list is ordered. Drives [sortedAthletes].
   final Rx<AthleteSortMode> sortMode = AthleteSortMode.name.obs;
@@ -172,7 +171,10 @@ class RaceDetailController extends GetxController {
     final missing = <int>{
       for (final entry in entries)
         for (final athlete in entry.athletes)
+          // A guest club's id is its own, not an FFSS organisme id: fetching
+          // it would 404 or, worse, resolve to an unrelated club's logo.
           if (!_hasImage(athlete.club) &&
+              athlete.club?.isGuest != true &&
               athlete.clubId > 0 &&
               !_clubDetailCache.containsKey(athlete.clubId))
             athlete.clubId,
@@ -317,7 +319,9 @@ class RaceDetailController extends GetxController {
     }
     attendance[match.id] = AttendanceStatus.present;
     scanLog.insert(
-        0, ScanResult('${match.lastName} ${match.firstName}', ScanOutcome.present));
+        0,
+        ScanResult(
+            '${match.lastName} ${match.firstName}', ScanOutcome.present));
     presentCount.value++;
   }
 
@@ -353,8 +357,7 @@ class RaceDetailController extends GetxController {
               results: h.results
                   .map((r) => r.copyWith(
                         athletes: r.athletes
-                            .map((a) =>
-                                a.copyWith(club: index[a.id] ?? a.club))
+                            .map((a) => a.copyWith(club: index[a.id] ?? a.club))
                             .toList(),
                       ))
                   .toList(),

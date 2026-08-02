@@ -17,7 +17,7 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 **Feature modules (dual location — both are live):**
 - **`lib/app/module/<feature>/{bindings,controllers,views}/`** — actual feature code: GetX bindings, controllers, view widgets. Modules: `auth`, `competitions`, `favorites`, `home`, `main_shell`, `program`, `slot`. Auth module also holds `profile_*` and `user_*`. `main_shell` is the bottom-nav host mounted at `Routes.home`; `home` and `favorites` are tabs inside it, not standalone routes.
 - **`lib/app/presentation/modules/<feature>/`** — view-side `*_formatting.dart` extensions only (`CompetitionFormatting`, `HeatFormatting`, `RaceFormatting`, `MeetingFormatting`, `RunFormatting`) for date strings, status labels, colors. Currently covers `competitions`, `program`, `slot` (no `auth` or `home` extension).
-- **`lib/app/presentation/shared/`** — `LoadingIndicator`, `EmptyState`, `ErrorState`, `StatusBadge`, `SectionHeader`, `UiMessage`, `LanguageSelector`, `CompetitionCard`, `HomeWave`.
+- **`lib/app/presentation/shared/`** — `LoadingIndicator`, `EmptyState`, `ErrorState`, `StatusBadge`, `SectionHeader`, `UiMessage`, `LanguageSelector`, `CompetitionCard`, `HomeWave`, `ClubAvatar`.
 - **`lib/app/routes/`** — `app_pages.dart` (GetPage list, per-route bindings) + `app_routes.dart` (route name constants, `part of 'app_pages.dart'`). `AppPages.initial = Routes.home`. `Routes` still declares `userDashboard`, `adminDashboard`, and `settings`, but no `GetPage` is registered for them — they're dead constants, not routes.
 
 **Core (`lib/app/core/`):**
@@ -116,6 +116,7 @@ All `permanent: true`. Per-route bindings (under `lib/app/module/<feature>/bindi
 - Don't write hand-rolled `fromJson`. Use freezed + json_serializable. The analyzer is strict-cast and will flag dynamic coercions.
 - Don't add new dependencies without justification — `getwidget` and `google_fonts` were dropped because nothing imported them.
 - Don't add comments that narrate what the next line does. Add comments only where the **why** is non-obvious (a hidden constraint, a workaround, a backend quirk).
+- Don't hand-roll a club image. Any club shown as an icon goes through `ClubAvatar` (`presentation/shared/club_avatar.dart`), which falls back in a fixed order: **logo → cap → first letter of the club name**. Never a generic icon, never a blank box, and never a different order.
 - Don't widget-test. Test the logic layers; verify UI manually with `flutter run`.
 
 ## Known gaps (documented, not bugs)
