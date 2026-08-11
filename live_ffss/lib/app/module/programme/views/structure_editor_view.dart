@@ -216,6 +216,21 @@ class _LevelCard extends StatelessWidget {
                     style: AppTypography.body
                         .copyWith(fontWeight: FontWeight.bold)),
                 const Spacer(),
+                // Greyed out rather than refused with a message: the hierarchy
+                // is série < quart < demi < finale, and a dead arrow states it
+                // without any copy to read.
+                _MoveButton(
+                  icon: Icons.arrow_upward,
+                  tooltipKey: 'move_up',
+                  index: index,
+                  delta: -1,
+                ),
+                _MoveButton(
+                  icon: Icons.arrow_downward,
+                  tooltipKey: 'move_down',
+                  index: index,
+                  delta: 1,
+                ),
                 Obx(() => IconButton(
                       icon: controller.isDeletingLevel.value
                           ? const SizedBox(
@@ -269,6 +284,38 @@ class _LevelCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// One reorder arrow. Compact so the label, both arrows and the delete button
+/// still fit one line on a phone.
+class _MoveButton extends StatelessWidget {
+  const _MoveButton({
+    required this.icon,
+    required this.tooltipKey,
+    required this.index,
+    required this.delta,
+  });
+
+  final IconData icon;
+  final String tooltipKey;
+  final int index;
+  final int delta;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<StructureEditorController>();
+    return Obx(() {
+      final allowed = controller.canMoveLevel(index, delta);
+      return IconButton(
+        icon: Icon(icon),
+        iconSize: 20,
+        visualDensity: VisualDensity.compact,
+        tooltip: tooltipKey.tr,
+        color: AppColors.primary,
+        onPressed: allowed ? () => controller.moveLevel(index, delta) : null,
+      );
+    });
   }
 }
 

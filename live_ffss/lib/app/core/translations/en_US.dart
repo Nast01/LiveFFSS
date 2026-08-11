@@ -267,6 +267,8 @@ final Map<String, String> enUS = {
   'qualifiers_per_race': 'qualifiers/race',
   'races_count': 'races',
   'add_level': 'Add a level',
+  'move_up': 'Move up',
+  'move_down': 'Move down',
   'propose_structure': 'Propose a structure',
   'generate_default_all': 'Generate a default structure (all)',
   'view_bracket': 'View bracket',

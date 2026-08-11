@@ -269,6 +269,8 @@ final Map<String, String> frFR = {
   'qualifiers_per_race': 'qualifiés/course',
   'races_count': 'courses',
   'add_level': 'Ajouter un niveau',
+  'move_up': 'Monter',
+  'move_down': 'Descendre',
   'propose_structure': 'Proposer une structure',
   'generate_default_all': 'Générer une structure par défaut (tout)',
   'view_bracket': 'Voir le bracket',

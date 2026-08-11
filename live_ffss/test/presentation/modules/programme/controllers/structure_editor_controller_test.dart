@@ -438,6 +438,84 @@ void main() {
         [serieIds.first]);
   });
 
+  group('reordering the rounds', () {
+    test('moveLevel swaps two rounds of the same level and persists', () {
+      controller.addLevel(RoundType.serie);
+      controller.addLevel(RoundType.serie);
+      controller.setRaceCount(0, 3);
+
+      controller.moveLevel(1, -1);
+
+      final levels = controller.structure.value!.levels;
+      expect(levels[0].races, isEmpty);
+      expect(levels[1].races.length, 3);
+      final stored =
+          service.current.value!.structures.firstWhere((s) => s.raceId == 100);
+      expect(stored.levels[1].races.length, 3);
+    });
+
+    test('moveLevel refuses a move that would break the hierarchy', () {
+      controller.addLevel(RoundType.serie);
+      controller.addLevel(RoundType.finale);
+
+      controller.moveLevel(1, -1);
+
+      expect(controller.structure.value!.levels.map((l) => l.type),
+          [RoundType.serie, RoundType.finale]);
+    });
+
+    test('moveLevel re-wires the rounds it swapped', () {
+      controller.addLevel(RoundType.serie);
+      controller.addLevel(RoundType.serie);
+      controller.setRaceCount(0, 2);
+      controller.setRaceCount(1, 1);
+
+      controller.moveLevel(0, 1);
+
+      final levels = controller.structure.value!.levels;
+      final firstIds = levels[0].races.map((r) => r.id).toList();
+      expect(levels[0].races.single.sourceRaceIds, isEmpty);
+      expect(levels[1].races.first.sourceRaceIds, firstIds);
+    });
+
+    test('canMoveLevel is false at both ends of the list', () {
+      controller.addLevel(RoundType.serie);
+      controller.addLevel(RoundType.serie);
+
+      expect(controller.canMoveLevel(0, -1), isFalse);
+      expect(controller.canMoveLevel(1, 1), isFalse);
+      expect(controller.canMoveLevel(0, 1), isTrue);
+    });
+
+    test('addLevel inserts the round at its rank instead of appending', () {
+      controller.addLevel(RoundType.serie);
+      controller.addLevel(RoundType.finale);
+      controller.addLevel(RoundType.demi);
+      controller.addLevel(RoundType.quart);
+
+      expect(controller.structure.value!.levels.map((l) => l.type), [
+        RoundType.serie,
+        RoundType.quart,
+        RoundType.demi,
+        RoundType.finale,
+      ]);
+    });
+
+    test('a round inserted mid-structure becomes the feeder of the next one',
+        () {
+      controller.proposeDefault();
+
+      controller.addLevel(RoundType.demi);
+
+      final levels = controller.structure.value!.levels;
+      expect(levels.map((l) => l.type),
+          [RoundType.serie, RoundType.demi, RoundType.finale]);
+      // The demi holds no race yet, so the finale it now follows is fed by
+      // none — rather than still claiming the séries two rounds above.
+      expect(levels[2].races.single.sourceRaceIds, isEmpty);
+    });
+  });
+
   test('every mutation persists the whole programme', () async {
     controller.proposeDefault();
     // proposeDefault writes once; the structure is now in the stored programme.

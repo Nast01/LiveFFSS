@@ -8,6 +8,9 @@ import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/race_format_detail.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
+// Prefixed: the controller exposes `moveLevel`/`canMoveLevel` of its own, which
+// delegate to the same-named pure functions here.
+import 'package:live_ffss/app/domain/models/round_order.dart' as round_order;
 import 'package:live_ffss/app/domain/models/structure_generator.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
@@ -156,14 +159,35 @@ class StructureEditorController extends GetxController {
     _commit(structure.value!.copyWith(levels: levels));
   }
 
+  /// Adds a round **at its rank** in the hierarchy (série < quart < demi <
+  /// finale) rather than at the end, so picking the rounds in any order can no
+  /// longer produce a structure that runs a finale before its séries.
   void addLevel(RoundType type) {
     final s = structure.value!;
-    _commit(s.copyWith(levels: [
-      ...s.levels,
-      // A new round inherits the structure's default size rather than 0, so it
-      // shows a real number straight away.
-      RoundLevel(type: type, spotsPerRace: s.spotsPerRace),
-    ]));
+    final at = round_order.insertionIndexFor(s.levels, type);
+    final levels = [...s.levels]..insert(
+        at,
+        // A new round inherits the structure's default size rather than 0, so
+        // it shows a real number straight away.
+        RoundLevel(type: type, spotsPerRace: s.spotsPerRace),
+      );
+    _commit(s.copyWith(levels: round_order.rewireRange(levels, at, at + 1)));
+  }
+
+  /// Whether the round at [index] can move by [delta] (-1 up, +1 down) without
+  /// breaking the hierarchy. Drives the enabled state of the arrows.
+  bool canMoveLevel(int index, int delta) {
+    final s = structure.value;
+    if (s == null) return false;
+    return round_order.canMoveLevel(s.levels, index, delta);
+  }
+
+  /// Moves the round at [index] by [delta]. A move the hierarchy forbids is a
+  /// no-op — the view greys the arrow out, this is the guard behind it.
+  void moveLevel(int index, int delta) {
+    final s = structure.value;
+    if (s == null || !round_order.canMoveLevel(s.levels, index, delta)) return;
+    _commit(s.copyWith(levels: round_order.moveLevel(s.levels, index, delta)));
   }
 
   /// Removes a round. When it came from FFSS (it carries a `serverId`), the
