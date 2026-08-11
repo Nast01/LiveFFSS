@@ -145,13 +145,45 @@ void main() {
           ],
         );
 
-    test('gathers every category of an épreuve under one group', () {
+    test('makes one group per épreuve × category', () {
       final groups = groupUnscheduled(unscheduledRaces(twoEpreuves()));
 
-      expect(groups.map((g) => g.structureRaceId), [500, 600]);
+      expect(groups.map((g) => (g.structureRaceId, g.categoryId)),
+          [(500, 7), (500, 8), (600, 7)]);
       expect(groups.first.raceLabel, '100m');
-      expect(groups.first.items.map((i) => i.raceId), [1, 2, 4]);
+      expect(groups.first.categoryLabel, 'Cadets');
+      expect(groups[1].categoryLabel, 'Minimes');
+      expect(groups.first.items.map((i) => i.raceId), [1, 2]);
+      expect(groups[1].items.map((i) => i.raceId), [4]);
       expect(groups.last.items.map((i) => i.raceId), [3]);
+    });
+
+    test('orders the races of a group by round then number', () {
+      const p = CompetitionProgramme(
+        competitionId: 1,
+        nextLocalId: 100,
+        structures: [
+          EventStructure(
+            raceId: 500,
+            categoryId: 7,
+            raceLabel: '100m',
+            categoryLabel: 'Cadets',
+            levels: [
+              RoundLevel(type: RoundType.finale, races: [
+                ProgrammeRace(id: 1, number: 1),
+              ]),
+              RoundLevel(type: RoundType.serie, races: [
+                ProgrammeRace(id: 2, number: 2),
+                ProgrammeRace(id: 3, number: 1),
+              ]),
+            ],
+          ),
+        ],
+      );
+
+      final items = groupUnscheduled(unscheduledRaces(p)).single.items;
+
+      expect(items.map((i) => i.raceId), [3, 2, 1]);
     });
 
     test('drops a group once its last race is scheduled', () {
@@ -161,7 +193,8 @@ void main() {
 
       final groups = groupUnscheduled(unscheduledRaces(p));
 
-      expect(groups.map((g) => g.structureRaceId), [500]);
+      expect(groups.map((g) => (g.structureRaceId, g.categoryId)),
+          [(500, 7), (500, 8)]);
     });
 
     test('no races at all → no groups', () {

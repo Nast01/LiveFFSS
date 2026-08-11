@@ -483,7 +483,8 @@ class _Palette extends StatefulWidget {
 }
 
 class _PaletteState extends State<_Palette> {
-  final Set<int> _expanded = <int>{};
+  /// Keyed by (épreuve, category) — the pair identifying a group.
+  final Set<(int, int)> _expanded = <(int, int)>{};
 
   @override
   Widget build(BuildContext context) {
@@ -508,15 +509,13 @@ class _PaletteState extends State<_Palette> {
                 itemCount: groups.length,
                 itemBuilder: (_, i) {
                   final group = groups[i];
+                  final key = (group.structureRaceId, group.categoryId);
                   return _GroupSection(
                     group: group,
                     gender: widget.genderOf(group.structureRaceId),
-                    expanded: groups.length == 1 ||
-                        _expanded.contains(group.structureRaceId),
+                    expanded: groups.length == 1 || _expanded.contains(key),
                     onToggle: () => setState(() {
-                      if (!_expanded.remove(group.structureRaceId)) {
-                        _expanded.add(group.structureRaceId);
-                      }
+                      if (!_expanded.remove(key)) _expanded.add(key);
                     }),
                     onAdd: (siteId == null || day == null)
                         ? null
@@ -574,7 +573,7 @@ class _GroupSection extends StatelessWidget {
                 _GenderBadge(gender: gender),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
-                  child: Text(group.raceLabel,
+                  child: Text('${group.raceLabel} · ${group.categoryLabel}',
                       style: AppTypography.body
                           .copyWith(fontWeight: FontWeight.w600)),
                 ),
@@ -601,7 +600,8 @@ class _GroupSection extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        '${item.categoryLabel} · '
+                        // The heading names the épreuve and the category; only
+                        // the round is left to tell these rows apart.
                         '${item.roundType.labelKey.tr} ${item.number}',
                         style: AppTypography.body,
                       ),

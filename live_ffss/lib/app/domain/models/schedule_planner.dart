@@ -30,52 +30,58 @@ class ScheduleItem {
   final int number;
 }
 
-/// Every unscheduled race of one épreuve, however many categories and rounds
-/// it spans. A pure view model for the palette.
+/// Every unscheduled race of one épreuve × category — the same unit as an
+/// [EventStructure], so a group is exactly what the structure editor edits.
+/// A pure view model for the palette.
 class ScheduleGroup {
   const ScheduleGroup({
     required this.structureRaceId,
+    required this.categoryId,
     required this.raceLabel,
+    required this.categoryLabel,
     required this.items,
   });
 
   final int structureRaceId;
+  final int categoryId;
   final String raceLabel;
+  final String categoryLabel;
   final List<ScheduleItem> items;
 }
 
-/// Reading order inside an épreuve: category, then the round's place in the
-/// hierarchy, then the race number. The flat list is sorted by label + number,
-/// which interleaves the categories of one épreuve — legible in a flat list,
-/// confusing once they sit under a common heading.
-int _byCategoryThenRound(ScheduleItem a, ScheduleItem b) {
-  final byCategory = a.categoryLabel.compareTo(b.categoryLabel);
-  if (byCategory != 0) return byCategory;
+/// Reading order inside a group: the round's place in the hierarchy, then the
+/// race number. The flat list is sorted by label + number, which puts a finale
+/// among the séries — legible in a flat list, confusing under a heading that
+/// already names the épreuve and the category.
+int _byRoundThenNumber(ScheduleItem a, ScheduleItem b) {
   // An unranked round sorts last rather than first: it is the odd one out.
   final byRound =
       (roundRank(a.roundType) ?? 99).compareTo(roundRank(b.roundType) ?? 99);
   return byRound != 0 ? byRound : a.number.compareTo(b.number);
 }
 
-/// Gathers [items] by épreuve, groups in the order they arrive. An épreuve with
-/// nothing left to schedule yields no group at all, so the palette empties as
-/// the day fills up.
+/// Gathers [items] by épreuve × category, groups in the order they arrive. A
+/// group with nothing left to schedule does not appear at all, so the palette
+/// empties as the day fills up.
 List<ScheduleGroup> groupUnscheduled(List<ScheduleItem> items) {
-  final order = <int>[];
-  final byRace = <int, List<ScheduleItem>>{};
+  final order = <(int, int)>[];
+  final byStructure = <(int, int), List<ScheduleItem>>{};
   for (final item in items) {
-    final bucket = byRace.putIfAbsent(item.structureRaceId, () {
-      order.add(item.structureRaceId);
+    final key = (item.structureRaceId, item.categoryId);
+    final bucket = byStructure.putIfAbsent(key, () {
+      order.add(key);
       return <ScheduleItem>[];
     });
     bucket.add(item);
   }
   return [
-    for (final raceId in order)
+    for (final key in order)
       ScheduleGroup(
-        structureRaceId: raceId,
-        raceLabel: byRace[raceId]!.first.raceLabel,
-        items: byRace[raceId]!..sort(_byCategoryThenRound),
+        structureRaceId: key.$1,
+        categoryId: key.$2,
+        raceLabel: byStructure[key]!.first.raceLabel,
+        categoryLabel: byStructure[key]!.first.categoryLabel,
+        items: byStructure[key]!..sort(_byRoundThenNumber),
       ),
   ];
 }
