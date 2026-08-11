@@ -265,6 +265,8 @@ final Map<String, String> enUS = {
   'engaged': 'entries',
   'spots_per_race': 'spots/race',
   'qualifiers_per_race': 'qualifiers/race',
+  'qualified_short': 'qual.',
+  'no_races_in_round': 'No race in this round',
   'races_count': 'races',
   'add_level': 'Add a level',
   'move_up': 'Move up',

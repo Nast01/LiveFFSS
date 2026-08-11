@@ -84,7 +84,8 @@ void main() {
         raceLabel: '100m',
         categoryLabel: 'Juniors',
         levels: [
-          RoundLevel(type: RoundType.serie, races: [ProgrammeRace(id: 13, number: 1)]),
+          RoundLevel(
+              type: RoundType.serie, races: [ProgrammeRace(id: 13, number: 1)]),
         ],
       ),
       EventStructure(
@@ -98,7 +99,9 @@ void main() {
             ProgrammeRace(id: 10, number: 1),
             ProgrammeRace(id: 11, number: 2),
           ]),
-          RoundLevel(type: RoundType.finale, races: [ProgrammeRace(id: 12, number: 1)]),
+          RoundLevel(
+              type: RoundType.finale,
+              races: [ProgrammeRace(id: 12, number: 1)]),
         ],
       ),
       EventStructure(
@@ -107,7 +110,8 @@ void main() {
         raceLabel: 'Autre',
         categoryLabel: 'Cadets',
         levels: [
-          RoundLevel(type: RoundType.serie, races: [ProgrammeRace(id: 20, number: 1)]),
+          RoundLevel(
+              type: RoundType.serie, races: [ProgrammeRace(id: 20, number: 1)]),
         ],
       ),
     ],
@@ -118,25 +122,28 @@ void main() {
     raceRepo = _MockRaceRepo();
     when(() => storage.read(key: any(named: 'key')))
         .thenAnswer((_) async => jsonEncode(seed.toJson()));
-    when(() => storage.write(key: any(named: 'key'), value: any(named: 'value')))
+    when(() =>
+            storage.write(key: any(named: 'key'), value: any(named: 'value')))
         .thenAnswer((_) async {});
     service = ProgrammeService(storage);
     controller = RaceStructureController(service, raceRepo);
   });
 
-  test('load filters structures to the race and sorts by category label', () async {
+  test('load filters structures to the race and sorts by category label',
+      () async {
     when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
     await controller.load(race(500), competition);
 
     expect(controller.isLoading.value, isFalse);
-    expect(controller.structures.map((s) => s.categoryLabel), ['Cadets', 'Juniors']);
+    expect(controller.structures.map((s) => s.categoryLabel),
+        ['Cadets', 'Juniors']);
     expect(controller.hasStructure, isTrue);
     expect(controller.showCategoryHeaders, isTrue);
   });
 
   test('entryCountFor counts entries grouped by category', () async {
-    when(() => raceRepo.getEntries(500)).thenAnswer(
-        (_) async => [entry(1, 7), entry(2, 7), entry(3, 7), entry(4, 8), entry(5, 8)]);
+    when(() => raceRepo.getEntries(500)).thenAnswer((_) async =>
+        [entry(1, 7), entry(2, 7), entry(3, 7), entry(4, 8), entry(5, 8)]);
     await controller.load(race(500), competition);
 
     expect(controller.entryCountFor(7), 3);
@@ -161,12 +168,81 @@ void main() {
     expect(controller.hasStructure, isFalse);
   });
 
-  test('a getEntries failure degrades to zero counts; structure still loads', () async {
-    when(() => raceRepo.getEntries(500)).thenThrow(const NetworkException('boom'));
+  test('a getEntries failure degrades to zero counts; structure still loads',
+      () async {
+    when(() => raceRepo.getEntries(500))
+        .thenThrow(const NetworkException('boom'));
     await controller.load(race(500), competition);
 
     expect(controller.isLoading.value, isFalse);
     expect(controller.hasStructure, isTrue);
     expect(controller.entryCountFor(7), 0);
+  });
+
+  group('round tabs', () {
+    test('one tab per category and round, in category then round order',
+        () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      await controller.load(race(500), competition);
+
+      expect(
+        controller.tabs.map((t) => (t.categoryLabel, t.type)),
+        [
+          ('Cadets', RoundType.serie),
+          ('Cadets', RoundType.finale),
+          ('Juniors', RoundType.serie),
+        ],
+      );
+    });
+
+    test('the first tab is selected once the structures load', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      await controller.load(race(500), competition);
+
+      expect(controller.selectedTabIndex.value, 0);
+      expect(controller.selectedTab?.type, RoundType.serie);
+      expect(controller.selectedTab?.categoryLabel, 'Cadets');
+    });
+
+    test('selectTab moves the selection', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      await controller.load(race(500), competition);
+
+      controller.selectTab(2);
+
+      expect(controller.selectedTab?.categoryLabel, 'Juniors');
+    });
+
+    test('selectTab ignores an index outside the list', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      await controller.load(race(500), competition);
+
+      controller.selectTab(9);
+      controller.selectTab(-1);
+
+      expect(controller.selectedTabIndex.value, 0);
+    });
+
+    test('a reload with fewer tabs pulls the selection back in range',
+        () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      when(() => raceRepo.getEntries(999)).thenAnswer((_) async => const []);
+      await controller.load(race(500), competition);
+      controller.selectTab(2);
+
+      // Coming back from the structure editor, the race may hold fewer rounds.
+      await controller.load(race(999), competition);
+
+      expect(controller.selectedTabIndex.value, 0);
+      expect(controller.selectedTab, isNotNull);
+    });
+
+    test('a race with no structure has no tab and no selection', () async {
+      when(() => raceRepo.getEntries(12345)).thenAnswer((_) async => const []);
+      await controller.load(race(12345), competition);
+
+      expect(controller.tabs, isEmpty);
+      expect(controller.selectedTab, isNull);
+    });
   });
 }

@@ -74,6 +74,11 @@ class HeatDrawController extends GetxController {
     if (c is Competition) competition.value = c;
     final id = arg['categoryId'];
     if (id is int) categoryId = id;
+    // Optional: the caller may open the draw on a given round (the Séries tab
+    // does, on the one it is showing). Absent, load() falls back to the first
+    // round of the structure.
+    final round = arg['roundType'];
+    if (round is RoundType) selectedLevel.value = round;
     final label = arg['categoryLabel'];
     if (label is String) categoryLabel = label;
     load();

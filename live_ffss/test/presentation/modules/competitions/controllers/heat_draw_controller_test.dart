@@ -171,6 +171,24 @@ void main() {
   tearDown(Get.reset);
 
   group('HeatDrawController.load', () {
+    test('a round chosen by the caller survives the load', () async {
+      // The Séries tab opens the draw on the round it is showing; load() must
+      // not snap the selection back to the first round of the structure.
+      final controller = build()..selectedLevel.value = RoundType.finale;
+
+      await controller.load();
+
+      expect(controller.selectedLevel.value, RoundType.finale);
+    });
+
+    test('with no round chosen, the first of the structure is used', () async {
+      final controller = build();
+
+      await controller.load();
+
+      expect(controller.selectedLevel.value, RoundType.serie);
+    });
+
     test('keeps only the athletes marked present', () async {
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
             entry(1, [athlete(1), athlete(2), athlete(3)]),

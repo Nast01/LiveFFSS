@@ -5,6 +5,20 @@ import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
+import 'package:live_ffss/app/domain/models/round_level.dart';
+
+/// One entry of the round menu bar: a round of one category's structure.
+/// Carries no label of its own — translating is the view's job.
+class RoundTab {
+  const RoundTab({required this.structure, required this.level});
+
+  final EventStructure structure;
+  final RoundLevel level;
+
+  int get categoryId => structure.categoryId;
+  String get categoryLabel => structure.categoryLabel;
+  RoundType get type => level.type;
+}
 
 /// Feeds the race-detail "Séries" tab with the locally-defined structure(s) for
 /// this race (one per category), plus per-category engaged counts. Read-only.
@@ -54,6 +68,12 @@ class RaceStructureController extends GetxController {
           _programme.current.value?.structures ?? const <EventStructure>[];
       structures.value = all.where((s) => s.raceId == race.id).toList()
         ..sort((a, b) => a.categoryLabel.compareTo(b.categoryLabel));
+      // Clamped rather than reset: reloading after a draw must leave the
+      // operator on the round they were looking at, while opening a race with
+      // fewer rounds must not leave the selection past the end.
+      final tabCount = tabs.length;
+      selectedTabIndex.value =
+          tabCount == 0 ? 0 : selectedTabIndex.value.clamp(0, tabCount - 1);
       try {
         final entries = await _raceRepo.getEntries(race.id);
         final counts = <int, int>{};
@@ -76,4 +96,24 @@ class RaceStructureController extends GetxController {
   int entryCountFor(int categoryId) => _entryCountByCategory[categoryId] ?? 0;
 
   bool get showCategoryHeaders => structures.length > 1;
+
+  /// The menu bar: one entry per category × round actually defined, categories
+  /// in the order [structures] holds them, rounds in the structure's own order.
+  List<RoundTab> get tabs => [
+        for (final s in structures)
+          for (final level in s.levels) RoundTab(structure: s, level: level),
+      ];
+
+  final RxInt selectedTabIndex = 0.obs;
+
+  RoundTab? get selectedTab {
+    final all = tabs;
+    if (all.isEmpty) return null;
+    return all[selectedTabIndex.value.clamp(0, all.length - 1)];
+  }
+
+  void selectTab(int index) {
+    if (index < 0 || index >= tabs.length) return;
+    selectedTabIndex.value = index;
+  }
 }

@@ -27,42 +27,127 @@ class RaceStructureView extends GetView<RaceStructureController> {
             icon: Icons.account_tree_outlined,
             title: 'no_structure_defined'.tr);
       }
-      final showHeaders = controller.showCategoryHeaders;
-      final children = <Widget>[];
-      for (final s in controller.structures) {
-        if (s.levels.isEmpty) continue;
-        if (showHeaders) {
-          children.add(_CategoryHeader(
-              label: s.categoryLabel,
-              engaged: controller.entryCountFor(s.categoryId)));
-        }
-        children.add(_DrawHeatsButton(structure: s));
-        for (final level in s.levels) {
-          children.add(_RoundHeader(structure: s, level: level));
-          for (final r in level.races) {
-            children.add(_CourseTile(structure: s, level: level, race: r));
-          }
-        }
+      final tab = controller.selectedTab;
+      if (tab == null) {
+        return EmptyState(
+            icon: Icons.account_tree_outlined,
+            title: 'no_structure_defined'.tr);
       }
-      return ListView(padding: AppSpacing.pageAll, children: children);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _RoundBar(),
+          Expanded(child: _RoundPane(tab: tab)),
+        ],
+      );
     });
   }
 }
 
-class _CategoryHeader extends StatelessWidget {
-  const _CategoryHeader({required this.label, required this.engaged});
-  final String label;
+/// The round menu bar: one pill per category × round, scrolling sideways when
+/// the race carries more than a screenful.
+class _RoundBar extends StatelessWidget {
+  const _RoundBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<RaceStructureController>();
+    return Obx(() {
+      final tabs = controller.tabs;
+      final selected = controller.selectedTabIndex.value;
+      // On a single-category race the category is the same on every pill, so
+      // repeating it there says nothing — the round alone identifies the tab.
+      final withCategory = controller.showCategoryHeaders;
+      return SizedBox(
+        height: 44,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: AppSpacing.pageHorizontal,
+          itemCount: tabs.length,
+          separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+          itemBuilder: (_, i) {
+            final tab = tabs[i];
+            final active = i == selected;
+            final label = withCategory
+                ? '${tab.categoryLabel} · ${tab.type.labelKey.tr}'
+                : tab.type.labelKey.tr;
+            return GestureDetector(
+              onTap: () => controller.selectTab(i),
+              child: Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(
+                  color: active ? AppColors.primary : AppColors.surface,
+                  borderRadius: AppRadius.pillRadius,
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Text(
+                  label,
+                  style: AppTypography.caption.copyWith(
+                      fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+                      color: active ? Colors.white : AppColors.textPrimary),
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    });
+  }
+}
+
+/// What the selected pill opens: the chain recap of its category, the draw
+/// action, then the races of that one round.
+class _RoundPane extends StatelessWidget {
+  const _RoundPane({required this.tab});
+  final RoundTab tab;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<RaceStructureController>();
+    final structure = tab.structure;
+    final level = tab.level;
+    return ListView(
+      padding: AppSpacing.pageAll,
+      children: [
+        _ChainRecap(
+          structure: structure,
+          engaged: controller.entryCountFor(structure.categoryId),
+        ),
+        _DrawHeatsButton(structure: structure, roundType: level.type),
+        _RoundBanner(structure: structure, level: level),
+        if (level.races.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+            child: Text('no_races_in_round'.tr,
+                style: AppTypography.caption, textAlign: TextAlign.center),
+          )
+        else
+          for (final r in level.races)
+            _CourseTile(structure: structure, level: level, race: r),
+      ],
+    );
+  }
+}
+
+/// The whole chain of the selected category, so the structure stays readable
+/// while only one of its rounds is on screen.
+class _ChainRecap extends StatelessWidget {
+  const _ChainRecap({required this.structure, required this.engaged});
+  final EventStructure structure;
   final int engaged;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, AppSpacing.sm, 0, AppSpacing.xs),
-      child: Row(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTypography.subtitle),
-          const SizedBox(width: AppSpacing.sm),
-          Text('· $engaged ${'engaged'.tr}', style: AppTypography.caption),
+          Text('${structure.categoryLabel} · $engaged ${'engaged'.tr}',
+              style: AppTypography.subtitle),
+          const SizedBox(height: 2),
+          Text(structure.chainSummary, style: AppTypography.caption),
         ],
       ),
     );
@@ -70,8 +155,9 @@ class _CategoryHeader extends StatelessWidget {
 }
 
 class _DrawHeatsButton extends StatelessWidget {
-  const _DrawHeatsButton({required this.structure});
+  const _DrawHeatsButton({required this.structure, required this.roundType});
   final EventStructure structure;
+  final RoundType roundType;
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +175,9 @@ class _DrawHeatsButton extends StatelessWidget {
               'competition': controller.competition.value,
               'categoryId': structure.categoryId,
               'categoryLabel': structure.categoryLabel,
+              // Opens the draw on the round being shown rather than on the
+              // first one of the structure.
+              'roundType': roundType,
             });
             // The draw writes into the programme, so the structure shown here
             // is stale on the way back.
@@ -104,8 +193,8 @@ class _DrawHeatsButton extends StatelessWidget {
   }
 }
 
-class _RoundHeader extends StatelessWidget {
-  const _RoundHeader({required this.structure, required this.level});
+class _RoundBanner extends StatelessWidget {
+  const _RoundBanner({required this.structure, required this.level});
   final EventStructure structure;
   final RoundLevel level;
 

@@ -267,6 +267,8 @@ final Map<String, String> frFR = {
   'engaged': 'engagés',
   'spots_per_race': 'places/course',
   'qualifiers_per_race': 'qualifiés/course',
+  'qualified_short': 'qual.',
+  'no_races_in_round': 'Aucune course dans ce tour',
   'races_count': 'courses',
   'add_level': 'Ajouter un niveau',
   'move_up': 'Monter',

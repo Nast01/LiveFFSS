@@ -36,4 +36,15 @@ extension RoundTypeFormatting on RoundType {
 extension EventStructureFormatting on EventStructure {
   List<RoundType> get chain => levels.map((l) => l.type).toList();
   bool get isDefined => levels.isNotEmpty;
+
+  /// The whole chain on one line: "3 séries ×8 (4 qual.) → 1 finale ×8". Shown
+  /// above a single round so the structure stays readable without walking the
+  /// rounds one by one. Empty for a structure with no round.
+  String get chainSummary => levels.map((l) {
+        final qualifiers = l.qualifiersPerRace > 0
+            ? ' (${l.qualifiersPerRace} ${'qualified_short'.tr})'
+            : '';
+        return '${l.races.length} ${l.type.labelKey.tr.toLowerCase()} '
+            '×${spotsForLevel(l)}$qualifiers';
+      }).join(' → ');
 }
