@@ -246,69 +246,75 @@ class _SiteChips extends StatelessWidget {
         final sites = controller.sites;
         final selectedId = controller.selectedSiteId.value;
         final day = controller.selectedDay;
-        return Row(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: sites.isEmpty
-                  ? Text('no_sites'.tr, style: AppTypography.caption)
-                  : SizedBox(
-                      height: 36,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: sites.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(width: AppSpacing.sm),
-                        itemBuilder: (_, i) {
-                          final s = sites[i];
-                          final active = selectedId == s.id;
-                          return GestureDetector(
-                            onTap: () => controller.selectedSiteId.value = s.id,
-                            child: Container(
-                              alignment: Alignment.center,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                color: active
-                                    ? AppColors.primary
-                                    : AppColors.surface,
-                                borderRadius: AppRadius.pillRadius,
-                                border: Border.all(color: AppColors.border),
-                              ),
-                              child: Text(
-                                s.name,
-                                style: AppTypography.caption.copyWith(
-                                    color: active
-                                        ? Colors.white
-                                        : AppColors.textPrimary),
-                              ),
-                            ),
-                          );
-                        },
+            // The sites get the whole width. Sharing the line with the start
+            // time and the settings button left room for barely one chip: the
+            // bar scrolled, but there was nothing worth scrolling to.
+            if (sites.isEmpty)
+              Text('no_sites'.tr, style: AppTypography.caption)
+            else
+              SizedBox(
+                height: 36,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: sites.length,
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(width: AppSpacing.sm),
+                  itemBuilder: (_, i) {
+                    final s = sites[i];
+                    final active = selectedId == s.id;
+                    return GestureDetector(
+                      onTap: () => controller.selectedSiteId.value = s.id,
+                      child: Container(
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: active ? AppColors.primary : AppColors.surface,
+                          borderRadius: AppRadius.pillRadius,
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Text(
+                          s.name,
+                          style: AppTypography.caption.copyWith(
+                              color: active
+                                  ? Colors.white
+                                  : AppColors.textPrimary),
+                        ),
                       ),
-                    ),
-            ),
-            if (selectedId != null && day != null)
-              GestureDetector(
-                onTap: () => onEditStart(selectedId, day),
-                child: Container(
-                  margin: const EdgeInsets.only(left: AppSpacing.sm),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
-                    borderRadius: AppRadius.pillRadius,
-                  ),
-                  child: Text(
-                    '${'starts_at'.tr} ${hhmm(controller.startMinutesFor(selectedId, day))} ▾',
-                    style: AppTypography.caption
-                        .copyWith(color: AppColors.primaryDark),
-                  ),
+                    );
+                  },
                 ),
               ),
-            IconButton(
-              icon: const Icon(Icons.settings),
-              tooltip: 'sites'.tr,
-              onPressed: () => Get.to<void>(() => const SitesView()),
+            Row(
+              children: [
+                if (selectedId != null && day != null)
+                  GestureDetector(
+                    onTap: () => onEditStart(selectedId, day),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primarySurface,
+                        borderRadius: AppRadius.pillRadius,
+                      ),
+                      child: Text(
+                        '${'starts_at'.tr} ${hhmm(controller.startMinutesFor(selectedId, day))} ▾',
+                        style: AppTypography.caption
+                            .copyWith(color: AppColors.primaryDark),
+                      ),
+                    ),
+                  ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.settings),
+                  iconSize: 20,
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'sites'.tr,
+                  onPressed: () => Get.to<void>(() => const SitesView()),
+                ),
+              ],
             ),
           ],
         );

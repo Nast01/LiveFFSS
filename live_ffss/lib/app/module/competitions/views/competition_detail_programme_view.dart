@@ -97,45 +97,45 @@ class _SiteChips extends StatelessWidget {
         final sites = controller.sites;
         final selectedId = controller.selectedSiteId.value;
         final day = controller.selectedDay;
-        return Row(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: SizedBox(
-                height: 36,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: sites.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(width: AppSpacing.sm),
-                  itemBuilder: (_, i) {
-                    final s = sites[i];
-                    final active = selectedId == s.id;
-                    return GestureDetector(
-                      onTap: () => controller.selectedSiteId.value = s.id,
-                      child: Container(
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: active ? AppColors.primary : AppColors.surface,
-                          borderRadius: AppRadius.pillRadius,
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Text(
-                          s.name,
-                          style: AppTypography.caption.copyWith(
-                              color: active
-                                  ? Colors.white
-                                  : AppColors.textPrimary),
-                        ),
+            // Same reason as the editable schedule: the start time on the same
+            // line left room for barely one site chip.
+            SizedBox(
+              height: 36,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: sites.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(width: AppSpacing.sm),
+                itemBuilder: (_, i) {
+                  final s = sites[i];
+                  final active = selectedId == s.id;
+                  return GestureDetector(
+                    onTap: () => controller.selectedSiteId.value = s.id,
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: active ? AppColors.primary : AppColors.surface,
+                        borderRadius: AppRadius.pillRadius,
+                        border: Border.all(color: AppColors.border),
                       ),
-                    );
-                  },
-                ),
+                      child: Text(
+                        s.name,
+                        style: AppTypography.caption.copyWith(
+                            color:
+                                active ? Colors.white : AppColors.textPrimary),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
             if (selectedId != null && day != null)
               Container(
-                margin: const EdgeInsets.only(left: AppSpacing.sm),
+                margin: const EdgeInsets.only(top: AppSpacing.xs),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
