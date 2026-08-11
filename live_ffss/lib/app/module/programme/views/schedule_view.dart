@@ -433,67 +433,77 @@ class _AccentCard extends StatelessWidget {
       color: AppColors.surface,
       borderRadius: AppRadius.mdRadius,
       elevation: 1,
-      child: Row(
-        children: [
-          Container(
-            width: 5,
-            height: 56,
-            decoration: BoxDecoration(
-              color: accent,
-              borderRadius: const BorderRadius.horizontal(
-                  left: Radius.circular(AppRadius.md)),
+      // The label wraps, so the card has no height of its own to know up
+      // front: IntrinsicHeight is what lets the accent strip run the full
+      // height whatever the label costs.
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 5,
+              constraints: const BoxConstraints(minHeight: 56),
+              decoration: BoxDecoration(
+                color: accent,
+                borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(AppRadius.md)),
+              ),
             ),
-          ),
-          ReorderableDragStartListener(
-            index: index,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 6),
-              child: Icon(Icons.drag_indicator, color: AppColors.textMuted),
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: onEditLabel,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(children: [
-                      Text(begin,
-                          style: AppTypography.body.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primaryDark)),
-                      const SizedBox(width: 6),
-                      Text('→ $end · $duration ${'min_short'.tr}',
-                          style: AppTypography.caption),
-                    ]),
-                    Row(
-                      children: [
-                        if (gender != null) ...[
-                          GenderBadge(gender: gender!, size: 18),
-                          const SizedBox(width: 6),
-                        ],
-                        Expanded(
-                          child: Text(label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTypography.body),
-                        ),
-                      ],
-                    ),
-                  ],
+            ReorderableDragStartListener(
+              index: index,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6),
+                child: Center(
+                  child: Icon(Icons.drag_indicator, color: AppColors.textMuted),
                 ),
               ),
             ),
-          ),
-          IconButton(
-              icon: const Icon(Icons.remove, size: 20), onPressed: onMinus),
-          IconButton(icon: const Icon(Icons.add, size: 20), onPressed: onPlus),
-          IconButton(
-              icon: const Icon(Icons.close, size: 20), onPressed: onRemove),
-        ],
+            Expanded(
+              child: GestureDetector(
+                onTap: onEditLabel,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(children: [
+                        Text(begin,
+                            style: AppTypography.body.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primaryDark)),
+                        const SizedBox(width: 6),
+                        Text('→ $end · $duration ${'min_short'.tr}',
+                            style: AppTypography.caption),
+                      ]),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (gender != null) ...[
+                            GenderBadge(gender: gender!, size: 18),
+                            const SizedBox(width: 6),
+                          ],
+                          // Wraps rather than ellipsing: the tail of the label
+                          // is what tells two races of an épreuve apart.
+                          Expanded(
+                            child: Text(label, style: AppTypography.body),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            IconButton(
+                icon: const Icon(Icons.remove, size: 20), onPressed: onMinus),
+            IconButton(
+                icon: const Icon(Icons.add, size: 20), onPressed: onPlus),
+            IconButton(
+                icon: const Icon(Icons.close, size: 20), onPressed: onRemove),
+          ],
+        ),
       ),
     );
   }

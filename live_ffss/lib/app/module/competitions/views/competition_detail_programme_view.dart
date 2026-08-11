@@ -217,63 +217,74 @@ class _ReadonlyCard extends StatelessWidget {
                   });
                 }
               },
-        child: Row(
-          children: [
-            Container(
-              width: 5,
-              height: 56,
-              decoration: BoxDecoration(
-                color: accent,
-                borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(AppRadius.md)),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(children: [
-                      Text(FormatConst.timeFormat.format(row.begin),
-                          style: AppTypography.body.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primaryDark)),
-                      const SizedBox(width: 6),
-                      Text(
-                          '→ ${FormatConst.timeFormat.format(row.end)} · ${b.durationMinutes} ${'min_short'.tr}',
-                          style: AppTypography.caption),
-                    ]),
-                    Row(
-                      children: [
-                        if (!isManual) ...[
-                          GenderBadge(
-                              gender:
-                                  controller.raceForBlock(b.raceId!)?.gender ??
-                                      Gender.unknown,
-                              size: 18),
-                          const SizedBox(width: 6),
-                        ],
-                        Expanded(
-                          child: Text(label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTypography.body),
-                        ),
-                      ],
-                    ),
-                  ],
+        // The label wraps, so the card has no height of its own to know up
+        // front: IntrinsicHeight is what lets the accent strip run the full
+        // height whatever the label costs.
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 5,
+                constraints: const BoxConstraints(minHeight: 56),
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(AppRadius.md)),
                 ),
               ),
-            ),
-            if (!isManual)
-              const Padding(
-                padding: EdgeInsets.only(right: AppSpacing.sm),
-                child: Icon(Icons.chevron_right, color: AppColors.textMuted),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(children: [
+                        Text(FormatConst.timeFormat.format(row.begin),
+                            style: AppTypography.body.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primaryDark)),
+                        const SizedBox(width: 6),
+                        Text(
+                            '→ ${FormatConst.timeFormat.format(row.end)} · ${b.durationMinutes} ${'min_short'.tr}',
+                            style: AppTypography.caption),
+                      ]),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (!isManual) ...[
+                            GenderBadge(
+                                gender: controller
+                                        .raceForBlock(b.raceId!)
+                                        ?.gender ??
+                                    Gender.unknown,
+                                size: 18),
+                            const SizedBox(width: 6),
+                          ],
+                          // Wraps rather than ellipsing: the tail of the label
+                          // is what tells two races of an épreuve apart.
+                          Expanded(
+                            child: Text(label, style: AppTypography.body),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-          ],
+              if (!isManual)
+                const Padding(
+                  padding: EdgeInsets.only(right: AppSpacing.sm),
+                  child: Center(
+                    child:
+                        Icon(Icons.chevron_right, color: AppColors.textMuted),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
