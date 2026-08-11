@@ -24,7 +24,11 @@ mixin _$ProgrammeRace {
   int get number =>
       throw _privateConstructorUsedError; // opt1/opt2 wiring: ids of the feeding races at the previous level.
 // Empty at the séries level and for opt2-with-no-selection.
-  List<int> get sourceRaceIds => throw _privateConstructorUsedError;
+  List<int> get sourceRaceIds =>
+      throw _privateConstructorUsedError; // Athletes drawn into this race, in lane order — the position in the list
+// IS the lane, since coastal lanes are sequential. Empty until the heats
+// are drawn from the athletes marked present.
+  List<int> get athleteIds => throw _privateConstructorUsedError;
 
   /// Serializes this ProgrammeRace to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -42,7 +46,8 @@ abstract class $ProgrammeRaceCopyWith<$Res> {
           ProgrammeRace value, $Res Function(ProgrammeRace) then) =
       _$ProgrammeRaceCopyWithImpl<$Res, ProgrammeRace>;
   @useResult
-  $Res call({int id, int number, List<int> sourceRaceIds});
+  $Res call(
+      {int id, int number, List<int> sourceRaceIds, List<int> athleteIds});
 }
 
 /// @nodoc
@@ -63,6 +68,7 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
     Object? id = null,
     Object? number = null,
     Object? sourceRaceIds = null,
+    Object? athleteIds = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -77,6 +83,10 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
           ? _value.sourceRaceIds
           : sourceRaceIds // ignore: cast_nullable_to_non_nullable
               as List<int>,
+      athleteIds: null == athleteIds
+          ? _value.athleteIds
+          : athleteIds // ignore: cast_nullable_to_non_nullable
+              as List<int>,
     ) as $Val);
   }
 }
@@ -89,7 +99,8 @@ abstract class _$$ProgrammeRaceImplCopyWith<$Res>
       __$$ProgrammeRaceImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id, int number, List<int> sourceRaceIds});
+  $Res call(
+      {int id, int number, List<int> sourceRaceIds, List<int> athleteIds});
 }
 
 /// @nodoc
@@ -108,6 +119,7 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
     Object? id = null,
     Object? number = null,
     Object? sourceRaceIds = null,
+    Object? athleteIds = null,
   }) {
     return _then(_$ProgrammeRaceImpl(
       id: null == id
@@ -122,6 +134,10 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
           ? _value._sourceRaceIds
           : sourceRaceIds // ignore: cast_nullable_to_non_nullable
               as List<int>,
+      athleteIds: null == athleteIds
+          ? _value._athleteIds
+          : athleteIds // ignore: cast_nullable_to_non_nullable
+              as List<int>,
     ));
   }
 }
@@ -132,8 +148,10 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
   const _$ProgrammeRaceImpl(
       {required this.id,
       required this.number,
-      final List<int> sourceRaceIds = const <int>[]})
-      : _sourceRaceIds = sourceRaceIds;
+      final List<int> sourceRaceIds = const <int>[],
+      final List<int> athleteIds = const <int>[]})
+      : _sourceRaceIds = sourceRaceIds,
+        _athleteIds = athleteIds;
 
   factory _$ProgrammeRaceImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProgrammeRaceImplFromJson(json);
@@ -155,9 +173,24 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
     return EqualUnmodifiableListView(_sourceRaceIds);
   }
 
+// Athletes drawn into this race, in lane order — the position in the list
+// IS the lane, since coastal lanes are sequential. Empty until the heats
+// are drawn from the athletes marked present.
+  final List<int> _athleteIds;
+// Athletes drawn into this race, in lane order — the position in the list
+// IS the lane, since coastal lanes are sequential. Empty until the heats
+// are drawn from the athletes marked present.
+  @override
+  @JsonKey()
+  List<int> get athleteIds {
+    if (_athleteIds is EqualUnmodifiableListView) return _athleteIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_athleteIds);
+  }
+
   @override
   String toString() {
-    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds)';
+    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds, athleteIds: $athleteIds)';
   }
 
   @override
@@ -168,13 +201,19 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.number, number) || other.number == number) &&
             const DeepCollectionEquality()
-                .equals(other._sourceRaceIds, _sourceRaceIds));
+                .equals(other._sourceRaceIds, _sourceRaceIds) &&
+            const DeepCollectionEquality()
+                .equals(other._athleteIds, _athleteIds));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, number,
-      const DeepCollectionEquality().hash(_sourceRaceIds));
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      number,
+      const DeepCollectionEquality().hash(_sourceRaceIds),
+      const DeepCollectionEquality().hash(_athleteIds));
 
   /// Create a copy of ProgrammeRace
   /// with the given fields replaced by the non-null parameter values.
@@ -196,7 +235,8 @@ abstract class _ProgrammeRace implements ProgrammeRace {
   const factory _ProgrammeRace(
       {required final int id,
       required final int number,
-      final List<int> sourceRaceIds}) = _$ProgrammeRaceImpl;
+      final List<int> sourceRaceIds,
+      final List<int> athleteIds}) = _$ProgrammeRaceImpl;
 
   factory _ProgrammeRace.fromJson(Map<String, dynamic> json) =
       _$ProgrammeRaceImpl.fromJson;
@@ -207,7 +247,12 @@ abstract class _ProgrammeRace implements ProgrammeRace {
   int get number; // opt1/opt2 wiring: ids of the feeding races at the previous level.
 // Empty at the séries level and for opt2-with-no-selection.
   @override
-  List<int> get sourceRaceIds;
+  List<int>
+      get sourceRaceIds; // Athletes drawn into this race, in lane order — the position in the list
+// IS the lane, since coastal lanes are sequential. Empty until the heats
+// are drawn from the athletes marked present.
+  @override
+  List<int> get athleteIds;
 
   /// Create a copy of ProgrammeRace
   /// with the given fields replaced by the non-null parameter values.

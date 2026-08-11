@@ -43,11 +43,20 @@ class ApiEndpoints {
   static const String entryList = 'competition/engagement';
   static const String heatList = 'competition/serie';
   static const String clubDetail = 'organisme/:id';
-  static const String meetingSubmit =
-      'competition/:competition/reunion/submit';
+  static const String meetingSubmit = 'competition/:competition/reunion/submit';
   static const String meetingList = 'competition/:id/reunion';
   static const String meetingDelete = 'competition/reunion/:id/delete';
   static const String runList = 'competition/reunion/creneau/:id/course';
+  // "Déroulement": one entry per (discipline, gender), carrying its categories
+  // and its rounds (`parties`). The FFSS doc publishes these under
+  // api.ffss.fr, but that host 301s to a 404 page — they resolve on the base
+  // the rest of the app already uses.
+  static const String raceFormatList = 'competition/:id/deroulement';
+  static const String raceFormatSubmit =
+      'competition/:competition/deroulement/submit';
+  static const String raceFormatDelete = 'competition/deroulement/:id/delete';
+  static const String raceFormatDetailDelete =
+      'competition/deroulement/partie/:id/delete';
 
   static String replacePath(String path, Map<String, String> params) {
     var result = path;

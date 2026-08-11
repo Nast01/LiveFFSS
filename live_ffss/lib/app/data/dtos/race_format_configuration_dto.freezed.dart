@@ -23,6 +23,13 @@ RaceFormatConfigurationDto _$RaceFormatConfigurationDtoFromJson(
 mixin _$RaceFormatConfigurationDto {
   @JsonKey(name: 'Id')
   int get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'IdEvenement')
+  int get competitionId =>
+      throw _privateConstructorUsedError; // A déroulement is identified by (discipline, gender); its categories then
+// fan it out. That triple is what joins it back to a Race, whose own id
+// lives in a different namespace.
+  @JsonKey(name: 'IdDiscipline')
+  int get disciplineId => throw _privateConstructorUsedError;
   @JsonKey(name: 'label')
   String get label => throw _privateConstructorUsedError;
   @JsonKey(name: 'fullLabel')
@@ -34,7 +41,11 @@ mixin _$RaceFormatConfigurationDto {
   @JsonKey(name: 'Discipline')
   DisciplineDto get discipline => throw _privateConstructorUsedError;
   @JsonKey(name: 'categories', readValue: _readCategories)
-  List<CategoryDto> get categories => throw _privateConstructorUsedError;
+  List<CategoryDto> get categories =>
+      throw _privateConstructorUsedError; // The rounds FFSS already holds for this déroulement: a semi at 18 places
+// feeding a final at 16. Same shape as the local RoundLevel tree.
+  @JsonKey(name: 'parties')
+  List<RaceFormatDetailDto> get details => throw _privateConstructorUsedError;
 
   /// Serializes this RaceFormatConfigurationDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -55,13 +66,16 @@ abstract class $RaceFormatConfigurationDtoCopyWith<$Res> {
   @useResult
   $Res call(
       {@JsonKey(name: 'Id') int id,
+      @JsonKey(name: 'IdEvenement') int competitionId,
+      @JsonKey(name: 'IdDiscipline') int disciplineId,
       @JsonKey(name: 'label') String label,
       @JsonKey(name: 'fullLabel') String fullLabel,
       @JsonKey(name: 'Genre') String gender,
       @JsonKey(name: 'genreLabel') String genderLabel,
       @JsonKey(name: 'Discipline') DisciplineDto discipline,
       @JsonKey(name: 'categories', readValue: _readCategories)
-      List<CategoryDto> categories});
+      List<CategoryDto> categories,
+      @JsonKey(name: 'parties') List<RaceFormatDetailDto> details});
 
   $DisciplineDtoCopyWith<$Res> get discipline;
 }
@@ -83,17 +97,28 @@ class _$RaceFormatConfigurationDtoCopyWithImpl<$Res,
   @override
   $Res call({
     Object? id = null,
+    Object? competitionId = null,
+    Object? disciplineId = null,
     Object? label = null,
     Object? fullLabel = null,
     Object? gender = null,
     Object? genderLabel = null,
     Object? discipline = null,
     Object? categories = null,
+    Object? details = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      competitionId: null == competitionId
+          ? _value.competitionId
+          : competitionId // ignore: cast_nullable_to_non_nullable
+              as int,
+      disciplineId: null == disciplineId
+          ? _value.disciplineId
+          : disciplineId // ignore: cast_nullable_to_non_nullable
               as int,
       label: null == label
           ? _value.label
@@ -119,6 +144,10 @@ class _$RaceFormatConfigurationDtoCopyWithImpl<$Res,
           ? _value.categories
           : categories // ignore: cast_nullable_to_non_nullable
               as List<CategoryDto>,
+      details: null == details
+          ? _value.details
+          : details // ignore: cast_nullable_to_non_nullable
+              as List<RaceFormatDetailDto>,
     ) as $Val);
   }
 
@@ -144,13 +173,16 @@ abstract class _$$RaceFormatConfigurationDtoImplCopyWith<$Res>
   @useResult
   $Res call(
       {@JsonKey(name: 'Id') int id,
+      @JsonKey(name: 'IdEvenement') int competitionId,
+      @JsonKey(name: 'IdDiscipline') int disciplineId,
       @JsonKey(name: 'label') String label,
       @JsonKey(name: 'fullLabel') String fullLabel,
       @JsonKey(name: 'Genre') String gender,
       @JsonKey(name: 'genreLabel') String genderLabel,
       @JsonKey(name: 'Discipline') DisciplineDto discipline,
       @JsonKey(name: 'categories', readValue: _readCategories)
-      List<CategoryDto> categories});
+      List<CategoryDto> categories,
+      @JsonKey(name: 'parties') List<RaceFormatDetailDto> details});
 
   @override
   $DisciplineDtoCopyWith<$Res> get discipline;
@@ -172,17 +204,28 @@ class __$$RaceFormatConfigurationDtoImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
+    Object? competitionId = null,
+    Object? disciplineId = null,
     Object? label = null,
     Object? fullLabel = null,
     Object? gender = null,
     Object? genderLabel = null,
     Object? discipline = null,
     Object? categories = null,
+    Object? details = null,
   }) {
     return _then(_$RaceFormatConfigurationDtoImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      competitionId: null == competitionId
+          ? _value.competitionId
+          : competitionId // ignore: cast_nullable_to_non_nullable
+              as int,
+      disciplineId: null == disciplineId
+          ? _value.disciplineId
+          : disciplineId // ignore: cast_nullable_to_non_nullable
               as int,
       label: null == label
           ? _value.label
@@ -208,6 +251,10 @@ class __$$RaceFormatConfigurationDtoImplCopyWithImpl<$Res>
           ? _value._categories
           : categories // ignore: cast_nullable_to_non_nullable
               as List<CategoryDto>,
+      details: null == details
+          ? _value._details
+          : details // ignore: cast_nullable_to_non_nullable
+              as List<RaceFormatDetailDto>,
     ));
   }
 }
@@ -217,14 +264,19 @@ class __$$RaceFormatConfigurationDtoImplCopyWithImpl<$Res>
 class _$RaceFormatConfigurationDtoImpl implements _RaceFormatConfigurationDto {
   const _$RaceFormatConfigurationDtoImpl(
       {@JsonKey(name: 'Id') required this.id,
+      @JsonKey(name: 'IdEvenement') this.competitionId = 0,
+      @JsonKey(name: 'IdDiscipline') this.disciplineId = 0,
       @JsonKey(name: 'label') required this.label,
       @JsonKey(name: 'fullLabel') required this.fullLabel,
       @JsonKey(name: 'Genre') required this.gender,
       @JsonKey(name: 'genreLabel') required this.genderLabel,
       @JsonKey(name: 'Discipline') required this.discipline,
       @JsonKey(name: 'categories', readValue: _readCategories)
-      final List<CategoryDto> categories = const <CategoryDto>[]})
-      : _categories = categories;
+      final List<CategoryDto> categories = const <CategoryDto>[],
+      @JsonKey(name: 'parties')
+      final List<RaceFormatDetailDto> details = const <RaceFormatDetailDto>[]})
+      : _categories = categories,
+        _details = details;
 
   factory _$RaceFormatConfigurationDtoImpl.fromJson(
           Map<String, dynamic> json) =>
@@ -233,6 +285,15 @@ class _$RaceFormatConfigurationDtoImpl implements _RaceFormatConfigurationDto {
   @override
   @JsonKey(name: 'Id')
   final int id;
+  @override
+  @JsonKey(name: 'IdEvenement')
+  final int competitionId;
+// A déroulement is identified by (discipline, gender); its categories then
+// fan it out. That triple is what joins it back to a Race, whose own id
+// lives in a different namespace.
+  @override
+  @JsonKey(name: 'IdDiscipline')
+  final int disciplineId;
   @override
   @JsonKey(name: 'label')
   final String label;
@@ -257,9 +318,22 @@ class _$RaceFormatConfigurationDtoImpl implements _RaceFormatConfigurationDto {
     return EqualUnmodifiableListView(_categories);
   }
 
+// The rounds FFSS already holds for this déroulement: a semi at 18 places
+// feeding a final at 16. Same shape as the local RoundLevel tree.
+  final List<RaceFormatDetailDto> _details;
+// The rounds FFSS already holds for this déroulement: a semi at 18 places
+// feeding a final at 16. Same shape as the local RoundLevel tree.
+  @override
+  @JsonKey(name: 'parties')
+  List<RaceFormatDetailDto> get details {
+    if (_details is EqualUnmodifiableListView) return _details;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_details);
+  }
+
   @override
   String toString() {
-    return 'RaceFormatConfigurationDto(id: $id, label: $label, fullLabel: $fullLabel, gender: $gender, genderLabel: $genderLabel, discipline: $discipline, categories: $categories)';
+    return 'RaceFormatConfigurationDto(id: $id, competitionId: $competitionId, disciplineId: $disciplineId, label: $label, fullLabel: $fullLabel, gender: $gender, genderLabel: $genderLabel, discipline: $discipline, categories: $categories, details: $details)';
   }
 
   @override
@@ -268,6 +342,10 @@ class _$RaceFormatConfigurationDtoImpl implements _RaceFormatConfigurationDto {
         (other.runtimeType == runtimeType &&
             other is _$RaceFormatConfigurationDtoImpl &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.competitionId, competitionId) ||
+                other.competitionId == competitionId) &&
+            (identical(other.disciplineId, disciplineId) ||
+                other.disciplineId == disciplineId) &&
             (identical(other.label, label) || other.label == label) &&
             (identical(other.fullLabel, fullLabel) ||
                 other.fullLabel == fullLabel) &&
@@ -277,7 +355,8 @@ class _$RaceFormatConfigurationDtoImpl implements _RaceFormatConfigurationDto {
             (identical(other.discipline, discipline) ||
                 other.discipline == discipline) &&
             const DeepCollectionEquality()
-                .equals(other._categories, _categories));
+                .equals(other._categories, _categories) &&
+            const DeepCollectionEquality().equals(other._details, _details));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -285,12 +364,15 @@ class _$RaceFormatConfigurationDtoImpl implements _RaceFormatConfigurationDto {
   int get hashCode => Object.hash(
       runtimeType,
       id,
+      competitionId,
+      disciplineId,
       label,
       fullLabel,
       gender,
       genderLabel,
       discipline,
-      const DeepCollectionEquality().hash(_categories));
+      const DeepCollectionEquality().hash(_categories),
+      const DeepCollectionEquality().hash(_details));
 
   /// Create a copy of RaceFormatConfigurationDto
   /// with the given fields replaced by the non-null parameter values.
@@ -312,14 +394,18 @@ class _$RaceFormatConfigurationDtoImpl implements _RaceFormatConfigurationDto {
 abstract class _RaceFormatConfigurationDto
     implements RaceFormatConfigurationDto {
   const factory _RaceFormatConfigurationDto(
-      {@JsonKey(name: 'Id') required final int id,
-      @JsonKey(name: 'label') required final String label,
-      @JsonKey(name: 'fullLabel') required final String fullLabel,
-      @JsonKey(name: 'Genre') required final String gender,
-      @JsonKey(name: 'genreLabel') required final String genderLabel,
-      @JsonKey(name: 'Discipline') required final DisciplineDto discipline,
-      @JsonKey(name: 'categories', readValue: _readCategories)
-      final List<CategoryDto> categories}) = _$RaceFormatConfigurationDtoImpl;
+          {@JsonKey(name: 'Id') required final int id,
+          @JsonKey(name: 'IdEvenement') final int competitionId,
+          @JsonKey(name: 'IdDiscipline') final int disciplineId,
+          @JsonKey(name: 'label') required final String label,
+          @JsonKey(name: 'fullLabel') required final String fullLabel,
+          @JsonKey(name: 'Genre') required final String gender,
+          @JsonKey(name: 'genreLabel') required final String genderLabel,
+          @JsonKey(name: 'Discipline') required final DisciplineDto discipline,
+          @JsonKey(name: 'categories', readValue: _readCategories)
+          final List<CategoryDto> categories,
+          @JsonKey(name: 'parties') final List<RaceFormatDetailDto> details}) =
+      _$RaceFormatConfigurationDtoImpl;
 
   factory _RaceFormatConfigurationDto.fromJson(Map<String, dynamic> json) =
       _$RaceFormatConfigurationDtoImpl.fromJson;
@@ -327,6 +413,14 @@ abstract class _RaceFormatConfigurationDto
   @override
   @JsonKey(name: 'Id')
   int get id;
+  @override
+  @JsonKey(name: 'IdEvenement')
+  int get competitionId; // A déroulement is identified by (discipline, gender); its categories then
+// fan it out. That triple is what joins it back to a Race, whose own id
+// lives in a different namespace.
+  @override
+  @JsonKey(name: 'IdDiscipline')
+  int get disciplineId;
   @override
   @JsonKey(name: 'label')
   String get label;
@@ -344,7 +438,12 @@ abstract class _RaceFormatConfigurationDto
   DisciplineDto get discipline;
   @override
   @JsonKey(name: 'categories', readValue: _readCategories)
-  List<CategoryDto> get categories;
+  List<CategoryDto>
+      get categories; // The rounds FFSS already holds for this déroulement: a semi at 18 places
+// feeding a final at 16. Same shape as the local RoundLevel tree.
+  @override
+  @JsonKey(name: 'parties')
+  List<RaceFormatDetailDto> get details;
 
   /// Create a copy of RaceFormatConfigurationDto
   /// with the given fields replaced by the non-null parameter values.

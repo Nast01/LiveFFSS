@@ -299,6 +299,50 @@ final Map<String, String> enUS = {
   'no_structure_defined': 'No structure defined',
   'approach_bracelets': 'Hold each bracelet near the phone',
   'present_count': 'present',
+  'confirm': 'Confirm',
+  'delete_all': 'Delete all',
+  'spots_per_race_default': 'default spots/race',
+  'race_format_absent': 'No FFSS race format',
+  'race_format_present': 'FFSS race format · @count round(s)',
+  'race_format_present_no_round': 'FFSS race format · no round',
+  'race_format_create_missing': 'Create the @count missing race formats',
+  'race_format_create_title': 'Create on the FFSS server?',
+  'race_format_create_body':
+      '@count event(s) without a race format will be created on the federation server. This leaves the device.',
+  'race_format_create_one_body':
+      'The race format for @race @gender will be created on the federation server. This leaves the device.',
+  'race_format_created': 'Race format saved on the server',
+  'round_reimport': 'Re-import from FFSS',
+  'round_reimport_title': 'Re-import the FFSS rounds?',
+  'round_reimport_body':
+      'The @rounds round(s) defined here will be replaced by the server ones.',
+  'round_reimport_done': 'Rounds re-imported from FFSS',
+  'round_delete_title': 'Delete the @round round?',
+  'round_delete_body': '@races race(s) will be deleted.',
+  'round_delete_body_drawn':
+      'The draw for @athletes already-placed athlete(s) will be lost.',
+  'round_delete_body_server':
+      'This round comes from FFSS: it will also be deleted on the federation server.',
+  'round_delete_failed':
+      'The round could not be deleted on the server, so it was kept',
+  'race_format_create_failed': 'Could not create the race format',
+  'delete_all_structures_title': 'Delete every structure?',
+  'delete_structure_title': 'Delete this structure?',
+  'delete_structures_body':
+      'The levels, races and any heats already drawn will be lost. This cannot be undone.',
+  'heat_draw_title': 'Heat draw',
+  'heat_draw_action': 'Generate heats',
+  'heat_draw_again': 'Draw again',
+  'heat_draw_level': 'Level',
+  'heat_draw_presence': '@present present out of @engaged entered',
+  'heat_draw_empty': 'Run the draw to compose the heats',
+  'heat_draw_no_present': 'No athlete marked present',
+  'heat_draw_saved': 'Heats saved',
+  'heat_draw_move_to': 'Move to',
+  'heat_draw_current': 'current heat',
+  'heat_draw_overwrite_title': 'Replace the heats?',
+  'heat_draw_overwrite_body':
+      'This level already has composed heats. They will be replaced by this draw.',
   'not_entered': 'Not entered',
   'bracelet_unreadable': 'Unreadable bracelet',
 };

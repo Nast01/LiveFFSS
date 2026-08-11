@@ -6,7 +6,9 @@ import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/category.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
@@ -23,11 +25,16 @@ class _MockClubRepo extends Mock implements ClubRepository {}
 
 class _MockRfidWriter extends Mock implements RfidWriter {}
 
+class _MockAttendanceService extends Mock implements AttendanceService {}
+
 void main() {
   late _MockRaceRepo raceRepo;
   late _MockClubRepo clubRepo;
   late _MockRfidWriter rfidWriter;
+  late _MockAttendanceService attendanceService;
   late RaceDetailController controller;
+
+  setUpAll(() => registerFallbackValue(const <int, AttendanceStatus>{}));
 
   Race makeRace(int id) => Race(
         id: id,
@@ -104,9 +111,14 @@ void main() {
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
     rfidWriter = _MockRfidWriter();
+    attendanceService = _MockAttendanceService();
     when(() => raceRepo.getHeats(any())).thenAnswer((_) async => const []);
     when(() => clubRepo.getClubs(any())).thenAnswer((_) async => const []);
-    controller = RaceDetailController(raceRepo, clubRepo, rfidWriter);
+    when(() => attendanceService.forRace(any()))
+        .thenReturn(const <int, AttendanceStatus>{});
+    when(() => attendanceService.save(any(), any())).thenAnswer((_) async {});
+    controller =
+        RaceDetailController(raceRepo, clubRepo, rfidWriter, attendanceService);
     controller.race.value = makeRace(10);
     controller.competition.value = makeCompetition(99);
   });
@@ -535,6 +547,106 @@ void main() {
 
       expect(controller.attendanceOf(a), AttendanceStatus.present);
       expect(controller.attendanceOf(b), AttendanceStatus.waiting);
+    });
+  });
+
+  group('RaceDetailController attendance persistence', () {
+    Athlete makeAthlete({required int id}) => Athlete(
+          id: id,
+          licenseeNumber: 'L$id',
+          firstName: 'A$id',
+          lastName: 'B$id',
+          gender: Gender.female,
+          year: 2000,
+          nationalityCode: '',
+          nationality: '',
+          isValid: true,
+        );
+
+    Entry entryWithAthletes(int id, List<Athlete> athletes) => Entry(
+          id: id,
+          category: const Category(id: 1, name: 'Senior'),
+          status: 1,
+          statusLabel: 'Engagé',
+          athletes: athletes,
+        );
+
+    test('restores the stored statuses for this race on load', () async {
+      when(() => attendanceService.forRace(10)).thenReturn({
+        1: AttendanceStatus.present,
+        2: AttendanceStatus.absent,
+      });
+      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
+            entryWithAthletes(1, [makeAthlete(id: 1), makeAthlete(id: 2)]),
+          ]);
+
+      await controller.loadEntries();
+
+      expect(controller.attendanceOf(makeAthlete(id: 1)),
+          AttendanceStatus.present);
+      expect(
+          controller.attendanceOf(makeAthlete(id: 2)), AttendanceStatus.absent);
+      verify(() => attendanceService.forRace(10)).called(1);
+    });
+
+    test('a reload does not overwrite pointing done since the first load',
+        () async {
+      when(() => attendanceService.forRace(10))
+          .thenReturn({1: AttendanceStatus.present});
+      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
+            entryWithAthletes(1, [makeAthlete(id: 1)]),
+          ]);
+
+      await controller.loadEntries();
+      controller.setAttendance(makeAthlete(id: 1), AttendanceStatus.absent);
+      await controller.loadEntries();
+
+      expect(
+          controller.attendanceOf(makeAthlete(id: 1)), AttendanceStatus.absent);
+      verify(() => attendanceService.forRace(10)).called(1);
+    });
+
+    test('cycleAttendance persists the new state', () async {
+      controller.cycleAttendance(makeAthlete(id: 7));
+      await pumpEventQueue();
+
+      verify(() => attendanceService.save(10, {7: AttendanceStatus.present}))
+          .called(1);
+    });
+
+    test('setAttendance persists the new state', () async {
+      controller.setAttendance(makeAthlete(id: 7), AttendanceStatus.absent);
+      await pumpEventQueue();
+
+      verify(() => attendanceService.save(10, {7: AttendanceStatus.absent}))
+          .called(1);
+    });
+
+    test('a bracelet scan persists the athlete it marks present', () async {
+      final payloads = StreamController<String>();
+      when(() => rfidWriter.isSupported).thenReturn(true);
+      when(() => rfidWriter.readBracelets()).thenAnswer((_) => payloads.stream);
+      controller.entries.value = [
+        entryWithAthletes(1, [makeAthlete(id: 7)]),
+      ];
+
+      controller.startScan();
+      payloads.add('L7');
+      await pumpEventQueue();
+
+      verify(() => attendanceService.save(10, {7: AttendanceStatus.present}))
+          .called(1);
+      controller.stopScan();
+      await payloads.close();
+    });
+
+    test('nothing is persisted when the race is unknown', () async {
+      controller.race.value = null;
+
+      controller.setAttendance(makeAthlete(id: 7), AttendanceStatus.present);
+      await pumpEventQueue();
+
+      verifyNever(() => attendanceService.save(any(), any()));
     });
   });
 

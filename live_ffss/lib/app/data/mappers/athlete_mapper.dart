@@ -30,6 +30,15 @@ extension AthleteMapper on AthleteDto {
 /// its sport-federation code (SUI) on start lists and scoreboards.
 String normalizeNationalityCode(String raw) => raw == 'CHE' ? 'SUI' : raw;
 
+/// Inverse of [parseGender], for the endpoints that take a gender back —
+/// `deroulement/submit` expects H, F or M.
+String genderCode(Gender gender) => switch (gender) {
+      Gender.female => 'F',
+      Gender.mixed => 'M',
+      Gender.male => 'H',
+      Gender.unknown => 'H',
+    };
+
 Gender parseGender(String raw) => switch (raw) {
       'F' => Gender.female,
       'M' => Gender.mixed,

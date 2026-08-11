@@ -11,6 +11,8 @@ _$RoundLevelImpl _$$RoundLevelImplFromJson(Map<String, dynamic> json) =>
       type: $enumDecode(_$RoundTypeEnumMap, json['type'],
           unknownValue: RoundType.unknown),
       qualifiersPerRace: (json['qualifiersPerRace'] as num?)?.toInt() ?? 0,
+      spotsPerRace: (json['spotsPerRace'] as num?)?.toInt() ?? 0,
+      serverId: (json['serverId'] as num?)?.toInt() ?? 0,
       races: (json['races'] as List<dynamic>?)
               ?.map((e) => ProgrammeRace.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -21,6 +23,8 @@ Map<String, dynamic> _$$RoundLevelImplToJson(_$RoundLevelImpl instance) =>
     <String, dynamic>{
       'type': _$RoundTypeEnumMap[instance.type]!,
       'qualifiersPerRace': instance.qualifiersPerRace,
+      'spotsPerRace': instance.spotsPerRace,
+      'serverId': instance.serverId,
       'races': instance.races,
     };
 

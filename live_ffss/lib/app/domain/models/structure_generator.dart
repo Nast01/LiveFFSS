@@ -1,4 +1,5 @@
 import 'package:live_ffss/app/domain/models/programme_race.dart';
+import 'package:live_ffss/app/domain/models/race_format_detail.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 
 /// A proposed level: its round type and how many races it holds. The caller
@@ -28,6 +29,42 @@ List<LevelPlan> proposeLevels({
   ];
 }
 
+/// Builds the rounds from the `parties` FFSS already holds for a déroulement,
+/// which beats guessing from an entry count: the server states how many races
+/// each round runs, how many athletes they seat, and how many qualify.
+///
+/// Rounds are taken in the server's own `order`. A round whose `niveau` code we
+/// do not recognise is kept as [RoundType.unknown] rather than dropped —
+/// silently losing a round would misrepresent the competition, and the operator
+/// can see and fix it.
+List<RoundLevel> buildLevelsFromDetails({
+  required List<RaceFormatDetail> details,
+  required int Function() allocateId,
+}) {
+  final ordered = [...details]..sort((a, b) => a.order.compareTo(b.order));
+  final levels = <RoundLevel>[];
+  List<int> previousIds = const [];
+  for (final detail in ordered) {
+    final races = <ProgrammeRace>[];
+    for (var n = 1; n <= detail.numberOfRun; n++) {
+      races.add(ProgrammeRace(
+        id: allocateId(),
+        number: n,
+        sourceRaceIds: previousIds,
+      ));
+    }
+    levels.add(RoundLevel(
+      type: roundTypeFromApi(detail.level),
+      races: races,
+      qualifiersPerRace: detail.qualifyingSpots,
+      spotsPerRace: detail.spotsPerRace,
+      serverId: detail.id,
+    ));
+    previousIds = races.map((r) => r.id).toList();
+  }
+  return levels;
+}
+
 /// Materialises [proposeLevels] into `RoundLevel`s with allocated
 /// `ProgrammeRace`s. Each race is opt2-wired: fed by every race of the
 /// previous level (empty `sourceRaceIds` for the first level).
@@ -36,7 +73,8 @@ List<RoundLevel> buildDefaultLevels({
   required int spotsPerRace,
   required int Function() allocateId,
 }) {
-  final plans = proposeLevels(entryCount: entryCount, spotsPerRace: spotsPerRace);
+  final plans =
+      proposeLevels(entryCount: entryCount, spotsPerRace: spotsPerRace);
   final levels = <RoundLevel>[];
   List<int> previousIds = const [];
   for (final plan in plans) {
@@ -48,7 +86,11 @@ List<RoundLevel> buildDefaultLevels({
         sourceRaceIds: previousIds,
       ));
     }
-    levels.add(RoundLevel(type: plan.type, races: races));
+    levels.add(RoundLevel(
+      type: plan.type,
+      races: races,
+      spotsPerRace: spotsPerRace,
+    ));
     previousIds = races.map((r) => r.id).toList();
   }
   return levels;

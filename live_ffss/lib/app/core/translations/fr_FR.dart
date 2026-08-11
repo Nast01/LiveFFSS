@@ -73,7 +73,8 @@ final Map<String, String> frFR = {
   'last_viewed': 'Vus récemment',
   'this_week': 'Cette semaine',
   'search_competitions': 'Rechercher une compétition',
-  'search_clubs_athletes_referees': 'Rechercher un club, un athlète ou un arbitre',
+  'search_clubs_athletes_referees':
+      'Rechercher un club, un athlète ou un arbitre',
   'live': 'LIVE',
   'no_competitions_found': 'Aucune compétition trouvée',
   'no_last_viewed': 'Aucune compétition consultée',
@@ -122,7 +123,8 @@ final Map<String, String> frFR = {
   'summary': 'Résumé',
   'heat': 'série',
   'lane': 'Couloir',
-  'entries_coming_soon': 'Les engagés apparaîtront ici lorsqu\'ils seront disponibles',
+  'entries_coming_soon':
+      'Les engagés apparaîtront ici lorsqu\'ils seront disponibles',
   'summary_coming_soon': 'Le résumé apparaîtra ici lorsqu\'il sera disponible',
   'entry_time': 'Engagement',
   'official': 'Officiel',
@@ -299,6 +301,50 @@ final Map<String, String> frFR = {
   'no_structure_defined': 'Structure non définie',
   'approach_bracelets': 'Approchez les bracelets à scanner',
   'present_count': 'présents',
+  'confirm': 'Confirmer',
+  'delete_all': 'Tout supprimer',
+  'spots_per_race_default': 'places/course par défaut',
+  'race_format_absent': 'Aucun déroulement FFSS',
+  'race_format_present': 'Déroulement FFSS · @count tour(s)',
+  'race_format_present_no_round': 'Déroulement FFSS · aucun tour',
+  'race_format_create_missing': 'Créer les @count déroulements manquants',
+  'race_format_create_title': 'Créer sur le serveur FFSS ?',
+  'race_format_create_body':
+      '@count épreuve(s) sans déroulement seront créées sur le serveur de la fédération. Cette action sort de l\'appareil.',
+  'race_format_create_one_body':
+      'Le déroulement de @race @gender sera créé sur le serveur de la fédération. Cette action sort de l\'appareil.',
+  'race_format_created': 'Déroulement enregistré sur le serveur',
+  'round_reimport': 'Réimporter depuis FFSS',
+  'round_reimport_title': 'Réimporter les tours FFSS ?',
+  'round_reimport_body':
+      'Les @rounds tour(s) définis ici seront remplacés par ceux du serveur.',
+  'round_reimport_done': 'Tours réimportés depuis FFSS',
+  'round_delete_title': 'Supprimer le tour @round ?',
+  'round_delete_body': '@races course(s) seront supprimées.',
+  'round_delete_body_drawn':
+      'Le tirage de @athletes athlète(s) déjà placés sera perdu.',
+  'round_delete_body_server':
+      'Ce tour vient de la FFSS : il sera aussi supprimé sur le serveur de la fédération.',
+  'round_delete_failed':
+      'Le tour n\'a pas pu être supprimé sur le serveur, il est conservé',
+  'race_format_create_failed': 'Échec de la création du déroulement',
+  'delete_all_structures_title': 'Supprimer toutes les structures ?',
+  'delete_structure_title': 'Supprimer la structure ?',
+  'delete_structures_body':
+      'Les niveaux, les courses et les séries déjà tirées seront perdus. Cette action est irréversible.',
+  'heat_draw_title': 'Tirage des séries',
+  'heat_draw_action': 'Générer les séries',
+  'heat_draw_again': 'Relancer le tirage',
+  'heat_draw_level': 'Niveau',
+  'heat_draw_presence': '@present présents sur @engaged engagés',
+  'heat_draw_empty': 'Lance le tirage pour composer les séries',
+  'heat_draw_no_present': 'Aucun athlète pointé présent',
+  'heat_draw_saved': 'Séries enregistrées',
+  'heat_draw_move_to': 'Déplacer vers',
+  'heat_draw_current': 'série actuelle',
+  'heat_draw_overwrite_title': 'Remplacer les séries ?',
+  'heat_draw_overwrite_body':
+      'Ce niveau a déjà des séries composées. Elles seront remplacées par ce tirage.',
   'not_entered': 'Non engagé',
   'bracelet_unreadable': 'Bracelet illisible',
 };

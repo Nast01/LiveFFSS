@@ -6,7 +6,9 @@ import 'package:live_ffss/app/core/rfid/bracelet_payload.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
@@ -15,11 +17,17 @@ import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/result.dart';
 
 class RaceDetailController extends GetxController {
-  RaceDetailController(this._raceRepo, this._clubRepo, this._rfidWriter);
+  RaceDetailController(
+    this._raceRepo,
+    this._clubRepo,
+    this._rfidWriter,
+    this._attendance,
+  );
 
   final RaceRepository _raceRepo;
   final ClubRepository _clubRepo;
   final RfidWriter _rfidWriter;
+  final AttendanceService _attendance;
 
   static const Duration _pollInterval = Duration(seconds: 10);
 
@@ -42,6 +50,11 @@ class RaceDetailController extends GetxController {
   /// (athletes start "en attente marshalling"). NOT cleared on reload/poll so a
   /// pull-to-refresh keeps the marshaller's validations.
   final RxMap<int, AttendanceStatus> attendance = <int, AttendanceStatus>{}.obs;
+
+  /// Guards the one-shot restore from storage: after the first load, the map in
+  /// memory is the source of truth, so a reload must never overwrite pointing
+  /// the marshaller has done since.
+  bool _attendanceRestored = false;
 
   /// How the flat athlete list is ordered. Drives [sortedAthletes].
   final Rx<AthleteSortMode> sortMode = AthleteSortMode.name.obs;
@@ -119,6 +132,7 @@ class RaceDetailController extends GetxController {
   Future<void> loadEntries() async {
     final raceId = race.value?.id;
     if (raceId == null) return;
+    _restoreAttendance(raceId);
     entriesLoading.value = true;
     entriesError.value = null;
     try {
@@ -266,6 +280,23 @@ class RaceDetailController extends GetxController {
   AttendanceStatus attendanceOf(Athlete athlete) =>
       attendance[athlete.id] ?? AttendanceStatus.waiting;
 
+  /// Reloads what was pointed for this race on a previous visit. Runs once per
+  /// controller life — see [_attendanceRestored].
+  void _restoreAttendance(int raceId) {
+    if (_attendanceRestored) return;
+    _attendanceRestored = true;
+    final stored = _attendance.forRace(raceId);
+    if (stored.isNotEmpty) attendance.addAll(stored);
+  }
+
+  /// Persists the whole race after a change. Not awaited: pointing must feel
+  /// instant, and [AttendanceService] serialises the writes itself.
+  void _persistAttendance() {
+    final raceId = race.value?.id;
+    if (raceId == null) return;
+    unawaited(_attendance.save(raceId, Map.of(attendance)));
+  }
+
   /// Cycles waiting → present → absent → waiting. Manual toggle used until the
   /// RFID bracelet scan drives presence automatically.
   void cycleAttendance(Athlete athlete) {
@@ -275,11 +306,13 @@ class RaceDetailController extends GetxController {
       AttendanceStatus.absent => AttendanceStatus.waiting,
     };
     attendance[athlete.id] = next;
+    _persistAttendance();
   }
 
   /// Sets an explicit presence status (from the long-press selection menu).
   void setAttendance(Athlete athlete, AttendanceStatus status) {
     attendance[athlete.id] = status;
+    _persistAttendance();
   }
 
   bool get canScanBracelets => _rfidWriter.isSupported;
@@ -318,6 +351,7 @@ class RaceDetailController extends GetxController {
       return;
     }
     attendance[match.id] = AttendanceStatus.present;
+    _persistAttendance();
     scanLog.insert(
         0,
         ScanResult(
@@ -365,8 +399,6 @@ class RaceDetailController extends GetxController {
         .toList();
   }
 }
-
-enum AttendanceStatus { waiting, present, absent }
 
 enum ScanOutcome { present, notEntered, unreadable }
 

@@ -56,8 +56,7 @@ void main() {
 
     test('appends query parameters', () async {
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer(
-              (_) async => responseWith('{"success": true}', 200));
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
 
       await client.get('competition/evenement', query: {
         'saison': '2023-2024',
@@ -74,10 +73,42 @@ void main() {
 
     test('null query values are omitted', () async {
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer(
-              (_) async => responseWith('{"success": true}', 200));
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
 
       await client.get('x', query: {'a': 'kept', 'b': null});
+
+      final captured = verify(
+              () => httpMock.get(captureAny(), headers: any(named: 'headers')))
+          .captured;
+      expect((captured.single as Uri).queryParameters, {'a': 'kept'});
+    });
+
+    test('a list value becomes one repeated key per entry', () async {
+      // FFSS expects `categories[]=10&categories[]=24` (PHP array notation),
+      // which a flattened `[10, 24]` would not produce.
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x', query: {
+        'discipline': 8,
+        'categories[]': [10, 24],
+      });
+
+      final captured = verify(
+              () => httpMock.get(captureAny(), headers: any(named: 'headers')))
+          .captured;
+      final uri = captured.single as Uri;
+      expect(uri.queryParametersAll['categories[]'], ['10', '24']);
+      expect(uri.queryParameters['discipline'], '8');
+      expect(uri.query, contains('categories%5B%5D=10'));
+      expect(uri.query, contains('categories%5B%5D=24'));
+    });
+
+    test('an empty list contributes no parameter at all', () async {
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x', query: {'a': 'kept', 'categories[]': <int>[]});
 
       final captured = verify(
               () => httpMock.get(captureAny(), headers: any(named: 'headers')))
@@ -90,8 +121,7 @@ void main() {
     test('always sends Content-Type: application/json; charset=UTF-8',
         () async {
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer(
-              (_) async => responseWith('{"success": true}', 200));
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
 
       await client.get('x');
 
@@ -105,8 +135,7 @@ void main() {
     test('omits Authorization when no token', () async {
       when(() => tokens.getToken()).thenAnswer((_) async => null);
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer(
-              (_) async => responseWith('{"success": true}', 200));
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
 
       await client.get('x');
 
@@ -120,23 +149,22 @@ void main() {
     test('omits Authorization when token is empty string', () async {
       when(() => tokens.getToken()).thenAnswer((_) async => '');
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer(
-              (_) async => responseWith('{"success": true}', 200));
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
 
       await client.get('x');
 
       final captured = verify(
               () => httpMock.get(any(), headers: captureAny(named: 'headers')))
           .captured;
-      expect((captured.single as Map<String, String>).containsKey('Authorization'),
+      expect(
+          (captured.single as Map<String, String>).containsKey('Authorization'),
           isFalse);
     });
 
     test('sends Authorization: Bearer <token> when token present', () async {
       when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer(
-              (_) async => responseWith('{"success": true}', 200));
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
 
       await client.get('x');
 
@@ -150,8 +178,7 @@ void main() {
     test('token is NOT included as a query parameter', () async {
       when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer(
-              (_) async => responseWith('{"success": true}', 200));
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
 
       await client.get('x', query: {'a': 'b'});
 
@@ -178,8 +205,7 @@ void main() {
 
     test('returns full body on 2xx without a success key', () async {
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer(
-              (_) async => responseWith('{"data": [1, 2]}', 200));
+          .thenAnswer((_) async => responseWith('{"data": [1, 2]}', 200));
 
       final body = await client.get('x');
       expect(body['data'], [1, 2]);
@@ -187,8 +213,7 @@ void main() {
 
     test('accepts 200 and 201 as success', () async {
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer(
-              (_) async => responseWith('{"success": true}', 201));
+          .thenAnswer((_) async => responseWith('{"success": true}', 201));
 
       final body = await client.get('x');
       expect(body['success'], true);
@@ -212,25 +237,25 @@ void main() {
   group('HttpClient API errors', () {
     test('throws ApiException on 2xx with success: false', () async {
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer((_) async => responseWith(
-              '{"success": false, "message": "Bad input"}', 200));
+          .thenAnswer((_) async =>
+              responseWith('{"success": false, "message": "Bad input"}', 200));
 
       expect(
         client.get('x'),
-        throwsA(isA<ApiException>().having(
-            (e) => e.message, 'message', contains('Bad input'))),
+        throwsA(isA<ApiException>()
+            .having((e) => e.message, 'message', contains('Bad input'))),
       );
     });
 
     test('throws ApiException with statusCode on 4xx', () async {
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer((_) async => responseWith(
-              '{"success": false, "message": "Not found"}', 404));
+          .thenAnswer((_) async =>
+              responseWith('{"success": false, "message": "Not found"}', 404));
 
       expect(
         client.get('x'),
-        throwsA(isA<ApiException>().having(
-            (e) => e.statusCode, 'statusCode', 404)),
+        throwsA(
+            isA<ApiException>().having((e) => e.statusCode, 'statusCode', 404)),
       );
     });
 
@@ -241,8 +266,8 @@ void main() {
 
       expect(
         client.get('x'),
-        throwsA(isA<ApiException>().having(
-            (e) => e.statusCode, 'statusCode', 500)),
+        throwsA(
+            isA<ApiException>().having((e) => e.statusCode, 'statusCode', 500)),
       );
     });
 
@@ -293,8 +318,7 @@ void main() {
             any(),
             headers: any(named: 'headers'),
             body: any(named: 'body'),
-          )).thenAnswer(
-              (_) async => responseWith('{"success": true}', 200));
+          )).thenAnswer((_) async => responseWith('{"success": true}', 200));
 
       await client.post('competition/evenement', body: {'name': 'X'});
 
@@ -313,8 +337,7 @@ void main() {
             any(),
             headers: any(named: 'headers'),
             body: any(named: 'body'),
-          )).thenAnswer(
-              (_) async => responseWith('{"success": true}', 201));
+          )).thenAnswer((_) async => responseWith('{"success": true}', 201));
 
       await client.post('x');
 
@@ -328,10 +351,11 @@ void main() {
 
     test('decodes 2xx success response identically to get', () async {
       when(() => httpMock.post(
-            any(),
-            headers: any(named: 'headers'),
-            body: any(named: 'body'),
-          )).thenAnswer(
+                any(),
+                headers: any(named: 'headers'),
+                body: any(named: 'body'),
+              ))
+          .thenAnswer(
               (_) async => responseWith('{"success": true, "id": 7}', 200));
 
       final body = await client.post('x', body: {'k': 'v'});
@@ -362,8 +386,8 @@ void main() {
         handlerCalled = true;
       };
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
-          .thenAnswer((_) async => responseWith(
-              '{"success": false, "message": "Not found"}', 404));
+          .thenAnswer((_) async =>
+              responseWith('{"success": false, "message": "Not found"}', 404));
 
       await expectLater(client.get('x'), throwsA(isA<ApiException>()));
       await Future<void>.delayed(Duration.zero);

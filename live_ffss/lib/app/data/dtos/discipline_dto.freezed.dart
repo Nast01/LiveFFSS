@@ -20,7 +20,9 @@ DisciplineDto _$DisciplineDtoFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$DisciplineDto {
-  @JsonKey(name: 'Id')
+// The déroulement payload sends `Id` as an int, other endpoints as a
+// String, hence the coercion.
+  @JsonKey(name: 'Id', readValue: _readId)
   String get id => throw _privateConstructorUsedError;
   @JsonKey(name: 'Nom')
   String get name => throw _privateConstructorUsedError;
@@ -54,7 +56,7 @@ abstract class $DisciplineDtoCopyWith<$Res> {
       _$DisciplineDtoCopyWithImpl<$Res, DisciplineDto>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'Id') String id,
+      {@JsonKey(name: 'Id', readValue: _readId) String id,
       @JsonKey(name: 'Nom') String name,
       @JsonKey(name: 'specialite') int speciality,
       @JsonKey(name: 'specialiteLabel') String specialityLabel,
@@ -134,7 +136,7 @@ abstract class _$$DisciplineDtoImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'Id') String id,
+      {@JsonKey(name: 'Id', readValue: _readId) String id,
       @JsonKey(name: 'Nom') String name,
       @JsonKey(name: 'specialite') int speciality,
       @JsonKey(name: 'specialiteLabel') String specialityLabel,
@@ -207,7 +209,7 @@ class __$$DisciplineDtoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$DisciplineDtoImpl implements _DisciplineDto {
   const _$DisciplineDtoImpl(
-      {@JsonKey(name: 'Id') required this.id,
+      {@JsonKey(name: 'Id', readValue: _readId) required this.id,
       @JsonKey(name: 'Nom') required this.name,
       @JsonKey(name: 'specialite') required this.speciality,
       @JsonKey(name: 'specialiteLabel') this.specialityLabel = '',
@@ -219,8 +221,10 @@ class _$DisciplineDtoImpl implements _DisciplineDto {
   factory _$DisciplineDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$DisciplineDtoImplFromJson(json);
 
+// The déroulement payload sends `Id` as an int, other endpoints as a
+// String, hence the coercion.
   @override
-  @JsonKey(name: 'Id')
+  @JsonKey(name: 'Id', readValue: _readId)
   final String id;
   @override
   @JsonKey(name: 'Nom')
@@ -291,7 +295,7 @@ class _$DisciplineDtoImpl implements _DisciplineDto {
 
 abstract class _DisciplineDto implements DisciplineDto {
   const factory _DisciplineDto(
-      {@JsonKey(name: 'Id') required final String id,
+      {@JsonKey(name: 'Id', readValue: _readId) required final String id,
       @JsonKey(name: 'Nom') required final String name,
       @JsonKey(name: 'specialite') required final int speciality,
       @JsonKey(name: 'specialiteLabel') final String specialityLabel,
@@ -303,8 +307,10 @@ abstract class _DisciplineDto implements DisciplineDto {
   factory _DisciplineDto.fromJson(Map<String, dynamic> json) =
       _$DisciplineDtoImpl.fromJson;
 
+// The déroulement payload sends `Id` as an int, other endpoints as a
+// String, hence the coercion.
   @override
-  @JsonKey(name: 'Id')
+  @JsonKey(name: 'Id', readValue: _readId)
   String get id;
   @override
   @JsonKey(name: 'Nom')

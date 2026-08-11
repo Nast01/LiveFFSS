@@ -15,5 +15,6 @@ abstract class Routes {
   static const programme = '/programme';
   static const structureEditor = '/structure-editor';
   static const raceCourse = '/race-course';
+  static const heatDraw = '/heat-draw';
   // Add other routes here
 }

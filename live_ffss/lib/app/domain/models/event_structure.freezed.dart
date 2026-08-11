@@ -24,7 +24,9 @@ mixin _$EventStructure {
   int get categoryId => throw _privateConstructorUsedError;
   String get raceLabel => throw _privateConstructorUsedError;
   String get categoryLabel =>
-      throw _privateConstructorUsedError; // Race size; drives seriesCount = ceil(entries / spotsPerRace).
+      throw _privateConstructorUsedError; // Default race size, used to seed new rounds and as the fallback for any
+// round that does not set its own. The authoritative value for a given
+// round is `RoundLevel.spotsPerRace` — see [EventStructureX.spotsForLevel].
   int get spotsPerRace => throw _privateConstructorUsedError;
   List<RoundLevel> get levels => throw _privateConstructorUsedError;
 
@@ -193,7 +195,9 @@ class _$EventStructureImpl implements _EventStructure {
   final String raceLabel;
   @override
   final String categoryLabel;
-// Race size; drives seriesCount = ceil(entries / spotsPerRace).
+// Default race size, used to seed new rounds and as the fallback for any
+// round that does not set its own. The authoritative value for a given
+// round is `RoundLevel.spotsPerRace` — see [EventStructureX.spotsForLevel].
   @override
   @JsonKey()
   final int spotsPerRace;
@@ -276,7 +280,9 @@ abstract class _EventStructure implements EventStructure {
   String get raceLabel;
   @override
   String
-      get categoryLabel; // Race size; drives seriesCount = ceil(entries / spotsPerRace).
+      get categoryLabel; // Default race size, used to seed new rounds and as the fallback for any
+// round that does not set its own. The authoritative value for a given
+// round is `RoundLevel.spotsPerRace` — see [EventStructureX.spotsForLevel].
   @override
   int get spotsPerRace;
   @override

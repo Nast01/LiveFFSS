@@ -11,8 +11,8 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 - **`lib/app/data/mappers/`** — extension `XMapper on XDto { X toDomain() => ... }`. Date parsing, enum decoding, default-handling all live here.
 - **`lib/app/data/datasources/`** — abstract `XRemoteDataSource` + `Impl(HttpClient)`. Returns DTOs. Seven domains: auth, club, competition, meeting, race, ranking, result. `result` and `ranking` are stubs (see Known gaps) and their `Impl` takes no `HttpClient`; `RankingRemoteDataSource` also returns domain models rather than DTOs, because there are no ranking DTOs to write until the endpoints are documented.
 - **`lib/app/data/repositories/`** — abstract `XRepository` + `Impl(XRemoteDataSource)`. Returns domain models. Owns auto-pagination, orchestration.
-- **`lib/app/data/services/`** — `UserService` (long-lived auth state, exposes `Rx<User?>`, listens to `AuthRepository.userStream`) and `UserPreferencesService` (favorite + last-viewed competition ids, persisted to secure storage under `'favorite_competitions'` / `'last_viewed_competitions'`; last-viewed is capped at 20, newest first).
-- **`lib/app/domain/models/`** — freezed pure types, no `@JsonKey`. Enums for status/role/discipline. Includes `athlete`, `category`, `club`, `club_ranking`, `competition`, `discipline`, `entry`, `heat`, `individual_ranking`, `live_result`, `meeting`, `race`, `race_format_configuration`, `race_format_detail`, `referee`, `relay_ranking`, `result`, `run`, `slot`, `user`.
+- **`lib/app/data/services/`** — `UserService` (long-lived auth state, exposes `Rx<User?>`, listens to `AuthRepository.userStream`) and `UserPreferencesService` (favorite + last-viewed competition ids, persisted to secure storage under `'favorite_competitions'` / `'last_viewed_competitions'`; last-viewed is capped at 20, newest first). Plus `AttendanceService` (marshalling presence per race, under `'race_attendance'`; races held newest-touched first and capped at 100, so the list order IS the eviction order). Device-local only — the FFSS API has no presence endpoint, so two phones marshalling the same race don't see each other.
+- **`lib/app/domain/models/`** — freezed pure types, no `@JsonKey`. Enums for status/role/discipline. Includes `athlete`, `attendance_status`, `category`, `club`, `club_ranking`, `competition`, `discipline`, `entry`, `heat`, `individual_ranking`, `live_result`, `meeting`, `race`, `race_format_configuration`, `race_format_detail`, `referee`, `relay_ranking`, `result`, `run`, `slot`, `user`.
 
 **Feature modules (dual location — both are live):**
 - **`lib/app/module/<feature>/{bindings,controllers,views}/`** — actual feature code: GetX bindings, controllers, view widgets. Modules: `auth`, `competitions`, `favorites`, `home`, `main_shell`, `program`, `slot`. Auth module also holds `profile_*` and `user_*`. `main_shell` is the bottom-nav host mounted at `Routes.home`; `home` and `favorites` are tabs inside it, not standalone routes.
@@ -22,7 +22,7 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 
 **Core (`lib/app/core/`):**
 - `config/` — `AppConfig.fromEnv()`.
-- `const/` — `ApiConstants` (path templates + `replacePath`), `FormatConst` (intl `DateFormat`s).
+- `const/` — `FormatConst` (intl `DateFormat`s). API path templates live in `config/app_config.dart` (`ApiEndpoints`), not here.
 - `enum/` — UI-side enums (`CompetitionVisibility`, `CompetitionType`); domain enums live with their model.
 - `errors/` — sealed `AppException` family (`ApiException`, `AuthException`, `NetworkException`, `UnknownException`).
 - `network/` — `HttpClient`, `TokenStorage`.
@@ -81,7 +81,7 @@ When `build_runner` regenerates other files via CRLF normalization (Windows quir
 
 ## API contract (FFSS, external, fixed)
 
-- Base URL: `https://ffss.fr` (single env). `AppConfig.fromEnv()` is the seam. Path templates (with `:id` placeholders) and the `replacePath(path, params)` helper live in `core/const/api_const.dart` (`ApiConstants`).
+- Base URL: `https://ffss.fr` (single env). `AppConfig.fromEnv()` is the seam. Path templates (with `:id` placeholders) and the `replacePath(path, params)` helper live in `core/config/app_config.dart` (`ApiEndpoints`). A duplicate `ApiConstants` used to sit in `core/const/api_const.dart`; it was dead and has been deleted — don't reintroduce it.
 - `HttpClient.get/post` returns the **full decoded body** as `Map<String, dynamic>`. Datasources extract `body['data']` themselves — `me` endpoint has fields at both top-level and nested under `data`, so unwrapping in HttpClient would lose info.
 - **UTF-8 decoding:** HttpClient decodes `utf8.decode(response.bodyBytes)`, NOT `response.body`. FFSS omits the charset in the response `Content-Type`, so `http` would fall back to latin-1 and mangle accents (`é` → `Ã©`). Never switch back to `response.body`.
 - Auth: `Authorization: Bearer <token>` from `TokenStorage`. NEVER pass token as a URL query parameter.
@@ -103,7 +103,7 @@ When `build_runner` regenerates other files via CRLF normalization (Windows quir
 4. Per-domain DataSource → Repository (Auth, Competition, Club, Race, Meeting, Result, Ranking)
 5. `UserService` (async — `Get.putAsync`, depends on `AuthRepository`; lives at `lib/app/data/services/`)
 6. `LanguageService` (async; lives at `lib/app/core/services/`)
-7. `UserPreferencesService` (async, depends on `FlutterSecureStorage`; lives at `lib/app/data/services/`)
+7. `UserPreferencesService`, then `ProgrammeService`, then `AttendanceService` (all async, all depend on `FlutterSecureStorage`; live at `lib/app/data/services/`)
 8. `_wireSessionExpirationHandler()` — sets `HttpClient.onAuthFailure` to log out, redirect to `/login`, and snackbar. Must run after both `HttpClient` and `AuthRepository` are registered. It guards against duplicate handling when several in-flight requests 401 in the same microtask, and skips re-navigating when already on `/login` (a failed login itself returns 401).
 
 All `permanent: true`. Per-route bindings (under `lib/app/module/<feature>/bindings/`) register **only controllers** — no datasource/repository registrations leak into route bindings. `AppPages` in `lib/app/routes/app_pages.dart` wires bindings to routes; `Routes.home` stacks four (`MainShellBinding`, `HomeBinding`, `FavoritesBinding`, `UserBinding`) because the shell mounts the home and favorites tabs plus the user avatar at once. Every other route takes a single binding.

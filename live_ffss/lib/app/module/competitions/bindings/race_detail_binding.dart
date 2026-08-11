@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import '../controllers/race_detail_controller.dart';
 import '../controllers/race_structure_controller.dart';
@@ -14,6 +15,7 @@ class RaceDetailBinding extends Bindings {
         Get.find<RaceRepository>(),
         Get.find<ClubRepository>(),
         Get.find<RfidWriter>(),
+        Get.find<AttendanceService>(),
       ),
     );
     Get.lazyPut<RaceStructureController>(

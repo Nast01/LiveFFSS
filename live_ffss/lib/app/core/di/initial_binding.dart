@@ -12,6 +12,7 @@ import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/club_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/competition_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
+import 'package:live_ffss/app/data/datasources/race_format_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/race_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/ranking_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/result_remote_datasource.dart';
@@ -20,10 +21,12 @@ import 'package:live_ffss/app/data/repositories/auth_repository.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/competition_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
+import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/repositories/ranking_repository.dart';
 import 'package:live_ffss/app/data/repositories/result_repository.dart';
 import 'package:live_ffss/app/data/repositories/programme_repository.dart';
+import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/data/services/user_preferences_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
@@ -109,6 +112,17 @@ class InitialBinding {
       permanent: true,
     );
 
+    // 7b. Race format ("déroulement") data layer — read + write, unlike the
+    // rest of the programme feature which is device-local.
+    Get.put<RaceFormatRemoteDataSource>(
+      RaceFormatRemoteDataSourceImpl(Get.find<HttpClient>()),
+      permanent: true,
+    );
+    Get.put<RaceFormatRepository>(
+      RaceFormatRepositoryImpl(Get.find<RaceFormatRemoteDataSource>()),
+      permanent: true,
+    );
+
     // 5d. Meeting data layer
     Get.put<MeetingRemoteDataSource>(
       MeetingRemoteDataSourceImpl(Get.find<HttpClient>()),
@@ -163,6 +177,9 @@ class InitialBinding {
     );
     await Get.putAsync<ProgrammeService>(
       () async => ProgrammeService(Get.find<FlutterSecureStorage>()),
+    );
+    await Get.putAsync<AttendanceService>(
+      () async => AttendanceService(Get.find<FlutterSecureStorage>()).init(),
     );
 
     // 9. Session expiration handling

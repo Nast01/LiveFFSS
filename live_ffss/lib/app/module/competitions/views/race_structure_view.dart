@@ -36,6 +36,7 @@ class RaceStructureView extends GetView<RaceStructureController> {
               label: s.categoryLabel,
               engaged: controller.entryCountFor(s.categoryId)));
         }
+        children.add(_DrawHeatsButton(structure: s));
         for (final level in s.levels) {
           children.add(_RoundHeader(structure: s, level: level));
           for (final r in level.races) {
@@ -68,6 +69,41 @@ class _CategoryHeader extends StatelessWidget {
   }
 }
 
+class _DrawHeatsButton extends StatelessWidget {
+  const _DrawHeatsButton({required this.structure});
+  final EventStructure structure;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<RaceStructureController>();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          icon: const Icon(Icons.shuffle, size: 18),
+          label: Text('heat_draw_action'.tr),
+          onPressed: () async {
+            await Get.toNamed<void>(Routes.heatDraw, arguments: {
+              'race': controller.race.value,
+              'competition': controller.competition.value,
+              'categoryId': structure.categoryId,
+              'categoryLabel': structure.categoryLabel,
+            });
+            // The draw writes into the programme, so the structure shown here
+            // is stale on the way back.
+            final race = controller.race.value;
+            final competition = controller.competition.value;
+            if (race != null && competition != null) {
+              await controller.load(race, competition);
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+
 class _RoundHeader extends StatelessWidget {
   const _RoundHeader({required this.structure, required this.level});
   final EventStructure structure;
@@ -79,7 +115,7 @@ class _RoundHeader extends StatelessWidget {
         ? AppColors.statusFinished
         : AppColors.primary;
     final info = <String>[
-      '${structure.spotsPerRace} ${'spots_per_race'.tr}',
+      '${structure.spotsForLevel(level)} ${'spots_per_race'.tr}',
       if (level.qualifiersPerRace > 0)
         '${level.qualifiersPerRace} ${'qualifiers_per_race'.tr}',
     ];
@@ -163,9 +199,20 @@ class _CourseTile extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
-                  child: Text('${level.type.labelKey.tr} ${race.number}',
-                      style: AppTypography.body
-                          .copyWith(color: AppColors.textPrimary)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${level.type.labelKey.tr} ${race.number}',
+                          style: AppTypography.body
+                              .copyWith(color: AppColors.textPrimary)),
+                      if (race.athleteIds.isNotEmpty)
+                        Text(
+                          '${race.athleteIds.length} ${'athletes_lower'.tr}',
+                          style: AppTypography.caption,
+                        ),
+                    ],
+                  ),
                 ),
                 const Icon(Icons.chevron_right, color: AppColors.textMuted),
               ],

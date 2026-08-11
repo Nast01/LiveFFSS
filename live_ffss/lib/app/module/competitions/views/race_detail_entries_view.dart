@@ -5,6 +5,7 @@ import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_detail_controller.dart';
 import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';

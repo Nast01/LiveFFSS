@@ -3,15 +3,34 @@ import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 
-extension RaceFormatting on Race {
-  String get distanceLabel => '$distance m';
+/// Heat size when nothing has been authored yet. Coastal races run far bigger
+/// fields than pool ones, so the default differs by speciality.
+const int defaultPoolSpotsPerRace = 8;
+const int defaultCoastalSpotsPerRace = 16;
 
-  String get genderLabel => switch (gender) {
+extension GenderFormatting on Gender {
+  String get label => switch (this) {
         Gender.female => 'women'.tr,
         Gender.mixed => 'mixed'.tr,
         Gender.male => 'men'.tr,
         Gender.unknown => 'men'.tr,
       };
+}
+
+extension RaceFormatting on Race {
+  String get distanceLabel => '$distance m';
+
+  /// Same string-matching seam as `CompetitionFormatting.isBeach`, applied per
+  /// race so a mixed programme resolves each épreuve on its own speciality.
+  bool get isBeach {
+    final s = specialityLabel.toLowerCase();
+    return s.contains('côtier') || s.contains('cotier');
+  }
+
+  int get defaultSpotsPerRace =>
+      isBeach ? defaultCoastalSpotsPerRace : defaultPoolSpotsPerRace;
+
+  String get genderLabel => gender.label;
 
   /// Combined label that mirrors the legacy RaceModel.label format.
   /// Picks French or English race name based on the active LanguageService.

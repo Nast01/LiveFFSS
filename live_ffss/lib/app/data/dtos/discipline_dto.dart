@@ -7,7 +7,9 @@ part 'discipline_dto.g.dart';
 @freezed
 class DisciplineDto with _$DisciplineDto {
   const factory DisciplineDto({
-    @JsonKey(name: 'Id') required String id,
+    // The déroulement payload sends `Id` as an int, other endpoints as a
+    // String, hence the coercion.
+    @JsonKey(name: 'Id', readValue: _readId) required String id,
     @JsonKey(name: 'Nom') required String name,
     @JsonKey(name: 'specialite') required int speciality,
     @JsonKey(name: 'specialiteLabel') @Default('') String specialityLabel,
@@ -19,4 +21,10 @@ class DisciplineDto with _$DisciplineDto {
 
   factory DisciplineDto.fromJson(Map<String, dynamic> json) =>
       _$DisciplineDtoFromJson(json);
+}
+
+Object? _readId(Map<dynamic, dynamic> map, String key) {
+  final raw = map[key];
+  if (raw == null) return '';
+  return raw is String ? raw : raw.toString();
 }

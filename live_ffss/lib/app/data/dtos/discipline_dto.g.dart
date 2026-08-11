@@ -8,7 +8,7 @@ part of 'discipline_dto.dart';
 
 _$DisciplineDtoImpl _$$DisciplineDtoImplFromJson(Map<String, dynamic> json) =>
     _$DisciplineDtoImpl(
-      id: json['Id'] as String,
+      id: _readId(json, 'Id') as String,
       name: json['Nom'] as String,
       speciality: (json['specialite'] as num).toInt(),
       specialityLabel: json['specialiteLabel'] as String? ?? '',

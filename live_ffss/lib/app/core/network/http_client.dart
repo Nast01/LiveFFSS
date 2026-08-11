@@ -76,9 +76,19 @@ class HttpClient {
     final cleanPath = _trimSlashes(path);
     final fullPath = '$base/$version/$cleanPath';
 
-    final filtered = <String, String>{};
+    // Values are stringified, except Iterables which are kept as such so that
+    // Uri emits one repeated key per entry — FFSS expects PHP array notation
+    // (`categories[]=10&categories[]=24`), and a flattened list would arrive
+    // as the literal "[10, 24]".
+    final filtered = <String, dynamic>{};
     query?.forEach((key, value) {
-      if (value != null) filtered[key] = value.toString();
+      if (value == null) return;
+      if (value is Iterable) {
+        final entries = value.map((v) => v.toString()).toList();
+        if (entries.isNotEmpty) filtered[key] = entries;
+      } else {
+        filtered[key] = value.toString();
+      }
     });
 
     final uri = Uri.parse(fullPath);

@@ -1,7 +1,22 @@
 import 'package:get/get.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/domain/models/schedule_planner.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
+
+/// How an épreuve × category is named wherever it appears — the overview list
+/// and the editor share this so the two headings cannot drift apart.
+String structureTitle({
+  required String raceLabel,
+  required Gender gender,
+  required String categoryLabel,
+}) =>
+    [
+      raceLabel,
+      if (gender != Gender.unknown) gender.label,
+      categoryLabel,
+    ].where((part) => part.isNotEmpty).join(' · ');
 
 extension ScheduleItemFormatting on ScheduleItem {
   String get label =>

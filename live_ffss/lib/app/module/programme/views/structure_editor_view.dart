@@ -3,10 +3,12 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
+import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
 import 'package:live_ffss/app/module/programme/views/structure_bracket.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
 class StructureEditorView extends StatefulWidget {
   const StructureEditorView({super.key});
@@ -18,6 +20,59 @@ class StructureEditorView extends StatefulWidget {
 class _StructureEditorViewState extends State<StructureEditorView> {
   final _controller = Get.find<StructureEditorController>();
   bool _showBracket = false;
+  late final Worker _messageWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    _messageWorker = ever<UiMessage?>(_controller.message, (m) {
+      if (m == null || !mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(m.translationKey.tr),
+        backgroundColor:
+            m is UiMessageError ? AppColors.statusError : AppColors.primary,
+      ));
+    });
+  }
+
+  @override
+  void dispose() {
+    _messageWorker.dispose();
+    super.dispose();
+  }
+
+  /// Re-importing throws away the authored rounds, so it states exactly what is
+  /// lost before doing it.
+  Future<void> _confirmReimport() async {
+    final levels = _controller.structure.value?.levels ?? const [];
+    final drawn = levels.fold<int>(
+        0,
+        (sum, l) =>
+            sum + l.races.fold<int>(0, (s, r) => s + r.athleteIds.length));
+    final body = [
+      'round_reimport_body'.trParams({'rounds': '${levels.length}'}),
+      if (drawn > 0) 'round_delete_body_drawn'.trParams({'athletes': '$drawn'}),
+    ].join('\n\n');
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('round_reimport_title'.tr),
+        content: Text(body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('cancel'.tr),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('confirm'.tr),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) _controller.reimportFromServer();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,18 +81,46 @@ class _StructureEditorViewState extends State<StructureEditorView> {
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        // "Paddle Board · Messieurs · Minime" does not fit one line on a phone.
+        // Two lines plus a taller bar shows it in full; the bracket toggle is
+        // an icon rather than a label so it steals no width from the title.
+        toolbarHeight: 72,
+        titleSpacing: 0,
         title: Obx(() {
           final s = _controller.structure.value;
           return Text(
-            s == null ? '' : '${s.raceLabel} · ${s.categoryLabel}',
-            style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16),
+            s == null
+                ? ''
+                : structureTitle(
+                    raceLabel: s.raceLabel,
+                    gender: _controller.gender,
+                    categoryLabel: s.categoryLabel,
+                  ),
+            style: AppTypography.title.copyWith(
+              color: Colors.white,
+              fontSize: 15,
+              height: 1.2,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
           );
         }),
         actions: [
-          TextButton(
+          // Only shown when FFSS actually declares rounds — otherwise there is
+          // nothing to re-import and the icon would just eat title width.
+          if (_controller.hasServerRounds)
+            IconButton(
+              onPressed: _confirmReimport,
+              tooltip: 'round_reimport'.tr,
+              icon: const Icon(Icons.cloud_download_outlined),
+            ),
+          IconButton(
             onPressed: () => setState(() => _showBracket = !_showBracket),
-            child: Text('view_bracket'.tr,
-                style: const TextStyle(color: Colors.white)),
+            tooltip: 'view_bracket'.tr,
+            icon: Icon(_showBracket
+                ? Icons.list_alt_outlined
+                : Icons.account_tree_outlined),
           ),
         ],
       ),
@@ -50,7 +133,7 @@ class _StructureEditorViewState extends State<StructureEditorView> {
           children: [
             Row(
               children: [
-                Text('${s.spotsPerRace} ${'spots_per_race'.tr}',
+                Text('${s.spotsPerRace} ${'spots_per_race_default'.tr}',
                     style: AppTypography.caption),
                 const Spacer(),
                 TextButton(
@@ -69,6 +152,46 @@ class _StructureEditorViewState extends State<StructureEditorView> {
       }),
     );
   }
+}
+
+/// Deleting a round drops its races and any heats drawn into them, and — when
+/// the round came from FFSS — removes it from the federation server as well.
+/// Neither can be undone, hence the confirmation.
+Future<void> _confirmRemoveLevel(
+  BuildContext context,
+  StructureEditorController controller,
+  int index,
+  RoundLevel level,
+) async {
+  final drawnAthletes =
+      level.races.fold<int>(0, (sum, r) => sum + r.athleteIds.length);
+  final body = [
+    'round_delete_body'.trParams({'races': '${level.races.length}'}),
+    if (drawnAthletes > 0)
+      'round_delete_body_drawn'.trParams({'athletes': '$drawnAthletes'}),
+    if (level.serverId > 0) 'round_delete_body_server'.tr,
+  ].join('\n\n');
+
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(
+          'round_delete_title'.trParams({'round': level.type.labelKey.tr})),
+      content: Text(body),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text('cancel'.tr),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          style: TextButton.styleFrom(foregroundColor: AppColors.statusError),
+          child: Text('delete'.tr),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) await controller.removeLevel(index);
 }
 
 class _LevelCard extends StatelessWidget {
@@ -93,10 +216,26 @@ class _LevelCard extends StatelessWidget {
                     style: AppTypography.body
                         .copyWith(fontWeight: FontWeight.bold)),
                 const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () => controller.removeLevel(index),
-                ),
+                Obx(() => IconButton(
+                      icon: controller.isDeletingLevel.value
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.delete_outline),
+                      color: AppColors.statusError,
+                      // A round backed by FFSS is deleted server-side first,
+                      // so the button must not be re-armed mid-call.
+                      onPressed: controller.isDeletingLevel.value
+                          ? null
+                          : () => _confirmRemoveLevel(
+                                context,
+                                controller,
+                                index,
+                                level,
+                              ),
+                    )),
               ],
             ),
             Row(
@@ -117,6 +256,14 @@ class _LevelCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            // Per round: FFSS runs a semi at 18 feeding a final at 16.
+            _Stepper(
+              label: 'spots_per_race'.tr,
+              value: controller.structure.value == null
+                  ? level.spotsPerRace
+                  : controller.structure.value!.spotsForLevel(level),
+              onChanged: (v) => controller.setLevelSpotsPerRace(index, v),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/domain/models/race_format_detail.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/domain/models/structure_generator.dart';
 
@@ -82,6 +83,135 @@ void main() {
         spotsPerRace: 8,
         allocateId: () => ++calls,
       );
+      expect(levels, isEmpty);
+      expect(calls, 0);
+    });
+  });
+
+  group('buildLevelsFromDetails', () {
+    RaceFormatDetail detail({
+      required int id,
+      required int order,
+      required String level,
+      required int numberOfRun,
+      required int spotsPerRace,
+      int qualifyingSpots = 0,
+    }) =>
+        RaceFormatDetail(
+          id: id,
+          order: order,
+          label: level,
+          fullLabel: level,
+          levelLabel: level,
+          level: level,
+          numberOfRun: numberOfRun,
+          qualificationMethod: 'none',
+          qualificationMethodLabel: 'N/A',
+          spotsPerRace: spotsPerRace,
+          qualifyingSpots: qualifyingSpots,
+        );
+
+    /// The Paddle Board Femme Minime déroulement as FFSS returns it.
+    List<RaceFormatDetail> paddleBoard() => [
+          detail(
+              id: 32,
+              order: 1,
+              level: 'semi',
+              numberOfRun: 2,
+              spotsPerRace: 18),
+          detail(
+              id: 33,
+              order: 2,
+              level: 'final',
+              numberOfRun: 1,
+              spotsPerRace: 16,
+              qualifyingSpots: 8),
+        ];
+
+    test('reproduces the server rounds field for field', () {
+      var counter = 0;
+      final levels = buildLevelsFromDetails(
+        details: paddleBoard(),
+        allocateId: () => ++counter,
+      );
+
+      expect(levels.map((l) => l.type), [RoundType.demi, RoundType.finale]);
+      expect(levels.map((l) => l.races.length), [2, 1]);
+      expect(levels.map((l) => l.spotsPerRace), [18, 16]);
+      expect(levels.map((l) => l.qualifiersPerRace), [0, 8]);
+    });
+
+    test('takes the rounds in the server order, not the array order', () {
+      var counter = 0;
+      final levels = buildLevelsFromDetails(
+        details: paddleBoard().reversed.toList(),
+        allocateId: () => ++counter,
+      );
+
+      expect(levels.map((l) => l.type), [RoundType.demi, RoundType.finale]);
+    });
+
+    test('wires each round to every race of the previous one', () {
+      var counter = 0;
+      final levels = buildLevelsFromDetails(
+        details: paddleBoard(),
+        allocateId: () => ++counter,
+      );
+
+      final semiIds = levels[0].races.map((r) => r.id).toList();
+      expect(levels[0].races.every((r) => r.sourceRaceIds.isEmpty), isTrue);
+      expect(levels[1].races.single.sourceRaceIds, semiIds);
+    });
+
+    test('allocates a unique id per race', () {
+      var counter = 0;
+      final ids = buildLevelsFromDetails(
+        details: paddleBoard(),
+        allocateId: () => ++counter,
+      ).expand((l) => l.races).map((r) => r.id).toList();
+
+      expect(ids, [1, 2, 3]);
+    });
+
+    test('an unrecognised niveau is kept, not dropped', () {
+      var counter = 0;
+      final levels = buildLevelsFromDetails(
+        details: [
+          detail(
+              id: 1,
+              order: 1,
+              level: 'repechage',
+              numberOfRun: 1,
+              spotsPerRace: 12),
+        ],
+        allocateId: () => ++counter,
+      );
+
+      expect(levels.single.type, RoundType.unknown);
+      expect(levels.single.spotsPerRace, 12);
+    });
+
+    test('a round declaring no race still exists, empty', () {
+      var counter = 0;
+      final levels = buildLevelsFromDetails(
+        details: [
+          detail(
+              id: 1, order: 1, level: 'final', numberOfRun: 0, spotsPerRace: 8),
+        ],
+        allocateId: () => ++counter,
+      );
+
+      expect(levels.single.races, isEmpty);
+      expect(counter, 0);
+    });
+
+    test('no parties → no levels, allocateId never called', () {
+      var calls = 0;
+      final levels = buildLevelsFromDetails(
+        details: const [],
+        allocateId: () => ++calls,
+      );
+
       expect(levels, isEmpty);
       expect(calls, 0);
     });

@@ -23,7 +23,15 @@ mixin _$RoundLevel {
   @JsonKey(unknownEnumValue: RoundType.unknown)
   RoundType get type =>
       throw _privateConstructorUsedError; // Operator metadata; drives no computation in v1 (no seeding).
-  int get qualifiersPerRace => throw _privateConstructorUsedError;
+  int get qualifiersPerRace =>
+      throw _privateConstructorUsedError; // Race size for THIS round — the FFSS `parties` payload sets it per round
+// (a semi at 18 feeding a final at 16), not once for the whole event.
+// 0 means "not set": callers fall back to `EventStructure.spotsPerRace`,
+// which is what programmes authored before this field carry.
+  int get spotsPerRace =>
+      throw _privateConstructorUsedError; // Id of the FFSS `partie` this round came from, 0 for a round the operator
+// added by hand. Only a round with one can be deleted server-side.
+  int get serverId => throw _privateConstructorUsedError;
   List<ProgrammeRace> get races => throw _privateConstructorUsedError;
 
   /// Serializes this RoundLevel to a JSON map.
@@ -45,6 +53,8 @@ abstract class $RoundLevelCopyWith<$Res> {
   $Res call(
       {@JsonKey(unknownEnumValue: RoundType.unknown) RoundType type,
       int qualifiersPerRace,
+      int spotsPerRace,
+      int serverId,
       List<ProgrammeRace> races});
 }
 
@@ -65,6 +75,8 @@ class _$RoundLevelCopyWithImpl<$Res, $Val extends RoundLevel>
   $Res call({
     Object? type = null,
     Object? qualifiersPerRace = null,
+    Object? spotsPerRace = null,
+    Object? serverId = null,
     Object? races = null,
   }) {
     return _then(_value.copyWith(
@@ -75,6 +87,14 @@ class _$RoundLevelCopyWithImpl<$Res, $Val extends RoundLevel>
       qualifiersPerRace: null == qualifiersPerRace
           ? _value.qualifiersPerRace
           : qualifiersPerRace // ignore: cast_nullable_to_non_nullable
+              as int,
+      spotsPerRace: null == spotsPerRace
+          ? _value.spotsPerRace
+          : spotsPerRace // ignore: cast_nullable_to_non_nullable
+              as int,
+      serverId: null == serverId
+          ? _value.serverId
+          : serverId // ignore: cast_nullable_to_non_nullable
               as int,
       races: null == races
           ? _value.races
@@ -95,6 +115,8 @@ abstract class _$$RoundLevelImplCopyWith<$Res>
   $Res call(
       {@JsonKey(unknownEnumValue: RoundType.unknown) RoundType type,
       int qualifiersPerRace,
+      int spotsPerRace,
+      int serverId,
       List<ProgrammeRace> races});
 }
 
@@ -113,6 +135,8 @@ class __$$RoundLevelImplCopyWithImpl<$Res>
   $Res call({
     Object? type = null,
     Object? qualifiersPerRace = null,
+    Object? spotsPerRace = null,
+    Object? serverId = null,
     Object? races = null,
   }) {
     return _then(_$RoundLevelImpl(
@@ -123,6 +147,14 @@ class __$$RoundLevelImplCopyWithImpl<$Res>
       qualifiersPerRace: null == qualifiersPerRace
           ? _value.qualifiersPerRace
           : qualifiersPerRace // ignore: cast_nullable_to_non_nullable
+              as int,
+      spotsPerRace: null == spotsPerRace
+          ? _value.spotsPerRace
+          : spotsPerRace // ignore: cast_nullable_to_non_nullable
+              as int,
+      serverId: null == serverId
+          ? _value.serverId
+          : serverId // ignore: cast_nullable_to_non_nullable
               as int,
       races: null == races
           ? _value._races
@@ -138,6 +170,8 @@ class _$RoundLevelImpl implements _RoundLevel {
   const _$RoundLevelImpl(
       {@JsonKey(unknownEnumValue: RoundType.unknown) required this.type,
       this.qualifiersPerRace = 0,
+      this.spotsPerRace = 0,
+      this.serverId = 0,
       final List<ProgrammeRace> races = const <ProgrammeRace>[]})
       : _races = races;
 
@@ -151,6 +185,18 @@ class _$RoundLevelImpl implements _RoundLevel {
   @override
   @JsonKey()
   final int qualifiersPerRace;
+// Race size for THIS round — the FFSS `parties` payload sets it per round
+// (a semi at 18 feeding a final at 16), not once for the whole event.
+// 0 means "not set": callers fall back to `EventStructure.spotsPerRace`,
+// which is what programmes authored before this field carry.
+  @override
+  @JsonKey()
+  final int spotsPerRace;
+// Id of the FFSS `partie` this round came from, 0 for a round the operator
+// added by hand. Only a round with one can be deleted server-side.
+  @override
+  @JsonKey()
+  final int serverId;
   final List<ProgrammeRace> _races;
   @override
   @JsonKey()
@@ -162,7 +208,7 @@ class _$RoundLevelImpl implements _RoundLevel {
 
   @override
   String toString() {
-    return 'RoundLevel(type: $type, qualifiersPerRace: $qualifiersPerRace, races: $races)';
+    return 'RoundLevel(type: $type, qualifiersPerRace: $qualifiersPerRace, spotsPerRace: $spotsPerRace, serverId: $serverId, races: $races)';
   }
 
   @override
@@ -173,13 +219,17 @@ class _$RoundLevelImpl implements _RoundLevel {
             (identical(other.type, type) || other.type == type) &&
             (identical(other.qualifiersPerRace, qualifiersPerRace) ||
                 other.qualifiersPerRace == qualifiersPerRace) &&
+            (identical(other.spotsPerRace, spotsPerRace) ||
+                other.spotsPerRace == spotsPerRace) &&
+            (identical(other.serverId, serverId) ||
+                other.serverId == serverId) &&
             const DeepCollectionEquality().equals(other._races, _races));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, type, qualifiersPerRace,
-      const DeepCollectionEquality().hash(_races));
+      spotsPerRace, serverId, const DeepCollectionEquality().hash(_races));
 
   /// Create a copy of RoundLevel
   /// with the given fields replaced by the non-null parameter values.
@@ -202,6 +252,8 @@ abstract class _RoundLevel implements RoundLevel {
       {@JsonKey(unknownEnumValue: RoundType.unknown)
       required final RoundType type,
       final int qualifiersPerRace,
+      final int spotsPerRace,
+      final int serverId,
       final List<ProgrammeRace> races}) = _$RoundLevelImpl;
 
   factory _RoundLevel.fromJson(Map<String, dynamic> json) =
@@ -212,7 +264,15 @@ abstract class _RoundLevel implements RoundLevel {
   RoundType
       get type; // Operator metadata; drives no computation in v1 (no seeding).
   @override
-  int get qualifiersPerRace;
+  int get qualifiersPerRace; // Race size for THIS round — the FFSS `parties` payload sets it per round
+// (a semi at 18 feeding a final at 16), not once for the whole event.
+// 0 means "not set": callers fall back to `EventStructure.spotsPerRace`,
+// which is what programmes authored before this field carry.
+  @override
+  int get spotsPerRace; // Id of the FFSS `partie` this round came from, 0 for a round the operator
+// added by hand. Only a round with one can be deleted server-side.
+  @override
+  int get serverId;
   @override
   List<ProgrammeRace> get races;
 
