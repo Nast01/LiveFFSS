@@ -25,6 +25,12 @@ abstract class AppColors {
   static const Color statusFinished = Color(0xFF43A047);
   static const Color statusError = Color(0xFFE53935);
 
+  // Gender. Carried by a badge that always shows its letter too — the colour
+  // is a shortcut for the eye, never the only thing saying which gender it is.
+  static const Color genderMale = Color(0xFF1565C0);
+  static const Color genderFemale = Color(0xFFC2185B);
+  static const Color genderMixed = Color(0xFF6A1B9A);
+
   // Rank medals
   static const Color rankGold = Color(0xFFFFA000);
   static const Color rankSilver = Color(0xFF757575);

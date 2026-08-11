@@ -5,10 +5,13 @@ import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
+import 'package:live_ffss/app/domain/models/schedule_planner.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
 import 'package:live_ffss/app/module/programme/controllers/schedule_controller.dart';
 import 'package:live_ffss/app/module/programme/views/sites_view.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 
@@ -157,7 +160,11 @@ class _ScheduleViewState extends State<ScheduleView> {
                       ),
               ),
               const Divider(height: 1),
-              _Palette(controller: _controller),
+              _Palette(
+                controller: _controller,
+                // EventStructure carries no gender; the overview rows do.
+                genderOf: _programme.genderForRace,
+              ),
             ],
           ),
           if (siteId != null && day != null)
@@ -460,16 +467,31 @@ class _AccentCard extends StatelessWidget {
 double _paletteHeight(BuildContext context) =>
     (MediaQuery.sizeOf(context).height * 0.35).clamp(150.0, 320.0);
 
-class _Palette extends StatelessWidget {
-  const _Palette({required this.controller});
+/// The unscheduled races, one collapsible section per épreuve.
+///
+/// Sections start collapsed so the whole programme is visible at a glance —
+/// with "add all" on the header, a full épreuve is scheduled without ever
+/// opening one. A single épreuve opens on its own: there is nothing to choose.
+class _Palette extends StatefulWidget {
+  const _Palette({required this.controller, required this.genderOf});
+
   final ScheduleController controller;
+  final Gender Function(int structureRaceId) genderOf;
+
+  @override
+  State<_Palette> createState() => _PaletteState();
+}
+
+class _PaletteState extends State<_Palette> {
+  final Set<int> _expanded = <int>{};
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final items = controller.unscheduled;
-      final siteId = controller.selectedSiteId.value;
-      final day = controller.selectedDay;
+      final groups = widget.controller.unscheduledGroups;
+      final total = groups.fold<int>(0, (sum, g) => sum + g.items.length);
+      final siteId = widget.controller.selectedSiteId.value;
+      final day = widget.controller.selectedDay;
       return Container(
         constraints: BoxConstraints(maxHeight: _paletteHeight(context)),
         color: AppColors.surface,
@@ -478,29 +500,34 @@ class _Palette extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Text('${'unscheduled'.tr} (${items.length})',
+              child: Text('${'unscheduled'.tr} ($total)',
                   style: AppTypography.caption),
             ),
             Expanded(
               child: ListView.builder(
-                itemCount: items.length,
+                itemCount: groups.length,
                 itemBuilder: (_, i) {
-                  final item = items[i];
-                  return ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                    // Wraps instead of ellipsing: "Paddle Board · Messieurs ·
-                    // Minime · Séries 1" is the only thing telling two rows
-                    // apart, and the tail is what differs.
-                    title: Text(item.label, style: AppTypography.body),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.add_circle_outline),
-                      color: AppColors.primary,
-                      tooltip: 'add_race'.tr,
-                      onPressed: (siteId == null || day == null)
-                          ? null
-                          : () => controller.addRace(item.raceId, siteId, day),
-                    ),
+                  final group = groups[i];
+                  return _GroupSection(
+                    group: group,
+                    gender: widget.genderOf(group.structureRaceId),
+                    expanded: groups.length == 1 ||
+                        _expanded.contains(group.structureRaceId),
+                    onToggle: () => setState(() {
+                      if (!_expanded.remove(group.structureRaceId)) {
+                        _expanded.add(group.structureRaceId);
+                      }
+                    }),
+                    onAdd: (siteId == null || day == null)
+                        ? null
+                        : (raceId) =>
+                            widget.controller.addRace(raceId, siteId, day),
+                    onAddAll: (siteId == null || day == null)
+                        ? null
+                        : () => widget.controller.addRaces(
+                            group.items.map((it) => it.raceId).toList(),
+                            siteId,
+                            day),
                   );
                 },
               ),
@@ -509,5 +536,114 @@ class _Palette extends StatelessWidget {
         ),
       );
     });
+  }
+}
+
+class _GroupSection extends StatelessWidget {
+  const _GroupSection({
+    required this.group,
+    required this.gender,
+    required this.expanded,
+    required this.onToggle,
+    required this.onAdd,
+    required this.onAddAll,
+  });
+
+  final ScheduleGroup group;
+  final Gender gender;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final void Function(int raceId)? onAdd;
+  final VoidCallback? onAddAll;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: onToggle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm, vertical: 6),
+            child: Row(
+              children: [
+                Icon(expanded ? Icons.expand_more : Icons.chevron_right,
+                    size: 20, color: AppColors.textSecondary),
+                const SizedBox(width: 2),
+                _GenderBadge(gender: gender),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(group.raceLabel,
+                      style: AppTypography.body
+                          .copyWith(fontWeight: FontWeight.w600)),
+                ),
+                Text('${group.items.length}', style: AppTypography.caption),
+                IconButton(
+                  icon: const Icon(Icons.playlist_add),
+                  color: AppColors.primary,
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'add_all_races'.tr,
+                  onPressed: onAddAll,
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (expanded)
+          for (final item in group.items)
+            InkWell(
+              onTap: onAdd == null ? null : () => onAdd!(item.raceId),
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 46, right: AppSpacing.sm, top: 4, bottom: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${item.categoryLabel} · '
+                        '${item.roundType.labelKey.tr} ${item.number}',
+                        style: AppTypography.body,
+                      ),
+                    ),
+                    Icon(Icons.add_circle_outline,
+                        size: 20,
+                        color: onAdd == null
+                            ? AppColors.textMuted
+                            : AppColors.primary),
+                  ],
+                ),
+              ),
+            ),
+        const Divider(height: 1),
+      ],
+    );
+  }
+}
+
+/// The gender as a coloured letter. The letter carries the meaning on its own,
+/// so the colour never has to be told apart to read the badge.
+class _GenderBadge extends StatelessWidget {
+  const _GenderBadge({required this.gender});
+
+  final Gender gender;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 22,
+      height: 22,
+      alignment: Alignment.center,
+      decoration:
+          BoxDecoration(color: gender.badgeColor, shape: BoxShape.circle),
+      child: Text(
+        gender.shortLabel,
+        style: AppTypography.caption.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          fontSize: 11,
+        ),
+      ),
+    );
   }
 }

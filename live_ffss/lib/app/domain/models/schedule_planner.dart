@@ -1,5 +1,6 @@
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
+import 'package:live_ffss/app/domain/models/round_order.dart';
 import 'package:live_ffss/app/domain/models/schedule_block.dart';
 import 'package:live_ffss/app/domain/models/site_day_start.dart';
 
@@ -8,6 +9,8 @@ import 'package:live_ffss/app/domain/models/site_day_start.dart';
 class ScheduleItem {
   const ScheduleItem({
     required this.raceId,
+    required this.structureRaceId,
+    required this.categoryId,
     required this.raceLabel,
     required this.categoryLabel,
     required this.roundType,
@@ -15,10 +18,66 @@ class ScheduleItem {
   });
 
   final int raceId;
+
+  /// The FFSS `Race.id` of the épreuve this race belongs to — the key the
+  /// palette groups by, and what a caller needs to reach back to the Race for
+  /// anything the structure does not carry (its gender, for one).
+  final int structureRaceId;
+  final int categoryId;
   final String raceLabel;
   final String categoryLabel;
   final RoundType roundType;
   final int number;
+}
+
+/// Every unscheduled race of one épreuve, however many categories and rounds
+/// it spans. A pure view model for the palette.
+class ScheduleGroup {
+  const ScheduleGroup({
+    required this.structureRaceId,
+    required this.raceLabel,
+    required this.items,
+  });
+
+  final int structureRaceId;
+  final String raceLabel;
+  final List<ScheduleItem> items;
+}
+
+/// Reading order inside an épreuve: category, then the round's place in the
+/// hierarchy, then the race number. The flat list is sorted by label + number,
+/// which interleaves the categories of one épreuve — legible in a flat list,
+/// confusing once they sit under a common heading.
+int _byCategoryThenRound(ScheduleItem a, ScheduleItem b) {
+  final byCategory = a.categoryLabel.compareTo(b.categoryLabel);
+  if (byCategory != 0) return byCategory;
+  // An unranked round sorts last rather than first: it is the odd one out.
+  final byRound =
+      (roundRank(a.roundType) ?? 99).compareTo(roundRank(b.roundType) ?? 99);
+  return byRound != 0 ? byRound : a.number.compareTo(b.number);
+}
+
+/// Gathers [items] by épreuve, groups in the order they arrive. An épreuve with
+/// nothing left to schedule yields no group at all, so the palette empties as
+/// the day fills up.
+List<ScheduleGroup> groupUnscheduled(List<ScheduleItem> items) {
+  final order = <int>[];
+  final byRace = <int, List<ScheduleItem>>{};
+  for (final item in items) {
+    final bucket = byRace.putIfAbsent(item.structureRaceId, () {
+      order.add(item.structureRaceId);
+      return <ScheduleItem>[];
+    });
+    bucket.add(item);
+  }
+  return [
+    for (final raceId in order)
+      ScheduleGroup(
+        structureRaceId: raceId,
+        raceLabel: byRace[raceId]!.first.raceLabel,
+        items: byRace[raceId]!..sort(_byCategoryThenRound),
+      ),
+  ];
 }
 
 /// Every competition day from [begin] to [end] inclusive, normalised to
@@ -43,7 +102,8 @@ const int defaultStartMinutes = 540;
 
 /// A block placed on the timeline with its derived begin/end times.
 class ScheduleRow {
-  const ScheduleRow({required this.block, required this.begin, required this.end});
+  const ScheduleRow(
+      {required this.block, required this.begin, required this.end});
 
   final ScheduleBlock block;
   final DateTime begin;
@@ -60,7 +120,8 @@ int dayStartMinutes(CompetitionProgramme p, int siteId, DateTime day) {
 /// The (site × day) sequence with derived back-to-back times: the day's blocks
 /// sorted by `order`, first at the start time, each next right after the
 /// previous end.
-List<ScheduleRow> scheduleRows(CompetitionProgramme p, int siteId, DateTime day) {
+List<ScheduleRow> scheduleRows(
+    CompetitionProgramme p, int siteId, DateTime day) {
   final blocks = p.blocks
       .where((b) => b.siteId == siteId && sameDay(b.day, day))
       .toList()
@@ -79,10 +140,8 @@ List<ScheduleRow> scheduleRows(CompetitionProgramme p, int siteId, DateTime day)
 /// Races in [p.structures] that no block references, for the unscheduled
 /// palette. Sorted by race label then number.
 List<ScheduleItem> unscheduledRaces(CompetitionProgramme p) {
-  final scheduled = p.blocks
-      .where((b) => b.raceId != null)
-      .map((b) => b.raceId!)
-      .toSet();
+  final scheduled =
+      p.blocks.where((b) => b.raceId != null).map((b) => b.raceId!).toSet();
   final items = <ScheduleItem>[];
   for (final s in p.structures) {
     for (final l in s.levels) {
@@ -90,6 +149,8 @@ List<ScheduleItem> unscheduledRaces(CompetitionProgramme p) {
         if (scheduled.contains(r.id)) continue;
         items.add(ScheduleItem(
           raceId: r.id,
+          structureRaceId: s.raceId,
+          categoryId: s.categoryId,
           raceLabel: s.raceLabel,
           categoryLabel: s.categoryLabel,
           roundType: l.type,
@@ -115,6 +176,8 @@ ScheduleItem? raceItemFor(CompetitionProgramme p, int raceId) {
         if (r.id == raceId) {
           return ScheduleItem(
             raceId: r.id,
+            structureRaceId: s.raceId,
+            categoryId: s.categoryId,
             raceLabel: s.raceLabel,
             categoryLabel: s.categoryLabel,
             roundType: l.type,
@@ -151,8 +214,8 @@ int _nextOrder(CompetitionProgramme p, int siteId, DateTime day) {
   return max + 1;
 }
 
-CompetitionProgramme addRaceBlock(
-        CompetitionProgramme p, int blockId, int raceId, int siteId, DateTime day) =>
+CompetitionProgramme addRaceBlock(CompetitionProgramme p, int blockId,
+        int raceId, int siteId, DateTime day) =>
     p.copyWith(blocks: [
       ...p.blocks,
       ScheduleBlock(
@@ -190,7 +253,8 @@ CompetitionProgramme setManualLabel(
         b.id == blockId ? b.copyWith(manualLabel: label) : b,
     ]);
 
-CompetitionProgramme _renumber(CompetitionProgramme p, int siteId, DateTime day) {
+CompetitionProgramme _renumber(
+    CompetitionProgramme p, int siteId, DateTime day) {
   final ofDay = p.blocks
       .where((b) => b.siteId == siteId && sameDay(b.day, day))
       .toList()
@@ -213,16 +277,16 @@ CompetitionProgramme removeBlock(CompetitionProgramme p, int blockId) {
     }
   }
   if (target == null) return p;
-  final remaining = p.copyWith(
-      blocks: p.blocks.where((b) => b.id != blockId).toList());
+  final remaining =
+      p.copyWith(blocks: p.blocks.where((b) => b.id != blockId).toList());
   return _renumber(remaining, target.siteId, target.day);
 }
 
 /// Reorders the (site × day) blocks. [oldIndex]/[newIndex] follow the
 /// `ReorderableListView.onReorder` convention (newIndex is the pre-removal
 /// insert position, so it is decremented when moving downward).
-CompetitionProgramme reorderBlocks(
-    CompetitionProgramme p, int siteId, DateTime day, int oldIndex, int newIndex) {
+CompetitionProgramme reorderBlocks(CompetitionProgramme p, int siteId,
+    DateTime day, int oldIndex, int newIndex) {
   final ofDay = p.blocks
       .where((b) => b.siteId == siteId && sameDay(b.day, day))
       .toList()

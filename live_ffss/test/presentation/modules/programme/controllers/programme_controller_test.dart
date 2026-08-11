@@ -122,6 +122,24 @@ void main() {
     expect(controller.isLoading.value, isFalse);
   });
 
+  group('genderForRace', () {
+    test('reports the gender of the épreuve behind a structure', () async {
+      when(() => raceRepo.getRaces(42)).thenAnswer((_) async => [
+            race(100, '100m', [cadets]).copyWith(gender: Gender.female),
+          ]);
+      when(() => raceRepo.getEntries(100))
+          .thenAnswer((_) async => [entry(1, 100, cadets)]);
+
+      await controller.load(competition);
+
+      expect(controller.genderForRace(100), Gender.female);
+    });
+
+    test('an épreuve it never loaded is unknown, not a wrong guess', () {
+      expect(controller.genderForRace(999), Gender.unknown);
+    });
+  });
+
   test('sets hasError when the repository throws AppException', () async {
     when(() => raceRepo.getRaces(42))
         .thenThrow(const NetworkException('offline'));

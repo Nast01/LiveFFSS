@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
+import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 
@@ -14,6 +16,22 @@ extension GenderFormatting on Gender {
         Gender.mixed => 'mixed'.tr,
         Gender.male => 'men'.tr,
         Gender.unknown => 'men'.tr,
+      };
+
+  /// One letter for a badge, where the full word would not fit. Translated:
+  /// "H" reads as Hommes in French, "M" as Men in English.
+  String get shortLabel => switch (this) {
+        Gender.female => 'gender_short_women'.tr,
+        Gender.mixed => 'gender_short_mixed'.tr,
+        Gender.male => 'gender_short_men'.tr,
+        Gender.unknown => 'gender_short_unknown'.tr,
+      };
+
+  Color get badgeColor => switch (this) {
+        Gender.female => AppColors.genderFemale,
+        Gender.mixed => AppColors.genderMixed,
+        Gender.male => AppColors.genderMale,
+        Gender.unknown => AppColors.textMuted,
       };
 }
 

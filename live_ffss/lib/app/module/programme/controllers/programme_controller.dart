@@ -257,6 +257,17 @@ class ProgrammeController extends GetxController {
 
   int get missingRaceFormatCount => rowsWithoutRaceFormat.length;
 
+  /// Gender of the épreuve [raceId] — the FFSS `Race.id`, not a
+  /// [ProgrammeRace] id. [EventStructure] carries no gender of its own, so
+  /// anything showing a structure and needing the gender resolves it here.
+  /// [Gender.unknown] when the épreuve is not among the loaded rows.
+  Gender genderForRace(int raceId) {
+    for (final row in rows) {
+      if (row.raceId == raceId) return row.gender;
+    }
+    return Gender.unknown;
+  }
+
   /// Creates the déroulement covering [row], then reloads so the new server
   /// state — including the rounds it may come with — reaches the list.
   ///

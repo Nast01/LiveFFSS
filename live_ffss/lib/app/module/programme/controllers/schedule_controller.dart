@@ -21,7 +21,8 @@ class ScheduleController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _worker = ever<CompetitionProgramme?>(_programme.current, (_) => _ensureValidSite());
+    _worker = ever<CompetitionProgramme?>(
+        _programme.current, (_) => _ensureValidSite());
   }
 
   @override
@@ -65,27 +66,54 @@ class ScheduleController extends GetxController {
 
   int startMinutesFor(int siteId, DateTime day) {
     final p = _p;
-    return p == null ? planner.defaultStartMinutes : planner.dayStartMinutes(p, siteId, day);
+    return p == null
+        ? planner.defaultStartMinutes
+        : planner.dayStartMinutes(p, siteId, day);
   }
 
   Future<void> addRace(int raceId, int siteId, DateTime day) async {
     if (_p == null) return;
     final id = _programme.allocateId();
-    await _programme.save(planner.addRaceBlock(_programme.current.value!, id, raceId, siteId, day));
+    await _programme.save(planner.addRaceBlock(
+        _programme.current.value!, id, raceId, siteId, day));
   }
 
-  Future<void> addManual(String label, int minutes, int siteId, DateTime day) async {
+  /// Schedules a whole épreuve at once, in the order given, as one write.
+  ///
+  /// The ids are allocated first and the programme re-read afterwards:
+  /// [ProgrammeService.allocateId] bumps `nextLocalId` on the live programme,
+  /// so folding blocks onto a copy captured beforehand would save the old
+  /// counter and hand the same ids out twice.
+  Future<void> addRaces(List<int> raceIds, int siteId, DateTime day) async {
+    if (_p == null || raceIds.isEmpty) return;
+    final blockIds = [
+      for (var i = 0; i < raceIds.length; i++) _programme.allocateId()
+    ];
+    var next = _programme.current.value!;
+    for (var i = 0; i < raceIds.length; i++) {
+      next = planner.addRaceBlock(next, blockIds[i], raceIds[i], siteId, day);
+    }
+    await _programme.save(next);
+  }
+
+  List<planner.ScheduleGroup> get unscheduledGroups =>
+      planner.groupUnscheduled(unscheduled);
+
+  Future<void> addManual(
+      String label, int minutes, int siteId, DateTime day) async {
     final trimmed = label.trim();
     if (trimmed.isEmpty || minutes < 1 || _p == null) return;
     final id = _programme.allocateId();
-    await _programme.save(
-        planner.addManualBlock(_programme.current.value!, id, trimmed, minutes, siteId, day));
+    await _programme.save(planner.addManualBlock(
+        _programme.current.value!, id, trimmed, minutes, siteId, day));
   }
 
-  Future<void> reorder(int siteId, DateTime day, int oldIndex, int newIndex) async {
+  Future<void> reorder(
+      int siteId, DateTime day, int oldIndex, int newIndex) async {
     final p = _p;
     if (p == null) return;
-    await _programme.save(planner.reorderBlocks(p, siteId, day, oldIndex, newIndex));
+    await _programme
+        .save(planner.reorderBlocks(p, siteId, day, oldIndex, newIndex));
   }
 
   Future<void> setDuration(int blockId, int minutes) async {

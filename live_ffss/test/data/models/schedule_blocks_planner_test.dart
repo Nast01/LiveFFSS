@@ -22,7 +22,9 @@ void main() {
             levels: [
               RoundLevel(
                 type: RoundType.serie,
-                races: [for (final id in raceIds) ProgrammeRace(id: id, number: id)],
+                races: [
+                  for (final id in raceIds) ProgrammeRace(id: id, number: id)
+                ],
               ),
             ],
           ),
@@ -45,10 +47,17 @@ void main() {
     test('derives back-to-back times from the day start', () {
       final p = withRaces([1, 2]).copyWith(blocks: [
         ScheduleBlock(id: 10, siteId: 2, day: day, order: 0, raceId: 1),
-        ScheduleBlock(id: 11, siteId: 2, day: day, order: 1, raceId: 2, durationMinutes: 15),
+        ScheduleBlock(
+            id: 11,
+            siteId: 2,
+            day: day,
+            order: 1,
+            raceId: 2,
+            durationMinutes: 15),
       ]);
       final rows = scheduleRows(p, 2, day);
-      expect(rows.map((r) => r.begin), [DateTime(2026, 6, 13, 9), DateTime(2026, 6, 13, 9, 10)]);
+      expect(rows.map((r) => r.begin),
+          [DateTime(2026, 6, 13, 9), DateTime(2026, 6, 13, 9, 10)]);
       expect(rows.last.end, DateTime(2026, 6, 13, 9, 25));
     });
 
@@ -64,19 +73,99 @@ void main() {
 
     test('honours the site-day start override', () {
       final p = withRaces([1]).copyWith(
-        blocks: [ScheduleBlock(id: 10, siteId: 2, day: day, order: 0, raceId: 1)],
-        dayStarts: [SiteDayStart(siteId: 2, day: day, startMinutes: 8 * 60 + 30)],
+        blocks: [
+          ScheduleBlock(id: 10, siteId: 2, day: day, order: 0, raceId: 1)
+        ],
+        dayStarts: [
+          SiteDayStart(siteId: 2, day: day, startMinutes: 8 * 60 + 30)
+        ],
       );
-      expect(scheduleRows(p, 2, day).single.begin, DateTime(2026, 6, 13, 8, 30));
+      expect(
+          scheduleRows(p, 2, day).single.begin, DateTime(2026, 6, 13, 8, 30));
     });
   });
 
   group('unscheduledRaces', () {
     test('lists races no block references', () {
       final p = withRaces([1, 2, 3]).copyWith(
-        blocks: [ScheduleBlock(id: 10, siteId: 2, day: day, order: 0, raceId: 2)],
+        blocks: [
+          ScheduleBlock(id: 10, siteId: 2, day: day, order: 0, raceId: 2)
+        ],
       );
       expect(unscheduledRaces(p).map((i) => i.raceId), [1, 3]);
+    });
+
+    test('carries the épreuve and category it belongs to', () {
+      final item = unscheduledRaces(withRaces([1])).single;
+      expect(item.structureRaceId, 500);
+      expect(item.categoryId, 7);
+    });
+  });
+
+  group('groupUnscheduled', () {
+    CompetitionProgramme twoEpreuves() => const CompetitionProgramme(
+          competitionId: 1,
+          nextLocalId: 100,
+          structures: [
+            EventStructure(
+              raceId: 500,
+              categoryId: 7,
+              raceLabel: '100m',
+              categoryLabel: 'Cadets',
+              levels: [
+                RoundLevel(type: RoundType.serie, races: [
+                  ProgrammeRace(id: 1, number: 1),
+                  ProgrammeRace(id: 2, number: 2),
+                ]),
+              ],
+            ),
+            EventStructure(
+              raceId: 600,
+              categoryId: 7,
+              raceLabel: 'Planche',
+              categoryLabel: 'Cadets',
+              levels: [
+                RoundLevel(type: RoundType.finale, races: [
+                  ProgrammeRace(id: 3, number: 1),
+                ]),
+              ],
+            ),
+            // Same épreuve as the first, another category: one group, not two.
+            EventStructure(
+              raceId: 500,
+              categoryId: 8,
+              raceLabel: '100m',
+              categoryLabel: 'Minimes',
+              levels: [
+                RoundLevel(type: RoundType.finale, races: [
+                  ProgrammeRace(id: 4, number: 1),
+                ]),
+              ],
+            ),
+          ],
+        );
+
+    test('gathers every category of an épreuve under one group', () {
+      final groups = groupUnscheduled(unscheduledRaces(twoEpreuves()));
+
+      expect(groups.map((g) => g.structureRaceId), [500, 600]);
+      expect(groups.first.raceLabel, '100m');
+      expect(groups.first.items.map((i) => i.raceId), [1, 2, 4]);
+      expect(groups.last.items.map((i) => i.raceId), [3]);
+    });
+
+    test('drops a group once its last race is scheduled', () {
+      final p = twoEpreuves().copyWith(blocks: [
+        ScheduleBlock(id: 10, siteId: 2, day: day, order: 0, raceId: 3),
+      ]);
+
+      final groups = groupUnscheduled(unscheduledRaces(p));
+
+      expect(groups.map((g) => g.structureRaceId), [500]);
+    });
+
+    test('no races at all → no groups', () {
+      expect(groupUnscheduled(const []), isEmpty);
     });
   });
 
