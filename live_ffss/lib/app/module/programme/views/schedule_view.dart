@@ -140,11 +140,15 @@ class _ScheduleViewState extends State<ScheduleView> {
           Column(
             children: [
               _DayChips(controller: _controller),
-              _SiteChips(controller: _controller, onEditStart: _pickStart, hhmm: _hhmm),
+              _SiteChips(
+                  controller: _controller,
+                  onEditStart: _pickStart,
+                  hhmm: _hhmm),
               const SizedBox(height: AppSpacing.xs),
               Expanded(
                 child: (siteId == null || day == null)
-                    ? EmptyState(icon: Icons.place_outlined, title: 'no_sites'.tr)
+                    ? EmptyState(
+                        icon: Icons.place_outlined, title: 'no_sites'.tr)
                     : _Timeline(
                         controller: _controller,
                         siteId: siteId,
@@ -159,7 +163,8 @@ class _ScheduleViewState extends State<ScheduleView> {
           if (siteId != null && day != null)
             Positioned(
               right: AppSpacing.md,
-              bottom: 180,
+              // Sits clear of the palette, whose height varies with the screen.
+              bottom: _paletteHeight(context) + AppSpacing.lg,
               child: FloatingActionButton.extended(
                 heroTag: 'addManual',
                 onPressed: () => _addManual(siteId, day),
@@ -253,7 +258,8 @@ class _SiteChips extends StatelessWidget {
                             onTap: () => controller.selectedSiteId.value = s.id,
                             child: Container(
                               alignment: Alignment.center,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
                               decoration: BoxDecoration(
                                 color: active
                                     ? AppColors.primary
@@ -348,7 +354,8 @@ class _Timeline extends StatelessWidget {
                   : (controller.roundOf(b.raceId!) == RoundType.finale
                       ? AppColors.statusFinished
                       : AppColors.primary),
-              onMinus: () => controller.setDuration(b.id, b.durationMinutes - 5),
+              onMinus: () =>
+                  controller.setDuration(b.id, b.durationMinutes - 5),
               onPlus: () => controller.setDuration(b.id, b.durationMinutes + 5),
               onRemove: () => controller.removeBlock(b.id),
               onEditLabel:
@@ -447,6 +454,12 @@ class _AccentCard extends StatelessWidget {
   }
 }
 
+/// Height of the unscheduled palette. A share of the screen rather than a fixed
+/// number so a small phone keeps a usable timeline above it. The FAB is placed
+/// clear of the palette, so both read it and cannot drift apart.
+double _paletteHeight(BuildContext context) =>
+    (MediaQuery.sizeOf(context).height * 0.35).clamp(150.0, 320.0);
+
 class _Palette extends StatelessWidget {
   const _Palette({required this.controller});
   final ScheduleController controller;
@@ -458,7 +471,7 @@ class _Palette extends StatelessWidget {
       final siteId = controller.selectedSiteId.value;
       final day = controller.selectedDay;
       return Container(
-        constraints: const BoxConstraints(maxHeight: 150),
+        constraints: BoxConstraints(maxHeight: _paletteHeight(context)),
         color: AppColors.surface,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -474,14 +487,19 @@ class _Palette extends StatelessWidget {
                 itemBuilder: (_, i) {
                   final item = items[i];
                   return ListTile(
-                    dense: true,
-                    title: Text(item.label,
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
-                    trailing: TextButton(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    // Wraps instead of ellipsing: "Paddle Board · Messieurs ·
+                    // Minime · Séries 1" is the only thing telling two rows
+                    // apart, and the tail is what differs.
+                    title: Text(item.label, style: AppTypography.body),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      color: AppColors.primary,
+                      tooltip: 'add_race'.tr,
                       onPressed: (siteId == null || day == null)
                           ? null
                           : () => controller.addRace(item.raceId, siteId, day),
-                      child: Text('add_race'.tr),
                     ),
                   );
                 },
