@@ -5,11 +5,13 @@ import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/domain/models/schedule_planner.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_programme_controller.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
+import 'package:live_ffss/app/presentation/shared/gender_badge.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
@@ -244,10 +246,24 @@ class _ReadonlyCard extends StatelessWidget {
                           '→ ${FormatConst.timeFormat.format(row.end)} · ${b.durationMinutes} ${'min_short'.tr}',
                           style: AppTypography.caption),
                     ]),
-                    Text(label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.body),
+                    Row(
+                      children: [
+                        if (!isManual) ...[
+                          GenderBadge(
+                              gender:
+                                  controller.raceForBlock(b.raceId!)?.gender ??
+                                      Gender.unknown,
+                              size: 18),
+                          const SizedBox(width: 6),
+                        ],
+                        Expanded(
+                          child: Text(label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.body),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

@@ -11,9 +11,9 @@ import 'package:live_ffss/app/domain/models/schedule_planner.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
 import 'package:live_ffss/app/module/programme/controllers/schedule_controller.dart';
 import 'package:live_ffss/app/module/programme/views/sites_view.dart';
-import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
+import 'package:live_ffss/app/presentation/shared/gender_badge.dart';
 
 class ScheduleView extends StatefulWidget {
   const ScheduleView({super.key});
@@ -157,6 +157,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                         siteId: siteId,
                         day: day,
                         onEditLabel: _editLabel,
+                        genderOf: _programme.genderForRace,
                       ),
               ),
               const Divider(height: 1),
@@ -329,11 +330,13 @@ class _Timeline extends StatelessWidget {
     required this.siteId,
     required this.day,
     required this.onEditLabel,
+    required this.genderOf,
   });
   final ScheduleController controller;
   final int siteId;
   final DateTime day;
   final Future<void> Function(int blockId, String current) onEditLabel;
+  final Gender Function(int structureRaceId) genderOf;
 
   @override
   Widget build(BuildContext context) {
@@ -342,8 +345,24 @@ class _Timeline extends StatelessWidget {
       if (rows.isEmpty) {
         return EmptyState(icon: Icons.schedule, title: 'no_placement_here'.tr);
       }
+      // Resolved here rather than in the itemBuilder below, which runs during
+      // layout and outside this Obx: a read from there registers no dependency
+      // and the labels would stay on whatever the first frame held.
+      final items = <int, ScheduleItem>{
+        for (final r in rows)
+          if (r.block.raceId != null)
+            if (controller.scheduleItemFor(r.block.raceId!) case final item?)
+              r.block.raceId!: item,
+      };
+      final genders = <int, Gender>{
+        for (final e in items.entries) e.key: genderOf(e.value.structureRaceId),
+      };
       return ReorderableListView.builder(
-        padding: AppSpacing.pageAll,
+        // Clears the manual-item FAB, which floats over the bottom of this
+        // list: without it the last card's delete button sits under the FAB
+        // and cannot be tapped.
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md, AppSpacing.md, AppSpacing.md, _fabClearance),
         itemCount: rows.length,
         onReorder: (oldIndex, newIndex) =>
             controller.reorder(siteId, day, oldIndex, newIndex),
@@ -359,9 +378,8 @@ class _Timeline extends StatelessWidget {
               begin: FormatConst.timeFormat.format(row.begin),
               end: FormatConst.timeFormat.format(row.end),
               duration: b.durationMinutes,
-              label: isManual
-                  ? b.manualLabel
-                  : (controller.scheduleItemFor(b.raceId!)?.label ?? ''),
+              gender: isManual ? null : genders[b.raceId!],
+              label: isManual ? b.manualLabel : (items[b.raceId!]?.label ?? ''),
               accent: isManual
                   ? AppColors.statusWaiting
                   : (controller.roundOf(b.raceId!) == RoundType.finale
@@ -388,6 +406,7 @@ class _AccentCard extends StatelessWidget {
     required this.end,
     required this.duration,
     required this.label,
+    required this.gender,
     required this.accent,
     required this.onMinus,
     required this.onPlus,
@@ -399,6 +418,9 @@ class _AccentCard extends StatelessWidget {
   final String end;
   final int duration;
   final String label;
+
+  /// Null for a manual block, which belongs to no épreuve.
+  final Gender? gender;
   final Color accent;
   final VoidCallback onMinus;
   final VoidCallback onPlus;
@@ -447,10 +469,20 @@ class _AccentCard extends StatelessWidget {
                       Text('→ $end · $duration ${'min_short'.tr}',
                           style: AppTypography.caption),
                     ]),
-                    Text(label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.body),
+                    Row(
+                      children: [
+                        if (gender != null) ...[
+                          GenderBadge(gender: gender!, size: 18),
+                          const SizedBox(width: 6),
+                        ],
+                        Expanded(
+                          child: Text(label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.body),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -466,6 +498,11 @@ class _AccentCard extends StatelessWidget {
     );
   }
 }
+
+/// Room the timeline leaves under its last card for the manual-item FAB, which
+/// floats over it: the FAB's own height plus the gap it keeps above the
+/// palette. Without it the last card's delete button is unreachable.
+const double _fabClearance = 80;
 
 /// Height of the unscheduled palette. A share of the screen rather than a fixed
 /// number so a small phone keeps a usable timeline above it. The FAB is placed
@@ -584,7 +621,7 @@ class _GroupSection extends StatelessWidget {
                 Icon(expanded ? Icons.expand_more : Icons.chevron_right,
                     size: 20, color: AppColors.textSecondary),
                 const SizedBox(width: 2),
-                _GenderBadge(gender: gender),
+                GenderBadge(gender: gender),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text('${group.raceLabel} · ${group.categoryLabel}',
@@ -631,33 +668,6 @@ class _GroupSection extends StatelessWidget {
             ),
         const Divider(height: 1),
       ],
-    );
-  }
-}
-
-/// The gender as a coloured letter. The letter carries the meaning on its own,
-/// so the colour never has to be told apart to read the badge.
-class _GenderBadge extends StatelessWidget {
-  const _GenderBadge({required this.gender});
-
-  final Gender gender;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 22,
-      height: 22,
-      alignment: Alignment.center,
-      decoration:
-          BoxDecoration(color: gender.badgeColor, shape: BoxShape.circle),
-      child: Text(
-        gender.shortLabel,
-        style: AppTypography.caption.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-        ),
-      ),
     );
   }
 }
