@@ -493,6 +493,14 @@ class _PaletteState extends State<_Palette> {
       final total = groups.fold<int>(0, (sum, g) => sum + g.items.length);
       final siteId = widget.controller.selectedSiteId.value;
       final day = widget.controller.selectedDay;
+      // Resolved here, not in the itemBuilder below: that builder runs during
+      // layout, outside this Obx, so reading the épreuve rows from there
+      // registers no dependency and the badges stay stale until some other
+      // rebuild happens to come along.
+      final genders = <int, Gender>{
+        for (final g in groups)
+          g.structureRaceId: widget.genderOf(g.structureRaceId),
+      };
       return Container(
         constraints: BoxConstraints(maxHeight: _paletteHeight(context)),
         color: AppColors.surface,
@@ -512,7 +520,7 @@ class _PaletteState extends State<_Palette> {
                   final key = (group.structureRaceId, group.categoryId);
                   return _GroupSection(
                     group: group,
-                    gender: widget.genderOf(group.structureRaceId),
+                    gender: genders[group.structureRaceId] ?? Gender.unknown,
                     expanded: groups.length == 1 || _expanded.contains(key),
                     onToggle: () => setState(() {
                       if (!_expanded.remove(key)) _expanded.add(key);
