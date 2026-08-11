@@ -216,4 +216,31 @@ void main() {
       expect(calls, 0);
     });
   });
+
+  group('defaultsForRound', () {
+    test('a quart runs 4 races qualifying 8 each', () {
+      expect(defaultsForRound(RoundType.quart),
+          (raceCount: 4, qualifiersPerRace: 8));
+    });
+
+    test('a demi runs 2 races qualifying 8 each', () {
+      expect(defaultsForRound(RoundType.demi),
+          (raceCount: 2, qualifiersPerRace: 8));
+    });
+
+    test('a finale runs a single race and qualifies nobody', () {
+      expect(defaultsForRound(RoundType.finale),
+          (raceCount: 1, qualifiersPerRace: 0));
+    });
+
+    test('a série has no default count — it follows the entry count', () {
+      expect(defaultsForRound(RoundType.serie),
+          (raceCount: 0, qualifiersPerRace: 0));
+    });
+
+    test('an unrecognised round gets nothing', () {
+      expect(defaultsForRound(RoundType.unknown),
+          (raceCount: 0, qualifiersPerRace: 0));
+    });
+  });
 }

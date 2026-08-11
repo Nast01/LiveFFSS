@@ -162,14 +162,27 @@ class StructureEditorController extends GetxController {
   /// Adds a round **at its rank** in the hierarchy (série < quart < demi <
   /// finale) rather than at the end, so picking the rounds in any order can no
   /// longer produce a structure that runs a finale before its séries.
+  ///
+  /// The round arrives with the race count and qualifiers its level usually
+  /// runs (see [defaultsForRound]) rather than empty, so the common bracket
+  /// needs no stepper work at all.
   void addLevel(RoundType type) {
     final s = structure.value!;
     final at = round_order.insertionIndexFor(s.levels, type);
+    final defaults = defaultsForRound(type);
     final levels = [...s.levels]..insert(
         at,
-        // A new round inherits the structure's default size rather than 0, so
-        // it shows a real number straight away.
-        RoundLevel(type: type, spotsPerRace: s.spotsPerRace),
+        RoundLevel(
+          type: type,
+          // A new round inherits the structure's default size rather than 0,
+          // so it shows a real number straight away.
+          spotsPerRace: s.spotsPerRace,
+          qualifiersPerRace: defaults.qualifiersPerRace,
+          races: [
+            for (var n = 1; n <= defaults.raceCount; n++)
+              ProgrammeRace(id: _programme.allocateId(), number: n),
+          ],
+        ),
       );
     _commit(s.copyWith(levels: round_order.rewireRange(levels, at, at + 1)));
   }

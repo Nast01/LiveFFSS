@@ -510,9 +510,49 @@ void main() {
       final levels = controller.structure.value!.levels;
       expect(levels.map((l) => l.type),
           [RoundType.serie, RoundType.demi, RoundType.finale]);
-      // The demi holds no race yet, so the finale it now follows is fed by
-      // none — rather than still claiming the séries two rounds above.
-      expect(levels[2].races.single.sourceRaceIds, isEmpty);
+      // The finale is fed by the demi that now precedes it, not by the séries
+      // two rounds above.
+      final demiIds = levels[1].races.map((r) => r.id).toList();
+      expect(levels[2].races.single.sourceRaceIds, demiIds);
+    });
+  });
+
+  group('defaults of a hand-added round', () {
+    test('a quart starts with 4 races and 8 qualifiers each', () {
+      controller.addLevel(RoundType.quart);
+
+      final level = controller.structure.value!.levels.single;
+      expect(level.races.length, 4);
+      expect(level.qualifiersPerRace, 8);
+      expect(level.races.map((r) => r.number), [1, 2, 3, 4]);
+    });
+
+    test('a demi starts with 2 races and 8 qualifiers each', () {
+      controller.addLevel(RoundType.demi);
+
+      final level = controller.structure.value!.levels.single;
+      expect(level.races.length, 2);
+      expect(level.qualifiersPerRace, 8);
+    });
+
+    test('a finale starts with one race and no qualifier', () {
+      controller.addLevel(RoundType.finale);
+
+      final level = controller.structure.value!.levels.single;
+      expect(level.races.length, 1);
+      expect(level.qualifiersPerRace, 0);
+    });
+
+    test('the races of a hand-added round get ids of their own', () {
+      controller.addLevel(RoundType.quart);
+      controller.addLevel(RoundType.demi);
+
+      final ids = controller.structure.value!.levels
+          .expand((l) => l.races)
+          .map((r) => r.id)
+          .toList();
+      expect(ids.toSet().length, ids.length);
+      expect(ids.every((id) => id > 0), isTrue);
     });
   });
 

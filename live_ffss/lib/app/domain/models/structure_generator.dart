@@ -6,6 +6,22 @@ import 'package:live_ffss/app/domain/models/round_level.dart';
 /// materialises `ProgrammeRace`s (with ids) from this.
 typedef LevelPlan = ({RoundType type, int raceCount});
 
+/// What a round the operator adds by hand starts with. The counts come from
+/// how the FFSS runs a bracket: 4 quarts and 2 demies each qualifying 8, a
+/// single finale qualifying nobody. A série has none — its count follows the
+/// entry count, which only [proposeLevels] knows.
+typedef RoundDefaults = ({int raceCount, int qualifiersPerRace});
+
+RoundDefaults defaultsForRound(RoundType type) => switch (type) {
+      RoundType.quart => (raceCount: 4, qualifiersPerRace: 8),
+      RoundType.demi => (raceCount: 2, qualifiersPerRace: 8),
+      RoundType.finale => (raceCount: 1, qualifiersPerRace: 0),
+      RoundType.serie || RoundType.unknown => (
+          raceCount: 0,
+          qualifiersPerRace: 0
+        ),
+    };
+
 /// Number of séries needed to seat [entryCount] athletes at [spotsPerRace] per
 /// race, rounding up so the last série absorbs the remainder.
 int seriesCount(int entryCount, int spotsPerRace) {
