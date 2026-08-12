@@ -115,7 +115,6 @@ class _RoundPane extends StatelessWidget {
           engaged: controller.entryCountFor(structure.categoryId),
         ),
         _DrawHeatsButton(structure: structure, roundType: level.type),
-        _RoundBanner(structure: structure, level: level),
         if (level.races.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -188,49 +187,6 @@ class _DrawHeatsButton extends StatelessWidget {
             }
           },
         ),
-      ),
-    );
-  }
-}
-
-class _RoundBanner extends StatelessWidget {
-  const _RoundBanner({required this.structure, required this.level});
-  final EventStructure structure;
-  final RoundLevel level;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = level.type == RoundType.finale
-        ? AppColors.statusFinished
-        : AppColors.primary;
-    final info = <String>[
-      '${structure.spotsForLevel(level)} ${'spots_per_race'.tr}',
-      if (level.qualifiersPerRace > 0)
-        '${level.qualifiersPerRace} ${'qualifiers_per_race'.tr}',
-    ];
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, AppSpacing.sm, 0, AppSpacing.xs),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 16,
-            decoration: BoxDecoration(
-                color: accent,
-                borderRadius: BorderRadius.circular(AppRadius.sm)),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(level.type.labelKey.tr,
-              style: AppTypography.body.copyWith(
-                  fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-          const Spacer(),
-          Flexible(
-            child: Text(info.join(' · '),
-                textAlign: TextAlign.right,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.caption),
-          ),
-        ],
       ),
     );
   }
