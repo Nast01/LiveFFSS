@@ -238,13 +238,39 @@ class HeatDrawController extends GetxController {
     saved.value = true;
   }
 
-  List<RoundLevel> _levelsWithDraw(List<RoundLevel> levels, RoundType type) => [
-        for (final level in levels)
-          if (level.type == type)
-            level.copyWith(races: _racesForDraw(level.races))
-          else
-            level,
-      ];
+  List<RoundLevel> _levelsWithDraw(List<RoundLevel> levels, RoundType type) {
+    final drawnAt = levels.indexWhere((l) => l.type == type);
+    if (drawnAt < 0) return levels;
+
+    final updated = [...levels];
+    final drawn = updated[drawnAt];
+    updated[drawnAt] = drawn.copyWith(
+      races: _racesForDraw(drawn.races),
+      spotsPerRace: pendingPlan.value?.spotsPerRace ?? drawn.spotsPerRace,
+    );
+
+    final removed = {for (final r in drawn.races) r.id}
+        .difference({for (final r in updated[drawnAt].races) r.id});
+    if (removed.isEmpty) return updated;
+
+    // A shrunk round deletes races the later ones may still list as their
+    // source. Leaving those ids behind would have the operator validate a
+    // structure whose bracket is quietly broken.
+    for (var i = drawnAt + 1; i < updated.length; i++) {
+      updated[i] = updated[i].copyWith(
+        races: [
+          for (final race in updated[i].races)
+            race.copyWith(
+              sourceRaceIds: [
+                for (final id in race.sourceRaceIds)
+                  if (!removed.contains(id)) id,
+              ],
+            ),
+        ],
+      );
+    }
+    return updated;
+  }
 
   /// Rebuilds the level's races to match the drawn heat count. Existing races
   /// are reused in order so any downstream `sourceRaceIds` wiring survives;

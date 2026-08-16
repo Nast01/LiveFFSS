@@ -569,5 +569,62 @@ void main() {
       expect(controller.heats, isEmpty);
       expect(controller.pendingPlan.value, isNull);
     });
+
+    test('save writes the validated race size onto the round', () async {
+      final controller = await withPresent(20, levels: const [
+        RoundLevel(type: RoundType.serie, spotsPerRace: 16, races: [
+          ProgrammeRace(id: 1, number: 1),
+          ProgrammeRace(id: 2, number: 2),
+          ProgrammeRace(id: 3, number: 3),
+        ]),
+      ]);
+      controller.drawWithPlan(controller.proposedPlan);
+
+      await controller.save();
+
+      final level = programme.current.value!.structures.single.levels.single;
+      expect(level.races, hasLength(2));
+      expect(level.spotsPerRace, 10);
+    });
+
+    test('save strips the wiring of a race the shrink removed', () async {
+      final controller = await withPresent(20, levels: const [
+        RoundLevel(type: RoundType.serie, spotsPerRace: 16, races: [
+          ProgrammeRace(id: 1, number: 1),
+          ProgrammeRace(id: 2, number: 2),
+          ProgrammeRace(id: 3, number: 3),
+        ]),
+        RoundLevel(type: RoundType.finale, spotsPerRace: 16, races: [
+          ProgrammeRace(id: 4, number: 1, sourceRaceIds: [1, 2, 3]),
+        ]),
+      ]);
+      controller.drawWithPlan(controller.proposedPlan);
+
+      await controller.save();
+
+      final levels = programme.current.value!.structures.single.levels;
+      // Série 3 is gone, so the finale may no longer claim it as a source.
+      expect(levels.first.races, hasLength(2));
+      expect(levels.last.races.single.sourceRaceIds, [1, 2]);
+    });
+
+    test('save leaves the wiring alone when no race is removed', () async {
+      final controller = await withPresent(32, levels: const [
+        RoundLevel(type: RoundType.serie, spotsPerRace: 16, races: [
+          ProgrammeRace(id: 1, number: 1),
+          ProgrammeRace(id: 2, number: 2),
+        ]),
+        RoundLevel(type: RoundType.finale, spotsPerRace: 16, races: [
+          ProgrammeRace(id: 4, number: 1, sourceRaceIds: [1, 2]),
+        ]),
+      ]);
+      controller.drawWithPlan(controller.proposedPlan);
+
+      await controller.save();
+
+      final levels = programme.current.value!.structures.single.levels;
+      expect(levels.first.races, hasLength(2));
+      expect(levels.last.races.single.sourceRaceIds, [1, 2]);
+    });
   });
 }
