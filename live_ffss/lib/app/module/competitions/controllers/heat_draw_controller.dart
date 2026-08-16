@@ -246,6 +246,11 @@ class HeatDrawController extends GetxController {
     final drawn = updated[drawnAt];
     updated[drawnAt] = drawn.copyWith(
       races: _racesForDraw(drawn.races),
+      // `pendingPlan` and `heats` are always set together by `drawWithPlan`
+      // and cleared together by `selectLevel`, so `save()` cannot currently
+      // reach this with heats drawn and no plan. The fallback exists so a
+      // future change to that invariant degrades to the round's authored
+      // size instead of a null-check crash.
       spotsPerRace: pendingPlan.value?.spotsPerRace ?? drawn.spotsPerRace,
     );
 
