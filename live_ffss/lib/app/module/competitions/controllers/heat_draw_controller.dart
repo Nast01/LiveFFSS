@@ -10,6 +10,7 @@ import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/heat_draw.dart';
+import 'package:live_ffss/app/domain/models/heat_plan.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
@@ -163,7 +164,10 @@ class HeatDrawController extends GetxController {
     }
     heats.value = drawHeats(
       present: presentAthletes.toList(),
-      spotsPerRace: spotsPerRace,
+      raceCount: proposeHeatPlan(
+        presentCount: presentCount,
+        maxSpotsPerRace: spotsPerRace,
+      ).raceCount,
       random: _random,
     );
   }

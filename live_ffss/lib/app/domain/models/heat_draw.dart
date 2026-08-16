@@ -2,28 +2,29 @@ import 'dart:math';
 
 import 'package:live_ffss/app/domain/models/athlete.dart';
 
-/// Draws the athletes marked present into heats, in lane order — the index of
-/// an athlete within a heat IS their lane, coastal lanes being sequential.
+/// Draws the athletes marked present into [raceCount] heats, in lane order —
+/// the index of an athlete within a heat IS their lane, coastal lanes being
+/// sequential.
 ///
-/// Heats come out *balanced*, not filled to the brim: 17 athletes over heats of
-/// 8 give 6/6/5 rather than 8/8/1, which is the coastal practice. Clubmates are
-/// spread as evenly as the numbers allow, so a club of 6 over 3 heats lands 2
-/// per heat.
+/// The heat count is given, not derived: it comes from a plan the operator has
+/// validated (see `proposeHeatPlan`), so the draw can no longer overrule the
+/// authored structure. Heats come out *balanced*, not filled to the brim: 17
+/// athletes over 3 heats give 6/6/5 rather than 8/8/1, which is the coastal
+/// practice. Clubmates are spread as evenly as the numbers allow, so a club of
+/// 6 over 3 heats lands 2 per heat.
 ///
 /// [random] is injected rather than created here so a draw can be reproduced in
 /// tests. In the app it is seeded from the clock, and a redraw deliberately
 /// yields a different result.
 List<List<Athlete>> drawHeats({
   required List<Athlete> present,
-  required int spotsPerRace,
+  required int raceCount,
   required Random random,
 }) {
-  if (present.isEmpty) return const [];
-  final spots = spotsPerRace > 0 ? spotsPerRace : present.length;
-  final heatCount = (present.length / spots).ceil();
+  if (present.isEmpty || raceCount <= 0) return const [];
 
-  final heats = List.generate(heatCount, (_) => <Athlete>[]);
-  final clubTally = List.generate(heatCount, (_) => <int, int>{});
+  final heats = List.generate(raceCount, (_) => <Athlete>[]);
+  final clubTally = List.generate(raceCount, (_) => <int, int>{});
 
   for (final group in _clubGroups(present, random)) {
     for (final athlete in group) {
