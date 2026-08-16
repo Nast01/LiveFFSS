@@ -6,12 +6,16 @@ import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/module/competitions/controllers/heat_draw_controller.dart';
+import 'package:live_ffss/app/module/competitions/views/heat_structure_dialog.dart';
+import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 
 class HeatDrawView extends StatefulWidget {
   const HeatDrawView({super.key});
@@ -71,6 +75,56 @@ class _HeatDrawViewState extends State<HeatDrawView> {
       if (confirmed != true) return;
     }
     await _ctrl.save();
+  }
+
+  /// Coastal séries go through a structure check first; everything else draws
+  /// straight away. The loop is what lets "Modifier la structure" come back to
+  /// the dialog with the numbers the editor just changed.
+  Future<void> _draw() async {
+    if (!_ctrl.requiresStructureValidation) {
+      _ctrl.drawFromPresent();
+      return;
+    }
+    while (mounted) {
+      final result = await showDialog<HeatStructureResult>(
+        context: context,
+        builder: (_) => HeatStructureDialog(
+          presentCount: _ctrl.presentCount,
+          engagedCount: _ctrl.engagedCount.value,
+          declared: _ctrl.declaredPlan,
+          proposed: _ctrl.proposedPlan,
+        ),
+      );
+      if (result == null) return;
+      if (result.plan != null) {
+        _ctrl.drawWithPlan(result.plan!);
+        return;
+      }
+      await _openStructureEditor();
+      await _ctrl.load();
+    }
+  }
+
+  Future<void> _openStructureEditor() async {
+    final race = _ctrl.race.value;
+    final competition = _ctrl.competition.value;
+    if (race == null || competition == null) return;
+    await Get.toNamed<void>(
+      Routes.structureEditor,
+      // serverDetails stays empty on purpose: the structure exists by the time
+      // this dialog opens, so seeding cannot fire, and re-importing the FFSS
+      // parties is not worth a network call from the beach.
+      arguments: StructureEditorArgs(
+        competitionId: competition.id,
+        raceId: race.id,
+        categoryId: _ctrl.categoryId,
+        raceLabel: race.name,
+        categoryLabel: _ctrl.categoryLabel,
+        entryCount: _ctrl.engagedCount.value,
+        gender: race.gender,
+        defaultSpotsPerRace: race.defaultSpotsPerRace,
+      ),
+    );
   }
 
   Future<void> _pickTargetHeat(Athlete athlete) async {
@@ -154,7 +208,7 @@ class _HeatDrawViewState extends State<HeatDrawView> {
                       ],
                     ),
             ),
-            _Actions(onSave: _save),
+            _Actions(onDraw: _draw, onSave: _save),
           ],
         );
       }),
@@ -345,8 +399,9 @@ class _LaneRow extends StatelessWidget {
 }
 
 class _Actions extends GetView<HeatDrawController> {
-  const _Actions({required this.onSave});
+  const _Actions({required this.onDraw, required this.onSave});
 
+  final Future<void> Function() onDraw;
   final Future<void> Function() onSave;
 
   @override
@@ -359,7 +414,7 @@ class _Actions extends GetView<HeatDrawController> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: controller.drawFromPresent,
+                    onPressed: onDraw,
                     icon: const Icon(Icons.shuffle),
                     label: Text(controller.heats.isEmpty
                         ? 'heat_draw_action'.tr

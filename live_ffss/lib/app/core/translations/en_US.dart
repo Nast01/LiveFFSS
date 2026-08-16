@@ -355,6 +355,11 @@ final Map<String, String> enUS = {
   'heat_draw_overwrite_title': 'Replace the heats?',
   'heat_draw_overwrite_body':
       'This level already has composed heats. They will be replaced by this draw.',
+  'heat_draw_structure_title': 'Check the structure',
+  'heat_draw_structure_proposed': 'Recomputed from those present',
+  'heat_draw_structure_declared': 'Structure as declared',
+  'heat_draw_structure_plan': '@races heat(s) × @spots spots',
+  'heat_draw_structure_edit': 'Edit the structure',
   'not_entered': 'Not entered',
   'bracelet_unreadable': 'Unreadable bracelet',
 };

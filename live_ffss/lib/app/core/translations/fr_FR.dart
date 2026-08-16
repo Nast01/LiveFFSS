@@ -357,6 +357,11 @@ final Map<String, String> frFR = {
   'heat_draw_overwrite_title': 'Remplacer les séries ?',
   'heat_draw_overwrite_body':
       'Ce niveau a déjà des séries composées. Elles seront remplacées par ce tirage.',
+  'heat_draw_structure_title': 'Vérifier la structure',
+  'heat_draw_structure_proposed': 'Recalculée sur les présents',
+  'heat_draw_structure_declared': 'Structure déclarée',
+  'heat_draw_structure_plan': '@races série(s) × @spots places',
+  'heat_draw_structure_edit': 'Modifier la structure',
   'not_entered': 'Non engagé',
   'bracelet_unreadable': 'Bracelet illisible',
 };
