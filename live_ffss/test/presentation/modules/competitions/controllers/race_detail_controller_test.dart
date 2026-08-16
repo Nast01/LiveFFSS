@@ -550,6 +550,87 @@ void main() {
     });
   });
 
+  group('RaceDetailController.attendanceCounts', () {
+    Athlete makeAthlete({required int id}) => Athlete(
+          id: id,
+          licenseeNumber: '',
+          firstName: 'A$id',
+          lastName: 'B$id',
+          gender: Gender.female,
+          year: 2000,
+          nationalityCode: '',
+          nationality: '',
+          isValid: true,
+        );
+
+    Entry entryWithAthletes(int id, List<Athlete> athletes) => Entry(
+          id: id,
+          category: const Category(id: 1, name: 'Senior'),
+          status: 1,
+          statusLabel: 'Engagé',
+          athletes: athletes,
+        );
+
+    test('is all zero when nobody is engaged', () {
+      final counts = controller.attendanceCounts;
+
+      expect(counts.waiting, 0);
+      expect(counts.present, 0);
+      expect(counts.absent, 0);
+      expect(counts.total, 0);
+    });
+
+    test('counts every engaged athlete as waiting before any pointing', () {
+      controller.entries.value = [
+        entryWithAthletes(1, [makeAthlete(id: 1), makeAthlete(id: 2)]),
+        entryWithAthletes(2, [makeAthlete(id: 3)]),
+      ];
+
+      final counts = controller.attendanceCounts;
+
+      expect(counts.waiting, 3);
+      expect(counts.present, 0);
+      expect(counts.absent, 0);
+      expect(counts.total, 3);
+    });
+
+    test('splits the engaged athletes across the three statuses', () {
+      controller.entries.value = [
+        entryWithAthletes(1, [
+          makeAthlete(id: 1),
+          makeAthlete(id: 2),
+          makeAthlete(id: 3),
+        ]),
+        entryWithAthletes(2, [makeAthlete(id: 4)]),
+      ];
+
+      controller.setAttendance(makeAthlete(id: 1), AttendanceStatus.present);
+      controller.setAttendance(makeAthlete(id: 2), AttendanceStatus.present);
+      controller.setAttendance(makeAthlete(id: 3), AttendanceStatus.absent);
+
+      final counts = controller.attendanceCounts;
+
+      expect(counts.waiting, 1);
+      expect(counts.present, 2);
+      expect(counts.absent, 1);
+      expect(counts.total, 4);
+    });
+
+    test('ignores stored statuses of athletes not engaged in this race', () {
+      controller.entries.value = [
+        entryWithAthletes(1, [makeAthlete(id: 1)]),
+      ];
+      // Left over from a previous load of a larger start list.
+      controller.attendance[999] = AttendanceStatus.present;
+
+      final counts = controller.attendanceCounts;
+
+      expect(counts.present, 0);
+      expect(counts.waiting, 1);
+      expect(counts.total, 1);
+    });
+  });
+
   group('RaceDetailController attendance persistence', () {
     Athlete makeAthlete({required int id}) => Athlete(
           id: id,

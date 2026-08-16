@@ -277,6 +277,34 @@ class RaceDetailController extends GetxController {
 
   void setSortMode(AthleteSortMode mode) => sortMode.value = mode;
 
+  /// Presence tally over the engaged athletes, in the same flattening as
+  /// [sortedAthletes] — an athlete entered twice counts twice, so the total
+  /// always matches the number of rows in the list. Reads [entries] and
+  /// [attendance], so it recomputes reactively inside `Obx`.
+  ({int waiting, int present, int absent, int total}) get attendanceCounts {
+    var waiting = 0;
+    var present = 0;
+    var absent = 0;
+    for (final entry in entries) {
+      for (final athlete in entry.athletes) {
+        switch (attendanceOf(athlete)) {
+          case AttendanceStatus.waiting:
+            waiting++;
+          case AttendanceStatus.present:
+            present++;
+          case AttendanceStatus.absent:
+            absent++;
+        }
+      }
+    }
+    return (
+      waiting: waiting,
+      present: present,
+      absent: absent,
+      total: waiting + present + absent,
+    );
+  }
+
   AttendanceStatus attendanceOf(Athlete athlete) =>
       attendance[athlete.id] ?? AttendanceStatus.waiting;
 

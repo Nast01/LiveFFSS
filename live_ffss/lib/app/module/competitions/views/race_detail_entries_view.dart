@@ -43,6 +43,10 @@ class RaceDetailEntriesView extends GetView<RaceDetailController> {
                   _ScanButton(onPressed: () => _openScanSheet(context)),
                   const SizedBox(height: AppSpacing.xs),
                 ],
+                if (athletes.isNotEmpty) ...[
+                  const _AttendanceSummary(),
+                  const SizedBox(height: AppSpacing.xs),
+                ],
                 Row(
                   children: [
                     Text(
@@ -106,6 +110,124 @@ class _ScanButton extends StatelessWidget {
         onPressed: onPressed,
         icon: const Icon(Icons.nfc),
         label: Text('scan_bracelet'.tr),
+      ),
+    );
+  }
+}
+
+/// Marshalling progress: how many of the engaged athletes have been pointed
+/// (present or absent), as a headline, a proportional bar, and a legend.
+class _AttendanceSummary extends GetView<RaceDetailController> {
+  const _AttendanceSummary();
+
+  static const double _barHeight = 8;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final counts = controller.attendanceCounts;
+      // Pointing an athlete means deciding present OR absent — only `waiting`
+      // is still outstanding, so the bar fills as marshalling progresses.
+      final pointed = counts.present + counts.absent;
+      final segments = <(int, Color)>[
+        (counts.present, AppColors.statusFinished),
+        (counts.absent, AppColors.statusError),
+        (counts.waiting, AppColors.statusWaiting),
+      ];
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$pointed / ${counts.total} ${'pointed_count'.tr}',
+            style: AppTypography.body.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: AppRadius.pillRadius,
+            child: Container(
+              height: _barHeight,
+              color: AppColors.border,
+              child: Row(
+                // A childless ColoredBox collapses to zero height under the
+                // loose cross-axis constraint the default `center` gives it.
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final (count, color) in segments)
+                    if (count > 0)
+                      Expanded(
+                        flex: count,
+                        child: ColoredBox(color: color),
+                      ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              _LegendEntry(
+                count: counts.present,
+                label: 'present_count'.tr,
+                color: AppColors.statusFinished,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _LegendEntry(
+                count: counts.absent,
+                label: 'absent_count'.tr,
+                color: AppColors.statusError,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _LegendEntry(
+                count: counts.waiting,
+                label: 'waiting_count'.tr,
+                color: AppColors.statusWaiting,
+              ),
+            ],
+          ),
+        ],
+      );
+    });
+  }
+}
+
+class _LegendEntry extends StatelessWidget {
+  const _LegendEntry({
+    required this.count,
+    required this.label,
+    required this.color,
+  });
+
+  final int count;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    // Flexible, not Expanded: the three entries share the row but a zero-count
+    // one ("0 absents") must not be padded out to a third of the width.
+    return Flexible(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              '$count $label',
+              style: AppTypography.caption.copyWith(fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
