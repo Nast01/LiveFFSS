@@ -85,7 +85,11 @@ class _HeatDrawViewState extends State<HeatDrawView> {
       _ctrl.drawFromPresent();
       return;
     }
-    while (mounted) {
+    while (true) {
+      // Explicit rather than relying on the loop condition: the analyzer only
+      // treats an `if (!mounted) return;` immediately before a context use as
+      // guarding it, not a `while (mounted)` on the loop itself.
+      if (!mounted) return;
       final result = await showDialog<HeatStructureResult>(
         context: context,
         builder: (_) => HeatStructureDialog(
@@ -95,12 +99,18 @@ class _HeatDrawViewState extends State<HeatDrawView> {
           proposed: _ctrl.proposedPlan,
         ),
       );
+      if (!mounted) return;
       if (result == null) return;
       if (result.plan != null) {
         _ctrl.drawWithPlan(result.plan!);
         return;
       }
       await _openStructureEditor();
+      if (!mounted) return;
+      // The structure the on-screen heats (if any) were drawn against no
+      // longer exists once the editor may have changed it — reopening the
+      // dialog on a stale draw is the bug this loop exists to avoid.
+      _ctrl.discardDraw();
       await _ctrl.load();
     }
   }

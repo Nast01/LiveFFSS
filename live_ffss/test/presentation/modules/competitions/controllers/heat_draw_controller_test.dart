@@ -294,6 +294,27 @@ void main() {
     });
   });
 
+  group('HeatDrawController.discardDraw', () {
+    test('clears a draw and the plan it was drawn with', () async {
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [for (var i = 1; i <= 6; i++) athlete(i)]),
+          ]);
+      when(() => attendance.forRace(raceId)).thenReturn({
+        for (var i = 1; i <= 6; i++) i: AttendanceStatus.present,
+      });
+      final controller = build();
+      await controller.load();
+      controller.drawFromPresent();
+      expect(controller.heats, isNotEmpty);
+      expect(controller.pendingPlan.value, isNotNull);
+
+      controller.discardDraw();
+
+      expect(controller.heats, isEmpty);
+      expect(controller.pendingPlan.value, isNull);
+    });
+  });
+
   group('HeatDrawController.moveAthlete', () {
     Future<HeatDrawController> drawn(int count) async {
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
@@ -432,6 +453,41 @@ void main() {
       await controller.save();
 
       expect(savedRaces(RoundType.finale), isEmpty);
+    });
+
+    test(
+        'a pool race keeps the round declared size, even though fewer '
+        'athletes are present than seats', () async {
+      programme = _FakeProgrammeService(programmeWith(
+        levels: const [RoundLevel(type: RoundType.serie, spotsPerRace: 8)],
+      ));
+      final present = [for (var i = 1; i <= 6; i++) athlete(i)];
+      when(() => raceRepo.getEntries(raceId))
+          .thenAnswer((_) async => [entry(1, present)]);
+      when(() => attendance.forRace(raceId)).thenReturn({
+        for (final a in present) a.id: AttendanceStatus.present,
+      });
+      final controller = HeatDrawController(
+        raceRepo,
+        attendance,
+        programme,
+        random: Random(7),
+      )
+        ..race.value = makeRace(speciality: 'Eau-plate')
+        ..competition.value = makeCompetition()
+        ..categoryId = categoryId
+        ..categoryLabel = 'Senior';
+      await controller.load();
+      // 6 present at 8 declared spots draws into a single heat of 6 — the
+      // proposal a validated path would show, but this pool round takes the
+      // no-dialog path and must not let the draw shrink its declared size.
+      controller.drawFromPresent();
+
+      await controller.save();
+
+      final level = programme.current.value!.structures.single.levels.single;
+      expect(level.races, hasLength(1));
+      expect(level.spotsPerRace, 8);
     });
 
     test('hasExistingComposition reports a level already drawn', () async {

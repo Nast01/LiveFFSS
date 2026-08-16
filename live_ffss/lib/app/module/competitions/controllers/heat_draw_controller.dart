@@ -178,6 +178,16 @@ class HeatDrawController extends GetxController {
     selectedLevel.value = type;
     // The heat count depends on the level's own composition, so a previous
     // draw — and the plan it was drawn with — mean nothing here.
+    discardDraw();
+  }
+
+  /// Clears a draw that no longer matches what's on screen: the round
+  /// changed, or the operator edited the structure the heats were drawn
+  /// against and backed out of the dialog instead of confirming a new draw.
+  /// Leaving stale heats visible — or worse, savable — would reproduce the
+  /// silent-rewrite bug this feature exists to fix, through its own escape
+  /// hatch.
+  void discardDraw() {
     heats.clear();
     pendingPlan.value = null;
   }
@@ -246,12 +256,18 @@ class HeatDrawController extends GetxController {
     final drawn = updated[drawnAt];
     updated[drawnAt] = drawn.copyWith(
       races: _racesForDraw(drawn.races),
-      // `pendingPlan` and `heats` are always set together by `drawWithPlan`
-      // and cleared together by `selectLevel`, so `save()` cannot currently
-      // reach this with heats drawn and no plan. The fallback exists so a
-      // future change to that invariant degrades to the round's authored
-      // size instead of a null-check crash.
-      spotsPerRace: pendingPlan.value?.spotsPerRace ?? drawn.spotsPerRace,
+      // Only the validated coastal série path may change the round's
+      // declared capacity — that's the whole point of asking the operator to
+      // confirm it first. Every other path (pool, or a coastal bracket round)
+      // draws however many are present but must never let that count ratchet
+      // the round's authored size; `drawn.spotsPerRace` keeps it fixed there.
+      // The `?? drawn.spotsPerRace` fallback stays defensive: `pendingPlan`
+      // and `heats` are set together by `drawWithPlan` and cleared together
+      // by `selectLevel`, so `save()` cannot currently reach this with heats
+      // drawn and no plan even on the validated path.
+      spotsPerRace: requiresStructureValidation
+          ? (pendingPlan.value?.spotsPerRace ?? drawn.spotsPerRace)
+          : drawn.spotsPerRace,
     );
 
     final removed = {for (final r in drawn.races) r.id}
