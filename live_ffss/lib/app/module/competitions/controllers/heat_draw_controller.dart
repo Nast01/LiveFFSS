@@ -14,6 +14,7 @@ import 'package:live_ffss/app/domain/models/heat_plan.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
 /// Draws the athletes marked present into the heats of one round level, for a
@@ -49,6 +50,10 @@ class HeatDrawController extends GetxController {
 
   /// The current draw: one list of athletes per heat, in lane order.
   final RxList<List<Athlete>> heats = <List<Athlete>>[].obs;
+
+  /// The plan the heats on screen were drawn with. Null until a draw has run;
+  /// [save] writes it back into the structure.
+  final Rxn<HeatPlan> pendingPlan = Rxn<HeatPlan>();
 
   final RxInt engagedCount = 0.obs;
 
@@ -111,6 +116,25 @@ class HeatDrawController extends GetxController {
     return level != null && level.races.any((r) => r.athleteIds.isNotEmpty);
   }
 
+  /// Whether the operator must validate the structure before this draw runs.
+  /// Coastal séries only: a pool draw keeps the direct path, and a bracket
+  /// round is seated by its qualifiers rather than by who is on the beach.
+  bool get requiresStructureValidation =>
+      (race.value?.isBeach ?? false) && selectedLevel.value == RoundType.serie;
+
+  /// The selected round exactly as authored.
+  HeatPlan get declaredPlan => (
+        raceCount: _levelOf(selectedLevel.value)?.races.length ?? 0,
+        spotsPerRace: spotsPerRace,
+      );
+
+  /// What the athletes actually present call for, capped by the authored
+  /// race size — the water's capacity does not change because people are late.
+  HeatPlan get proposedPlan => proposeHeatPlan(
+        presentCount: presentCount,
+        maxSpotsPerRace: declaredPlan.spotsPerRace,
+      );
+
   Future<void> load() async {
     final raceId = race.value?.id;
     final competitionId = competition.value?.id;
@@ -153,21 +177,25 @@ class HeatDrawController extends GetxController {
     if (selectedLevel.value == type) return;
     selectedLevel.value = type;
     // The heat count depends on the level's own composition, so a previous
-    // draw means nothing here.
+    // draw — and the plan it was drawn with — mean nothing here.
     heats.clear();
+    pendingPlan.value = null;
   }
 
-  void drawFromPresent() {
+  /// Draws without validation, for the rounds that need none — a pool race, or
+  /// a bracket round. The count follows the athletes present, which is what
+  /// this path has always done.
+  void drawFromPresent() => drawWithPlan(proposedPlan);
+
+  void drawWithPlan(HeatPlan plan) {
     if (presentAthletes.isEmpty) {
       message.value = const UiMessageError('heat_draw_no_present');
       return;
     }
+    pendingPlan.value = plan;
     heats.value = drawHeats(
       present: presentAthletes.toList(),
-      raceCount: proposeHeatPlan(
-        presentCount: presentCount,
-        maxSpotsPerRace: spotsPerRace,
-      ).raceCount,
+      raceCount: plan.raceCount,
       random: _random,
     );
   }

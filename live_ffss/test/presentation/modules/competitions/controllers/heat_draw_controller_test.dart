@@ -88,7 +88,7 @@ void main() {
         athletes: athletes,
       );
 
-  Race makeRace() => const Race(
+  Race makeRace({String speciality = 'Côtier'}) => Race(
         id: raceId,
         name: 'Race',
         nameEnglish: 'Race',
@@ -96,10 +96,10 @@ void main() {
         gender: Gender.female,
         athletesPerTeam: 1,
         specialityId: 1,
-        specialityLabel: 'Côtier',
+        specialityLabel: speciality,
         disciplineId: 1,
         isEligibleToNationalRecord: false,
-        categories: [],
+        categories: const [],
       );
 
   Competition makeCompetition() => const Competition(
@@ -462,6 +462,112 @@ void main() {
 
       expect(programme.saveCount, 0);
       expect(controller.saved.value, isFalse);
+    });
+  });
+
+  group('HeatDrawController structure validation', () {
+    /// Loads a controller whose category has [present] athletes checked in.
+    Future<HeatDrawController> withPresent(
+      int present, {
+      String speciality = 'Côtier',
+      List<RoundLevel> levels = const [
+        RoundLevel(type: RoundType.serie, spotsPerRace: 16),
+        RoundLevel(type: RoundType.finale, spotsPerRace: 16),
+      ],
+    }) async {
+      programme = _FakeProgrammeService(programmeWith(levels: levels));
+      final all = [for (var i = 1; i <= present; i++) athlete(i)];
+      when(() => raceRepo.getEntries(raceId))
+          .thenAnswer((_) async => [entry(1, all)]);
+      when(() => attendance.forRace(raceId)).thenReturn({
+        for (final a in all) a.id: AttendanceStatus.present,
+      });
+      final controller = HeatDrawController(
+        raceRepo,
+        attendance,
+        programme,
+        random: Random(7),
+      )
+        ..race.value = makeRace(speciality: speciality)
+        ..competition.value = makeCompetition()
+        ..categoryId = categoryId
+        ..categoryLabel = 'Senior';
+      await controller.load();
+      return controller;
+    }
+
+    test('a coastal série must be validated', () async {
+      final controller = await withPresent(20);
+
+      expect(controller.selectedLevel.value, RoundType.serie);
+      expect(controller.requiresStructureValidation, isTrue);
+    });
+
+    test('a pool série is drawn without validation', () async {
+      final controller = await withPresent(20, speciality: 'Eau-plate');
+
+      expect(controller.requiresStructureValidation, isFalse);
+    });
+
+    test('a coastal finale is drawn without validation', () async {
+      final controller = await withPresent(20);
+      controller.selectLevel(RoundType.finale);
+
+      expect(controller.requiresStructureValidation, isFalse);
+    });
+
+    test('declaredPlan reads the round as authored', () async {
+      final controller = await withPresent(20, levels: const [
+        RoundLevel(type: RoundType.serie, spotsPerRace: 16, races: [
+          ProgrammeRace(id: 1, number: 1),
+          ProgrammeRace(id: 2, number: 2),
+          ProgrammeRace(id: 3, number: 3),
+        ]),
+      ]);
+
+      expect(controller.declaredPlan, (raceCount: 3, spotsPerRace: 16));
+    });
+
+    test('proposedPlan tightens the round onto the athletes present', () async {
+      final controller = await withPresent(20, levels: const [
+        RoundLevel(type: RoundType.serie, spotsPerRace: 16, races: [
+          ProgrammeRace(id: 1, number: 1),
+          ProgrammeRace(id: 2, number: 2),
+          ProgrammeRace(id: 3, number: 3),
+        ]),
+      ]);
+
+      expect(controller.proposedPlan, (raceCount: 2, spotsPerRace: 10));
+    });
+
+    test('drawWithPlan draws exactly the plan it is given', () async {
+      final controller = await withPresent(20);
+
+      controller.drawWithPlan((raceCount: 4, spotsPerRace: 5));
+
+      expect(controller.heats, hasLength(4));
+      expect(controller.heats.expand((h) => h), hasLength(20));
+      expect(controller.pendingPlan.value, (raceCount: 4, spotsPerRace: 5));
+    });
+
+    test('drawWithPlan reports when nobody is present', () async {
+      final controller = await withPresent(0);
+
+      controller.drawWithPlan((raceCount: 2, spotsPerRace: 8));
+
+      expect(controller.heats, isEmpty);
+      expect(controller.pendingPlan.value, isNull);
+      expect(controller.message.value, isA<UiMessageError>());
+    });
+
+    test('changing round drops the plan the heats were drawn with', () async {
+      final controller = await withPresent(20);
+      controller.drawWithPlan((raceCount: 2, spotsPerRace: 10));
+
+      controller.selectLevel(RoundType.finale);
+
+      expect(controller.heats, isEmpty);
+      expect(controller.pendingPlan.value, isNull);
     });
   });
 }
