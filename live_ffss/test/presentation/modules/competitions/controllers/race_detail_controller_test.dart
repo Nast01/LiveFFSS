@@ -34,7 +34,10 @@ void main() {
   late _MockAttendanceService attendanceService;
   late RaceDetailController controller;
 
-  setUpAll(() => registerFallbackValue(const <int, AttendanceStatus>{}));
+  setUpAll(() {
+    registerFallbackValue(const <int, AttendanceStatus>{});
+    registerFallbackValue(const <Athlete>[]);
+  });
 
   Race makeRace(int id) => Race(
         id: id,
@@ -113,7 +116,9 @@ void main() {
     rfidWriter = _MockRfidWriter();
     attendanceService = _MockAttendanceService();
     when(() => raceRepo.getHeats(any())).thenAnswer((_) async => const []);
-    when(() => clubRepo.getClubs(any())).thenAnswer((_) async => const []);
+    when(() => raceRepo.getEntries(any())).thenAnswer((_) async => const []);
+    when(() => clubRepo.getAthleteClubs(any(), any()))
+        .thenAnswer((_) async => const <int, Club>{});
     when(() => attendanceService.forRace(any()))
         .thenReturn(const <int, AttendanceStatus>{});
     when(() => attendanceService.save(any(), any())).thenAnswer((_) async {});
@@ -129,100 +134,92 @@ void main() {
   });
 
   group('RaceDetailController.loadHeats', () {
-    test('loads clubs BEFORE heats and injects them into result athletes',
-        () async {
-      const clubA = Club(
-        id: 1,
-        name: 'ASCE 35',
-        athletes: [
-          Athlete(
-            id: 42,
-            licenseeNumber: '',
-            firstName: 'Marion',
-            lastName: 'Gaillard',
-            gender: Gender.female,
-            year: 2009,
-            nationalityCode: '',
-            nationality: '',
-            isValid: true,
-          ),
-        ],
-      );
-
-      // Order matters: clubs must resolve before getHeats is called.
-      final order = <String>[];
-      when(() => clubRepo.getClubs(any())).thenAnswer((_) async {
-        order.add('clubs');
-        return [clubA];
-      });
-      when(() => raceRepo.getHeats(any())).thenAnswer((_) async {
-        order.add('heats');
-        return [
-          makeHeat(results: [resultWithAthlete(42)]),
-        ];
-      });
+    test('heats render before the clubs are resolved', () async {
+      // Club labels decorate a heat row; the heats are the point. A club call
+      // that is slow or broken must not keep them off screen.
+      when(() => raceRepo.getHeats(any())).thenAnswer((_) async => [
+            makeHeat(results: [resultWithAthlete(42)]),
+          ]);
 
       await controller.loadHeats(initial: true);
 
-      expect(order, ['clubs', 'heats']);
-      verify(() => clubRepo.getClubs(99)).called(1);
-      verify(() => raceRepo.getHeats(10)).called(1);
-
-      final injectedAthlete =
-          controller.heats.single.results.single.athletes.single;
-      expect(injectedAthlete.club, isNotNull);
-      expect(injectedAthlete.club!.name, 'ASCE 35');
+      expect(
+          controller.heats.single.results.single.athletes.single.club, isNull);
+      expect(controller.error.value, isNull);
     });
 
-    test('club fetch failure prevents the heats fetch and surfaces an error',
-        () async {
-      when(() => clubRepo.getClubs(any()))
+    test('a club failure leaves the heats on screen without labels', () async {
+      when(() => raceRepo.getHeats(any())).thenAnswer((_) async => [
+            makeHeat(results: [resultWithAthlete(42)]),
+          ]);
+      when(() => clubRepo.getAthleteClubs(any(), any()))
           .thenThrow(const NetworkException('boom'));
 
       await controller.loadHeats(initial: true);
+      await controller.loadEntries();
+      await pumpEventQueue();
 
-      verify(() => clubRepo.getClubs(99)).called(1);
-      verifyNever(() => raceRepo.getHeats(any()));
-      expect(controller.error.value, isA<NetworkException>());
-      expect(controller.isLoading.value, isFalse);
-      expect(controller.heats, isEmpty);
-    });
-
-    test('retry after a club failure re-attempts the club fetch', () async {
-      var clubAttempt = 0;
-      when(() => clubRepo.getClubs(any())).thenAnswer((_) async {
-        clubAttempt++;
-        if (clubAttempt == 1) throw const NetworkException('boom');
-        return const [];
-      });
-
-      await controller.loadHeats(initial: true);
-      expect(controller.error.value, isA<NetworkException>());
-
-      // User pulls to refresh.
-      await controller.loadHeats(initial: true);
-
-      expect(clubAttempt, 2);
+      expect(controller.heats, hasLength(1));
       expect(controller.error.value, isNull);
-      verify(() => raceRepo.getHeats(10)).called(1);
     });
 
-    test('reuses cached club index across calls (only one club fetch)',
-        () async {
+    test('resolving the clubs labels the heats already on screen', () async {
+      when(() => raceRepo.getHeats(any())).thenAnswer((_) async => [
+            makeHeat(results: [resultWithAthlete(42)]),
+          ]);
+      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
+            Entry(
+              id: 1,
+              category: const Category(id: 1, name: 'Senior'),
+              status: 1,
+              statusLabel: 'Engagé',
+              athletes: [resultWithAthlete(42).athletes.single],
+            ),
+          ]);
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => const {42: Club(id: 1, name: 'ASCE 35')},
+      );
+
+      await controller.loadHeats(initial: true);
+      await controller.loadEntries();
+      await pumpEventQueue();
+
+      expect(controller.heats.single.results.single.athletes.single.club?.name,
+          'ASCE 35');
+    });
+
+    test('resolves the clubs once, however many polls run', () async {
+      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
+            Entry(
+              id: 1,
+              category: const Category(id: 1, name: 'Senior'),
+              status: 1,
+              statusLabel: 'Engagé',
+              athletes: [resultWithAthlete(42).athletes.single],
+            ),
+          ]);
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => const {42: Club(id: 1, name: 'ASCE 35')},
+      );
+
+      await controller.loadEntries();
+      await pumpEventQueue();
       await controller.loadHeats(initial: true);
       await controller.loadHeats();
       await controller.loadHeats();
 
-      verify(() => clubRepo.getClubs(99)).called(1);
+      verify(() => clubRepo.getAthleteClubs(any(), any())).called(1);
       verify(() => raceRepo.getHeats(10)).called(3);
     });
 
-    test('skips club fetch entirely when no competition is set', () async {
+    test('skips club resolution entirely when no competition is set', () async {
       controller.competition.value = null;
 
       await controller.loadHeats(initial: true);
+      await controller.loadEntries();
+      await pumpEventQueue();
 
-      verifyNever(() => clubRepo.getClubs(any()));
+      verifyNever(() => clubRepo.getAthleteClubs(any(), any()));
       verify(() => raceRepo.getHeats(10)).called(1);
     });
 
@@ -282,121 +279,81 @@ void main() {
       verify(() => raceRepo.getEntries(10)).called(1);
     });
 
-    test("injects each athlete's club (cap image) from the club index",
-        () async {
+    test('patches the rows once the clubs resolve', () async {
       when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
             makeEntry(id: 1, clubName: 'Nice', athletes: [athlete(42)]),
           ]);
-      when(() => clubRepo.getClubs(any())).thenAnswer((_) async => [
-            Club(
-              id: 7,
-              name: 'Nice',
-              capUrl: 'https://cap/42.png',
-              athletes: [athlete(42).copyWith(club: null)],
-            ),
-          ]);
-
-      await controller.loadEntries();
-
-      final injected = controller.entries.single.athletes.single;
-      expect(injected.club?.capUrl, 'https://cap/42.png');
-    });
-
-    test('backfills a missing club logo via getClubDetail (progressive)',
-        () async {
-      // Club list misses the athlete → no image from the index.
-      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
-            makeEntry(
-              id: 1,
-              clubName: 'X',
-              athletes: [athlete(5, clubId: 77)],
-            ),
-          ]);
-      when(() => clubRepo.getClubs(any())).thenAnswer((_) async => const []);
-      when(() => clubRepo.getClubDetail(77)).thenAnswer(
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
         (_) async =>
-            const Club(id: 77, name: 'Nice', logoUrl: 'https://logo/77.png'),
+            const {42: Club(id: 7, name: 'Nice', capUrl: 'https://cap/42.png')},
       );
 
       await controller.loadEntries();
+      // The list is on screen before the clubs are asked for.
+      expect(controller.entries.single.athletes.single.club, isNull);
+
       await pumpEventQueue();
 
-      final injected = controller.entries.single.athletes.single;
-      expect(injected.club?.logoUrl, 'https://logo/77.png');
-      verify(() => clubRepo.getClubDetail(77)).called(1);
+      expect(controller.entries.single.athletes.single.club?.capUrl,
+          'https://cap/42.png');
     });
 
-    test('never backfills a guest club: its id is not an FFSS organisme',
+    test('resolves from every engaged athlete, not just the listed ones',
         () async {
+      // The regression the shared resolver exists for: clubmates the club list
+      // never named used to go unresolved.
       when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
-            makeEntry(id: 1, clubName: 'X', athletes: [
-              athlete(5, clubId: 800),
+            makeEntry(id: 1, clubName: 'Nice', athletes: [
+              athlete(1, clubId: 7),
+              athlete(2, clubId: 7),
             ]),
           ]);
-      when(() => clubRepo.getClubs(any())).thenAnswer((_) async => [
-            Club(
-              id: 800,
-              name: 'Guest Alpha',
-              isGuest: true,
-              athletes: [athlete(5, clubId: 800).copyWith(club: null)],
-            ),
-          ]);
-
-      await controller.loadEntries();
-      await pumpEventQueue();
-
-      verifyNever(() => clubRepo.getClubDetail(any()));
-    });
-
-    test('backfill fetches each club once, deduped across athletes', () async {
-      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
-            makeEntry(id: 1, clubName: 'X', athletes: [
-              athlete(5, clubId: 77),
-              athlete(6, clubId: 77),
-            ]),
-          ]);
-      when(() => clubRepo.getClubs(any())).thenAnswer((_) async => const []);
-      when(() => clubRepo.getClubDetail(77)).thenAnswer(
-        (_) async => const Club(id: 77, name: 'Nice', logoUrl: 'l'),
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => const {
+          1: Club(id: 7, name: 'Nice', logoUrl: 'l'),
+          2: Club(id: 7, name: 'Nice', logoUrl: 'l'),
+        },
       );
 
       await controller.loadEntries();
       await pumpEventQueue();
 
-      verify(() => clubRepo.getClubDetail(77)).called(1);
+      expect(controller.entries.single.athletes.map((a) => a.club?.logoUrl),
+          ['l', 'l']);
+      final passed = verify(() => clubRepo.getAthleteClubs(99, captureAny()))
+          .captured
+          .single as List<Athlete>;
+      expect(passed.map((a) => a.id), [1, 2]);
     });
 
-    test('reload re-applies a cached club logo without re-fetching', () async {
+    test('a reload keeps the resolved clubs without asking again', () async {
       when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
             makeEntry(id: 1, clubName: 'X', athletes: [athlete(5, clubId: 77)]),
           ]);
-      when(() => clubRepo.getClubs(any())).thenAnswer((_) async => const []);
-      when(() => clubRepo.getClubDetail(77)).thenAnswer(
-        (_) async => const Club(id: 77, name: 'Nice', logoUrl: 'l'),
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => const {5: Club(id: 77, name: 'Nice', logoUrl: 'l')},
       );
 
       await controller.loadEntries();
       await pumpEventQueue();
       expect(controller.entries.single.athletes.single.club?.logoUrl, 'l');
 
-      // Reload: entries come back with no club, but the logo is re-applied
-      // from cache and getClubDetail is NOT called again.
       await controller.loadEntries();
       await pumpEventQueue();
 
       expect(controller.entries.single.athletes.single.club?.logoUrl, 'l');
-      verify(() => clubRepo.getClubDetail(77)).called(1);
+      verify(() => clubRepo.getAthleteClubs(any(), any())).called(1);
     });
 
-    test('renders entries even if the club fetch fails (best-effort images)',
-        () async {
+    test('renders entries even if the club resolution fails', () async {
       when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
             makeEntry(id: 1, clubName: 'Nice', athletes: [athlete(42)]),
           ]);
-      when(() => clubRepo.getClubs(any()))
+      when(() => clubRepo.getAthleteClubs(any(), any()))
           .thenThrow(const NetworkException('boom'));
 
       await controller.loadEntries();
+      await pumpEventQueue();
 
       expect(controller.entriesError.value, isNull);
       expect(controller.entries.single.athletes.single.club, isNull);

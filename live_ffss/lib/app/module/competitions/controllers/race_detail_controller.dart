@@ -64,15 +64,11 @@ class RaceDetailController extends GetxController {
   final RxInt presentCount = 0.obs;
   StreamSubscription<String>? _scanSub;
 
-  // Resolved at first load and reused across polls. Shared by heats (club
-  // labels) and entries (cap images). [_athleteClubIndexFuture] de-dupes
-  // concurrent builds — heats and entries both request it on init.
-  Map<int, Club>? _athleteClubIndex;
-  Future<Map<int, Club>>? _athleteClubIndexFuture;
-
-  // Clubs fetched one-by-one (via getClubDetail) to backfill logos the club
-  // list didn't resolve. Keyed by clubId, cached for the session.
-  final Map<int, Club> _clubDetailCache = {};
+  // Athlete id -> club, resolved once from the engaged athletes and reused by
+  // both heats (club labels) and entries (cap images) across every poll.
+  // [_clubsFuture] de-dupes concurrent resolutions.
+  Map<int, Club> _clubs = const {};
+  Future<void>? _clubsFuture;
 
   Timer? _pollTimer;
 
@@ -114,13 +110,11 @@ class RaceDetailController extends GetxController {
       error.value = null;
     }
     try {
-      // Clubs must be loaded before heats so each result row can display its
-      // athlete's club label. Cached after first success — subsequent polls
-      // skip the club call. If the club call fails, the heat call is NOT
-      // attempted and the error propagates.
-      final index = await _ensureAthleteClubIndex();
       final loaded = await _raceRepo.getHeats(raceId);
-      heats.value = _injectClubsIntoHeats(loaded, index);
+      // Club labels are decoration on a heat row; the heats themselves are the
+      // point. They render with whatever clubs are resolved so far and pick the
+      // rest up on the next poll, rather than being held hostage to a club call.
+      heats.value = _injectClubsIntoHeats(loaded, _clubs);
       _ensurePolling();
     } on AppException catch (e) {
       if (initial) error.value = e;
@@ -137,10 +131,11 @@ class RaceDetailController extends GetxController {
     entriesError.value = null;
     try {
       final loaded = await _raceRepo.getEntries(raceId);
-      entries.value = await _injectClubsIntoEntries(loaded);
-      // Progressive enhancement: the list is already visible; fetch the logos
-      // still missing (per-club, deduped) and patch them in when they arrive.
-      unawaited(_backfillMissingClubLogos());
+      entries.value = _withClubs(loaded);
+      // Progressive enhancement: the list is on screen already, so resolving
+      // the clubs (a list call plus one per club) happens behind it and patches
+      // the rows when it lands.
+      unawaited(_ensureClubs());
     } on AppException catch (e) {
       entriesError.value = e;
     } finally {
@@ -148,103 +143,48 @@ class RaceDetailController extends GetxController {
     }
   }
 
-  /// Resolves each athlete's [Club] (for cap/logo images) via the shared club
-  /// index. Best-effort: if the club fetch fails the entries are returned
-  /// as-is so the list still renders — only images are missing.
-  Future<List<Entry>> _injectClubsIntoEntries(List<Entry> loaded) async {
-    Map<int, Club> index;
-    try {
-      index = await _ensureAthleteClubIndex();
-    } on AppException {
-      return loaded;
-    }
-    if (index.isEmpty) return loaded;
-    return loaded
-        .map((e) => e.copyWith(
-              athletes: e.athletes
-                  .map((a) => a.copyWith(club: index[a.id] ?? a.club))
-                  .toList(),
-            ))
-        .toList();
+  /// Copies the resolved club onto every engaged athlete. Athletes the
+  /// resolution did not reach keep whatever club they arrived with, which is
+  /// normally none — [ClubAvatar] then falls back to the club initial.
+  List<Entry> _withClubs(List<Entry> loaded) {
+    if (_clubs.isEmpty) return loaded;
+    return [
+      for (final entry in loaded)
+        entry.copyWith(
+          athletes: [
+            for (final athlete in entry.athletes)
+              athlete.copyWith(club: _clubs[athlete.id] ?? athlete.club),
+          ],
+        ),
+    ];
   }
 
-  bool _hasImage(Club? club) =>
-      club != null &&
-      ((club.capUrl?.isNotEmpty ?? false) ||
-          (club.logoUrl?.isNotEmpty ?? false));
-
-  /// For each engaged athlete still missing a club image, fetches that club's
-  /// detail by [Athlete.clubId] (deduped across athletes, cached, best-effort)
-  /// and patches the resolved logo into [entries]. Runs after the list is shown
-  /// so images fill in progressively; failures leave the initial fallback.
+  /// Resolves every engaged athlete's club once, then patches the rows already
+  /// on screen. Concurrent callers share the in-flight resolution; on failure
+  /// the future is cleared so a pull-to-refresh retries.
   ///
-  /// The cache-apply step runs unconditionally so a reload — which re-fetches
-  /// entries whose athletes come back with no club — still gets the logos we
-  /// resolved on a previous load.
-  Future<void> _backfillMissingClubLogos() async {
-    final missing = <int>{
-      for (final entry in entries)
-        for (final athlete in entry.athletes)
-          // A guest club's id is its own, not an FFSS organisme id: fetching
-          // it would 404 or, worse, resolve to an unrelated club's logo.
-          if (!_hasImage(athlete.club) &&
-              athlete.club?.isGuest != true &&
-              athlete.clubId > 0 &&
-              !_clubDetailCache.containsKey(athlete.clubId))
-            athlete.clubId,
-    };
-
-    if (missing.isNotEmpty) {
-      await Future.wait(missing.map((clubId) async {
-        try {
-          _clubDetailCache[clubId] = await _clubRepo.getClubDetail(clubId);
-        } on AppException {
-          // Best-effort: this club keeps its initial-letter fallback.
-        }
-      }));
-    }
-
-    _applyCachedClubLogos();
+  /// Engaged athletes are the right input for both tabs: a heat can only seat
+  /// someone who is engaged, so this index covers the heat rows too.
+  Future<void> _ensureClubs() {
+    if (_clubs.isNotEmpty) return Future.value();
+    return _clubsFuture ??= _resolveClubs();
   }
 
-  /// Patches [entries] with any club already in [_clubDetailCache], reassigning
-  /// only when something actually changed (avoids a spurious rebuild).
-  void _applyCachedClubLogos() {
-    if (_clubDetailCache.isEmpty) return;
-    var changed = false;
-    final patched = entries.map((e) {
-      return e.copyWith(
-        athletes: e.athletes.map((a) {
-          if (_hasImage(a.club)) return a;
-          final detail = a.clubId > 0 ? _clubDetailCache[a.clubId] : null;
-          if (detail == null) return a;
-          changed = true;
-          return a.copyWith(club: detail);
-        }).toList(),
-      );
-    }).toList();
-    if (changed) entries.value = patched;
-  }
-
-  /// Builds (or returns the cached) athlete-id → club index. Concurrent callers
-  /// share the same in-flight future; on failure the future is cleared so the
-  /// next call retries.
-  Future<Map<int, Club>> _ensureAthleteClubIndex() {
-    final cached = _athleteClubIndex;
-    if (cached != null) return Future.value(cached);
-    return _athleteClubIndexFuture ??= _loadAthleteClubIndex();
-  }
-
-  Future<Map<int, Club>> _loadAthleteClubIndex() async {
+  Future<void> _resolveClubs() async {
     try {
       final competitionId = competition.value?.id;
-      final index = competitionId != null
-          ? await _buildAthleteClubIndex(competitionId)
-          : <int, Club>{};
-      _athleteClubIndex = index;
-      return index;
+      final athletes = [
+        for (final entry in entries) ...entry.athletes,
+      ];
+      if (competitionId == null || athletes.isEmpty) return;
+      _clubs = await _clubRepo.getAthleteClubs(competitionId, athletes);
+      if (_clubs.isEmpty) return;
+      entries.value = _withClubs(entries);
+      if (heats.isNotEmpty) heats.value = _injectClubsIntoHeats(heats, _clubs);
+    } on AppException {
+      // Best-effort: every row keeps the club initial rather than an image.
     } finally {
-      _athleteClubIndexFuture = null;
+      _clubsFuture = null;
     }
   }
 
@@ -392,17 +332,6 @@ class RaceDetailController extends GetxController {
     _scanSub?.cancel();
     _scanSub = null;
     isScanning.value = false;
-  }
-
-  Future<Map<int, Club>> _buildAthleteClubIndex(int competitionId) async {
-    final clubs = await _clubRepo.getClubs(competitionId);
-    final index = <int, Club>{};
-    for (final club in clubs) {
-      for (final athlete in club.athletes) {
-        index[athlete.id] = club;
-      }
-    }
-    return index;
   }
 
   /// Starts the poll timer if not already running. Called from [loadHeats]
