@@ -200,6 +200,7 @@ class _HeatDrawViewState extends State<HeatDrawView> {
                   : ListView(
                       padding: AppSpacing.pageAll,
                       children: [
+                        const _ClubDistribution(),
                         for (var i = 0; i < _ctrl.heats.length; i++)
                           _HeatCard(
                             index: i,
@@ -296,6 +297,143 @@ class _PresenceBanner extends GetView<HeatDrawController> {
   }
 }
 
+/// Club × heat matrix, collapsed by default. The draw spreads clubmates, and
+/// this is how the operator checks it did: a cell holding more than one athlete
+/// of the same club is the thing worth seeing, so those are the ones coloured.
+class _ClubDistribution extends GetView<HeatDrawController> {
+  const _ClubDistribution();
+
+  static const double _cellWidth = 34;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final spread = controller.clubDistribution;
+      if (spread.isEmpty) return const SizedBox.shrink();
+      final heatCount = controller.heats.length;
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppRadius.mdRadius,
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Theme(
+          // The default divider would cut the card in two when expanded.
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            title: Text(
+              'heat_draw_distribution'.tr,
+              style: AppTypography.body
+                  .copyWith(fontWeight: FontWeight.w700, fontSize: 13),
+            ),
+            childrenPadding: const EdgeInsets.fromLTRB(
+                AppSpacing.sm, 0, AppSpacing.sm, AppSpacing.sm),
+            children: [
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _HeaderRow(heatCount: heatCount),
+                    for (final row in spread) _SpreadRow(row: row),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _HeaderRow extends StatelessWidget {
+  const _HeaderRow({required this.heatCount});
+
+  final int heatCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: Row(
+        children: [
+          const SizedBox(width: 120),
+          for (var i = 0; i < heatCount; i++)
+            SizedBox(
+              width: _ClubDistribution._cellWidth,
+              child: Text(
+                'S${i + 1}',
+                textAlign: TextAlign.center,
+                style: AppTypography.caption.copyWith(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SpreadRow extends StatelessWidget {
+  const _SpreadRow({required this.row});
+
+  final ClubSpread row;
+
+  @override
+  Widget build(BuildContext context) {
+    // The unaffiliated pool shares no club, so two of them in one heat is not
+    // a clustering — never flag it.
+    final flagDuplicates = row.clubId > 0;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              row.label.isEmpty ? 'heat_draw_no_club'.tr : row.label,
+              style: AppTypography.caption.copyWith(fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          for (final count in row.perHeat)
+            SizedBox(
+              width: _ClubDistribution._cellWidth,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 2),
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                decoration: BoxDecoration(
+                  color: flagDuplicates && count > 1
+                      ? AppColors.statusWaiting.withValues(alpha: 0.18)
+                      : null,
+                  borderRadius: AppRadius.smRadius,
+                ),
+                child: Text(
+                  count == 0 ? '·' : '$count',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.caption.copyWith(
+                    fontSize: 12,
+                    color: count == 0
+                        ? AppColors.textMuted
+                        : AppColors.textPrimary,
+                    fontWeight: count > 1 ? FontWeight.w700 : FontWeight.w400,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _HeatCard extends StatelessWidget {
   const _HeatCard({
     required this.index,
@@ -357,6 +495,12 @@ class _LaneRow extends StatelessWidget {
   final Athlete athlete;
   final VoidCallback onTap;
 
+  /// The resolved club when the index reached this athlete, otherwise whatever
+  /// label the entry carried — the same source `ClubAvatar` falls back on.
+  String get _clubName => athlete.club?.name.isNotEmpty == true
+      ? athlete.club!.name
+      : athlete.clubLabel;
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -387,11 +531,25 @@ class _LaneRow extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
-              child: Text(
-                '${athlete.lastName.toUpperCase()} ${athlete.firstName}'.trim(),
-                style: AppTypography.body.copyWith(fontSize: 13),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${athlete.lastName.toUpperCase()} ${athlete.firstName}'
+                        .trim(),
+                    style: AppTypography.body.copyWith(fontSize: 13),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (_clubName.isNotEmpty)
+                    Text(
+                      _clubName,
+                      style: AppTypography.caption.copyWith(fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
               ),
             ),
             const Icon(Icons.swap_horiz, size: 18, color: AppColors.textMuted),

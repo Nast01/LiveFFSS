@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
@@ -24,6 +25,8 @@ import 'package:mocktail/mocktail.dart';
 class _MockRaceRepo extends Mock implements RaceRepository {}
 
 class _MockAttendance extends Mock implements AttendanceService {}
+
+class _MockClubRepo extends Mock implements ClubRepository {}
 
 /// Real store semantics without secure storage: `save` keeps the programme in
 /// memory so the controller's read-modify-write can be asserted end to end.
@@ -64,6 +67,7 @@ void main() {
 
   late _MockRaceRepo raceRepo;
   late _MockAttendance attendance;
+  late _MockClubRepo clubRepo;
   late _FakeProgrammeService programme;
 
   Athlete athlete(int id, {int clubId = 0}) => Athlete(
@@ -149,6 +153,7 @@ void main() {
     Get.arguments;
     return HeatDrawController(
       raceRepo,
+      clubRepo,
       attendance,
       programme,
       random: Random(7),
@@ -162,6 +167,8 @@ void main() {
   setUp(() {
     raceRepo = _MockRaceRepo();
     attendance = _MockAttendance();
+    clubRepo = _MockClubRepo();
+    when(() => clubRepo.getClubs(any())).thenAnswer((_) async => const []);
     programme = _FakeProgrammeService(programmeWith());
     when(() => raceRepo.getEntries(any())).thenAnswer((_) async => const []);
     when(() => attendance.forRace(any()))
@@ -205,6 +212,47 @@ void main() {
       expect(controller.presentAthletes.map((a) => a.id), [1]);
       expect(controller.engagedCount.value, 3);
       expect(controller.presentCount, 1);
+    });
+
+    test('resolves each present athlete club so the avatar can show a logo',
+        () async {
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(1, clubId: 7)]),
+          ]);
+      when(() => attendance.forRace(raceId))
+          .thenReturn({1: AttendanceStatus.present});
+      when(() => clubRepo.getClubs(competitionId)).thenAnswer((_) async => [
+            Club(
+              id: 7,
+              name: 'Nice',
+              logoUrl: 'https://logo/7.png',
+              athletes: [athlete(1, clubId: 7)],
+            ),
+          ]);
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.presentAthletes.single.club?.name, 'Nice');
+      expect(controller.presentAthletes.single.club?.logoUrl,
+          'https://logo/7.png');
+    });
+
+    test('a club fetch failure still loads the athletes, without clubs',
+        () async {
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(1, clubId: 7)]),
+          ]);
+      when(() => attendance.forRace(raceId))
+          .thenReturn({1: AttendanceStatus.present});
+      when(() => clubRepo.getClubs(any()))
+          .thenThrow(const NetworkException('boom'));
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.error.value, isNull);
+      expect(controller.presentAthletes.single.club, isNull);
     });
 
     test('ignores athletes of another category', () async {
@@ -469,6 +517,7 @@ void main() {
       });
       final controller = HeatDrawController(
         raceRepo,
+        clubRepo,
         attendance,
         programme,
         random: Random(7),
@@ -521,6 +570,72 @@ void main() {
     });
   });
 
+  group('HeatDrawController.clubDistribution', () {
+    Athlete withClub(int id, int clubId, String name) =>
+        athlete(id, clubId: clubId)
+            .copyWith(club: clubId > 0 ? Club(id: clubId, name: name) : null);
+
+    test('is empty before a draw', () {
+      expect(build().clubDistribution, isEmpty);
+    });
+
+    test('counts each club per heat, biggest first', () {
+      final controller = build();
+      controller.heats.value = [
+        [withClub(1, 7, 'Nice'), withClub(2, 8, 'Antibes')],
+        [withClub(3, 7, 'Nice'), withClub(4, 7, 'Nice')],
+      ];
+
+      final spread = controller.clubDistribution;
+
+      expect(spread.map((s) => s.label), ['Nice', 'Antibes']);
+      expect(spread.first.perHeat, [1, 2]);
+      expect(spread.first.total, 3);
+      expect(spread.last.perHeat, [1, 0]);
+      expect(spread.last.total, 1);
+    });
+
+    test('every row spans every heat, including the ones a club skips', () {
+      final controller = build();
+      controller.heats.value = [
+        [withClub(1, 7, 'Nice')],
+        <Athlete>[],
+        [withClub(2, 8, 'Antibes')],
+      ];
+
+      final spread = controller.clubDistribution;
+
+      // Both clubs hold one athlete, so the label tie-break orders them.
+      expect(spread.map((s) => s.label), ['Antibes', 'Nice']);
+      expect(spread.first.perHeat, [0, 0, 1]);
+      expect(spread.last.perHeat, [1, 0, 0]);
+    });
+
+    test('ties are broken by label so the order never wobbles', () {
+      final controller = build();
+      controller.heats.value = [
+        [withClub(1, 9, 'Zuydcoote'), withClub(2, 8, 'Antibes')],
+      ];
+
+      expect(controller.clubDistribution.map((s) => s.label),
+          ['Antibes', 'Zuydcoote']);
+    });
+
+    test('unaffiliated athletes are one row, kept last', () {
+      final controller = build();
+      controller.heats.value = [
+        [withClub(1, 0, ''), withClub(2, 0, ''), withClub(3, 7, 'Nice')],
+      ];
+
+      final spread = controller.clubDistribution;
+
+      expect(spread.map((s) => s.clubId), [7, 0]);
+      // Two unaffiliated athletes in one heat share no club, so the row must
+      // never read as a clustering the draw failed to spread.
+      expect(spread.last.total, 2);
+    });
+  });
+
   group('HeatDrawController structure validation', () {
     /// Loads a controller whose category has [present] athletes checked in.
     Future<HeatDrawController> withPresent(
@@ -540,6 +655,7 @@ void main() {
       });
       final controller = HeatDrawController(
         raceRepo,
+        clubRepo,
         attendance,
         programme,
         random: Random(7),

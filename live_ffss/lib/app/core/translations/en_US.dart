@@ -359,6 +359,8 @@ final Map<String, String> enUS = {
   'heat_draw_structure_declared': 'Structure as declared',
   'heat_draw_structure_plan': '@races heat(s) × @spots spots',
   'heat_draw_structure_edit': 'Edit the structure',
+  'heat_draw_distribution': 'Club spread',
+  'heat_draw_no_club': 'No club',
   'not_entered': 'Not entered',
   'bracelet_unreadable': 'Unreadable bracelet',
 };

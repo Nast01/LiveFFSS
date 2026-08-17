@@ -361,6 +361,8 @@ final Map<String, String> frFR = {
   'heat_draw_structure_declared': 'Structure déclarée',
   'heat_draw_structure_plan': '@races série(s) × @spots places',
   'heat_draw_structure_edit': 'Modifier la structure',
+  'heat_draw_distribution': 'Répartition par club',
+  'heat_draw_no_club': 'Sans club',
   'not_entered': 'Non engagé',
   'bracelet_unreadable': 'Bracelet illisible',
 };

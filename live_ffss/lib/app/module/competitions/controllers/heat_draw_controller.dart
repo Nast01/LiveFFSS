@@ -2,11 +2,13 @@ import 'dart:math';
 
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
+import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/heat_draw.dart';
@@ -25,12 +27,14 @@ import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 class HeatDrawController extends GetxController {
   HeatDrawController(
     this._raceRepo,
+    this._clubRepo,
     this._attendance,
     this._programme, {
     Random? random,
   }) : _random = random ?? Random();
 
   final RaceRepository _raceRepo;
+  final ClubRepository _clubRepo;
   final AttendanceService _attendance;
   final ProgrammeService _programme;
   final Random _random;
@@ -162,15 +166,78 @@ class HeatDrawController extends GetxController {
       engagedCount.value = ofCategory.length;
 
       final attendance = _attendance.forRace(raceId);
-      presentAthletes.value = [
+      final present = [
         for (final athlete in ofCategory)
           if (attendance[athlete.id] == AttendanceStatus.present) athlete,
       ];
+
+      final clubs = await _clubIndex(competitionId);
+      presentAthletes.value = clubs.isEmpty
+          ? present
+          : [
+              for (final athlete in present)
+                athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
+            ];
     } on AppException catch (e) {
       error.value = e;
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Athlete id → club, so a drawn lane can show its club's logo or cap.
+  /// `Athlete.club` is never deserialised — a controller has to resolve it.
+  ///
+  /// Best-effort: a failed club fetch returns an empty index and the lanes fall
+  /// back to the club initial rather than failing the whole draw screen.
+  Future<Map<int, Club>> _clubIndex(int competitionId) async {
+    try {
+      final index = <int, Club>{};
+      for (final club in await _clubRepo.getClubs(competitionId)) {
+        for (final athlete in club.athletes) {
+          index[athlete.id] = club;
+        }
+      }
+      return index;
+    } on AppException {
+      return const {};
+    }
+  }
+
+  /// How each club is spread across the drawn heats — one row per club, one
+  /// cell per heat, biggest club first so the ones the draw had to work hardest
+  /// to spread are read first. Ties break on the label so the order does not
+  /// wobble between redraws.
+  ///
+  /// Unaffiliated athletes are pooled into a single trailing row (`clubId` 0).
+  /// They share no club, so that row records a headcount, never a clustering.
+  List<ClubSpread> get clubDistribution {
+    if (heats.isEmpty) return const [];
+    final labels = <int, String>{};
+    final counts = <int, List<int>>{};
+    for (var heat = 0; heat < heats.length; heat++) {
+      for (final athlete in heats[heat]) {
+        final id = athlete.clubId > 0 ? athlete.clubId : 0;
+        labels[id] ??= athlete.club?.name ?? athlete.clubLabel;
+        (counts[id] ??= List.filled(heats.length, 0))[heat]++;
+      }
+    }
+    final rows = [
+      for (final entry in counts.entries)
+        (
+          clubId: entry.key,
+          label: labels[entry.key] ?? '',
+          perHeat: entry.value,
+          total: entry.value.fold(0, (a, b) => a + b),
+        ),
+    ];
+    rows.sort((a, b) {
+      // The unaffiliated pool is not a club; it never competes for the top.
+      if ((a.clubId == 0) != (b.clubId == 0)) return a.clubId == 0 ? 1 : -1;
+      final byTotal = b.total.compareTo(a.total);
+      return byTotal != 0 ? byTotal : a.label.compareTo(b.label);
+    });
+    return rows;
   }
 
   void selectLevel(RoundType type) {
@@ -319,3 +386,13 @@ class HeatDrawController extends GetxController {
     return null;
   }
 }
+
+/// One club's spread across the drawn heats: [perHeat] holds one count per
+/// heat, in heat order, so the view can render it as a row of the matrix.
+/// [clubId] is 0 for the pooled unaffiliated athletes.
+typedef ClubSpread = ({
+  int clubId,
+  String label,
+  List<int> perHeat,
+  int total,
+});
