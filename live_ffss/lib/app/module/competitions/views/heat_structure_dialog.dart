@@ -31,9 +31,20 @@ class HeatStructureDialog extends StatefulWidget {
 }
 
 class _HeatStructureDialogState extends State<HeatStructureDialog> {
-  // The recomputed plan is preselected: athletes failing to show up is the
-  // ordinary case, and it leaves the declared structure one tap away.
-  late HeatPlan _selected = widget.proposed;
+  static const int _proposedOption = 0;
+  static const int _declaredOption = 1;
+
+  /// Which row is picked, NOT the plan it carries. `HeatPlan` is a record, so
+  /// two plans holding the same numbers are `==` — deriving the selection by
+  /// comparing values made the declared row impossible to select whenever it
+  /// matched the proposal, which is the normal state on any visit after a save.
+  ///
+  /// The proposal is preselected: athletes failing to show up is the ordinary
+  /// case, and it leaves the declared structure one tap away.
+  int _selectedOption = _proposedOption;
+
+  HeatPlan get _selected =>
+      _selectedOption == _proposedOption ? widget.proposed : widget.declared;
 
   String _label(HeatPlan plan) => 'heat_draw_structure_plan'.trParams({
         'races': '${plan.raceCount}',
@@ -57,20 +68,20 @@ class _HeatStructureDialogState extends State<HeatStructureDialog> {
           ),
           const SizedBox(height: AppSpacing.sm),
           RadioListTile<int>(
-            value: 0,
-            groupValue: _selected == widget.proposed ? 0 : 1,
+            value: _proposedOption,
+            groupValue: _selectedOption,
             contentPadding: EdgeInsets.zero,
             title: Text('heat_draw_structure_proposed'.tr),
             subtitle: Text(_label(widget.proposed)),
-            onChanged: (_) => setState(() => _selected = widget.proposed),
+            onChanged: (_) => setState(() => _selectedOption = _proposedOption),
           ),
           RadioListTile<int>(
-            value: 1,
-            groupValue: _selected == widget.proposed ? 0 : 1,
+            value: _declaredOption,
+            groupValue: _selectedOption,
             contentPadding: EdgeInsets.zero,
             title: Text('heat_draw_structure_declared'.tr),
             subtitle: Text(_label(widget.declared)),
-            onChanged: (_) => setState(() => _selected = widget.declared),
+            onChanged: (_) => setState(() => _selectedOption = _declaredOption),
           ),
           TextButton.icon(
             icon: const Icon(Icons.open_in_new, size: 18),
