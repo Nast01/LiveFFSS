@@ -332,8 +332,7 @@ class _ClubDistribution extends GetView<HeatDrawController> {
             childrenPadding: const EdgeInsets.fromLTRB(
                 AppSpacing.sm, 0, AppSpacing.sm, AppSpacing.sm),
             children: [
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
+              _HorizontalFade(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -347,6 +346,94 @@ class _ClubDistribution extends GetView<HeatDrawController> {
         ),
       );
     });
+  }
+}
+
+/// Scrolls [child] sideways behind a right-edge fade, so a table wider than the
+/// screen announces that it continues. The fade tracks the remaining scroll
+/// extent and vanishes exactly when there is nothing left to reveal — including
+/// when the table fits, where it never appears at all.
+class _HorizontalFade extends StatefulWidget {
+  const _HorizontalFade({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_HorizontalFade> createState() => _HorizontalFadeState();
+}
+
+class _HorizontalFadeState extends State<_HorizontalFade> {
+  static const double _width = 28;
+
+  final ScrollController _controller = ScrollController();
+  double _remaining = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_sync);
+    // The first frame is where a table that already overflows has to raise its
+    // fade: nothing has scrolled yet, so no scroll event will say so.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _sync() {
+    if (!mounted || !_controller.hasClients) return;
+    final position = _controller.position;
+    final remaining =
+        (position.maxScrollExtent - position.pixels).clamp(0.0, _width);
+    if (remaining != _remaining) setState(() => _remaining = remaining);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollMetricsNotification>(
+      // A redraw changes the heat count, so the table's width changes without
+      // anyone scrolling.
+      onNotification: (_) {
+        _sync();
+        return false;
+      },
+      child: Stack(
+        children: [
+          SingleChildScrollView(
+            controller: _controller,
+            scrollDirection: Axis.horizontal,
+            child: widget.child,
+          ),
+          if (_remaining > 0)
+            Positioned(
+              top: 0,
+              bottom: 0,
+              right: 0,
+              child: IgnorePointer(
+                // Thins out over the last pixels of travel rather than snapping
+                // off when the end is reached.
+                child: Opacity(
+                  opacity: _remaining / _width,
+                  child: Container(
+                    width: _width,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.surface.withValues(alpha: 0),
+                          AppColors.surface,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
