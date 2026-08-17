@@ -31,8 +31,9 @@ class HeatStructureDialog extends StatefulWidget {
 }
 
 class _HeatStructureDialogState extends State<HeatStructureDialog> {
-  static const int _proposedOption = 0;
-  static const int _declaredOption = 1;
+  // Numbered in the order the rows are rendered.
+  static const int _declaredOption = 0;
+  static const int _proposedOption = 1;
 
   /// Which row is picked, NOT the plan it carries. `HeatPlan` is a record, so
   /// two plans holding the same numbers are `==` — deriving the selection by
@@ -69,20 +70,20 @@ class _HeatStructureDialogState extends State<HeatStructureDialog> {
           ),
           const SizedBox(height: AppSpacing.sm),
           RadioListTile<int>(
-            value: _proposedOption,
-            groupValue: _selectedOption,
-            contentPadding: EdgeInsets.zero,
-            title: Text('heat_draw_structure_proposed'.tr),
-            subtitle: Text(_label(widget.proposed)),
-            onChanged: (_) => setState(() => _selectedOption = _proposedOption),
-          ),
-          RadioListTile<int>(
             value: _declaredOption,
             groupValue: _selectedOption,
             contentPadding: EdgeInsets.zero,
             title: Text('heat_draw_structure_declared'.tr),
             subtitle: Text(_label(widget.declared)),
             onChanged: (_) => setState(() => _selectedOption = _declaredOption),
+          ),
+          RadioListTile<int>(
+            value: _proposedOption,
+            groupValue: _selectedOption,
+            contentPadding: EdgeInsets.zero,
+            title: Text('heat_draw_structure_proposed'.tr),
+            subtitle: Text(_label(widget.proposed)),
+            onChanged: (_) => setState(() => _selectedOption = _proposedOption),
           ),
           TextButton.icon(
             icon: const Icon(Icons.open_in_new, size: 18),
