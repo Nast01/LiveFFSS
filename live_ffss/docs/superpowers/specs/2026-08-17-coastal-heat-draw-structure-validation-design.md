@@ -1,7 +1,9 @@
 # Coastal heat draw — structure validation
 
 Date: 2026-08-17
-Status: approved, not implemented
+Status: implemented and merged into `generate_heats`. See Amendments at the end
+— the Design section below was corrected after implementation, and one design
+question is left open there.
 
 ## Problem
 
@@ -108,8 +110,9 @@ is the fallback `drawHeats` applies today.
   `plan.raceCount` heats.
 
 `drawFromPresent` stays for the paths that need no validation, and delegates to
-`drawWithPlan` with the declared plan when the round declares races, the
-proposal otherwise.
+`drawWithPlan` with the proposal, unconditionally. That is today's behaviour to
+the letter: `proposeHeatPlan`'s `raceCount` is the same `ceil(present / spots)`
+`drawHeats` used to compute for itself, fallback included.
 
 The dialog itself lives in the view. Controllers hold no `Get.dialog` — the
 view reads both plans, presents the choice, and calls back into
@@ -123,7 +126,10 @@ races — is the single write, and changes in two ways:
 - the race count comes from the drawn heats, which now equal
   `pendingPlan.raceCount`; existing races are still reused in order so the
   wiring of the ones that survive is preserved;
-- `RoundLevel.spotsPerRace` is set to `pendingPlan.spotsPerRace`.
+- `RoundLevel.spotsPerRace` is set to `pendingPlan.spotsPerRace`, **only on the
+  validated path**. A pool race or a bracket round leaves the authored race size
+  exactly as it found it: those paths get no dialog, so writing there would be
+  the silent structure rewrite this whole design exists to remove.
 
 Cancelling the dialog, redrawing, or leaving the screen leaves the stored
 programme untouched.
@@ -164,8 +170,9 @@ reloads, both plans recompute, and the dialog reopens with fresh numbers.
   seed reproducibility are unchanged and must stay green.
 - `HeatDrawController`: the gate (coastal vs pool, série vs finale), both plans,
   `drawWithPlan` producing exactly `raceCount` heats, `save()` writing
-  `spotsPerRace`, preserving the wiring of reused races, and stripping dangling
-  `sourceRaceIds` downstream.
+  `spotsPerRace` on the validated path and leaving it alone on a pool draw,
+  preserving the wiring of reused races, and stripping dangling `sourceRaceIds`
+  downstream.
 
 No widget test for the dialog, per the project's testing rules.
 
@@ -176,3 +183,31 @@ No widget test for the dialog, per the project's testing rules.
 - Any FFSS write. Heats stay device-local — the API has no write endpoint for
   them.
 - Applying the validation to pool races.
+
+## Amendments (2026-08-18, after implementation)
+
+Two passages of the Design section above have been corrected. Both said the
+same wrong thing in different words, and both contradicted this document's own
+Scope section — "A pool race, or a draw on a quart/demi/finale, keeps today's
+behaviour exactly". Scope is what the shipped code implements; Design was
+written assuming a single path and never took the carve-out into account.
+
+- **`drawFromPresent`** was specified to prefer the declared plan when the round
+  declares races. Two pre-existing tests encoded the old derivation and went red
+  when that was implemented; the escalation was upheld in Scope's favour.
+- **The `spotsPerRace` write** was specified as unconditional. That let the pool
+  and bracket paths — the ones with no dialog — rewrite the round's authored
+  race size in silence, which is the defect this design removes. The final
+  review classed it merge-blocking.
+
+Read Scope first when the two sections disagree.
+
+**Known consequence, unresolved.** On the validated path, writing the approved
+`spotsPerRace` back onto the round makes it that round's capacity, and the value
+only ever moves down: a round tightened to 10 proposes from 10 next time, so a
+redraw after late arrivals runs more, smaller heats rather than returning to 16.
+It is safe by direction — never over the water's capacity — and the operator can
+reset it in the structure editor. The reviewer argued for persisting only the
+race count and leaving `spotsPerRace` as the untouched capacity, which the
+Proposal section itself calls "a ceiling, never a target". That call has not
+been made.
