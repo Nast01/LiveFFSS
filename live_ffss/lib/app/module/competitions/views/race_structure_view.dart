@@ -120,7 +120,7 @@ class _RoundPane extends StatelessWidget {
         // present; the later ones are seated by who qualifies out of it.
         if (tab.isFirstRound)
           _DrawHeatsButton(structure: structure, roundType: level.type),
-        if (level.races.isNotEmpty) _FilterBar(races: level.races),
+        if (level.races.isNotEmpty) const _FilterBar(),
         if (level.races.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -139,6 +139,7 @@ class _RoundPane extends StatelessWidget {
             }
             return Column(
               children: [
+                _RaceListHeader(visible: visible, total: level.races.length),
                 for (final r in visible)
                   _CourseTile(structure: structure, level: level, race: r),
               ],
@@ -218,9 +219,7 @@ class _DrawHeatsButton extends StatelessWidget {
 /// The text controller lives here rather than on the GetX controller: it is
 /// scoped to this one field, which is what makes the view stateful.
 class _FilterBar extends StatefulWidget {
-  const _FilterBar({required this.races});
-
-  final List<ProgrammeRace> races;
+  const _FilterBar();
 
   @override
   State<_FilterBar> createState() => _FilterBarState();
@@ -277,26 +276,59 @@ class _FilterBarState extends State<_FilterBar> {
               ),
             ),
           ),
-          const SizedBox(width: AppSpacing.xs),
-          Obx(() {
-            // A filter already forces every surviving race open, so the button
-            // would be a no-op — it steps aside rather than lying.
-            if (controller.filter.value.isNotEmpty) {
-              return const SizedBox.shrink();
-            }
-            final all = controller.allExpanded(widget.races);
-            return IconButton(
-              onPressed: () => all
-                  ? controller.collapseAll()
-                  : controller.expandAll(widget.races),
-              icon: Icon(all ? Icons.unfold_less : Icons.unfold_more),
-              color: AppColors.textMuted,
-              tooltip: all ? 'collapse_all'.tr : 'expand_all'.tr,
-            );
-          }),
         ],
       ),
     );
+  }
+}
+
+/// Sits directly above the races and says what the list is showing, with the
+/// control that opens or closes all of it. Above the list rather than inside
+/// the filter bar: an icon wedged against a text field reads as part of the
+/// field, not as an action on what follows.
+class _RaceListHeader extends StatelessWidget {
+  const _RaceListHeader({required this.visible, required this.total});
+
+  /// The races actually on screen — what the toggle acts on.
+  final List<ProgrammeRace> visible;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<RaceStructureController>();
+    return Obx(() {
+      final filtering = controller.filter.value.isNotEmpty;
+      final all = controller.allExpanded(visible);
+      final label = 'heats'.tr.toLowerCase();
+      return Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+        child: Row(
+          children: [
+            Text(
+              filtering ? '${visible.length} / $total $label' : '$total $label',
+              style: AppTypography.caption,
+            ),
+            const Spacer(),
+            // While filtering, every surviving race is already open, so the
+            // toggle could only lie about what pressing it would do.
+            if (!filtering)
+              TextButton.icon(
+                onPressed: () => all
+                    ? controller.collapseAll()
+                    : controller.expandAll(visible),
+                icon:
+                    Icon(all ? Icons.unfold_less : Icons.unfold_more, size: 18),
+                label: Text(all ? 'collapse_all'.tr : 'expand_all'.tr),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.textSecondary,
+                  textStyle: AppTypography.caption,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+          ],
+        ),
+      );
+    });
   }
 }
 
