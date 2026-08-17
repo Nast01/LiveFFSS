@@ -202,12 +202,21 @@ written assuming a single path and never took the carve-out into account.
 
 Read Scope first when the two sections disagree.
 
-**Known consequence, unresolved.** On the validated path, writing the approved
+**Known consequence, decided 2026-08-18: kept as designed.** On the validated path, writing the approved
 `spotsPerRace` back onto the round makes it that round's capacity, and the value
 only ever moves down: a round tightened to 10 proposes from 10 next time, so a
 redraw after late arrivals runs more, smaller heats rather than returning to 16.
 It is safe by direction — never over the water's capacity — and the operator can
 reset it in the structure editor. The reviewer argued for persisting only the
 race count and leaving `spotsPerRace` as the untouched capacity, which the
-Proposal section itself calls "a ceiling, never a target". That call has not
-been made.
+Proposal section itself calls "a ceiling, never a target".
+
+Kept as designed. The drift only ever goes down, so a redraw can produce more
+heats than the water needs but never fewer than it allows, and the structure
+editor is where an operator resets it. Do not "fix" this without saying so —
+it is a decision, not an oversight.
+
+**Empty heats are not guarded against.** Choosing the *declared* structure when
+fewer athletes are present than it declares races persists a race with no
+athletes. Left as is on the same reasoning: an operator faced with an empty
+heat redefines the structure, which is what the dialog's editor button is for.
