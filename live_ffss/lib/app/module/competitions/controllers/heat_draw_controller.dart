@@ -188,20 +188,37 @@ class HeatDrawController extends GetxController {
   /// Athlete id → club, so a drawn lane can show its club's logo or cap.
   /// `Athlete.club` is never deserialised — a controller has to resolve it.
   ///
-  /// Best-effort: a failed club fetch returns an empty index and the lanes fall
-  /// back to the club initial rather than failing the whole draw screen.
+  /// Two calls, because one is not enough: the competition's `organismes` list
+  /// names the clubs but carries no logo or cap — only `organisme/:id` does —
+  /// so the clubs that named an athlete are then fetched by id to fill in the
+  /// images.
+  ///
+  /// Best-effort throughout: a failed list leaves an empty index and every lane
+  /// falls back to the club initial, and a club whose detail fails keeps the
+  /// name the list gave it. Neither failure takes the draw screen down.
   Future<Map<int, Club>> _clubIndex(int competitionId) async {
+    final index = <int, Club>{};
     try {
-      final index = <int, Club>{};
       for (final club in await _clubRepo.getClubs(competitionId)) {
         for (final athlete in club.athletes) {
           index[athlete.id] = club;
         }
       }
-      return index;
     } on AppException {
       return const {};
     }
+    if (index.isEmpty) return index;
+
+    try {
+      final details =
+          await _clubRepo.getClubDetails(index.values.map((c) => c.id).toSet());
+      if (details.isNotEmpty) {
+        index.updateAll((_, club) => details[club.id] ?? club);
+      }
+    } on AppException {
+      // Names without images: the initial is still a legitimate avatar.
+    }
+    return index;
   }
 
   /// How each club is spread across the drawn heats — one row per club, one
@@ -217,8 +234,13 @@ class HeatDrawController extends GetxController {
     final counts = <int, List<int>>{};
     for (var heat = 0; heat < heats.length; heat++) {
       for (final athlete in heats[heat]) {
-        final id = athlete.clubId > 0 ? athlete.clubId : 0;
-        labels[id] ??= athlete.club?.name ?? athlete.clubLabel;
+        // The resolved club wins over the raw id: the FFSS bucket organisme is
+        // split into real clubs on the way in, so an athlete's own clubId can
+        // name the bucket while their club names the club.
+        final resolved = athlete.club?.id ?? athlete.clubId;
+        final id = resolved > 0 ? resolved : 0;
+        final name = athlete.club?.name ?? '';
+        labels[id] ??= name.isNotEmpty ? name : athlete.clubLabel;
         (counts[id] ??= List.filled(heats.length, 0))[heat]++;
       }
     }

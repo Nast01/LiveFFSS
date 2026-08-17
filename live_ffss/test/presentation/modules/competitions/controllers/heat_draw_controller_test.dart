@@ -169,11 +169,15 @@ void main() {
     attendance = _MockAttendance();
     clubRepo = _MockClubRepo();
     when(() => clubRepo.getClubs(any())).thenAnswer((_) async => const []);
+    when(() => clubRepo.getClubDetails(any()))
+        .thenAnswer((_) async => const <int, Club>{});
     programme = _FakeProgrammeService(programmeWith());
     when(() => raceRepo.getEntries(any())).thenAnswer((_) async => const []);
     when(() => attendance.forRace(any()))
         .thenReturn(const <int, AttendanceStatus>{});
   });
+
+  setUpAll(() => registerFallbackValue(const <int>[]));
 
   tearDown(Get.reset);
 
@@ -221,14 +225,14 @@ void main() {
           ]);
       when(() => attendance.forRace(raceId))
           .thenReturn({1: AttendanceStatus.present});
+      // The competition's club list names the clubs but carries no image —
+      // only the per-club detail does, which is why both calls are made.
       when(() => clubRepo.getClubs(competitionId)).thenAnswer((_) async => [
-            Club(
-              id: 7,
-              name: 'Nice',
-              logoUrl: 'https://logo/7.png',
-              athletes: [athlete(1, clubId: 7)],
-            ),
+            Club(id: 7, name: 'Nice', athletes: [athlete(1, clubId: 7)]),
           ]);
+      when(() => clubRepo.getClubDetails(any())).thenAnswer((_) async => const {
+            7: Club(id: 7, name: 'Nice', logoUrl: 'https://logo/7.png'),
+          });
 
       final controller = build();
       await controller.load();
@@ -236,6 +240,7 @@ void main() {
       expect(controller.presentAthletes.single.club?.name, 'Nice');
       expect(controller.presentAthletes.single.club?.logoUrl,
           'https://logo/7.png');
+      verify(() => clubRepo.getClubDetails(any())).called(1);
     });
 
     test('a club fetch failure still loads the athletes, without clubs',
@@ -619,6 +624,36 @@ void main() {
 
       expect(controller.clubDistribution.map((s) => s.label),
           ['Antibes', 'Zuydcoote']);
+    });
+
+    test('groups on the resolved club, not the athlete raw clubId', () {
+      // Both sit in the FFSS bucket organisme, which the mapper splits into the
+      // real clubs — grouping on the raw id would merge two different clubs.
+      final controller = build();
+      controller.heats.value = [
+        [
+          athlete(1, clubId: 245)
+              .copyWith(club: const Club(id: 7, name: 'Nice')),
+          athlete(2, clubId: 245)
+              .copyWith(club: const Club(id: 8, name: 'Antibes')),
+        ],
+      ];
+
+      final spread = controller.clubDistribution;
+
+      expect(spread.map((s) => s.clubId), [8, 7]);
+      expect(spread.map((s) => s.label), ['Antibes', 'Nice']);
+      expect(spread.every((s) => s.total == 1), isTrue);
+    });
+
+    test('only the clubs holding a drawn athlete get a row', () {
+      final controller = build();
+      controller.heats.value = [
+        [withClub(1, 7, 'Nice')],
+      ];
+
+      // Antibes fielded nobody here, so it must not appear at all.
+      expect(controller.clubDistribution.map((s) => s.label), ['Nice']);
     });
 
     test('unaffiliated athletes are one row, kept last', () {
