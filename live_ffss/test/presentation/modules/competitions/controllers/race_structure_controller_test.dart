@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
@@ -22,13 +23,19 @@ class _MockStorage extends Mock implements FlutterSecureStorage {}
 
 class _MockRaceRepo extends Mock implements RaceRepository {}
 
+class _MockClubRepo extends Mock implements ClubRepository {}
+
 void main() {
   late _MockStorage storage;
   late _MockRaceRepo raceRepo;
+  late _MockClubRepo clubRepo;
   late ProgrammeService service;
   late RaceStructureController controller;
 
-  setUpAll(() => registerFallbackValue(''));
+  setUpAll(() {
+    registerFallbackValue('');
+    registerFallbackValue(const <Athlete>[]);
+  });
 
   const competition = Competition(
     id: 42,
@@ -65,12 +72,27 @@ void main() {
         categories: const [],
       );
 
-  Entry entry(int id, int categoryId) => Entry(
+  Athlete makeAthlete(int id, {int clubId = 0}) => Athlete(
+        id: id,
+        licenseeNumber: 'L$id',
+        firstName: 'A$id',
+        lastName: 'B$id',
+        gender: Gender.male,
+        year: 2000,
+        nationalityCode: '',
+        nationality: '',
+        isValid: true,
+        clubId: clubId,
+      );
+
+  Entry entry(int id, int categoryId, {List<Athlete> athletes = const []}) =>
+      Entry(
         id: id,
         raceId: 500,
         category: Category(id: categoryId, name: 'Cat$categoryId'),
         status: 0,
         statusLabel: '',
+        athletes: athletes,
       );
 
   // Race 500 has two category structures (Cadets=7, Juniors=8). Race 999 has one
@@ -120,13 +142,16 @@ void main() {
   setUp(() {
     storage = _MockStorage();
     raceRepo = _MockRaceRepo();
+    clubRepo = _MockClubRepo();
+    when(() => clubRepo.getAthleteClubs(any(), any()))
+        .thenAnswer((_) async => const <int, Club>{});
     when(() => storage.read(key: any(named: 'key')))
         .thenAnswer((_) async => jsonEncode(seed.toJson()));
     when(() =>
             storage.write(key: any(named: 'key'), value: any(named: 'value')))
         .thenAnswer((_) async {});
     service = ProgrammeService(storage);
-    controller = RaceStructureController(service, raceRepo);
+    controller = RaceStructureController(service, raceRepo, clubRepo);
   });
 
   test('load filters structures to the race and sorts by category label',
@@ -258,6 +283,66 @@ void main() {
 
       expect(controller.tabs, isEmpty);
       expect(controller.selectedTab, isNull);
+    });
+  });
+
+  group('RaceStructureController.athletesOf', () {
+    test('translates the stored ids, in the order the draw left them',
+        () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
+            entry(1, 7, athletes: [makeAthlete(31), makeAthlete(30)]),
+          ]);
+      await controller.load(race(500), competition);
+
+      const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31, 30]);
+
+      expect(controller.athletesOf(drawn).map((a) => a.id), [31, 30]);
+    });
+
+    test('skips an id no entry accounts for', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
+            entry(1, 7, athletes: [makeAthlete(31)]),
+          ]);
+      await controller.load(race(500), competition);
+
+      const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31, 999]);
+
+      expect(controller.athletesOf(drawn).map((a) => a.id), [31]);
+    });
+
+    test('carries the resolved club so the row can show its logo', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
+            entry(1, 7, athletes: [makeAthlete(31, clubId: 4)]),
+          ]);
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => const {31: Club(id: 4, name: 'Nice', logoUrl: 'l')},
+      );
+      await controller.load(race(500), competition);
+
+      const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
+
+      expect(controller.athletesOf(drawn).single.club?.logoUrl, 'l');
+    });
+
+    test('a club failure still yields the athletes, without clubs', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
+            entry(1, 7, athletes: [makeAthlete(31, clubId: 4)]),
+          ]);
+      when(() => clubRepo.getAthleteClubs(any(), any()))
+          .thenThrow(const NetworkException('boom'));
+      await controller.load(race(500), competition);
+
+      const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
+
+      expect(controller.athletesOf(drawn).single.club, isNull);
+    });
+
+    test('an undrawn race yields nothing', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      await controller.load(race(500), competition);
+
+      expect(controller.athletesOf(const ProgrammeRace(id: 1, number: 1)),
+          isEmpty);
     });
   });
 }

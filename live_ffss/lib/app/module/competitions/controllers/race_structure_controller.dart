@@ -1,8 +1,13 @@
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/domain/models/entry.dart';
+import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
@@ -35,10 +40,11 @@ class RoundTab {
 /// Feeds the race-detail "Séries" tab with the locally-defined structure(s) for
 /// this race (one per category), plus per-category engaged counts. Read-only.
 class RaceStructureController extends GetxController {
-  RaceStructureController(this._programme, this._raceRepo);
+  RaceStructureController(this._programme, this._raceRepo, this._clubRepo);
 
   final ProgrammeService _programme;
   final RaceRepository _raceRepo;
+  final ClubRepository _clubRepo;
 
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
@@ -46,6 +52,11 @@ class RaceStructureController extends GetxController {
   final RxList<EventStructure> structures = <EventStructure>[].obs;
 
   Map<int, int> _entryCountByCategory = const {};
+
+  /// Athlete id -> athlete, built from the entries this race already fetches,
+  /// with clubs resolved. It is what turns a drawn race's `athleteIds` back
+  /// into rows the operator can read.
+  Map<int, Athlete> _athletesById = const {};
 
   @override
   void onInit() {
@@ -93,14 +104,46 @@ class RaceStructureController extends GetxController {
           counts[e.category.id] = (counts[e.category.id] ?? 0) + 1;
         }
         _entryCountByCategory = counts;
+        _athletesById = await _indexAthletes(entries, competition.id);
       } on AppException {
         // Entries unavailable (offline / API error): the structure still
-        // renders; category counts fall back to zero.
+        // renders; category counts fall back to zero and a drawn race lists
+        // no athlete.
         _entryCountByCategory = const {};
+        _athletesById = const {};
       }
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// The athletes a drawn race holds, in the order the draw left them. Ids the
+  /// entries do not account for are skipped rather than rendered as a blank
+  /// row — an athlete withdrawn since the draw is the ordinary way that happens.
+  List<Athlete> athletesOf(ProgrammeRace race) => [
+        for (final id in race.athleteIds)
+          if (_athletesById[id] case final Athlete athlete) athlete,
+      ];
+
+  /// Indexes the engaged athletes and resolves their clubs. Best-effort on the
+  /// clubs: without them the rows still read, only the logos fall back to the
+  /// club initial.
+  Future<Map<int, Athlete>> _indexAthletes(
+    List<Entry> entries,
+    int competitionId,
+  ) async {
+    final athletes = [for (final entry in entries) ...entry.athletes];
+    if (athletes.isEmpty) return const {};
+    Map<int, Club> clubs;
+    try {
+      clubs = await _clubRepo.getAthleteClubs(competitionId, athletes);
+    } on AppException {
+      clubs = const {};
+    }
+    return {
+      for (final athlete in athletes)
+        athlete.id: athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
+    };
   }
 
   bool get hasStructure => structures.any((s) => s.levels.isNotEmpty);

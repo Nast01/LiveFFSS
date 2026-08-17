@@ -4,11 +4,13 @@ import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_structure_controller.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
+import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
@@ -195,7 +197,7 @@ class _DrawHeatsButton extends StatelessWidget {
   }
 }
 
-class _CourseTile extends StatelessWidget {
+class _CourseTile extends StatefulWidget {
   const _CourseTile({
     required this.structure,
     required this.level,
@@ -206,67 +208,170 @@ class _CourseTile extends StatelessWidget {
   final ProgrammeRace race;
 
   @override
+  State<_CourseTile> createState() => _CourseTileState();
+}
+
+class _CourseTileState extends State<_CourseTile> {
+  bool _expanded = false;
+
+  EventStructure get structure => widget.structure;
+  RoundLevel get level => widget.level;
+  ProgrammeRace get race => widget.race;
+
+  @override
   Widget build(BuildContext context) {
     final controller = Get.find<RaceStructureController>();
     final accent = level.type == RoundType.finale
         ? AppColors.statusFinished
         : AppColors.primary;
+    final athletes = controller.athletesOf(race);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Material(
         color: AppColors.surface,
         borderRadius: AppRadius.mdRadius,
         elevation: 1,
-        child: InkWell(
-          borderRadius: AppRadius.mdRadius,
-          onTap: () => Get.toNamed<void>(Routes.raceCourse, arguments: {
-            'race': controller.race.value,
-            'competition': controller.competition.value,
-            'categoryId': structure.categoryId,
-            'categoryLabel': structure.categoryLabel,
-            'roundType': level.type,
-            'raceNumber': race.number,
-            'programmeRaceId': race.id,
-          }),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm, vertical: 10),
-            child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            InkWell(
+              borderRadius: AppRadius.mdRadius,
+              onTap: () => Get.toNamed<void>(Routes.raceCourse, arguments: {
+                'race': controller.race.value,
+                'competition': controller.competition.value,
+                'categoryId': structure.categoryId,
+                'categoryLabel': structure.categoryLabel,
+                'roundType': level.type,
+                'raceNumber': race.number,
+                'programmeRaceId': race.id,
+              }),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm, vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 30,
+                      height: 30,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.12),
+                        borderRadius: AppRadius.smRadius,
+                      ),
+                      child: Text('${race.number}',
+                          style: AppTypography.body.copyWith(
+                              fontWeight: FontWeight.w800, color: accent)),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('${level.type.labelKey.tr} ${race.number}',
+                              style: AppTypography.body
+                                  .copyWith(color: AppColors.textPrimary)),
+                          if (race.athleteIds.isNotEmpty)
+                            Text(
+                              '${race.athleteIds.length} ${'athletes_lower'.tr}',
+                              style: AppTypography.caption,
+                            ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    if (athletes.isNotEmpty)
+                      // Its own tap target, so the row keeps opening the entry
+                      // page — the gesture the operator already knows.
+                      IconButton(
+                        onPressed: () => setState(() => _expanded = !_expanded),
+                        icon: Icon(
+                            _expanded ? Icons.expand_less : Icons.expand_more),
+                        color: AppColors.textMuted,
+                        visualDensity: VisualDensity.compact,
+                        tooltip: 'athletes'.tr,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            if (_expanded)
+              for (var i = 0; i < athletes.length; i++)
+                _CompetitorRow(
+                    athlete: athletes[i], last: i == athletes.length - 1),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One competitor of a drawn race. The left badge carries the finishing place
+/// and the right slot the mention (DQ, FF…); both are empty until results can
+/// be entered, and exist so that entry has somewhere to land.
+class _CompetitorRow extends StatelessWidget {
+  const _CompetitorRow({required this.athlete, required this.last});
+
+  final Athlete athlete;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) {
+    final club = athlete.club?.name.isNotEmpty == true
+        ? athlete.club!.name
+        : athlete.clubLabel;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      decoration: BoxDecoration(
+        border: last
+            ? null
+            : const Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 30,
+            child: Text('—',
+                textAlign: TextAlign.center,
+                style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          ClubAvatar(
+            club: athlete.club,
+            size: 28,
+            shape: ClubAvatarShape.circle,
+            fallbackLabel: club,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.12),
-                    borderRadius: AppRadius.smRadius,
-                  ),
-                  child: Text('${race.number}',
-                      style: AppTypography.body.copyWith(
-                          fontWeight: FontWeight.w800, color: accent)),
+                Text(
+                  '${athlete.lastName.toUpperCase()} ${athlete.firstName}'
+                      .trim(),
+                  style: AppTypography.body.copyWith(fontSize: 13),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('${level.type.labelKey.tr} ${race.number}',
-                          style: AppTypography.body
-                              .copyWith(color: AppColors.textPrimary)),
-                      if (race.athleteIds.isNotEmpty)
-                        Text(
-                          '${race.athleteIds.length} ${'athletes_lower'.tr}',
-                          style: AppTypography.caption,
-                        ),
-                    ],
+                if (club.isNotEmpty)
+                  Text(
+                    club,
+                    style: AppTypography.caption.copyWith(fontSize: 11),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const Icon(Icons.chevron_right, color: AppColors.textMuted),
               ],
             ),
           ),
-        ),
+          const SizedBox(width: AppSpacing.sm),
+          Text('—',
+              style:
+                  AppTypography.caption.copyWith(color: AppColors.textMuted)),
+        ],
       ),
     );
   }

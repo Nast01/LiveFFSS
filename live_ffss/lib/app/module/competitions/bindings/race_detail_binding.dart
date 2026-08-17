@@ -22,6 +22,7 @@ class RaceDetailBinding extends Bindings {
       () => RaceStructureController(
         Get.find<ProgrammeService>(),
         Get.find<RaceRepository>(),
+        Get.find<ClubRepository>(),
       ),
     );
   }
