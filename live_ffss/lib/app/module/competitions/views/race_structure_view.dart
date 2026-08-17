@@ -120,6 +120,7 @@ class _RoundPane extends StatelessWidget {
         // present; the later ones are seated by who qualifies out of it.
         if (tab.isFirstRound)
           _DrawHeatsButton(structure: structure, roundType: level.type),
+        if (level.races.isNotEmpty) _FilterBar(races: level.races),
         if (level.races.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -127,8 +128,22 @@ class _RoundPane extends StatelessWidget {
                 style: AppTypography.caption, textAlign: TextAlign.center),
           )
         else
-          for (final r in level.races)
-            _CourseTile(structure: structure, level: level, race: r),
+          Obx(() {
+            final visible = controller.matchingRaces(level.races);
+            if (visible.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                child: Text('no_athletes_found'.tr,
+                    style: AppTypography.caption, textAlign: TextAlign.center),
+              );
+            }
+            return Column(
+              children: [
+                for (final r in visible)
+                  _CourseTile(structure: structure, level: level, race: r),
+              ],
+            );
+          }),
       ],
     );
   }
@@ -197,7 +212,95 @@ class _DrawHeatsButton extends StatelessWidget {
   }
 }
 
-class _CourseTile extends StatefulWidget {
+/// Narrows the round to the races holding a given athlete, and carries the
+/// expand-all control — both act on the same list, so they belong together.
+///
+/// The text controller lives here rather than on the GetX controller: it is
+/// scoped to this one field, which is what makes the view stateful.
+class _FilterBar extends StatefulWidget {
+  const _FilterBar({required this.races});
+
+  final List<ProgrammeRace> races;
+
+  @override
+  State<_FilterBar> createState() => _FilterBarState();
+}
+
+class _FilterBarState extends State<_FilterBar> {
+  final TextEditingController _field = TextEditingController();
+
+  @override
+  void dispose() {
+    _field.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<RaceStructureController>();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _field,
+              onChanged: controller.setFilter,
+              textInputAction: TextInputAction.search,
+              style: AppTypography.body.copyWith(fontSize: 13),
+              decoration: InputDecoration(
+                isDense: true,
+                filled: true,
+                fillColor: AppColors.surface,
+                hintText: 'filter_athlete_hint'.tr,
+                hintStyle: AppTypography.caption.copyWith(fontSize: 13),
+                prefixIcon: const Icon(Icons.search,
+                    size: 18, color: AppColors.textMuted),
+                suffixIcon: Obx(() => controller.filter.value.isEmpty
+                    ? const SizedBox.shrink()
+                    : IconButton(
+                        icon: const Icon(Icons.close, size: 18),
+                        color: AppColors.textMuted,
+                        onPressed: () {
+                          _field.clear();
+                          controller.setFilter('');
+                        },
+                      )),
+                border: OutlineInputBorder(
+                  borderRadius: AppRadius.smRadius,
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: AppRadius.smRadius,
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Obx(() {
+            // A filter already forces every surviving race open, so the button
+            // would be a no-op — it steps aside rather than lying.
+            if (controller.filter.value.isNotEmpty) {
+              return const SizedBox.shrink();
+            }
+            final all = controller.allExpanded(widget.races);
+            return IconButton(
+              onPressed: () => all
+                  ? controller.collapseAll()
+                  : controller.expandAll(widget.races),
+              icon: Icon(all ? Icons.unfold_less : Icons.unfold_more),
+              color: AppColors.textMuted,
+              tooltip: all ? 'collapse_all'.tr : 'expand_all'.tr,
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _CourseTile extends StatelessWidget {
   const _CourseTile({
     required this.structure,
     required this.level,
@@ -208,23 +311,13 @@ class _CourseTile extends StatefulWidget {
   final ProgrammeRace race;
 
   @override
-  State<_CourseTile> createState() => _CourseTileState();
-}
-
-class _CourseTileState extends State<_CourseTile> {
-  bool _expanded = false;
-
-  EventStructure get structure => widget.structure;
-  RoundLevel get level => widget.level;
-  ProgrammeRace get race => widget.race;
-
-  @override
   Widget build(BuildContext context) {
     final controller = Get.find<RaceStructureController>();
     final accent = level.type == RoundType.finale
         ? AppColors.statusFinished
         : AppColors.primary;
     final athletes = controller.athletesOf(race);
+    final expanded = controller.isExpanded(race);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Material(
@@ -284,9 +377,9 @@ class _CourseTileState extends State<_CourseTile> {
                       // Its own tap target, so the row keeps opening the entry
                       // page — the gesture the operator already knows.
                       IconButton(
-                        onPressed: () => setState(() => _expanded = !_expanded),
+                        onPressed: () => controller.toggleExpanded(race),
                         icon: Icon(
-                            _expanded ? Icons.expand_less : Icons.expand_more),
+                            expanded ? Icons.expand_less : Icons.expand_more),
                         color: AppColors.textMuted,
                         visualDensity: VisualDensity.compact,
                         tooltip: 'athletes'.tr,
@@ -295,10 +388,14 @@ class _CourseTileState extends State<_CourseTile> {
                 ),
               ),
             ),
-            if (_expanded)
+            if (expanded)
               for (var i = 0; i < athletes.length; i++)
                 _CompetitorRow(
-                    athlete: athletes[i], last: i == athletes.length - 1),
+                  athlete: athletes[i],
+                  last: i == athletes.length - 1,
+                  highlighted: controller.filter.value.isNotEmpty &&
+                      controller.matchesFilter(athletes[i]),
+                ),
           ],
         ),
       ),
@@ -310,10 +407,17 @@ class _CourseTileState extends State<_CourseTile> {
 /// and the right slot the mention (DQ, FF…); both are empty until results can
 /// be entered, and exist so that entry has somewhere to land.
 class _CompetitorRow extends StatelessWidget {
-  const _CompetitorRow({required this.athlete, required this.last});
+  const _CompetitorRow({
+    required this.athlete,
+    required this.last,
+    required this.highlighted,
+  });
 
   final Athlete athlete;
   final bool last;
+
+  /// Whether this is one of the athletes the filter went looking for.
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
@@ -324,6 +428,7 @@ class _CompetitorRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
+        color: highlighted ? AppColors.primarySurface : null,
         border: last
             ? null
             : const Border(bottom: BorderSide(color: AppColors.border)),

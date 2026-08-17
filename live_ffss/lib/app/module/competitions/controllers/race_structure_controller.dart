@@ -117,6 +117,68 @@ class RaceStructureController extends GetxController {
     }
   }
 
+  /// What the operator typed in the filter bar, already folded for comparison.
+  final RxString filter = ''.obs;
+
+  /// Races the operator opened by hand. A filtered race is open regardless —
+  /// surviving the filter is itself the reason to show its line-up.
+  final RxSet<int> _expandedRaceIds = <int>{}.obs;
+
+  void setFilter(String value) => filter.value = _fold(value);
+
+  bool isExpanded(ProgrammeRace race) =>
+      filter.value.isNotEmpty || _expandedRaceIds.contains(race.id);
+
+  void toggleExpanded(ProgrammeRace race) {
+    if (!_expandedRaceIds.remove(race.id)) _expandedRaceIds.add(race.id);
+  }
+
+  void expandAll(Iterable<ProgrammeRace> races) =>
+      _expandedRaceIds.addAll(races.map((r) => r.id));
+
+  void collapseAll() => _expandedRaceIds.clear();
+
+  /// Whether every one of [races] is open, which is what turns the expand-all
+  /// button into a collapse-all button.
+  bool allExpanded(Iterable<ProgrammeRace> races) =>
+      races.isNotEmpty && races.every(isExpanded);
+
+  /// The races holding an athlete the filter matches. An empty filter matches
+  /// everything, so the list comes back untouched.
+  List<ProgrammeRace> matchingRaces(Iterable<ProgrammeRace> races) {
+    if (filter.value.isEmpty) return races.toList();
+    return [
+      for (final race in races)
+        if (athletesOf(race).any(matchesFilter)) race,
+    ];
+  }
+
+  /// Whether this athlete is what the operator is looking for — surname, first
+  /// name or club, in any case and with or without the accents.
+  bool matchesFilter(Athlete athlete) {
+    final needle = filter.value;
+    if (needle.isEmpty) return true;
+    final club = athlete.club?.name.isNotEmpty == true
+        ? athlete.club!.name
+        : athlete.clubLabel;
+    return _fold('${athlete.lastName} ${athlete.firstName} $club')
+        .contains(needle);
+  }
+
+  /// Lowercases and strips the accents a marshal will not type: searching for
+  /// "noel" has to find NOËL, and "remy" has to find Rémy.
+  static String _fold(String value) {
+    const accented = 'àáâãäåçèéêëìíîïñòóôõöùúûüýÿœæ';
+    const plain = 'aaaaaaceeeeiiiinooooouuuuyyoa';
+    final buffer = StringBuffer();
+    for (final rune in value.toLowerCase().runes) {
+      final char = String.fromCharCode(rune);
+      final at = accented.indexOf(char);
+      buffer.write(at < 0 ? char : plain[at]);
+    }
+    return buffer.toString().trim();
+  }
+
   /// The athletes a drawn race holds, in the order the draw left them. Ids the
   /// entries do not account for are skipped rather than rendered as a blank
   /// row — an athlete withdrawn since the draw is the ordinary way that happens.

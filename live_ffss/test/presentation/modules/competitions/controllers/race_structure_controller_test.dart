@@ -345,4 +345,120 @@ void main() {
           isEmpty);
     });
   });
+
+  group('RaceStructureController filtering', () {
+    const s1 = ProgrammeRace(id: 1, number: 1, athleteIds: [31, 32]);
+    const s2 = ProgrammeRace(id: 2, number: 2, athleteIds: [33]);
+
+    Future<void> loadWith(List<Athlete> athletes) async {
+      when(() => raceRepo.getEntries(500))
+          .thenAnswer((_) async => [entry(1, 7, athletes: athletes)]);
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => {
+          for (final a in athletes)
+            if (a.clubId > 0) a.id: Club(id: a.clubId, name: 'Nice'),
+        },
+      );
+      await controller.load(race(500), competition);
+    }
+
+    Athlete named(int id, String first, String last, {int clubId = 0}) =>
+        makeAthlete(id, clubId: clubId)
+            .copyWith(firstName: first, lastName: last);
+
+    test('an empty filter hides nothing', () async {
+      await loadWith(
+          [named(31, 'Jean', 'Dupont'), named(33, 'Paul', 'Martin')]);
+
+      expect(controller.matchingRaces(const [s1, s2]), [s1, s2]);
+    });
+
+    test('matches on the last name, whatever the case', () async {
+      await loadWith(
+          [named(31, 'Jean', 'Dupont'), named(33, 'Paul', 'Martin')]);
+
+      controller.setFilter('DUPO');
+
+      expect(controller.matchingRaces(const [s1, s2]), [s1]);
+    });
+
+    test('matches on the first name', () async {
+      await loadWith(
+          [named(31, 'Jean', 'Dupont'), named(33, 'Paul', 'Martin')]);
+
+      controller.setFilter('paul');
+
+      expect(controller.matchingRaces(const [s1, s2]), [s2]);
+    });
+
+    test('matches on the club', () async {
+      await loadWith([
+        named(31, 'Jean', 'Dupont', clubId: 4),
+        named(33, 'Paul', 'Martin'),
+      ]);
+
+      controller.setFilter('nice');
+
+      expect(controller.matchingRaces(const [s1, s2]), [s1]);
+    });
+
+    test('an accent typed or not typed still matches', () async {
+      // A marshal on a beach types "noel", never "Noël".
+      await loadWith([named(31, 'Rémy', 'Noël'), named(33, 'Paul', 'Martin')]);
+
+      controller.setFilter('noel');
+      expect(controller.matchingRaces(const [s1, s2]), [s1]);
+
+      controller.setFilter('remy');
+      expect(controller.matchingRaces(const [s1, s2]), [s1]);
+    });
+
+    test('a filter nobody matches hides every race', () async {
+      await loadWith([named(31, 'Jean', 'Dupont')]);
+
+      controller.setFilter('zzz');
+
+      expect(controller.matchingRaces(const [s1, s2]), isEmpty);
+    });
+  });
+
+  group('RaceStructureController expansion', () {
+    const s1 = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
+    const s2 = ProgrammeRace(id: 2, number: 2, athleteIds: [33]);
+
+    test('everything starts collapsed', () {
+      expect(controller.isExpanded(s1), isFalse);
+    });
+
+    test('toggling opens then closes one race', () {
+      controller.toggleExpanded(s1);
+      expect(controller.isExpanded(s1), isTrue);
+
+      controller.toggleExpanded(s1);
+      expect(controller.isExpanded(s1), isFalse);
+    });
+
+    test('expandAll opens the races it is given, collapseAll closes them', () {
+      controller.expandAll(const [s1, s2]);
+      expect(controller.isExpanded(s1), isTrue);
+      expect(controller.isExpanded(s2), isTrue);
+
+      controller.collapseAll();
+      expect(controller.isExpanded(s1), isFalse);
+    });
+
+    test('allExpanded reports whether the button should collapse instead', () {
+      expect(controller.allExpanded(const [s1, s2]), isFalse);
+
+      controller.expandAll(const [s1, s2]);
+      expect(controller.allExpanded(const [s1, s2]), isTrue);
+    });
+
+    test('a filtered race is open whatever the operator toggled', () async {
+      // Surviving the filter is itself the reason to be open.
+      controller.setFilter('anything');
+
+      expect(controller.isExpanded(s1), isTrue);
+    });
+  });
 }

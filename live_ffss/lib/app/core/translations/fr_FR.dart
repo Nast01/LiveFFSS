@@ -363,6 +363,9 @@ final Map<String, String> frFR = {
   'heat_draw_structure_edit': 'Modifier la structure',
   'heat_draw_distribution': 'Répartition par club',
   'heat_draw_no_club': 'Sans club',
+  'filter_athlete_hint': 'Nom, prénom ou club',
+  'expand_all': 'Tout déplier',
+  'collapse_all': 'Tout replier',
   'not_entered': 'Non engagé',
   'bracelet_unreadable': 'Bracelet illisible',
 };
