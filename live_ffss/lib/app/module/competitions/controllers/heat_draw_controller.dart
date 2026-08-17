@@ -171,7 +171,7 @@ class HeatDrawController extends GetxController {
           if (attendance[athlete.id] == AttendanceStatus.present) athlete,
       ];
 
-      final clubs = await _clubIndex(competitionId);
+      final clubs = await _clubIndex(competitionId, present);
       presentAthletes.value = clubs.isEmpty
           ? present
           : [
@@ -188,37 +188,17 @@ class HeatDrawController extends GetxController {
   /// Athlete id → club, so a drawn lane can show its club's logo or cap.
   /// `Athlete.club` is never deserialised — a controller has to resolve it.
   ///
-  /// Two calls, because one is not enough: the competition's `organismes` list
-  /// names the clubs but carries no logo or cap — only `organisme/:id` does —
-  /// so the clubs that named an athlete are then fetched by id to fill in the
-  /// images.
-  ///
-  /// Best-effort throughout: a failed list leaves an empty index and every lane
-  /// falls back to the club initial, and a club whose detail fails keeps the
-  /// name the list gave it. Neither failure takes the draw screen down.
-  Future<Map<int, Club>> _clubIndex(int competitionId) async {
-    final index = <int, Club>{};
+  /// Best-effort: a failure leaves an empty index and every lane falls back to
+  /// the club initial rather than taking the draw screen down.
+  Future<Map<int, Club>> _clubIndex(
+    int competitionId,
+    List<Athlete> athletes,
+  ) async {
     try {
-      for (final club in await _clubRepo.getClubs(competitionId)) {
-        for (final athlete in club.athletes) {
-          index[athlete.id] = club;
-        }
-      }
+      return await _clubRepo.getAthleteClubs(competitionId, athletes);
     } on AppException {
       return const {};
     }
-    if (index.isEmpty) return index;
-
-    try {
-      final details =
-          await _clubRepo.getClubDetails(index.values.map((c) => c.id).toSet());
-      if (details.isNotEmpty) {
-        index.updateAll((_, club) => details[club.id] ?? club);
-      }
-    } on AppException {
-      // Names without images: the initial is still a legitimate avatar.
-    }
-    return index;
   }
 
   /// How each club is spread across the drawn heats — one row per club, one

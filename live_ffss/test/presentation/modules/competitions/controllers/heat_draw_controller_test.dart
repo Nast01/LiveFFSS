@@ -171,13 +171,18 @@ void main() {
     when(() => clubRepo.getClubs(any())).thenAnswer((_) async => const []);
     when(() => clubRepo.getClubDetails(any()))
         .thenAnswer((_) async => const <int, Club>{});
+    when(() => clubRepo.getAthleteClubs(any(), any()))
+        .thenAnswer((_) async => const <int, Club>{});
     programme = _FakeProgrammeService(programmeWith());
     when(() => raceRepo.getEntries(any())).thenAnswer((_) async => const []);
     when(() => attendance.forRace(any()))
         .thenReturn(const <int, AttendanceStatus>{});
   });
 
-  setUpAll(() => registerFallbackValue(const <int>[]));
+  setUpAll(() {
+    registerFallbackValue(const <int>[]);
+    registerFallbackValue(const <Athlete>[]);
+  });
 
   tearDown(Get.reset);
 
@@ -225,14 +230,10 @@ void main() {
           ]);
       when(() => attendance.forRace(raceId))
           .thenReturn({1: AttendanceStatus.present});
-      // The competition's club list names the clubs but carries no image —
-      // only the per-club detail does, which is why both calls are made.
-      when(() => clubRepo.getClubs(competitionId)).thenAnswer((_) async => [
-            Club(id: 7, name: 'Nice', athletes: [athlete(1, clubId: 7)]),
-          ]);
-      when(() => clubRepo.getClubDetails(any())).thenAnswer((_) async => const {
-            7: Club(id: 7, name: 'Nice', logoUrl: 'https://logo/7.png'),
-          });
+      when(() => clubRepo.getAthleteClubs(competitionId, any()))
+          .thenAnswer((_) async => const {
+                1: Club(id: 7, name: 'Nice', logoUrl: 'https://logo/7.png'),
+              });
 
       final controller = build();
       await controller.load();
@@ -240,7 +241,6 @@ void main() {
       expect(controller.presentAthletes.single.club?.name, 'Nice');
       expect(controller.presentAthletes.single.club?.logoUrl,
           'https://logo/7.png');
-      verify(() => clubRepo.getClubDetails(any())).called(1);
     });
 
     test('a club fetch failure still loads the athletes, without clubs',
@@ -250,7 +250,7 @@ void main() {
           ]);
       when(() => attendance.forRace(raceId))
           .thenReturn({1: AttendanceStatus.present});
-      when(() => clubRepo.getClubs(any()))
+      when(() => clubRepo.getAthleteClubs(any(), any()))
           .thenThrow(const NetworkException('boom'));
 
       final controller = build();

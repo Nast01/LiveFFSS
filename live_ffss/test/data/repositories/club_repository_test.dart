@@ -5,6 +5,7 @@ import 'package:live_ffss/app/data/dtos/athlete_dto.dart';
 import 'package:live_ffss/app/data/dtos/club_dto.dart';
 import 'package:live_ffss/app/data/mappers/club_mapper.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockDataSource extends Mock implements ClubRemoteDataSource {}
@@ -140,6 +141,87 @@ void main() {
 
       expect(byId, isEmpty);
       verifyNever(() => ds.getClubDetail(any()));
+    });
+  });
+
+  group('ClubRepository.getAthleteClubs', () {
+    Athlete domainAthlete(int id, int clubId) => Athlete(
+          id: id,
+          licenseeNumber: 'L$id',
+          firstName: 'A$id',
+          lastName: 'B$id',
+          gender: Gender.male,
+          year: 2000,
+          nationalityCode: '',
+          nationality: '',
+          isValid: true,
+          clubId: clubId,
+        );
+
+    test('resolves an athlete the club list never named, via their clubId',
+        () async {
+      // The regression this guards: three clubmates in a heat, one logo. The
+      // list named only the first, so only the first was ever resolved.
+      when(() => ds.getClubs(any())).thenAnswer((_) async => [
+            ClubDto(id: 7, name: 'Nice', athletes: [_athlete(1, 7, 'Nice')]),
+          ]);
+      when(() => ds.getClubDetail(7)).thenAnswer(
+        (_) async => ClubDto(id: 7, name: 'Nice', logoUrl: 'https://logo/7'),
+      );
+
+      final byAthlete = await repo.getAthleteClubs(
+        42,
+        [domainAthlete(1, 7), domainAthlete(2, 7), domainAthlete(3, 7)],
+      );
+
+      expect(byAthlete.keys, [1, 2, 3]);
+      expect(byAthlete.values.map((c) => c.logoUrl),
+          everyElement('https://logo/7'));
+    });
+
+    test('fetches each club once however many athletes it fields', () async {
+      when(() => ds.getClubs(any())).thenAnswer((_) async => const []);
+      when(() => ds.getClubDetail(7))
+          .thenAnswer((_) async => ClubDto(id: 7, name: 'Nice'));
+
+      await repo
+          .getAthleteClubs(42, [domainAthlete(1, 7), domainAthlete(2, 7)]);
+
+      verify(() => ds.getClubDetail(7)).called(1);
+    });
+
+    test('an athlete with no club is absent rather than wrongly resolved',
+        () async {
+      when(() => ds.getClubs(any())).thenAnswer((_) async => const []);
+
+      final byAthlete = await repo.getAthleteClubs(42, [domainAthlete(1, 0)]);
+
+      expect(byAthlete, isEmpty);
+      verifyNever(() => ds.getClubDetail(any()));
+    });
+
+    test('keeps resolving from clubIds when the club list call fails',
+        () async {
+      when(() => ds.getClubs(any())).thenThrow(const NetworkException('boom'));
+      when(() => ds.getClubDetail(7)).thenAnswer(
+        (_) async => ClubDto(id: 7, name: 'Nice', logoUrl: 'https://logo/7'),
+      );
+
+      final byAthlete = await repo.getAthleteClubs(42, [domainAthlete(1, 7)]);
+
+      expect(byAthlete[1]?.logoUrl, 'https://logo/7');
+    });
+
+    test('a failed detail leaves the name the list gave', () async {
+      when(() => ds.getClubs(any())).thenAnswer((_) async => [
+            ClubDto(id: 7, name: 'Nice', athletes: [_athlete(1, 7, 'Nice')]),
+          ]);
+      when(() => ds.getClubDetail(7)).thenThrow(const NetworkException('boom'));
+
+      final byAthlete = await repo.getAthleteClubs(42, [domainAthlete(1, 7)]);
+
+      expect(byAthlete[1]?.name, 'Nice');
+      expect(byAthlete[1]?.logoUrl, isNull);
     });
   });
 }
