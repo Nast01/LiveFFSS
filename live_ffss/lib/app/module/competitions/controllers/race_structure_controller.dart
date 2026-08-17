@@ -10,14 +10,26 @@ import 'package:live_ffss/app/domain/models/round_level.dart';
 /// One entry of the round menu bar: a round of one category's structure.
 /// Carries no label of its own — translating is the view's job.
 class RoundTab {
-  const RoundTab({required this.structure, required this.level});
+  const RoundTab({
+    required this.structure,
+    required this.level,
+    required this.levelIndex,
+  });
 
   final EventStructure structure;
   final RoundLevel level;
 
+  /// Position of [level] within its own structure's chain.
+  final int levelIndex;
+
   int get categoryId => structure.categoryId;
   String get categoryLabel => structure.categoryLabel;
   RoundType get type => level.type;
+
+  /// Whether this round opens its structure's chain. Only an opening round is
+  /// drawn from the athletes present — every later round is seated by whoever
+  /// qualifies out of the one before it.
+  bool get isFirstRound => levelIndex == 0;
 }
 
 /// Feeds the race-detail "Séries" tab with the locally-defined structure(s) for
@@ -101,7 +113,8 @@ class RaceStructureController extends GetxController {
   /// in the order [structures] holds them, rounds in the structure's own order.
   List<RoundTab> get tabs => [
         for (final s in structures)
-          for (final level in s.levels) RoundTab(structure: s, level: level),
+          for (var i = 0; i < s.levels.length; i++)
+            RoundTab(structure: s, level: s.levels[i], levelIndex: i),
       ];
 
   final RxInt selectedTabIndex = 0.obs;

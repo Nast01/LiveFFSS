@@ -195,6 +195,21 @@ void main() {
       );
     });
 
+    test('only the opening round of each structure is drawable', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      await controller.load(race(500), competition);
+
+      expect(
+        controller.tabs.map((t) => (t.categoryLabel, t.type, t.isFirstRound)),
+        [
+          ('Cadets', RoundType.serie, true),
+          ('Cadets', RoundType.finale, false),
+          // A later category opens its own chain, so its série is drawable too.
+          ('Juniors', RoundType.serie, true),
+        ],
+      );
+    });
+
     test('the first tab is selected once the structures load', () async {
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
       await controller.load(race(500), competition);

@@ -114,7 +114,10 @@ class _RoundPane extends StatelessWidget {
           structure: structure,
           engaged: controller.entryCountFor(structure.categoryId),
         ),
-        _DrawHeatsButton(structure: structure, roundType: level.type),
+        // Only the round that opens the chain is drawn from the athletes
+        // present; the later ones are seated by who qualifies out of it.
+        if (tab.isFirstRound)
+          _DrawHeatsButton(structure: structure, roundType: level.type),
         if (level.races.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
