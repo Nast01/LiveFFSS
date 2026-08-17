@@ -39,9 +39,10 @@ class _HeatStructureDialogState extends State<HeatStructureDialog> {
   /// comparing values made the declared row impossible to select whenever it
   /// matched the proposal, which is the normal state on any visit after a save.
   ///
-  /// The proposal is preselected: athletes failing to show up is the ordinary
-  /// case, and it leaves the declared structure one tap away.
-  int _selectedOption = _proposedOption;
+  /// The authored structure is preselected: confirming without reading leaves
+  /// the operator's own structure standing, and adopting the recomputed one is
+  /// the deliberate act.
+  int _selectedOption = _declaredOption;
 
   HeatPlan get _selected =>
       _selectedOption == _proposedOption ? widget.proposed : widget.declared;
