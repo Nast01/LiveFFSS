@@ -43,7 +43,13 @@ class _HeatStructureDialogState extends State<HeatStructureDialog> {
   /// The authored structure is preselected: confirming without reading leaves
   /// the operator's own structure standing, and adopting the recomputed one is
   /// the deliberate act.
-  int _selectedOption = _declaredOption;
+  ///
+  /// Unless it declares no race at all, which a série added by hand does — it
+  /// starts at zero, unlike a quart, a demi or a finale. Opening on it would
+  /// grey out Confirmer with nothing on screen saying why, so the proposal
+  /// takes the default there and the dead row stays a deliberate choice.
+  late int _selectedOption =
+      widget.declared.raceCount > 0 ? _declaredOption : _proposedOption;
 
   HeatPlan get _selected =>
       _selectedOption == _proposedOption ? widget.proposed : widget.declared;
