@@ -169,21 +169,12 @@ class _HeatDrawViewState extends State<HeatDrawView> {
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('heat_draw_title'.tr,
-                style: AppTypography.title
-                    .copyWith(color: Colors.white, fontSize: 16)),
-            Obx(() => Text(
-                  _ctrl.categoryLabel.isEmpty
-                      ? _ctrl.race.value?.name ?? ''
-                      : '${_ctrl.race.value?.name ?? ''} · ${_ctrl.categoryLabel}',
-                  style: AppTypography.caption.copyWith(color: Colors.white70),
-                )),
-          ],
-        ),
+        // No subtitle: the épreuve, gender, category and round are spelled out
+        // by _DrawContext just below, and repeating half of them here only
+        // competes with it.
+        title: Text('heat_draw_title'.tr,
+            style: AppTypography.title
+                .copyWith(color: Colors.white, fontSize: 16)),
       ),
       body: Obx(() {
         if (_ctrl.isLoading.value) return const LoadingIndicator();
@@ -198,7 +189,7 @@ class _HeatDrawViewState extends State<HeatDrawView> {
         }
         return Column(
           children: [
-            const _LevelPicker(),
+            const _DrawContext(),
             const _PresenceBanner(),
             Expanded(
               child: _ctrl.heats.isEmpty
@@ -226,34 +217,37 @@ class _HeatDrawViewState extends State<HeatDrawView> {
   }
 }
 
-class _LevelPicker extends GetView<HeatDrawController> {
-  const _LevelPicker();
+/// What this draw is for, spelled out: épreuve, gender, category, round. The
+/// round is not selectable here — only the round opening a chain is drawn from
+/// the athletes present, and the caller says which one that is.
+class _DrawContext extends GetView<HeatDrawController> {
+  const _DrawContext();
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
-          child: Row(
-            children: [
-              Text('heat_draw_level'.tr, style: AppTypography.caption),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Wrap(
-                  spacing: AppSpacing.xs,
-                  children: [
-                    for (final level in controller.availableLevels)
-                      ChoiceChip(
-                        label: Text(level.labelKey.tr),
-                        selected: controller.selectedLevel.value == level,
-                        onSelected: (_) => controller.selectLevel(level),
-                      ),
-                  ],
-                ),
-              ),
-            ],
+    return Obx(() {
+      final race = controller.race.value;
+      final parts = <String>[
+        if (race != null) ...[race.name, race.gender.label],
+        if (controller.categoryLabel.isNotEmpty) controller.categoryLabel,
+        if (controller.selectedLevel.value != null)
+          controller.selectedLevel.value!.labelKey.tr,
+      ];
+      if (parts.isEmpty) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
+        child: Text(
+          parts.join(' · '),
+          style: AppTypography.body.copyWith(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
           ),
-        ));
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      );
+    });
   }
 }
 

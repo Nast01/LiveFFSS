@@ -345,7 +345,6 @@ final Map<String, String> enUS = {
   'heat_draw_title': 'Heat draw',
   'heat_draw_action': 'Generate heats',
   'heat_draw_again': 'Draw again',
-  'heat_draw_level': 'Level',
   'heat_draw_presence': '@present present out of @engaged entered',
   'heat_draw_empty': 'Run the draw to compose the heats',
   'heat_draw_no_present': 'No athlete marked present',

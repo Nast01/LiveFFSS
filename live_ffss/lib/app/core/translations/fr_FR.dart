@@ -347,7 +347,6 @@ final Map<String, String> frFR = {
   'heat_draw_title': 'Tirage des séries',
   'heat_draw_action': 'Générer les séries',
   'heat_draw_again': 'Relancer le tirage',
-  'heat_draw_level': 'Niveau',
   'heat_draw_presence': '@present présents sur @engaged engagés',
   'heat_draw_empty': 'Lance le tirage pour composer les séries',
   'heat_draw_no_present': 'Aucun athlète pointé présent',
