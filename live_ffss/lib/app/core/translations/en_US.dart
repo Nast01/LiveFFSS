@@ -361,6 +361,7 @@ final Map<String, String> enUS = {
   'heat_draw_structure_edit': 'Edit the structure',
   'heat_draw_distribution': 'Club spread',
   'heat_draw_no_club': 'No club',
+  'course_bracelet_not_in_race': 'That bracelet is not in this heat',
   'filter_athlete_hint': 'Name, first name or club',
   'expand_all': 'Expand all',
   'collapse_all': 'Collapse all',

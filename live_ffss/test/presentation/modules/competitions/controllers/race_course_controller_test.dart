@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
@@ -8,17 +11,21 @@ import 'package:live_ffss/app/domain/models/category.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
+import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_course_controller.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockRaceRepo extends Mock implements RaceRepository {}
 
 class _MockClubRepo extends Mock implements ClubRepository {}
+
+class _MockRfidWriter extends Mock implements RfidWriter {}
 
 /// Keeps the programme in memory so the controller's read-modify-write can be
 /// asserted end to end, without secure storage.
@@ -58,6 +65,7 @@ void main() {
   late _MockRaceRepo raceRepo;
   late _MockClubRepo clubRepo;
   late _FakeProgrammeService programme;
+  late _MockRfidWriter rfid;
 
   setUpAll(() => registerFallbackValue(const <Athlete>[]));
 
@@ -152,13 +160,14 @@ void main() {
             athletes: [for (final id in athleteIds) athlete(id)],
           ),
         ]);
-    final controller = RaceCourseController(programme, raceRepo, clubRepo)
+    final controller = RaceCourseController(programme, raceRepo, clubRepo, rfid)
       ..applyArguments(arguments());
     await controller.load();
     return controller;
   }
 
   setUp(() {
+    rfid = _MockRfidWriter();
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
     when(() => clubRepo.getAthleteClubs(any(), any()))
@@ -174,6 +183,7 @@ void main() {
             const CompetitionProgramme(competitionId: competitionId)),
         raceRepo,
         clubRepo,
+        rfid,
       );
       controller.applyArguments({
         'race': makeRace(),
@@ -200,6 +210,7 @@ void main() {
             const CompetitionProgramme(competitionId: competitionId)),
         raceRepo,
         clubRepo,
+        rfid,
       );
       controller.applyArguments(null);
 
@@ -225,7 +236,7 @@ void main() {
       c.assign(c.athletes.first);
 
       // A second controller on the same programme sees the stored order.
-      final again = RaceCourseController(programme, raceRepo, clubRepo)
+      final again = RaceCourseController(programme, raceRepo, clubRepo, rfid)
         ..applyArguments(arguments());
       await again.load();
 
@@ -361,7 +372,7 @@ void main() {
               athletes: [athlete(10), athlete(11)],
             ),
           ]);
-      final c = RaceCourseController(programme, raceRepo, clubRepo)
+      final c = RaceCourseController(programme, raceRepo, clubRepo, rfid)
         ..applyArguments(arguments());
       await c.load();
 
@@ -373,6 +384,154 @@ void main() {
 
       final juniorStructureAfter = programme.current.value!.structures[1];
       expect(identical(juniorStructureBefore, juniorStructureAfter), isTrue);
+    });
+  });
+
+  group('RaceCourseController withdrawals', () {
+    test('a forfeit takes no place and the others close the gap', () async {
+      final c = await loadWith([10, 11, 12]);
+
+      c.assign(c.athletes[0]);
+      c.setPenalty(c.athletes[1], CoursePenaltyKind.forfeit);
+      c.assign(c.athletes[2]);
+
+      expect(c.placeOf(c.athletes[2]), 2);
+      expect(c.penaltyOf(c.athletes[1])?.kind, CoursePenaltyKind.forfeit);
+    });
+
+    test('a disqualification carries its code', () async {
+      final c = await loadWith([10, 11]);
+
+      c.setPenalty(c.athletes[0], CoursePenaltyKind.disqualified, code: '4.7');
+
+      expect(c.penaltyOf(c.athletes[0])?.code, '4.7');
+      expect(saved().penalties.single.code, '4.7');
+    });
+
+    test('penalising a ranked athlete pulls them out of the ranking', () async {
+      final c = await loadWith([10, 11]);
+      c.assign(c.athletes[0]);
+      c.assign(c.athletes[1]);
+
+      c.setPenalty(c.athletes[0], CoursePenaltyKind.disqualified, code: 'x');
+
+      expect(c.placeOf(c.athletes[0]), isNull);
+      expect(c.placeOf(c.athletes[1]), 1);
+    });
+
+    test('clearing a penalty puts the athlete back among those to come',
+        () async {
+      final c = await loadWith([10]);
+      c.setPenalty(c.athletes[0], CoursePenaltyKind.forfeit);
+
+      c.clearPenalty(c.athletes[0]);
+
+      expect(c.penaltyOf(c.athletes[0]), isNull);
+      expect(c.isComplete, isFalse);
+    });
+
+    test('the course is complete when nobody is left to place', () async {
+      final c = await loadWith([10, 11]);
+      c.assign(c.athletes[0]);
+      expect(c.isComplete, isFalse);
+
+      c.setPenalty(c.athletes[1], CoursePenaltyKind.forfeit);
+
+      expect(c.isComplete, isTrue);
+    });
+
+    test('a withdrawn athlete sinks below those still to come', () async {
+      final c = await loadWith([10, 11]);
+
+      c.setPenalty(c.athletes[0], CoursePenaltyKind.forfeit);
+
+      expect(c.orderedAthletes.map((a) => a.id), [11, 10]);
+    });
+  });
+
+  group('RaceCourseController scanning', () {
+    late StreamController<String> stream;
+
+    setUp(() {
+      stream = StreamController<String>();
+      when(() => rfid.readBracelets()).thenAnswer((_) => stream.stream);
+      when(() => rfid.isSupported).thenReturn(true);
+    });
+
+    tearDown(() {
+      // Not awaited: an unlistened single-subscription controller's close()
+      // never completes, which would hang this tearDown.
+      if (!stream.isClosed) stream.close();
+    });
+
+    test('a scanned bracelet takes the next place', () async {
+      final c = await loadWith([10, 11]);
+      c.startScan();
+
+      stream.add('L10;B10');
+      await pumpEventQueue();
+
+      expect(c.placeOf(c.athletes[0]), 1);
+      c.stopScan();
+    });
+
+    test('the tie lock applies to a scan exactly as to a tap', () async {
+      final c = await loadWith([10, 11, 12]);
+      c.startScan();
+      stream.add('L10;B10');
+      await pumpEventQueue();
+
+      c.toggleTieLock();
+      stream.add('L11;B11');
+      await pumpEventQueue();
+
+      expect(c.placeOf(c.athletes[1]), 1);
+      c.stopScan();
+    });
+
+    test('a bracelet of nobody in this course reports and changes nothing',
+        () async {
+      final c = await loadWith([10]);
+      c.startScan();
+
+      stream.add('L999;NOBODY');
+      await pumpEventQueue();
+
+      expect(c.finishOrder, isEmpty);
+      expect(c.message.value, isA<UiMessageError>());
+      c.stopScan();
+    });
+
+    test('a bracelet already ranked is not ranked twice', () async {
+      final c = await loadWith([10, 11]);
+      c.startScan();
+      stream.add('L10;B10');
+      await pumpEventQueue();
+      stream.add('L10;B10');
+      await pumpEventQueue();
+
+      expect(c.finishOrder, [
+        [10],
+      ]);
+      c.stopScan();
+    });
+
+    test('the session stops itself once the course is complete', () async {
+      final c = await loadWith([10]);
+      c.startScan();
+
+      stream.add('L10;B10');
+      await pumpEventQueue();
+
+      expect(c.isComplete, isTrue);
+      expect(c.isScanning.value, isFalse);
+    });
+
+    test('canScan follows the hardware', () async {
+      when(() => rfid.isSupported).thenReturn(false);
+      final c = await loadWith([10]);
+
+      expect(c.canScan, isFalse);
     });
   });
 }

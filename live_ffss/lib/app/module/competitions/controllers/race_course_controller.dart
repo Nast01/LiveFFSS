@@ -1,16 +1,22 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/core/rfid/bracelet_payload.dart';
+import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/course_ranking.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
 /// Records the finishing order of one drawn course. The order is the state;
 /// places are computed from it (see `course_ranking.dart`), which is what makes
@@ -19,11 +25,17 @@ import 'package:live_ffss/app/domain/models/round_level.dart';
 /// Device-local: FFSS documents no write endpoint for a result, so everything
 /// here persists into the authored programme through [ProgrammeService].
 class RaceCourseController extends GetxController {
-  RaceCourseController(this._programme, this._raceRepo, this._clubRepo);
+  RaceCourseController(
+    this._programme,
+    this._raceRepo,
+    this._clubRepo,
+    this._rfid,
+  );
 
   final ProgrammeService _programme;
   final RaceRepository _raceRepo;
   final ClubRepository _clubRepo;
+  final RfidWriter _rfid;
 
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
@@ -40,6 +52,15 @@ class RaceCourseController extends GetxController {
 
   /// Finishing groups, in order. A group of several is a declared tie.
   final RxList<List<int>> finishOrder = <List<int>>[].obs;
+
+  /// Athletes out of the ranking. Kept apart from [finishOrder] precisely so
+  /// they take no place — the athletes after them number as though they had
+  /// not started.
+  final RxList<CoursePenalty> penalties = <CoursePenalty>[].obs;
+
+  final RxBool isScanning = false.obs;
+  final Rxn<UiMessage> message = Rxn<UiMessage>();
+  StreamSubscription<String>? _scanSub;
 
   /// While set, the next athlete entered joins the last group rather than
   /// opening one. A lock rather than a gesture on a ranked athlete, because a
@@ -86,6 +107,7 @@ class RaceCourseController extends GetxController {
         for (final group in stored?.finishOrder ?? const <List<int>>[])
           [...group],
       ];
+      penalties.value = [...?stored?.penalties];
 
       final entries = await _raceRepo.getEntries(raceIdValue);
       final byId = <int, Athlete>{
@@ -134,13 +156,21 @@ class RaceCourseController extends GetxController {
     return [
       ...ranked,
       for (final athlete in athletes)
-        if (!places.containsKey(athlete.id)) athlete,
+        if (!places.containsKey(athlete.id) && penaltyOf(athlete) == null)
+          athlete,
+      for (final athlete in athletes)
+        if (penaltyOf(athlete) != null) athlete,
     ];
   }
 
   void assign(Athlete athlete) {
+    // A plain copy, not the RxList itself: withFinisher returns its argument
+    // unchanged for an athlete already ranked (a bracelet read twice must not
+    // rank them twice), and handing back the RxList itself would make
+    // finishOrder.value alias itself — GetX's dedup check compares the plain
+    // stored list against the RxList by identity and never catches it.
     finishOrder.value =
-        withFinisher(finishOrder, athlete.id, tied: tieLock.value);
+        withFinisher([...finishOrder], athlete.id, tied: tieLock.value);
     _persist();
   }
 
@@ -155,6 +185,97 @@ class RaceCourseController extends GetxController {
   }
 
   void toggleTieLock() => tieLock.value = !tieLock.value;
+
+  CoursePenalty? penaltyOf(Athlete athlete) {
+    for (final penalty in penalties) {
+      if (penalty.athleteId == athlete.id) return penalty;
+    }
+    return null;
+  }
+
+  /// Marks an athlete out of the ranking, pulling them out of the order first:
+  /// a disqualified swimmer who had already been placed must not keep a place.
+  void setPenalty(
+    Athlete athlete,
+    CoursePenaltyKind kind, {
+    String code = '',
+  }) {
+    finishOrder.value = withoutAthlete(finishOrder, athlete.id);
+    penalties.value = [
+      for (final penalty in penalties)
+        if (penalty.athleteId != athlete.id) penalty,
+      CoursePenalty(athleteId: athlete.id, kind: kind, code: code),
+    ];
+    _persist();
+  }
+
+  void clearPenalty(Athlete athlete) {
+    penalties.value = [
+      for (final penalty in penalties)
+        if (penalty.athleteId != athlete.id) penalty,
+    ];
+    _persist();
+  }
+
+  /// Whether every athlete is accounted for — placed or withdrawn. This is what
+  /// ends a scanning session, and why the highest place a course hands out is
+  /// its line-up minus its withdrawals.
+  bool get isComplete {
+    final places = placesOf(finishOrder);
+    return athletes.every(
+      (a) => places.containsKey(a.id) || penaltyOf(a) != null,
+    );
+  }
+
+  bool get canScan => _rfid.isSupported;
+
+  /// Opens a continuous read session. Each bracelet whose licence matches an
+  /// athlete of this course takes the next place, tie lock included — the same
+  /// procedure as a tap, which is the whole reason the lock is a mode rather
+  /// than a gesture.
+  void startScan() {
+    if (isScanning.value || isComplete) return;
+    isScanning.value = true;
+    _scanSub = _rfid.readBracelets().listen(
+      _onBracelet,
+      onError: (Object e) {
+        message.value = UiMessageError(
+          e is RfidException ? e.message : 'bracelet_unreadable',
+        );
+      },
+    );
+  }
+
+  void stopScan() {
+    _scanSub?.cancel();
+    _scanSub = null;
+    isScanning.value = false;
+  }
+
+  void _onBracelet(String payload) {
+    final licence = parseBraceletLicence(payload);
+    Athlete? match;
+    for (final athlete in athletes) {
+      if (athlete.licenseeNumber == licence) {
+        match = athlete;
+        break;
+      }
+    }
+    if (match == null) {
+      message.value = const UiMessageError('course_bracelet_not_in_race');
+      return;
+    }
+    assign(match);
+    // Nothing left to place: holding the hardware open would only invite a
+    // stray read.
+    if (isComplete) stopScan();
+  }
+
+  @override
+  void onClose() {
+    _scanSub?.cancel();
+    super.onClose();
+  }
 
   /// A race can be shared by two categories (Junior and Senior heats of the
   /// same 50m event), which produces two structures with the same [Race.id]
@@ -201,6 +322,7 @@ class RaceCourseController extends GetxController {
                             finishOrder: [
                               for (final group in finishOrder) [...group],
                             ],
+                            penalties: [...penalties],
                           )
                         else
                           stored,
