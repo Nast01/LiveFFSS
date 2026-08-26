@@ -5,6 +5,7 @@ import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
@@ -427,6 +428,8 @@ class _CourseTile extends StatelessWidget {
                   last: i == athletes.length - 1,
                   highlighted: controller.filter.value.isNotEmpty &&
                       controller.matchesFilter(athletes[i]),
+                  place: controller.placeIn(race, athletes[i]),
+                  penalty: controller.penaltyIn(race, athletes[i]),
                 ),
           ],
         ),
@@ -443,6 +446,8 @@ class _CompetitorRow extends StatelessWidget {
     required this.athlete,
     required this.last,
     required this.highlighted,
+    required this.place,
+    required this.penalty,
   });
 
   final Athlete athlete;
@@ -450,6 +455,12 @@ class _CompetitorRow extends StatelessWidget {
 
   /// Whether this is one of the athletes the filter went looking for.
   final bool highlighted;
+
+  /// The place this athlete took, null while the race has no result.
+  final int? place;
+
+  /// The withdrawal they carry, if any.
+  final CoursePenalty? penalty;
 
   @override
   Widget build(BuildContext context) {
@@ -469,10 +480,22 @@ class _CompetitorRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 30,
-            child: Text('—',
-                textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(
-                    fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+            child: Text(
+              switch (penalty?.kind) {
+                CoursePenaltyKind.forfeit => 'forfeit_short'.tr,
+                CoursePenaltyKind.disqualified => 'disqualified_short'.tr,
+                _ => place?.toString() ?? '—',
+              },
+              textAlign: TextAlign.center,
+              style: AppTypography.body.copyWith(
+                fontWeight: FontWeight.w800,
+                color: penalty != null
+                    ? AppColors.statusError
+                    : place != null
+                        ? AppColors.primary
+                        : AppColors.textMuted,
+              ),
+            ),
           ),
           const SizedBox(width: AppSpacing.sm),
           ClubAvatar(
@@ -505,9 +528,13 @@ class _CompetitorRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-          Text('—',
-              style:
-                  AppTypography.caption.copyWith(color: AppColors.textMuted)),
+          Text(
+            penalty?.code.isNotEmpty == true ? penalty!.code : '—',
+            style: AppTypography.caption.copyWith(
+                color: penalty?.code.isNotEmpty == true
+                    ? AppColors.statusError
+                    : AppColors.textMuted),
+          ),
         ],
       ),
     );

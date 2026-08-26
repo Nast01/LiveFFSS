@@ -6,6 +6,8 @@ import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/domain/models/course_penalty.dart';
+import 'package:live_ffss/app/domain/models/course_ranking.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
@@ -186,6 +188,20 @@ class RaceStructureController extends GetxController {
         for (final id in race.athleteIds)
           if (_athletesById[id] case final Athlete athlete) athlete,
       ];
+
+  /// The place this athlete took in a scored race, or null while it has no
+  /// result. Computed from the stored order by the same function the entry
+  /// screen uses — the two therefore cannot disagree about a ranking.
+  int? placeIn(ProgrammeRace race, Athlete athlete) =>
+      placesOf(race.finishOrder)[athlete.id];
+
+  /// The withdrawal this athlete carries in a scored race, if any.
+  CoursePenalty? penaltyIn(ProgrammeRace race, Athlete athlete) {
+    for (final penalty in race.penalties) {
+      if (penalty.athleteId == athlete.id) return penalty;
+    }
+    return null;
+  }
 
   /// Indexes the engaged athletes and resolves their clubs. Best-effort on the
   /// clubs: without them the rows still read, only the logos fall back to the

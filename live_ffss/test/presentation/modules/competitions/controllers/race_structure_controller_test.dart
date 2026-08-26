@@ -11,6 +11,7 @@ import 'package:live_ffss/app/domain/models/category.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
+import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
@@ -459,6 +460,61 @@ void main() {
       controller.setFilter('anything');
 
       expect(controller.isExpanded(s1), isTrue);
+    });
+  });
+
+  group('RaceStructureController results', () {
+    test('reads a place out of the stored order', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
+            entry(1, 7, athletes: [makeAthlete(31), makeAthlete(32)]),
+          ]);
+      await controller.load(race(500), competition);
+
+      const drawn = ProgrammeRace(
+        id: 1,
+        number: 1,
+        athleteIds: [31, 32],
+        finishOrder: [
+          [32],
+          [31],
+        ],
+      );
+
+      expect(controller.placeIn(drawn, makeAthlete(32)), 1);
+      expect(controller.placeIn(drawn, makeAthlete(31)), 2);
+    });
+
+    test('an unscored race gives no place', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      await controller.load(race(500), competition);
+
+      const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
+
+      expect(controller.placeIn(drawn, makeAthlete(31)), isNull);
+      expect(controller.penaltyIn(drawn, makeAthlete(31)), isNull);
+    });
+
+    test('reads a withdrawal and its code', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      await controller.load(race(500), competition);
+
+      const drawn = ProgrammeRace(
+        id: 1,
+        number: 1,
+        athleteIds: [31],
+        penalties: [
+          CoursePenalty(
+            athleteId: 31,
+            kind: CoursePenaltyKind.disqualified,
+            code: '4.7',
+          ),
+        ],
+      );
+
+      final penalty = controller.penaltyIn(drawn, makeAthlete(31));
+
+      expect(penalty?.kind, CoursePenaltyKind.disqualified);
+      expect(penalty?.code, '4.7');
     });
   });
 }
