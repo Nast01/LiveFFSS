@@ -180,6 +180,7 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
+
 @JsonSerializable(explicitToJson: true)
 class _$ProgrammeRaceImpl implements _ProgrammeRace {
   const _$ProgrammeRaceImpl(

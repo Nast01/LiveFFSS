@@ -1,3 +1,4 @@
+// ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 
@@ -6,6 +7,7 @@ part 'programme_race.g.dart';
 
 @freezed
 class ProgrammeRace with _$ProgrammeRace {
+  @JsonSerializable(explicitToJson: true)
   const factory ProgrammeRace({
     required int id,
     required int number,
