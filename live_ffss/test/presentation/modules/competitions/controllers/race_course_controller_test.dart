@@ -167,6 +167,51 @@ void main() {
 
   tearDown(Get.reset);
 
+  group('RaceCourseController.applyArguments', () {
+    test('parses every context field from the map', () {
+      final controller = RaceCourseController(
+        _FakeProgrammeService(
+            const CompetitionProgramme(competitionId: competitionId)),
+        raceRepo,
+        clubRepo,
+      );
+      controller.applyArguments({
+        'race': makeRace(),
+        'competition': makeCompetition(),
+        'categoryId': 7,
+        'categoryLabel': 'Cadets',
+        'roundType': RoundType.serie,
+        'raceNumber': 2,
+        'programmeRaceId': 11,
+      });
+
+      expect(controller.race.value?.id, raceId);
+      expect(controller.competition.value?.id, competitionId);
+      expect(controller.categoryId, 7);
+      expect(controller.categoryLabel, 'Cadets');
+      expect(controller.roundType, RoundType.serie);
+      expect(controller.raceNumber, 2);
+      expect(controller.programmeRaceId, 11);
+    });
+
+    test('leaves defaults on a non-map argument', () {
+      final controller = RaceCourseController(
+        _FakeProgrammeService(
+            const CompetitionProgramme(competitionId: competitionId)),
+        raceRepo,
+        clubRepo,
+      );
+      controller.applyArguments(null);
+
+      expect(controller.race.value, isNull);
+      expect(controller.categoryId, isNull);
+      expect(controller.categoryLabel, '');
+      expect(controller.roundType, RoundType.unknown);
+      expect(controller.raceNumber, 0);
+      expect(controller.programmeRaceId, isNull);
+    });
+  });
+
   group('RaceCourseController.load', () {
     test('lists the athletes the draw put in this race', () async {
       final c = await loadWith([10, 11, 12]);
