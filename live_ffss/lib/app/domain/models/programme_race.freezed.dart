@@ -28,7 +28,14 @@ mixin _$ProgrammeRace {
       throw _privateConstructorUsedError; // Athletes drawn into this race, in lane order — the position in the list
 // IS the lane, since coastal lanes are sequential. Empty until the heats
 // are drawn from the athletes marked present.
-  List<int> get athleteIds => throw _privateConstructorUsedError;
+  List<int> get athleteIds =>
+      throw _privateConstructorUsedError; // The order this race was crossed in — one entry per finishing group, a
+// group of several being a declared tie. Places are computed from this
+// and never stored: that is what makes a removal renumber for free.
+  List<List<int>> get finishOrder =>
+      throw _privateConstructorUsedError; // Athletes out of the ranking. They take no place, so the athletes after
+// them number as though they had not started.
+  List<CoursePenalty> get penalties => throw _privateConstructorUsedError;
 
   /// Serializes this ProgrammeRace to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -47,7 +54,12 @@ abstract class $ProgrammeRaceCopyWith<$Res> {
       _$ProgrammeRaceCopyWithImpl<$Res, ProgrammeRace>;
   @useResult
   $Res call(
-      {int id, int number, List<int> sourceRaceIds, List<int> athleteIds});
+      {int id,
+      int number,
+      List<int> sourceRaceIds,
+      List<int> athleteIds,
+      List<List<int>> finishOrder,
+      List<CoursePenalty> penalties});
 }
 
 /// @nodoc
@@ -69,6 +81,8 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
     Object? number = null,
     Object? sourceRaceIds = null,
     Object? athleteIds = null,
+    Object? finishOrder = null,
+    Object? penalties = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -87,6 +101,14 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
           ? _value.athleteIds
           : athleteIds // ignore: cast_nullable_to_non_nullable
               as List<int>,
+      finishOrder: null == finishOrder
+          ? _value.finishOrder
+          : finishOrder // ignore: cast_nullable_to_non_nullable
+              as List<List<int>>,
+      penalties: null == penalties
+          ? _value.penalties
+          : penalties // ignore: cast_nullable_to_non_nullable
+              as List<CoursePenalty>,
     ) as $Val);
   }
 }
@@ -100,7 +122,12 @@ abstract class _$$ProgrammeRaceImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int id, int number, List<int> sourceRaceIds, List<int> athleteIds});
+      {int id,
+      int number,
+      List<int> sourceRaceIds,
+      List<int> athleteIds,
+      List<List<int>> finishOrder,
+      List<CoursePenalty> penalties});
 }
 
 /// @nodoc
@@ -120,6 +147,8 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
     Object? number = null,
     Object? sourceRaceIds = null,
     Object? athleteIds = null,
+    Object? finishOrder = null,
+    Object? penalties = null,
   }) {
     return _then(_$ProgrammeRaceImpl(
       id: null == id
@@ -138,20 +167,32 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
           ? _value._athleteIds
           : athleteIds // ignore: cast_nullable_to_non_nullable
               as List<int>,
+      finishOrder: null == finishOrder
+          ? _value._finishOrder
+          : finishOrder // ignore: cast_nullable_to_non_nullable
+              as List<List<int>>,
+      penalties: null == penalties
+          ? _value._penalties
+          : penalties // ignore: cast_nullable_to_non_nullable
+              as List<CoursePenalty>,
     ));
   }
 }
 
 /// @nodoc
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$ProgrammeRaceImpl implements _ProgrammeRace {
   const _$ProgrammeRaceImpl(
       {required this.id,
       required this.number,
       final List<int> sourceRaceIds = const <int>[],
-      final List<int> athleteIds = const <int>[]})
+      final List<int> athleteIds = const <int>[],
+      final List<List<int>> finishOrder = const <List<int>>[],
+      final List<CoursePenalty> penalties = const <CoursePenalty>[]})
       : _sourceRaceIds = sourceRaceIds,
-        _athleteIds = athleteIds;
+        _athleteIds = athleteIds,
+        _finishOrder = finishOrder,
+        _penalties = penalties;
 
   factory _$ProgrammeRaceImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProgrammeRaceImplFromJson(json);
@@ -188,9 +229,37 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
     return EqualUnmodifiableListView(_athleteIds);
   }
 
+// The order this race was crossed in — one entry per finishing group, a
+// group of several being a declared tie. Places are computed from this
+// and never stored: that is what makes a removal renumber for free.
+  final List<List<int>> _finishOrder;
+// The order this race was crossed in — one entry per finishing group, a
+// group of several being a declared tie. Places are computed from this
+// and never stored: that is what makes a removal renumber for free.
+  @override
+  @JsonKey()
+  List<List<int>> get finishOrder {
+    if (_finishOrder is EqualUnmodifiableListView) return _finishOrder;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_finishOrder);
+  }
+
+// Athletes out of the ranking. They take no place, so the athletes after
+// them number as though they had not started.
+  final List<CoursePenalty> _penalties;
+// Athletes out of the ranking. They take no place, so the athletes after
+// them number as though they had not started.
+  @override
+  @JsonKey()
+  List<CoursePenalty> get penalties {
+    if (_penalties is EqualUnmodifiableListView) return _penalties;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_penalties);
+  }
+
   @override
   String toString() {
-    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds, athleteIds: $athleteIds)';
+    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds, athleteIds: $athleteIds, finishOrder: $finishOrder, penalties: $penalties)';
   }
 
   @override
@@ -203,7 +272,11 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
             const DeepCollectionEquality()
                 .equals(other._sourceRaceIds, _sourceRaceIds) &&
             const DeepCollectionEquality()
-                .equals(other._athleteIds, _athleteIds));
+                .equals(other._athleteIds, _athleteIds) &&
+            const DeepCollectionEquality()
+                .equals(other._finishOrder, _finishOrder) &&
+            const DeepCollectionEquality()
+                .equals(other._penalties, _penalties));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -213,7 +286,9 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
       id,
       number,
       const DeepCollectionEquality().hash(_sourceRaceIds),
-      const DeepCollectionEquality().hash(_athleteIds));
+      const DeepCollectionEquality().hash(_athleteIds),
+      const DeepCollectionEquality().hash(_finishOrder),
+      const DeepCollectionEquality().hash(_penalties));
 
   /// Create a copy of ProgrammeRace
   /// with the given fields replaced by the non-null parameter values.
@@ -236,7 +311,9 @@ abstract class _ProgrammeRace implements ProgrammeRace {
       {required final int id,
       required final int number,
       final List<int> sourceRaceIds,
-      final List<int> athleteIds}) = _$ProgrammeRaceImpl;
+      final List<int> athleteIds,
+      final List<List<int>> finishOrder,
+      final List<CoursePenalty> penalties}) = _$ProgrammeRaceImpl;
 
   factory _ProgrammeRace.fromJson(Map<String, dynamic> json) =
       _$ProgrammeRaceImpl.fromJson;
@@ -252,7 +329,16 @@ abstract class _ProgrammeRace implements ProgrammeRace {
 // IS the lane, since coastal lanes are sequential. Empty until the heats
 // are drawn from the athletes marked present.
   @override
-  List<int> get athleteIds;
+  List<int>
+      get athleteIds; // The order this race was crossed in — one entry per finishing group, a
+// group of several being a declared tie. Places are computed from this
+// and never stored: that is what makes a removal renumber for free.
+  @override
+  List<List<int>>
+      get finishOrder; // Athletes out of the ranking. They take no place, so the athletes after
+// them number as though they had not started.
+  @override
+  List<CoursePenalty> get penalties;
 
   /// Create a copy of ProgrammeRace
   /// with the given fields replaced by the non-null parameter values.
