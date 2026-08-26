@@ -455,6 +455,17 @@ void main() {
 
       expect(c.orderedAthletes.map((a) => a.id), [11, 10]);
     });
+
+    test('assigning a withdrawn athlete leaves the ranking untouched',
+        () async {
+      final c = await loadWith([10, 11]);
+      c.setPenalty(c.athletes[0], CoursePenaltyKind.disqualified, code: 'x');
+
+      c.assign(c.athletes[0]);
+
+      expect(c.finishOrder, isEmpty);
+      expect(c.message.value, isA<UiMessageError>());
+    });
   });
 
   group('RaceCourseController scanning', () {
@@ -506,6 +517,23 @@ void main() {
       await pumpEventQueue();
 
       expect(c.finishOrder, isEmpty);
+      expect(c.message.value, isA<UiMessageError>());
+      c.stopScan();
+    });
+
+    test(
+        'scanning a withdrawn athlete\'s bracelet reports and leaves everyone\'s place alone',
+        () async {
+      final c = await loadWith([10, 11, 12]);
+      c.assign(c.athletes[1]);
+      c.setPenalty(c.athletes[0], CoursePenaltyKind.forfeit);
+      c.startScan();
+
+      stream.add('L10;B10');
+      await pumpEventQueue();
+
+      expect(c.placeOf(c.athletes[0]), isNull);
+      expect(c.placeOf(c.athletes[1]), 1);
       expect(c.message.value, isA<UiMessageError>());
       c.stopScan();
     });

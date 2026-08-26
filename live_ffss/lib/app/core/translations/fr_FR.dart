@@ -364,6 +364,7 @@ final Map<String, String> frFR = {
   'heat_draw_distribution': 'Répartition par club',
   'heat_draw_no_club': 'Sans club',
   'course_bracelet_not_in_race': 'Ce bracelet n\'est pas de cette série',
+  'course_athlete_withdrawn': 'Cet athlète est forfait ou disqualifié',
   'course_title': 'Saisie des résultats',
   'course_next_place': 'Place suivante',
   'course_tie': 'ex-aequo',

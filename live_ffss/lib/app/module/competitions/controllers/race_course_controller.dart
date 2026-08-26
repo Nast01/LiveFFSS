@@ -172,6 +172,15 @@ class RaceCourseController extends GetxController {
   // withoutAthlete below builds a fresh list on every path, so remove() has
   // no such no-op branch to guard against.
   void assign(Athlete athlete) {
+    // A withdrawal takes no place: ranking a forfeit or a disqualification
+    // here would corrupt every place after it, exactly the invariant
+    // setPenalty protects when a ranked athlete is withdrawn. Reinstating is
+    // a deliberate act — clearPenalty, offered from the row menu — not
+    // something a scan should do as a side effect.
+    if (penaltyOf(athlete) != null) {
+      message.value = const UiMessageError('course_athlete_withdrawn');
+      return;
+    }
     finishOrder.value =
         withFinisher([...finishOrder], athlete.id, tied: tieLock.value);
     _persist();

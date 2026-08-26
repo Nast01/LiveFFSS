@@ -362,6 +362,7 @@ final Map<String, String> enUS = {
   'heat_draw_distribution': 'Club spread',
   'heat_draw_no_club': 'No club',
   'course_bracelet_not_in_race': 'That bracelet is not in this heat',
+  'course_athlete_withdrawn': 'That athlete is withdrawn',
   'course_title': 'Result entry',
   'course_next_place': 'Next place',
   'course_tie': 'tie',
