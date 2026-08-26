@@ -163,12 +163,15 @@ class RaceCourseController extends GetxController {
     ];
   }
 
+  // assign() and undo() pass a plain copy, never finishOrder itself: both
+  // withFinisher and withoutLastFinisher return their argument unchanged on a
+  // no-op path (nothing to rank again, nothing to undo). Handing back the
+  // RxList itself in that case would make finishOrder.value alias itself —
+  // GetX's dedup check compares the plain stored list against the RxList by
+  // identity and never catches it — and any later read recurses forever.
+  // withoutAthlete below builds a fresh list on every path, so remove() has
+  // no such no-op branch to guard against.
   void assign(Athlete athlete) {
-    // A plain copy, not the RxList itself: withFinisher returns its argument
-    // unchanged for an athlete already ranked (a bracelet read twice must not
-    // rank them twice), and handing back the RxList itself would make
-    // finishOrder.value alias itself — GetX's dedup check compares the plain
-    // stored list against the RxList by identity and never catches it.
     finishOrder.value =
         withFinisher([...finishOrder], athlete.id, tied: tieLock.value);
     _persist();
@@ -180,7 +183,7 @@ class RaceCourseController extends GetxController {
   }
 
   void undo() {
-    finishOrder.value = withoutLastFinisher(finishOrder);
+    finishOrder.value = withoutLastFinisher([...finishOrder]);
     _persist();
   }
 

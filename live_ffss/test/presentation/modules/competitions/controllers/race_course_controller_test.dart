@@ -280,6 +280,14 @@ void main() {
       expect(c.placeOf(c.athletes[0]), 1);
     });
 
+    test('undo on a freshly loaded course does nothing and does not throw',
+        () async {
+      final c = await loadWith([10, 11]);
+
+      expect(() => c.undo(), returnsNormally);
+      expect(c.finishOrder, isEmpty);
+    });
+
     test('removing an athlete renumbers the ones after', () async {
       final c = await loadWith([10, 11, 12]);
       c.assign(c.athletes[0]);
