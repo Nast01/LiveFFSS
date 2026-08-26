@@ -5,10 +5,15 @@ import 'package:live_ffss/app/domain/models/programme_race.dart';
 void main() {
   group('ProgrammeRace results', () {
     test('a race authored before results carries none', () {
-      const race = ProgrammeRace(id: 1, number: 1);
+      // A programme stored before this change has neither key; it must still
+      // load, with both fields empty rather than absent.
+      final restored = ProgrammeRace.fromJson(const {
+        'id': 1,
+        'number': 1,
+      });
 
-      expect(race.finishOrder, isEmpty);
-      expect(race.penalties, isEmpty);
+      expect(restored.finishOrder, isEmpty);
+      expect(restored.penalties, isEmpty);
     });
 
     test('a stored race round-trips its order and its penalties', () {
