@@ -300,5 +300,79 @@ void main() {
 
       expect(c.orderedAthletes.map((a) => a.id), [12, 10, 11]);
     });
+
+    test(
+        'persisting a result leaves a sibling structure for another category untouched',
+        () async {
+      // Two categories of the same event (Senior, Junior) share raceId and each
+      // carry their own structure — entering Senior's result must not disturb
+      // Junior's, which shares nothing but the race.
+      const otherCategoryId = 6;
+      const otherProgrammeRaceId = 88;
+      const initial = CompetitionProgramme(
+        competitionId: competitionId,
+        nextLocalId: 100,
+        structures: [
+          EventStructure(
+            raceId: raceId,
+            categoryId: categoryId,
+            raceLabel: 'Race',
+            categoryLabel: 'Senior',
+            levels: [
+              RoundLevel(
+                type: RoundType.serie,
+                races: [
+                  ProgrammeRace(
+                    id: programmeRaceId,
+                    number: 1,
+                    athleteIds: [10, 11],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          EventStructure(
+            raceId: raceId,
+            categoryId: otherCategoryId,
+            raceLabel: 'Race',
+            categoryLabel: 'Junior',
+            levels: [
+              RoundLevel(
+                type: RoundType.serie,
+                races: [
+                  ProgrammeRace(
+                    id: otherProgrammeRaceId,
+                    number: 1,
+                    athleteIds: [20, 21],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+      programme = _FakeProgrammeService(initial);
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            Entry(
+              id: 1,
+              category: const Category(id: categoryId, name: 'Senior'),
+              status: 1,
+              statusLabel: 'Engagé',
+              athletes: [athlete(10), athlete(11)],
+            ),
+          ]);
+      final c = RaceCourseController(programme, raceRepo, clubRepo)
+        ..applyArguments(arguments());
+      await c.load();
+
+      // Identity, not equality: a rebuilt-but-value-equal structure would pass
+      // an equality check and hide exactly the bug this guards against.
+      final juniorStructureBefore = programme.current.value!.structures[1];
+
+      c.assign(c.athletes.first);
+
+      final juniorStructureAfter = programme.current.value!.structures[1];
+      expect(identical(juniorStructureBefore, juniorStructureAfter), isTrue);
+    });
   });
 }

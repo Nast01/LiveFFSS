@@ -156,10 +156,19 @@ class RaceCourseController extends GetxController {
 
   void toggleTieLock() => tieLock.value = !tieLock.value;
 
+  /// A race can be shared by two categories (Junior and Senior heats of the
+  /// same 50m event), which produces two structures with the same [Race.id]
+  /// and different `categoryId`. Only "we know the category and it differs"
+  /// rules a structure out — an unset [categoryId] must not rule out every
+  /// structure and silently persist nothing.
+  bool _isOtherStructure(EventStructure structure) =>
+      structure.raceId != race.value?.id ||
+      (categoryId != null && structure.categoryId != categoryId);
+
   ProgrammeRace? _storedRace() {
     for (final structure
         in _programme.current.value?.structures ?? const <EventStructure>[]) {
-      if (structure.raceId != race.value?.id) continue;
+      if (_isOtherStructure(structure)) continue;
       for (final level in structure.levels) {
         for (final stored in level.races) {
           if (stored.id == programmeRaceId) return stored;
@@ -178,7 +187,7 @@ class RaceCourseController extends GetxController {
     _programme.save(current.copyWith(
       structures: [
         for (final structure in current.structures)
-          if (structure.raceId != race.value?.id)
+          if (_isOtherStructure(structure))
             structure
           else
             structure.copyWith(
