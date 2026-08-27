@@ -10,6 +10,7 @@ import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_structure_controller.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/course_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
@@ -362,15 +363,24 @@ class _CourseTile extends StatelessWidget {
           children: [
             InkWell(
               borderRadius: AppRadius.mdRadius,
-              onTap: () => Get.toNamed<void>(Routes.raceCourse, arguments: {
-                'race': controller.race.value,
-                'competition': controller.competition.value,
-                'categoryId': structure.categoryId,
-                'categoryLabel': structure.categoryLabel,
-                'roundType': level.type,
-                'raceNumber': race.number,
-                'programmeRaceId': race.id,
-              }),
+              onTap: () async {
+                await Get.toNamed<void>(Routes.raceCourse, arguments: {
+                  'race': controller.race.value,
+                  'competition': controller.competition.value,
+                  'categoryId': structure.categoryId,
+                  'categoryLabel': structure.categoryLabel,
+                  'roundType': level.type,
+                  'raceNumber': race.number,
+                  'programmeRaceId': race.id,
+                });
+                // The result screen writes into the same programme, so the
+                // structure shown here is stale on the way back.
+                final r = controller.race.value;
+                final competition = controller.competition.value;
+                if (r != null && competition != null) {
+                  await controller.load(r, competition);
+                }
+              },
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.sm, vertical: 10),
@@ -438,9 +448,9 @@ class _CourseTile extends StatelessWidget {
   }
 }
 
-/// One competitor of a drawn race. The left badge carries the finishing place
-/// and the right slot the mention (DQ, FF…); both are empty until results can
-/// be entered, and exist so that entry has somewhere to land.
+/// One competitor of a drawn race. The left badge shows the finishing place,
+/// or a mention (DQ, FF…) for a withdrawal; the right slot carries the
+/// disqualification code. Both stay blank until the race has been scored.
 class _CompetitorRow extends StatelessWidget {
   const _CompetitorRow({
     required this.athlete,
@@ -481,19 +491,11 @@ class _CompetitorRow extends StatelessWidget {
           SizedBox(
             width: 30,
             child: Text(
-              switch (penalty?.kind) {
-                CoursePenaltyKind.forfeit => 'forfeit_short'.tr,
-                CoursePenaltyKind.disqualified => 'disqualified_short'.tr,
-                _ => place?.toString() ?? '—',
-              },
+              courseBadgeLabel(place, penalty),
               textAlign: TextAlign.center,
               style: AppTypography.body.copyWith(
                 fontWeight: FontWeight.w800,
-                color: penalty != null
-                    ? AppColors.statusError
-                    : place != null
-                        ? AppColors.primary
-                        : AppColors.textMuted,
+                color: courseBadgeColor(place, penalty),
               ),
             ),
           ),

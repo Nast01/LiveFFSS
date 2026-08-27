@@ -7,6 +7,7 @@ import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_course_controller.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/course_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
@@ -263,16 +264,8 @@ class _CompetitorRow extends GetView<RaceCourseController> {
       final club = athlete.club?.name.isNotEmpty == true
           ? athlete.club!.name
           : athlete.clubLabel;
-      final badge = switch (penalty?.kind) {
-        CoursePenaltyKind.forfeit => 'forfeit_short'.tr,
-        CoursePenaltyKind.disqualified => 'disqualified_short'.tr,
-        _ => place?.toString() ?? '—',
-      };
-      final badgeColor = penalty != null
-          ? AppColors.statusError
-          : place != null
-              ? AppColors.primary
-              : AppColors.textMuted;
+      final badge = courseBadgeLabel(place, penalty);
+      final badgeColor = courseBadgeColor(place, penalty);
 
       return Container(
         margin: const EdgeInsets.only(bottom: AppSpacing.xs),

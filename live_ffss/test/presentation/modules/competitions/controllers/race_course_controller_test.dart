@@ -288,6 +288,20 @@ void main() {
       expect(c.finishOrder, isEmpty);
     });
 
+    test(
+        'assigning an already-ranked athlete again reports and does not '
+        're-persist', () async {
+      final c = await loadWith([10, 11]);
+      c.assign(c.athletes.first);
+
+      c.assign(c.athletes.first);
+
+      expect(c.finishOrder, [
+        [10],
+      ]);
+      expect(c.message.value, isA<UiMessageError>());
+    });
+
     test('removing an athlete renumbers the ones after', () async {
       final c = await loadWith([10, 11, 12]);
       c.assign(c.athletes[0]);
@@ -538,7 +552,8 @@ void main() {
       c.stopScan();
     });
 
-    test('a bracelet already ranked is not ranked twice', () async {
+    test('a bracelet already ranked is not ranked twice, and reports',
+        () async {
       final c = await loadWith([10, 11]);
       c.startScan();
       stream.add('L10;B10');
@@ -549,6 +564,9 @@ void main() {
       expect(c.finishOrder, [
         [10],
       ]);
+      // A re-read must be told apart from a good one: the operator has no
+      // other way to know the second scan changed nothing.
+      expect(c.message.value, isA<UiMessageError>());
       c.stopScan();
     });
 

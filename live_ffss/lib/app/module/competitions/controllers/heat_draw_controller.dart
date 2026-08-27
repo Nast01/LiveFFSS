@@ -371,6 +371,12 @@ class HeatDrawController extends GetxController {
             existing[i].copyWith(
               number: i + 1,
               athleteIds: [for (final a in heats[i]) a.id],
+              // A redraw invalidates any recorded result outright: the
+              // athletes who crossed the line no longer match who is seated
+              // here. The confirmation dialog above this call is what makes
+              // discarding it safe.
+              finishOrder: const [],
+              penalties: const [],
             )
           else
             ProgrammeRace(

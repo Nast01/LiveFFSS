@@ -89,6 +89,20 @@ void main() {
             [10],
           ]);
     });
+
+    test('the no-op path on an already-placed athlete returns a fresh list',
+        () {
+      // A caller that assigns the result straight back into the RxList it
+      // read this from must not have that RxList's value alias itself — which
+      // is exactly what handing back the argument unchanged would do.
+      const before = [
+        [10],
+      ];
+
+      final after = withFinisher(before, 10, tied: false);
+
+      expect(identical(after, before), isFalse);
+    });
   });
 
   group('withoutAthlete', () {
@@ -154,6 +168,14 @@ void main() {
 
     test('an untouched race has nothing to take back', () {
       expect(withoutLastFinisher(const []), isEmpty);
+    });
+
+    test('the no-op path on an empty order returns a fresh list', () {
+      const before = <List<int>>[];
+
+      final after = withoutLastFinisher(before);
+
+      expect(identical(after, before), isFalse);
     });
   });
 }

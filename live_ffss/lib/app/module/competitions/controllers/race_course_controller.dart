@@ -163,14 +163,6 @@ class RaceCourseController extends GetxController {
     ];
   }
 
-  // assign() and undo() pass a plain copy, never finishOrder itself: both
-  // withFinisher and withoutLastFinisher return their argument unchanged on a
-  // no-op path (nothing to rank again, nothing to undo). Handing back the
-  // RxList itself in that case would make finishOrder.value alias itself —
-  // GetX's dedup check compares the plain stored list against the RxList by
-  // identity and never catches it — and any later read recurses forever.
-  // withoutAthlete below builds a fresh list on every path, so remove() has
-  // no such no-op branch to guard against.
   void assign(Athlete athlete) {
     // A withdrawal takes no place: ranking a forfeit or a disqualification
     // here would corrupt every place after it, exactly the invariant
@@ -181,8 +173,15 @@ class RaceCourseController extends GetxController {
       message.value = const UiMessageError('course_athlete_withdrawn');
       return;
     }
+    // A bracelet read twice, or a row tapped twice, must report rather than
+    // silently re-persist the same order — the operator has no other way to
+    // tell a good read from a duplicate.
+    if (placeOf(athlete) != null) {
+      message.value = const UiMessageError('course_athlete_already_ranked');
+      return;
+    }
     finishOrder.value =
-        withFinisher([...finishOrder], athlete.id, tied: tieLock.value);
+        withFinisher(finishOrder, athlete.id, tied: tieLock.value);
     _persist();
   }
 
@@ -192,7 +191,7 @@ class RaceCourseController extends GetxController {
   }
 
   void undo() {
-    finishOrder.value = withoutLastFinisher([...finishOrder]);
+    finishOrder.value = withoutLastFinisher(finishOrder);
     _persist();
   }
 
@@ -314,10 +313,13 @@ class RaceCourseController extends GetxController {
   /// Writes the order back into the programme. Not awaited: entering a result
   /// must feel instant, and there is no Save button to fall back on — a marshal
   /// does not save, and losing a session's entries is not a trade worth making.
+  /// A failure is still surfaced, just asynchronously: silence here would mean
+  /// the operator has no way to know the entry they just made never landed.
   void _persist() {
     final current = _programme.current.value;
     if (current == null || programmeRaceId == null) return;
-    _programme.save(current.copyWith(
+    _programme
+        .save(current.copyWith(
       structures: [
         for (final structure in current.structures)
           if (_isOtherStructure(structure))
@@ -343,6 +345,12 @@ class RaceCourseController extends GetxController {
               ],
             ),
       ],
-    ));
+    ))
+        // ProgrammeService.save() writes through FlutterSecureStorage, which
+        // throws a PlatformException — not an AppException — on failure; that
+        // is the type this actually has to catch.
+        .catchError((Object _) {
+      message.value = const UiMessageError('course_save_failed');
+    });
   }
 }

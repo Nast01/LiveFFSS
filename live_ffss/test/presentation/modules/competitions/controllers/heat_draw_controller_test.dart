@@ -13,6 +13,7 @@ import 'package:live_ffss/app/domain/models/category.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
+import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
@@ -561,6 +562,34 @@ void main() {
       final controller = await drawn(4);
 
       expect(controller.hasExistingComposition, isFalse);
+    });
+
+    test('a redraw clears the finishOrder and penalties of the race it reuses',
+        () async {
+      final controller = await drawn(
+        4,
+        levels: const [
+          RoundLevel(type: RoundType.serie, races: [
+            ProgrammeRace(
+              id: 1,
+              number: 1,
+              athleteIds: [99],
+              finishOrder: [
+                [99],
+              ],
+              penalties: [
+                CoursePenalty(athleteId: 99, kind: CoursePenaltyKind.forfeit),
+              ],
+            ),
+          ]),
+        ],
+      );
+
+      await controller.save();
+
+      final reused = savedRaces(RoundType.serie).first;
+      expect(reused.finishOrder, isEmpty);
+      expect(reused.penalties, isEmpty);
     });
 
     test('saving without a draw writes nothing', () async {
