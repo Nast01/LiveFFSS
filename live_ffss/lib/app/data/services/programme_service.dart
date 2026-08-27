@@ -30,11 +30,26 @@ class ProgrammeService extends GetxService {
 
   Future<void> _enqueue(Future<void> Function() op) {
     final waitFor = _current;
-    final future = waitFor == null ? op() : waitFor.then((_) => op());
+    // The queue's contract is ordering, not success: a predecessor's error
+    // is swallowed here only to keep the chain moving on to `op()` — it must
+    // not skip this call's own storage access, or a failed save() would
+    // silently take the save() queued behind it down with it. This call's
+    // own outcome is untouched: `future` still rejects if `op()` itself
+    // fails, which is what `_persist()`'s `.catchError` reports.
+    final future = waitFor == null
+        ? op()
+        : waitFor.then((_) => op(), onError: (_) => op());
     _current = future;
-    future.whenComplete(() {
+    // Clears the slot on either outcome. Attached with onError rather than
+    // whenComplete: whenComplete's returned future still carries `future`'s
+    // own error onward, and with nothing listening to that wrapper, a
+    // rejected `future` would leak as an unhandled async error on top of the
+    // one the caller already sees through the returned `future` itself.
+    void clearIfCurrent() {
       if (identical(_current, future)) _current = null;
-    });
+    }
+
+    future.then((_) => clearIfCurrent(), onError: (_) => clearIfCurrent());
     return future;
   }
 

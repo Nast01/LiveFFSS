@@ -26,8 +26,8 @@ void main() {
 
       await service.load(42);
 
-      expect(service.current.value,
-          const CompetitionProgramme(competitionId: 42));
+      expect(
+          service.current.value, const CompetitionProgramme(competitionId: 42));
     });
 
     test('decodes an existing programme', () async {
@@ -46,23 +46,54 @@ void main() {
 
       await service.load(42);
 
-      expect(service.current.value,
-          const CompetitionProgramme(competitionId: 42));
+      expect(
+          service.current.value, const CompetitionProgramme(competitionId: 42));
     });
   });
 
   group('save', () {
     test('writes the JSON and updates current', () async {
-      when(() => storage.write(
-          key: any(named: 'key'),
-          value: any(named: 'value'))).thenAnswer((_) async {});
+      when(() =>
+              storage.write(key: any(named: 'key'), value: any(named: 'value')))
+          .thenAnswer((_) async {});
       const p = CompetitionProgramme(competitionId: 42, nextLocalId: 3);
 
       await service.save(p);
 
       expect(service.current.value, p);
-      verify(() => storage.write(
-          key: 'programme_42', value: jsonEncode(p.toJson()))).called(1);
+      verify(() =>
+              storage.write(key: 'programme_42', value: jsonEncode(p.toJson())))
+          .called(1);
+    });
+  });
+
+  group('queued saves', () {
+    test(
+        'a failed write does not skip the write queued behind it, and each '
+        'call reports its own outcome', () async {
+      var writes = 0;
+      String? lastValue;
+      when(() =>
+              storage.write(key: any(named: 'key'), value: any(named: 'value')))
+          .thenAnswer((invocation) async {
+        writes++;
+        lastValue = invocation.namedArguments[#value] as String;
+        // Only the first write fails — the second must still reach storage
+        // rather than being skipped because the one ahead of it in the
+        // queue rejected.
+        if (writes == 1) throw Exception('disk full');
+      });
+      const a = CompetitionProgramme(competitionId: 42, nextLocalId: 1);
+      const b = CompetitionProgramme(competitionId: 42, nextLocalId: 2);
+
+      final first = service.save(a);
+      final second = service.save(b);
+
+      await expectLater(first, throwsException);
+      await second;
+
+      expect(writes, 2);
+      expect(lastValue, jsonEncode(b.toJson()));
     });
   });
 
