@@ -690,6 +690,8 @@ void main() {
             categoryLabel: r.categoryLabel,
             gender: r.gender,
             disciplineId: r.disciplineId,
+            specialityId: r.specialityId,
+            specialityLabel: r.specialityLabel,
             entryCount: r.entryCount,
             structure: r.structure,
             defaultSpotsPerRace: r.defaultSpotsPerRace,
@@ -822,6 +824,279 @@ void main() {
 
       await controller.deleteAllStructures();
       expect(controller.hasAnyStructure, isFalse);
+    });
+  });
+
+  group('filtering the overview', () {
+    /// Four rows spanning two spécialités, two épreuves, two genders and two
+    /// categories — enough for every combination the filter bar offers.
+    Race raceOf(
+      int id,
+      String name,
+      int disciplineId,
+      int specialityId,
+      String specialityLabel,
+      Gender gender,
+      List<Category> cats,
+    ) =>
+        Race(
+          id: id,
+          name: name,
+          nameEnglish: name,
+          distance: 100,
+          gender: gender,
+          athletesPerTeam: 1,
+          specialityId: specialityId,
+          specialityLabel: specialityLabel,
+          disciplineId: disciplineId,
+          isEligibleToNationalRecord: false,
+          categories: cats,
+        );
+
+    final swimMen =
+        raceOf(100, 'Nage', 8, 1, 'Eau plate', Gender.male, [cadets, juniors]);
+    final swimWomen =
+        raceOf(101, 'Nage', 8, 1, 'Eau plate', Gender.female, [cadets]);
+    final boardMen =
+        raceOf(102, 'Planche', 13, 2, 'Côtier', Gender.male, [juniors]);
+
+    Future<void> loadRaces(List<Race> races) async {
+      when(() => raceRepo.getRaces(42)).thenAnswer((_) async => races);
+      for (final r in races) {
+        when(() => raceRepo.getEntries(r.id)).thenAnswer(
+          (_) async => [for (final c in r.categories) entry(1, r.id, c)],
+        );
+      }
+      controller.onInit();
+      await controller.load(competition);
+    }
+
+    Future<void> loadAll() => loadRaces([swimMen, swimWomen, boardMen]);
+
+    /// A row is identified by its (épreuve, catégorie) pair in these tests.
+    List<(int, int)> visibleKeys() =>
+        [for (final r in controller.visibleRows) (r.raceId, r.categoryId)];
+
+    test('rows carry the spéciality of their épreuve', () async {
+      await loadAll();
+
+      final board = controller.rows.firstWhere((r) => r.raceId == 102);
+      expect(board.specialityId, 2);
+      expect(board.specialityLabel, 'Côtier');
+    });
+
+    test('with no filter every row is visible', () async {
+      await loadAll();
+
+      expect(controller.visibleRows, hasLength(4));
+      expect(controller.hasActiveFilters, isFalse);
+    });
+
+    test('one gender keeps only the épreuves run in that gender', () async {
+      await loadAll();
+
+      controller.toggle(StructureFilter.gender, Gender.female);
+
+      expect(visibleKeys(), [(101, 7)]);
+      expect(controller.hasActiveFilters, isTrue);
+    });
+
+    test('two values of one criterion are ORed together', () async {
+      await loadAll();
+
+      controller.toggle(StructureFilter.gender, Gender.female);
+      controller.toggle(StructureFilter.gender, Gender.male);
+
+      expect(controller.visibleRows, hasLength(4));
+    });
+
+    test('two criteria are ANDed together', () async {
+      await loadAll();
+
+      controller.toggle(StructureFilter.discipline, 8);
+      controller.toggle(StructureFilter.category, 8); // Juniors
+
+      expect(visibleKeys(), [(100, 8)]);
+    });
+
+    test('the spéciality filter separates coastal from pool', () async {
+      await loadAll();
+
+      controller.toggle(StructureFilter.speciality, 2);
+
+      expect(visibleKeys(), [(102, 8)]);
+    });
+
+    test('toggling a value twice removes it again', () async {
+      await loadAll();
+
+      controller.toggle(StructureFilter.gender, Gender.female);
+      controller.toggle(StructureFilter.gender, Gender.female);
+
+      expect(controller.visibleRows, hasLength(4));
+      expect(controller.hasActiveFilters, isFalse);
+    });
+
+    test('clear drops one criterion, clearFilters drops them all', () async {
+      await loadAll();
+      controller.toggle(StructureFilter.gender, Gender.female);
+      controller.toggle(StructureFilter.speciality, 1);
+
+      controller.clear(StructureFilter.gender);
+      expect(controller.selectedCount(StructureFilter.gender), 0);
+      expect(controller.selectedCount(StructureFilter.speciality), 1);
+
+      controller.clearFilters();
+      expect(controller.hasActiveFilters, isFalse);
+      expect(controller.visibleRows, hasLength(4));
+    });
+
+    test('options are the distinct values of the loaded rows', () async {
+      await loadAll();
+
+      expect(
+        controller.optionsFor(StructureFilter.speciality).map((o) => o.label),
+        ['Côtier', 'Eau plate'],
+      );
+      expect(
+        controller.optionsFor(StructureFilter.discipline).map((o) => o.label),
+        ['Nage', 'Planche'],
+      );
+      expect(
+        controller.optionsFor(StructureFilter.category).map((o) => o.label),
+        ['Cadets', 'Juniors'],
+      );
+      expect(
+        controller.optionsFor(StructureFilter.gender).map((o) => o.value),
+        [Gender.male, Gender.female],
+      );
+    });
+
+    test('a selection whose value vanished from the programme is dropped',
+        () async {
+      await loadAll();
+      controller.toggle(StructureFilter.speciality, 2); // Côtier
+      expect(controller.visibleRows, hasLength(1));
+
+      // The coastal épreuve is gone from the server: keeping the selection
+      // would leave the operator staring at an empty list with no obvious way
+      // back.
+      when(() => raceRepo.getRaces(42))
+          .thenAnswer((_) async => [swimMen, swimWomen]);
+      await controller.reload();
+
+      expect(controller.selectedCount(StructureFilter.speciality), 0);
+      expect(controller.visibleRows, hasLength(3));
+    });
+
+    group('bulk actions follow the filter', () {
+      test('generateAllDefaults only fills the visible rows', () async {
+        await loadAll();
+        controller.toggle(StructureFilter.speciality, 2); // Côtier
+
+        await controller.generateAllDefaults();
+
+        final structures = service.current.value!.structures;
+        expect(structures, hasLength(1));
+        expect(structures.single.raceId, 102);
+      });
+
+      test('deleteAllStructures spares the rows the filter hides', () async {
+        await loadAll();
+        await controller.generateAllDefaults();
+        expect(service.current.value!.structures, hasLength(4));
+
+        controller.toggle(StructureFilter.speciality, 2); // Côtier
+        await controller.deleteAllStructures();
+
+        final kept = service.current.value!.structures;
+        expect(kept, hasLength(3));
+        expect(kept.every((s) => s.raceId != 102), isTrue);
+      });
+
+      test('deleteAllStructures writes nothing when no visible row has one',
+          () async {
+        await loadAll();
+        controller.toggle(StructureFilter.speciality, 1); // Eau plate
+        await controller.generateAllDefaults();
+        clearInteractions(storage);
+
+        controller.clear(StructureFilter.speciality);
+        controller.toggle(StructureFilter.speciality, 2); // Côtier
+        expect(controller.hasAnyStructure, isFalse);
+        await controller.deleteAllStructures();
+
+        verifyNever(() =>
+            storage.write(key: 'programme_42', value: any(named: 'value')));
+      });
+
+      test('generatableCount counts the visible rows that would gain one',
+          () async {
+        await loadAll();
+        expect(controller.generatableCount, 4);
+
+        controller.toggle(StructureFilter.speciality, 2); // Côtier
+        expect(controller.generatableCount, 1);
+
+        await controller.generateAllDefaults();
+        expect(controller.generatableCount, 0);
+      });
+
+      test('deletableCount counts the visible rows that would lose one',
+          () async {
+        await loadAll();
+        expect(controller.deletableCount, 0);
+
+        await controller.generateAllDefaults();
+        expect(controller.deletableCount, 4);
+
+        controller.toggle(StructureFilter.speciality, 2); // Côtier
+        expect(controller.deletableCount, 1);
+      });
+
+      test('missingRaceFormatCount counts the visible rows only', () async {
+        await loadAll();
+        expect(controller.missingRaceFormatCount, 4);
+
+        controller.toggle(StructureFilter.speciality, 2);
+
+        expect(controller.missingRaceFormatCount, 1);
+      });
+
+      test(
+          'a filtered submission still carries every category of the '
+          'discipline × gender', () async {
+        // A déroulement spans all the categories of its (discipline, gender);
+        // submitting only the visible ones would amputate it server-side.
+        await loadAll();
+        when(() => raceFormatRepo.submitRaceFormat(
+              competitionId: any(named: 'competitionId'),
+              disciplineId: any(named: 'disciplineId'),
+              gender: any(named: 'gender'),
+              categoryIds: any(named: 'categoryIds'),
+              id: any(named: 'id'),
+            )).thenAnswer((_) async => 366);
+
+        controller.toggle(StructureFilter.category, 7); // Cadets only
+        await controller.createMissingRaceFormats();
+
+        final calls = verify(() => raceFormatRepo.submitRaceFormat(
+              competitionId: any(named: 'competitionId'),
+              disciplineId: captureAny(named: 'disciplineId'),
+              gender: captureAny(named: 'gender'),
+              categoryIds: captureAny(named: 'categoryIds'),
+              id: any(named: 'id'),
+            )).captured;
+        // Only the two groups holding a Cadets row are submitted — the coastal
+        // one is filtered out — but the men's swim group carries Juniors too.
+        expect(calls, hasLength(6));
+        expect(calls[0], 8);
+        expect(calls[1], 'H');
+        expect(calls[2], [7, 8]);
+        expect(calls[3], 8);
+        expect(calls[4], 'F');
+        expect(calls[5], [7]);
+      });
     });
   });
 }

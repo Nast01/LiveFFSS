@@ -280,6 +280,18 @@ final Map<String, String> enUS = {
   'round_finale': 'Final',
   'round_unknown': 'Round',
   'no_structures': 'No event to structure',
+  'filter_speciality': 'Speciality',
+  'filter_discipline': 'Discipline',
+  'filter_gender': 'Gender',
+  'filter_category': 'Category',
+  'filter_clear': 'Clear',
+  'filter_visible_count': '@visible / @total',
+  'no_structures_for_filters': 'No event matches the filters',
+  'generate_default_visible': 'Generate (@count)',
+  'delete_visible': 'Delete (@count)',
+  'delete_visible_structures_title': 'Delete the @count structures shown?',
+  'delete_visible_structures_body':
+      'The levels, races and any heats already drawn for the @count events shown will be lost. Events hidden by the filters are left untouched.',
 
   // Programme scheduling
   'sites': 'Sites',

@@ -7,6 +7,7 @@ import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
 import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
+import 'package:live_ffss/app/module/programme/views/structure_filter_bar.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
@@ -65,6 +66,8 @@ class _StructureOverviewViewState extends State<StructureOverviewView> {
           title: 'no_structures'.tr,
         );
       }
+      final filtered = controller.hasActiveFilters;
+      final visible = controller.visibleRows;
       return Column(
         children: [
           Padding(
@@ -78,9 +81,16 @@ class _StructureOverviewViewState extends State<StructureOverviewView> {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: controller.generateAllDefaults,
+                    onPressed: controller.generatableCount > 0
+                        ? controller.generateAllDefaults
+                        : null,
                     icon: const Icon(Icons.bolt),
-                    label: Text('generate_default_all'.tr),
+                    label: Text(
+                      filtered
+                          ? 'generate_default_visible'.trParams(
+                              {'count': '${controller.generatableCount}'})
+                          : 'generate_default_all'.tr,
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -92,11 +102,17 @@ class _StructureOverviewViewState extends State<StructureOverviewView> {
                     foregroundColor: AppColors.statusError,
                   ),
                   icon: const Icon(Icons.delete_outline),
-                  label: Text('delete_all'.tr),
+                  label: Text(
+                    filtered
+                        ? 'delete_visible'
+                            .trParams({'count': '${controller.deletableCount}'})
+                        : 'delete_all'.tr,
+                  ),
                 ),
               ],
             ),
           ),
+          const StructureFilterBar(),
           if (controller.missingRaceFormatCount > 0)
             Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -122,26 +138,59 @@ class _StructureOverviewViewState extends State<StructureOverviewView> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: controller.reload,
-              child: ListView.separated(
-                // Without this a short list cannot overscroll, so the pull
-                // gesture would never fire.
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.sm,
-                  AppSpacing.xs,
-                  AppSpacing.sm,
-                  AppSpacing.lg,
-                ),
-                itemCount: controller.rows.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: AppSpacing.sm),
-                itemBuilder: (_, i) => _OverviewCard(row: controller.rows[i]),
-              ),
+              child: visible.isEmpty
+                  ? _NoMatch(onReset: controller.clearFilters)
+                  : ListView.separated(
+                      // Without this a short list cannot overscroll, so the
+                      // pull gesture would never fire.
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.sm,
+                        AppSpacing.xs,
+                        AppSpacing.sm,
+                        AppSpacing.lg,
+                      ),
+                      itemCount: visible.length,
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(height: AppSpacing.sm),
+                      itemBuilder: (_, i) => _OverviewCard(row: visible[i]),
+                    ),
             ),
           ),
         ],
       );
     });
+  }
+}
+
+/// Shown when the filters hide every row. Scrollable so the pull-to-refresh
+/// wrapping it still fires, and it carries the way out of the filters — a dead
+/// end whose only escape is the chips above it reads as a broken list.
+class _NoMatch extends StatelessWidget {
+  const _NoMatch({required this.onReset});
+
+  final VoidCallback onReset;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      children: [
+        EmptyState(
+          icon: Icons.filter_alt_off_outlined,
+          title: 'no_structures_for_filters'.tr,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Center(
+          child: TextButton.icon(
+            onPressed: onReset,
+            icon: const Icon(Icons.filter_alt_off_outlined),
+            label: Text('reset_filters'.tr),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -204,10 +253,17 @@ Future<void> _confirmDeleteAll(
   BuildContext context,
   ProgrammeController controller,
 ) async {
+  // Under a filter the action no longer means "everything", so the wording
+  // says how many rows it takes and that the hidden ones are spared.
+  final count = '${controller.deletableCount}';
   final ok = await _confirm(
     context,
-    title: 'delete_all_structures_title'.tr,
-    body: 'delete_structures_body'.tr,
+    title: controller.hasActiveFilters
+        ? 'delete_visible_structures_title'.trParams({'count': count})
+        : 'delete_all_structures_title'.tr,
+    body: controller.hasActiveFilters
+        ? 'delete_visible_structures_body'.trParams({'count': count})
+        : 'delete_structures_body'.tr,
   );
   if (ok) await controller.deleteAllStructures();
 }

@@ -15,6 +15,23 @@ import 'package:live_ffss/app/domain/models/structure_generator.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
+/// The four criteria the structure overview can be narrowed by. The view
+/// renders one chip per arm, so a new criterion costs a single enum value.
+enum StructureFilter { speciality, discipline, gender, category }
+
+/// One selectable value of a criterion: what rows are matched on, and how to
+/// name it in the selection sheet.
+///
+/// [value] is an id for every criterion but the gender, whose rows are matched
+/// on the [Gender] itself — and whose [label] is left empty, since naming a
+/// gender needs `.tr`, which belongs to the view.
+class FilterOption {
+  const FilterOption(this.value, this.label);
+
+  final Object value;
+  final String label;
+}
+
 /// One line of the structure overview: an épreuve × category, its entry count,
 /// and the structure defined for it (null if none yet).
 class OverviewRow {
@@ -25,6 +42,8 @@ class OverviewRow {
     required this.categoryLabel,
     required this.gender,
     required this.disciplineId,
+    required this.specialityId,
+    required this.specialityLabel,
     required this.entryCount,
     required this.structure,
     required this.defaultSpotsPerRace,
@@ -36,6 +55,11 @@ class OverviewRow {
   final String raceLabel;
   final String categoryLabel;
   final Gender gender;
+
+  /// Eau plate or Côtier, carried per row rather than per competition: a
+  /// programme can mix both, and the filter bar separates them.
+  final int specialityId;
+  final String specialityLabel;
 
   /// With [gender], identifies the déroulement this row belongs to — that pair
   /// is what `deroulement/submit` takes, not a race id.
@@ -102,6 +126,92 @@ class ProgrammeController extends GetxController {
 
   void changeTab(int index) => currentTabIndex.value = index;
 
+  /// Values ticked per criterion. Empty means "no restriction", which is why
+  /// nothing here needs an explicit "all" arm.
+  final Map<StructureFilter, RxSet<Object>> _filters = {
+    for (final filter in StructureFilter.values) filter: <Object>{}.obs,
+  };
+
+  /// The rows the active filters leave: ANDed across criteria, ORed inside one.
+  /// Everything the operator acts on — the list, the counters, the bulk
+  /// actions — goes through here, so the filter is never a mere display trick.
+  List<OverviewRow> get visibleRows => rows.where(_matches).toList();
+
+  bool _matches(OverviewRow row) =>
+      _passes(StructureFilter.speciality, row.specialityId) &&
+      _passes(StructureFilter.discipline, row.disciplineId) &&
+      _passes(StructureFilter.gender, row.gender) &&
+      _passes(StructureFilter.category, row.categoryId);
+
+  bool _passes(StructureFilter filter, Object value) {
+    final selected = _filters[filter]!;
+    return selected.isEmpty || selected.contains(value);
+  }
+
+  bool get hasActiveFilters =>
+      _filters.values.any((selected) => selected.isNotEmpty);
+
+  int selectedCount(StructureFilter filter) => _filters[filter]!.length;
+
+  bool isSelected(StructureFilter filter, Object value) =>
+      _filters[filter]!.contains(value);
+
+  void toggle(StructureFilter filter, Object value) {
+    final selected = _filters[filter]!;
+    if (!selected.remove(value)) selected.add(value);
+  }
+
+  void clear(StructureFilter filter) => _filters[filter]!.clear();
+
+  void clearFilters() {
+    for (final selected in _filters.values) {
+      selected.clear();
+    }
+  }
+
+  /// The values [filter] can take, distinct and drawn from the loaded rows, so
+  /// the sheet never offers a choice that would empty the list.
+  List<FilterOption> optionsFor(StructureFilter filter) {
+    final labelByValue = <Object, String>{};
+    for (final row in rows) {
+      switch (filter) {
+        case StructureFilter.speciality:
+          labelByValue[row.specialityId] = row.specialityLabel;
+        case StructureFilter.discipline:
+          labelByValue[row.disciplineId] = row.raceLabel;
+        case StructureFilter.gender:
+          labelByValue[row.gender] = '';
+        case StructureFilter.category:
+          labelByValue[row.categoryId] = row.categoryLabel;
+      }
+    }
+    final options = [
+      for (final entry in labelByValue.entries)
+        FilterOption(entry.key, entry.value),
+    ];
+    if (filter == StructureFilter.gender) {
+      // Genders carry no label here — the view translates them — so they sort
+      // on the enum, which already reads men, women, mixed.
+      options.sort((a, b) =>
+          (a.value as Gender).index.compareTo((b.value as Gender).index));
+    } else {
+      options.sort((a, b) => a.label.compareTo(b.label));
+    }
+    return options;
+  }
+
+  /// Drops ticked values that no longer exist in [rows]. Without this, an
+  /// épreuve the server stopped returning would leave the operator on an empty
+  /// list with nothing left to un-tick.
+  void _pruneFilters() {
+    for (final filter in StructureFilter.values) {
+      final selected = _filters[filter]!;
+      if (selected.isEmpty) continue;
+      final available = {for (final o in optionsFor(filter)) o.value};
+      selected.removeWhere((value) => !available.contains(value));
+    }
+  }
+
   /// [silent] keeps [isLoading] down so the list stays on screen — a
   /// pull-to-refresh that swapped the rows for a spinner would yank the
   /// indicator out from under the finger.
@@ -128,6 +238,8 @@ class ProgrammeController extends GetxController {
             categoryLabel: category.name,
             gender: race.gender,
             disciplineId: race.disciplineId,
+            specialityId: race.specialityId,
+            specialityLabel: race.specialityLabel,
             entryCount: count,
             structure: _structureFor(race.id, category.id),
             defaultSpotsPerRace: race.defaultSpotsPerRace,
@@ -136,6 +248,7 @@ class ProgrammeController extends GetxController {
         }
       }
       rows.value = built;
+      _pruneFilters();
       await _adoptServerRoundsForEmptyStructures();
     } on AppException {
       hasError.value = true;
@@ -152,12 +265,12 @@ class ProgrammeController extends GetxController {
     await load(comp, silent: true);
   }
 
-  /// Applies the default structure to every row that has entries but no
-  /// structure yet, and persists all of them in one save. The heat size comes
-  /// from the race speciality — 16 coastal, 8 pool.
+  /// Applies the default structure to every visible row that has entries but
+  /// no structure yet, and persists all of them in one save. The heat size
+  /// comes from the race speciality — 16 coastal, 8 pool.
   Future<void> generateAllDefaults() async {
     final toAdd = <EventStructure>[];
-    for (final row in rows) {
+    for (final row in visibleRows) {
       if (row.structure != null || row.entryCount <= 0) continue;
       toAdd.add(EventStructure(
         raceId: row.raceId,
@@ -251,9 +364,9 @@ class ProgrammeController extends GetxController {
     );
   }
 
-  /// Rows for which FFSS holds no déroulement yet.
+  /// Visible rows for which FFSS holds no déroulement yet.
   List<OverviewRow> get rowsWithoutRaceFormat =>
-      rows.where((r) => !r.hasRaceFormat).toList();
+      visibleRows.where((r) => !r.hasRaceFormat).toList();
 
   int get missingRaceFormatCount => rowsWithoutRaceFormat.length;
 
@@ -323,8 +436,15 @@ class ProgrammeController extends GetxController {
     await load(comp);
   }
 
-  bool get hasAnyStructure =>
-      (_programme.current.value?.structures ?? const []).isNotEmpty;
+  /// What the two bulk actions would touch, so their labels can say it rather
+  /// than leaving the operator to count the rows on screen.
+  int get generatableCount =>
+      visibleRows.where((r) => r.structure == null && r.entryCount > 0).length;
+
+  int get deletableCount =>
+      visibleRows.where((r) => r.structure != null).length;
+
+  bool get hasAnyStructure => deletableCount > 0;
 
   /// Drops the structure of one épreuve × category. Also destroys the heats
   /// drawn into its races — the view confirms before calling this.
@@ -338,13 +458,18 @@ class ProgrammeController extends GetxController {
     await _programme.save(current.copyWith(structures: kept));
   }
 
-  /// Drops every structure of the competition, heats included. The sites,
+  /// Drops the structures of every visible row, heats included. The sites,
   /// schedule blocks and day starts are left alone — they are not part of the
-  /// structure tree.
+  /// structure tree, and neither is anything the filter currently hides.
   Future<void> deleteAllStructures() async {
     final current = _programme.current.value;
     if (current == null || current.structures.isEmpty) return;
-    await _programme.save(current.copyWith(structures: const []));
+    final visible = {for (final r in visibleRows) (r.raceId, r.categoryId)};
+    final kept = current.structures
+        .where((s) => !visible.contains((s.raceId, s.categoryId)))
+        .toList();
+    if (kept.length == current.structures.length) return;
+    await _programme.save(current.copyWith(structures: kept));
   }
 
   EventStructure? _structureFor(int raceId, int categoryId) {
@@ -369,6 +494,8 @@ class ProgrammeController extends GetxController {
           categoryLabel: row.categoryLabel,
           gender: row.gender,
           disciplineId: row.disciplineId,
+          specialityId: row.specialityId,
+          specialityLabel: row.specialityLabel,
           entryCount: row.entryCount,
           structure: _structureFor(row.raceId, row.categoryId),
           defaultSpotsPerRace: row.defaultSpotsPerRace,

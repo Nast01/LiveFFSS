@@ -282,6 +282,19 @@ final Map<String, String> frFR = {
   'round_finale': 'Finale',
   'round_unknown': 'Tour',
   'no_structures': 'Aucune épreuve à structurer',
+  'filter_speciality': 'Spécialité',
+  'filter_discipline': 'Discipline',
+  'filter_gender': 'Genre',
+  'filter_category': 'Catégorie',
+  'filter_clear': 'Effacer',
+  'filter_visible_count': '@visible / @total',
+  'no_structures_for_filters': 'Aucune épreuve ne correspond aux filtres',
+  'generate_default_visible': 'Générer (@count)',
+  'delete_visible': 'Supprimer (@count)',
+  'delete_visible_structures_title':
+      'Supprimer les @count structures affichées ?',
+  'delete_visible_structures_body':
+      'Les niveaux, les courses et les séries déjà tirées des @count épreuves affichées seront perdus. Les épreuves masquées par les filtres ne sont pas touchées.',
 
   // Programme scheduling
   'sites': 'Sites',
