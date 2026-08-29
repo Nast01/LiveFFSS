@@ -170,14 +170,14 @@ class RaceCourseController extends GetxController {
     // a deliberate act — clearPenalty, offered from the row menu — not
     // something a scan should do as a side effect.
     if (penaltyOf(athlete) != null) {
-      message.value = const UiMessageError('course_athlete_withdrawn');
+      message.trigger(const UiMessageError('course_athlete_withdrawn'));
       return;
     }
     // A bracelet read twice, or a row tapped twice, must report rather than
     // silently re-persist the same order — the operator has no other way to
     // tell a good read from a duplicate.
     if (placeOf(athlete) != null) {
-      message.value = const UiMessageError('course_athlete_already_ranked');
+      message.trigger(const UiMessageError('course_athlete_already_ranked'));
       return;
     }
     finishOrder.value =
@@ -250,9 +250,9 @@ class RaceCourseController extends GetxController {
     _scanSub = _rfid.readBracelets().listen(
       _onBracelet,
       onError: (Object e) {
-        message.value = UiMessageError(
+        message.trigger(UiMessageError(
           e is RfidException ? e.message : 'bracelet_unreadable',
-        );
+        ));
       },
     );
   }
@@ -273,7 +273,7 @@ class RaceCourseController extends GetxController {
       }
     }
     if (match == null) {
-      message.value = const UiMessageError('course_bracelet_not_in_race');
+      message.trigger(const UiMessageError('course_bracelet_not_in_race'));
       return;
     }
     assign(match);
@@ -350,7 +350,7 @@ class RaceCourseController extends GetxController {
         // throws a PlatformException — not an AppException — on failure; that
         // is the type this actually has to catch.
         .catchError((Object _) {
-      message.value = const UiMessageError('course_save_failed');
+      message.trigger(const UiMessageError('course_save_failed'));
     });
   }
 }

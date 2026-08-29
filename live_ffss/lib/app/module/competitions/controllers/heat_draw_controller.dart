@@ -268,7 +268,7 @@ class HeatDrawController extends GetxController {
 
   void drawWithPlan(HeatPlan plan) {
     if (presentAthletes.isEmpty) {
-      message.value = const UiMessageError('heat_draw_no_present');
+      message.trigger(const UiMessageError('heat_draw_no_present'));
       return;
     }
     pendingPlan.value = plan;
@@ -313,7 +313,7 @@ class HeatDrawController extends GetxController {
     await _programme.save(
       (_programme.current.value ?? programme).copyWith(structures: structures),
     );
-    message.value = const UiMessageSuccess('heat_draw_saved');
+    message.trigger(const UiMessageSuccess('heat_draw_saved'));
     saved.value = true;
   }
 

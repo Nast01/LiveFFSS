@@ -73,7 +73,8 @@ class ProgramController extends GetxController {
     );
 
     if (endDateTime.isBefore(beginDateTime)) {
-      message.value = const UiMessageError('end_time_must_be_after_begin_time');
+      message
+          .trigger(const UiMessageError('end_time_must_be_after_begin_time'));
       return false;
     }
 
@@ -87,11 +88,11 @@ class ProgramController extends GetxController {
         endHour: endDateTime,
         competitionId: competitionId,
       );
-      message.value = const UiMessageSuccess('meeting_created_successfully');
+      message.trigger(const UiMessageSuccess('meeting_created_successfully'));
       await loadMeetings();
       return true;
     } catch (_) {
-      message.value = const UiMessageError('failed_to_create_meeting');
+      message.trigger(const UiMessageError('failed_to_create_meeting'));
       return false;
     } finally {
       isCreatingMeeting.value = false;
@@ -104,12 +105,12 @@ class ProgramController extends GetxController {
       final success = await _meetingRepo.deleteMeeting(meeting.id);
       if (success) {
         meetings.remove(meeting);
-        message.value = const UiMessageSuccess('meeting_deleted_successfully');
+        message.trigger(const UiMessageSuccess('meeting_deleted_successfully'));
       } else {
-        message.value = const UiMessageError('failed_to_delete_meeting');
+        message.trigger(const UiMessageError('failed_to_delete_meeting'));
       }
     } catch (_) {
-      message.value = const UiMessageError('failed_to_delete_meeting');
+      message.trigger(const UiMessageError('failed_to_delete_meeting'));
     }
   }
 

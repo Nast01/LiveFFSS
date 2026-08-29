@@ -107,14 +107,14 @@ class RfidWriterController extends GetxController {
       await _rfidWriter.write(braceletPayload(athlete));
       if (writeState.value != RfidWriteState.waiting) return;
       writeState.value = RfidWriteState.success;
-      message.value = const UiMessageSuccess('bracelet_written');
+      message.trigger(const UiMessageSuccess('bracelet_written'));
     } on AppException catch (e) {
       // A cancelled write rejects too. `cancelWrite` has already moved us out
       // of `waiting`, and the user who pressed Annuler does not want an error
       // popped at them for getting what they asked for.
       if (writeState.value != RfidWriteState.waiting) return;
       writeState.value = RfidWriteState.error;
-      message.value = UiMessageError(e.message);
+      message.trigger(UiMessageError(e.message));
     }
   }
 

@@ -50,5 +50,47 @@ void main() {
       const e = NetworkException('No internet');
       expect(e.toString(), 'NetworkException: No internet');
     });
+
+    group('detail, the diagnostic line shown under a failure', () {
+      test('is the plain message when there is nothing else to say', () {
+        expect(const NetworkException('No internet').detail, 'No internet');
+        expect(const UnknownException('Boom').detail, 'Boom');
+      });
+
+      test('an ApiException adds the status code that came with it', () {
+        expect(
+          const ApiException('Discipline inconnue', statusCode: 422).detail,
+          'Discipline inconnue (HTTP 422)',
+        );
+      });
+
+      test('an ApiException without a status code stays bare', () {
+        expect(const ApiException('Discipline inconnue').detail,
+            'Discipline inconnue');
+      });
+
+      test('says so when the request went out with no token at all', () {
+        // FFSS answers "Invalid Token" both to a bad token and to no token,
+        // so the reply alone cannot tell "not logged in" from "token refused".
+        expect(
+          const ApiException('Invalid Token',
+                  statusCode: 200, authenticated: false)
+              .detail,
+          'Invalid Token (HTTP 200, no token sent)',
+        );
+      });
+
+      test('stays quiet about auth when the request did carry a token', () {
+        expect(
+          const ApiException('Invalid Token', authenticated: true).detail,
+          'Invalid Token',
+        );
+      });
+
+      test('says nothing about auth when nobody recorded it', () {
+        expect(const ApiException('Boom').authenticated, isNull);
+        expect(const ApiException('Boom').detail, 'Boom');
+      });
+    });
   });
 }

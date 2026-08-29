@@ -122,7 +122,7 @@ class StructureEditorController extends GetxController {
         allocateId: _programme.allocateId,
       ),
     ));
-    message.value = const UiMessageSuccess('round_reimport_done');
+    message.trigger(const UiMessageSuccess('round_reimport_done'));
   }
 
   void seedFromServerIfNeeded() {
@@ -220,7 +220,7 @@ class StructureEditorController extends GetxController {
         isDeletingLevel.value = false;
       }
       if (!deleted) {
-        message.value = const UiMessageError('round_delete_failed');
+        message.trigger(const UiMessageError('round_delete_failed'));
         return;
       }
     }

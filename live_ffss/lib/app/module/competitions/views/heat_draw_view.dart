@@ -36,7 +36,7 @@ class _HeatDrawViewState extends State<HeatDrawView> {
     _messageWorker = ever<UiMessage?>(_ctrl.message, (m) {
       if (m == null || !mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(m.translationKey.tr),
+        content: Text(m.text),
         backgroundColor:
             m is UiMessageError ? AppColors.statusError : AppColors.primary,
       ));

@@ -27,7 +27,7 @@ class _ProgramViewState extends State<ProgramView> {
       if (msg == null) return;
       Get.snackbar(
         msg is UiMessageSuccess ? 'success'.tr : 'error'.tr,
-        msg.translationKey.tr,
+        msg.text,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: msg is UiMessageSuccess ? Colors.green : Colors.red,
         colorText: Colors.white,
@@ -141,7 +141,8 @@ class _ProgramViewState extends State<ProgramView> {
     });
   }
 
-  Widget _buildExpandableMeetingCard(BuildContext context, Meeting meeting, int index) {
+  Widget _buildExpandableMeetingCard(
+      BuildContext context, Meeting meeting, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
