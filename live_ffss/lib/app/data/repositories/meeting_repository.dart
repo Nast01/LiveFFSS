@@ -45,6 +45,12 @@ class MeetingRepositoryImpl implements MeetingRepository {
   /// est bien en dessous d'un vrai programme.
   static const _pageSize = 100;
 
+  /// Créneaux whose courses are fetched at once. Same shape — and the same
+  /// reason — as `ClubRepositoryImpl._detailBatchSize`: the fan-out is one
+  /// request per créneau, and a multi-day programme has enough of them to
+  /// exhaust the connection pool if they all leave together.
+  static const int _runsBatchSize = 8;
+
   @override
   Future<List<Meeting>> getMeetings(int competitionId) async {
     final all = <MeetingDto>[];
@@ -60,17 +66,24 @@ class MeetingRepositoryImpl implements MeetingRepository {
       start += _pageSize;
     }
 
-    // One paged sequence of round trips per créneau, all créneaux in flight
-    // at once: in series, a twenty-créneau day would pay twenty latencies
-    // end to end. Each créneau's own courses still page like any FFSS list.
+    // One paged sequence of round trips per créneau, several créneaux in
+    // flight at once: in series, a twenty-créneau day would pay twenty
+    // latencies end to end. Chunked rather than all at once, because a
+    // three-day competition can hold well over a hundred créneaux and there is
+    // no bulk course route. Each créneau's own courses still page like any
+    // FFSS list.
     final slotIds = [
       for (final meeting in all)
         for (final slot in meeting.slots) slot.id,
     ];
-    final loaded = await Future.wait(slotIds.map(_getAllRuns));
-    final runsBySlot = <int, List<RunDto>>{
-      for (var i = 0; i < slotIds.length; i++) slotIds[i]: loaded[i],
-    };
+    final runsBySlot = <int, List<RunDto>>{};
+    for (var i = 0; i < slotIds.length; i += _runsBatchSize) {
+      final batch = slotIds.skip(i).take(_runsBatchSize).toList();
+      final loaded = await Future.wait(batch.map(_getAllRuns));
+      for (var j = 0; j < batch.length; j++) {
+        runsBySlot[batch[j]] = loaded[j];
+      }
+    }
 
     return all.map((meeting) {
       final filledSlots = meeting.slots

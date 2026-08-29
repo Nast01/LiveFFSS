@@ -156,6 +156,51 @@ void main() {
     }
   });
 
+  // Une compétition de trois jours peut porter plus de cent créneaux : les
+  // lâcher tous d'un coup ouvre autant de sockets. Le lot suivant ne part
+  // qu'une fois le précédent rendu.
+  test('les créneaux partent par lots, pas tous d un coup', () async {
+    final ids = [for (var i = 1; i <= 12; i++) i];
+    final gates = {for (final id in ids) id: Completer<List<RunDto>>()};
+    when(() => ds.getMeetings(1451, start: 0, length: 100)).thenAnswer(
+      (_) async => [
+        makeDto(78).copyWith(slots: [
+          for (final id in ids)
+            SlotDto(id: id, name: 'C$id', beginHour: '08:00', endHour: '08:10'),
+        ]),
+      ],
+    );
+    for (final id in ids) {
+      when(() => ds.getRuns(id, start: 0, length: 100))
+          .thenAnswer((_) => gates[id]!.future);
+    }
+
+    final loading = repo.getMeetings(1451);
+    await Future<void>.delayed(Duration.zero);
+
+    for (final id in ids.take(8)) {
+      verify(() => ds.getRuns(id, start: 0, length: 100)).called(1);
+    }
+    for (final id in ids.skip(8)) {
+      verifyNever(() => ds.getRuns(id, start: 0, length: 100));
+    }
+
+    for (final id in ids.take(8)) {
+      gates[id]!.complete([makeRunDto(id)]);
+    }
+    await Future<void>.delayed(Duration.zero);
+    for (final id in ids.skip(8)) {
+      verify(() => ds.getRuns(id, start: 0, length: 100)).called(1);
+      gates[id]!.complete([makeRunDto(id)]);
+    }
+
+    final slots = (await loading).single.slots;
+    for (final id in ids) {
+      expect(slots.firstWhere((s) => s.id == id).runs.single.name,
+          'run-of-slot-$id');
+    }
+  });
+
   test('a créneau s courses page past a full first batch', () async {
     when(() => ds.getMeetings(1451, start: 0, length: 100)).thenAnswer(
       (_) async => [
