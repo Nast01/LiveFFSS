@@ -103,7 +103,7 @@ git commit -m "chore(api): declare the créneau and course endpoints"
 - Modify: `lib/app/data/datasources/meeting_remote_datasource.dart`
 - Modify: `lib/app/data/repositories/meeting_repository.dart`
 - Test: `test/data/datasources/meeting_remote_datasource_test.dart`
-- Test: `test/data/repositories/meeting_repository_test.dart`
+- Test: `test/data/repositories/meeting_repository_test.dart` (existe déjà — modifier)
 
 **Interfaces:**
 - Produces: `MeetingRemoteDataSource.getMeetings(int competitionId, {required int start, required int length})`, et `MeetingRepository.getMeetings(int competitionId)` qui pagine par 100.
@@ -175,7 +175,7 @@ Expected: PASS.
 
 - [ ] **Step 5: Écrire le test du repository**
 
-Créer `test/data/repositories/meeting_repository_test.dart` :
+Le fichier existe déjà. Y ajouter, en gardant ce qui s'y trouve :
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
@@ -284,6 +284,8 @@ git commit -m "fix(data): page through the réunion list"
 - Modify: `lib/app/data/datasources/meeting_remote_datasource.dart`
 - Modify: `lib/app/data/repositories/meeting_repository.dart`
 - Modify: `lib/app/module/program/controllers/program_controller.dart:83`
+- Modify: `test/presentation/modules/program/controllers/program_controller_test.dart` (appelle `createMeeting`)
+- Modify: `test/data/repositories/meeting_repository_test.dart` (appelle `createMeeting`)
 - Test: `test/data/datasources/meeting_remote_datasource_test.dart`
 
 **Interfaces:**
@@ -462,15 +464,23 @@ Dans `program_controller.dart:83`, remplacer l'appel à `createMeeting` par `sub
       }
 ```
 
-- [ ] **Step 6: Vérifier**
+- [ ] **Step 6: Mettre à jour les tests qui appelaient createMeeting**
+
+`test/presentation/modules/program/controllers/program_controller_test.dart` et
+`test/data/repositories/meeting_repository_test.dart` stubbent `createMeeting`.
+Remplacer chaque `when(() => repo.createMeeting(...)).thenAnswer((_) async => true)`
+par `when(() => repo.submitMeeting(...)).thenAnswer((_) async => 78)`, et chaque
+assertion sur un booléen par une assertion sur l'id rendu.
+
+- [ ] **Step 7: Vérifier**
 
 Run: `flutter test` puis `flutter analyze`
 Expected: tout passe, 6 issues préexistantes.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add -A lib/app/data lib/app/module/program test/data
+git add -A lib/app/data lib/app/module/program test/data test/presentation/modules/program
 git commit -m "feat(data): submit a réunion and get its id back"
 ```
 
@@ -746,12 +756,26 @@ Dans `MeetingRepositoryImpl.getMeetings`, après avoir rassemblé les DTO de ré
 
 puis reconstruire chaque réunion avec ses créneaux garnis avant `toDomain()`.
 
-- [ ] **Step 5: Vérifier**
+- [ ] **Step 5: Rattraper les tests de la Task 2**
+
+`getMeetings` appelle désormais `getRuns` pour chaque créneau. Les tests de
+pagination écrits en Task 2 construisent des réunions sans créneau, donc rien
+n'est appelé — mais tout test qui ajoute un créneau doit stubber :
+
+```dart
+    when(() => dataSource.getRuns(any(),
+        start: any(named: 'start'),
+        length: any(named: 'length'))).thenAnswer((_) async => const []);
+```
+
+Sans ce stub, mocktail lève au premier créneau rencontré.
+
+- [ ] **Step 6: Vérifier**
 
 Run: `flutter test`
 Expected: tout passe.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add -A lib/app/data test/data
@@ -764,67 +788,117 @@ git commit -m "feat(data): load a créneau's courses, all in flight at once"
 
 **Files:**
 - Modify: `lib/app/module/programme/controllers/schedule_controller.dart`
-- Modify: `lib/app/module/programme/bindings/programme_binding.dart`
-- Test: `test/presentation/modules/programme/controllers/schedule_controller_test.dart`
+- Modify: `lib/app/module/programme/bindings/programme_binding.dart` (nouveau constructeur)
+- Test: `test/presentation/modules/programme/controllers/schedule_controller_test.dart` (existe — instancie l'ancien constructeur)
 
 **Interfaces:**
 - Consumes: `MeetingRepository.getMeetings(int)` (Task 2 et 5).
-- Produces: `ScheduleController(_programme, _meetingRepo, _user)` ; `RxList<Meeting> meetings`, `Meeting? meetingFor(DateTime day)`, `List<Run> runsFor(int siteId, DateTime day)`, `DateTime endOfDay(DateTime day)`.
+- Produces: `ScheduleController(ProgrammeService, MeetingRepository, UserService)` ; `RxList<Meeting> meetings`, `Rxn<UiMessage> message`, `bool get canWriteToFfss`, `Meeting? meetingFor(DateTime day)`, `int endMinutesOfDay(DateTime day)`.
+
+**Les horaires se comptent en minutes depuis minuit, pas en `DateTime`.**
+`SlotMapper` et `RunMapper` ne parsent que `HH:mm` : leurs `DateTime` tombent au
+1er janvier 1970, tandis que `MeetingMapper` construit les siens sur la vraie
+date de la reunion. Les comparer donnerait toujours faux. Tout se joue a
+l'interieur d'une meme journee, donc les minutes suffisent — et les mappers,
+partages avec le module Slot, restent intacts.
 
 - [ ] **Step 1: Écrire le test des horaires**
 
 ```dart
+  /// Minutes depuis minuit — l'unite du controleur, cf. l'encadre ci-dessus.
+  int minutes(int h, int m) => h * 60 + m;
+
   // Une frise par site, toutes démarrant à l'heure de la réunion ; la fin de
   // la réunion est la plus tardive des frises, pas la somme des durées.
   test('la fin de journée est le maximum des sites, pas leur somme', () {
-    controller.meetings.value = [meetingWith(runs: [
-      run(site: 'Plage', begin: '08:00', end: '08:30'),
-      run(site: 'Bassin', begin: '08:00', end: '09:00'),
-    ])];
+    controller.meetings.value = [
+      meetingWith(runs: [
+        run(site: 'Plage', begin: '08:00', end: '08:30'),
+        run(site: 'Bassin', begin: '08:00', end: '09:00'),
+      ])
+    ];
 
-    expect(controller.endOfDay(day), timeOf(9, 0));
+    expect(controller.endMinutesOfDay(day), minutes(9, 0));
   });
 
   test('une journée sans item finit à son heure de départ', () {
     controller.meetings.value = [meetingWith(runs: const [])];
 
-    expect(controller.endOfDay(day), timeOf(8, 0));
+    expect(controller.endMinutesOfDay(day), minutes(8, 0));
+  });
+
+  test('un créneau sans course compte par ses propres heures', () {
+    // Un item manuel n'a aucune course : sans ce cas, il ne pèserait pas sur
+    // la fin de journée et la réunion serait renvoyée trop courte.
+    controller.meetings.value = [
+      meetingWith(slotBegin: '08:00', slotEnd: '08:40', runs: const [])
+    ];
+
+    expect(controller.endMinutesOfDay(day), minutes(8, 40));
   });
 ```
 
 - [ ] **Step 2: Le lancer et vérifier l'échec**
 
 Run: `flutter test test/presentation/modules/programme/controllers/schedule_controller_test.dart`
-Expected: FAIL — `endOfDay` n'existe pas.
+Expected: FAIL — `endMinutesOfDay` n'existe pas.
 
 - [ ] **Step 3: Implémenter**
 
 ```dart
-  /// La fin d'une journée : la course la plus tardive, tous sites confondus.
-  /// Les frises tournent en parallèle, donc c'est un maximum et non un cumul.
-  /// Sans le moindre item, une réunion ne dure pas.
-  DateTime endOfDay(DateTime day) {
+  /// Minutes depuis minuit d'un `DateTime` dont seule l'heure compte.
+  int _minutesOf(DateTime t) => t.hour * 60 + t.minute;
+
+  /// La fin d'une journée, en minutes depuis minuit : l'item le plus tardif,
+  /// tous sites confondus. Les frises tournent en parallèle, donc c'est un
+  /// maximum et non un cumul. Sans le moindre item, une réunion ne dure pas.
+  ///
+  /// En minutes et non en `DateTime` : les heures d'un créneau et d'une course
+  /// sont parsées depuis `HH:mm` seul et tombent en 1970, alors que celles
+  /// d'une réunion portent sa vraie date. Tout se joue dans une même journée.
+  int endMinutesOfDay(DateTime day) {
     final meeting = meetingFor(day);
-    if (meeting == null) return day;
-    var latest = meeting.beginHour;
+    if (meeting == null) return defaultStartMinutes;
+    var latest = _minutesOf(meeting.beginHour);
     for (final slot in meeting.slots) {
-      for (final run in slot.runs) {
-        if (run.endTime.isAfter(latest)) latest = run.endTime;
-      }
-      if (slot.runs.isEmpty && slot.endHour.isAfter(latest)) {
-        latest = slot.endHour;
+      // Un créneau sans course est un item manuel : ses heures font foi.
+      final ends = slot.runs.isEmpty
+          ? [_minutesOf(slot.endHour)]
+          : [for (final run in slot.runs) _minutesOf(run.endTime)];
+      for (final end in ends) {
+        if (end > latest) latest = end;
       }
     }
     return latest;
   }
 ```
 
-- [ ] **Step 4: Vérifier**
+- [ ] **Step 4: Ajouter la session et le canal de message**
 
-Run: `flutter test`
-Expected: tout passe.
+La tâche 8 en dépend ; ils arrivent ici avec `UserService`.
 
-- [ ] **Step 5: Commit**
+```dart
+  /// Tout ce que cet écran lit est public, donc un opérateur déconnecté y
+  /// arrive sans obstacle — et seule l'écriture reviendrait refusée.
+  bool get canWriteToFfss => _user.currentUser.value != null;
+
+  final Rxn<UiMessage> message = Rxn<UiMessage>();
+```
+
+- [ ] **Step 5: Rattraper les appelants du constructeur**
+
+`programme_binding.dart` construit `ScheduleController(Get.find<ProgrammeService>())`
+et `schedule_controller_test.dart` fait de même. Les deux prennent désormais
+`Get.find<MeetingRepository>()` et `Get.find<UserService>()` en plus ; dans le
+test, un mock `_MockMeetingRepo` et un `UserService(_MockAuthRepo())` dont
+`currentUser` est renseigné, comme dans `structure_editor_controller_test.dart`.
+
+- [ ] **Step 6: Vérifier**
+
+Run: `flutter test` puis `flutter analyze`
+Expected: tout passe, 6 issues préexistantes.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add -A lib/app/module/programme test/presentation/modules/programme
@@ -847,7 +921,7 @@ Là où la vue lit `controller.rowsFor(siteId, day)`, lire les créneaux et cour
 
 - [ ] **Step 2: Afficher l'en-tête de journée**
 
-Sous la barre de dates : `08:00 → 11:20`, la fin venant de `controller.endOfDay(day)`.
+Sous la barre de dates : `08:00 → 11:20`, la fin venant de `controller.endMinutesOfDay(day)`.
 
 - [ ] **Step 3: Vérifier à la main**
 
@@ -976,13 +1050,13 @@ Expected: FAIL — `addManualItem` n'existe pas.
     final meetingId = await _ensureMeeting(day);
     if (meetingId <= 0) return;
 
-    final begin = endOfDay(day);
-    final end = begin.add(const Duration(minutes: defaultItemMinutes));
+    final beginMinutes = endMinutesOfDay(day);
+    final endMinutes = beginMinutes + defaultItemMinutes;
     final slotId = await _meetingRepo.submitSlot(
       meetingId: meetingId,
       name: label,
-      beginHour: begin,
-      endHour: end,
+      beginHour: _atMinutes(day, beginMinutes),
+      endHour: _atMinutes(day, endMinutes),
     );
     if (slotId <= 0) {
       message.trigger(const UiMessageError('schedule_item_failed'));
