@@ -280,6 +280,23 @@ final Map<String, String> enUS = {
   'round_finale': 'Final',
   'round_unknown': 'Round',
   'no_structures': 'No event to structure',
+  'race_format_creating': 'Creating race formats on FFSS…',
+  'race_format_login_title': 'Sign in required',
+  'race_format_login_body':
+      'Race formats are created on the FFSS site, which refuses an anonymous write.',
+  'login_required': 'Sign in to write to FFSS',
+  'race_format_missing_title': '@count event(s) with no race format on FFSS',
+  'race_format_missing_body':
+      'The heat draw and the results reporting both depend on it.',
+  'race_format_orphans': '@count race format(s) matching no event',
+  'race_format_orphans_title': 'Race formats with no event',
+  'race_format_orphans_body':
+      'These race formats exist on FFSS but match no event of this competition.',
+  'race_format_delete_title': 'Delete this race format?',
+  'race_format_delete_body':
+      'Its rounds will be deleted from FFSS along with it. This cannot be undone.',
+  'race_format_deleted': 'Race format deleted',
+  'race_format_delete_failed': 'Could not delete the race format',
   'filter_speciality': 'Speciality',
   'filter_discipline': 'Discipline',
   'filter_gender': 'Gender',
@@ -328,7 +345,6 @@ final Map<String, String> enUS = {
   'race_format_absent': 'No FFSS race format',
   'race_format_present': 'FFSS race format · @count round(s)',
   'race_format_present_no_round': 'FFSS race format · no round',
-  'race_format_create_missing': 'Create the @count missing race formats',
   'race_format_create_title': 'Create on the FFSS server?',
   'race_format_create_body':
       '@count event(s) without a race format will be created on the federation server. This leaves the device.',

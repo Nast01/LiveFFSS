@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/theme/app_colors.dart';
+import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
@@ -8,6 +9,7 @@ import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
 import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
 import 'package:live_ffss/app/module/programme/views/structure_filter_bar.dart';
+import 'package:live_ffss/app/module/programme/views/structure_server_state.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
@@ -34,7 +36,7 @@ class _StructureOverviewViewState extends State<StructureOverviewView> {
     _messageWorker = ever<UiMessage?>(controller.message, (m) {
       if (m == null || !mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(m.translationKey.tr),
+        content: Text(m.text),
         backgroundColor:
             m is UiMessageError ? AppColors.statusError : AppColors.primary,
       ));
@@ -68,98 +70,137 @@ class _StructureOverviewViewState extends State<StructureOverviewView> {
       }
       final filtered = controller.hasActiveFilters;
       final visible = controller.visibleRows;
-      return Column(
+      return Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.sm,
-              AppSpacing.xs,
-              AppSpacing.sm,
-              0,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: controller.generatableCount > 0
-                        ? controller.generateAllDefaults
-                        : null,
-                    icon: const Icon(Icons.bolt),
-                    label: Text(
-                      filtered
-                          ? 'generate_default_visible'.trParams(
-                              {'count': '${controller.generatableCount}'})
-                          : 'generate_default_all'.tr,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                OutlinedButton.icon(
-                  onPressed: controller.hasAnyStructure
-                      ? () => _confirmDeleteAll(context, controller)
-                      : null,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.statusError,
-                  ),
-                  icon: const Icon(Icons.delete_outline),
-                  label: Text(
-                    filtered
-                        ? 'delete_visible'
-                            .trParams({'count': '${controller.deletableCount}'})
-                        : 'delete_all'.tr,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const StructureFilterBar(),
-          if (controller.missingRaceFormatCount > 0)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.sm, AppSpacing.xs, AppSpacing.sm, 0),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton.tonalIcon(
-                  onPressed: controller.isSubmitting.value
-                      ? null
-                      : () => _confirmCreateMissing(context, controller),
-                  icon: controller.isSubmitting.value
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.cloud_upload_outlined),
-                  label: Text('race_format_create_missing'.trParams(
-                      {'count': '${controller.missingRaceFormatCount}'})),
-                ),
-              ),
-            ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: controller.reload,
-              child: visible.isEmpty
-                  ? _NoMatch(onReset: controller.clearFilters)
-                  : ListView.separated(
-                      // Without this a short list cannot overscroll, so the
-                      // pull gesture would never fire.
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.sm,
-                        AppSpacing.xs,
-                        AppSpacing.sm,
-                        AppSpacing.lg,
-                      ),
-                      itemCount: visible.length,
-                      separatorBuilder: (_, __) =>
-                          const SizedBox(height: AppSpacing.sm),
-                      itemBuilder: (_, i) => _OverviewCard(row: visible[i]),
-                    ),
-            ),
-          ),
+          _overview(context, filtered, visible),
+          // One request per déroulement means a full programme is dozens of
+          // round trips. The overlay both reports progress and stops a second
+          // tap from starting a competing run.
+          if (controller.isSubmitting.value) const _SubmitOverlay(),
         ],
       );
     });
+  }
+
+  Widget _overview(
+    BuildContext context,
+    bool filtered,
+    List<OverviewRow> visible,
+  ) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.sm,
+            AppSpacing.xs,
+            AppSpacing.sm,
+            0,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: controller.generatableCount > 0
+                      ? controller.generateAllDefaults
+                      : null,
+                  icon: const Icon(Icons.bolt),
+                  label: Text(
+                    filtered
+                        ? 'generate_default_visible'.trParams(
+                            {'count': '${controller.generatableCount}'})
+                        : 'generate_default_all'.tr,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              OutlinedButton.icon(
+                onPressed: controller.hasAnyStructure
+                    ? () => _confirmDeleteAll(context, controller)
+                    : null,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.statusError,
+                ),
+                icon: const Icon(Icons.delete_outline),
+                label: Text(
+                  filtered
+                      ? 'delete_visible'
+                          .trParams({'count': '${controller.deletableCount}'})
+                      : 'delete_all'.tr,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const StructureFilterBar(),
+        const StructureServerState(),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: controller.reload,
+            child: visible.isEmpty
+                ? _NoMatch(onReset: controller.clearFilters)
+                : ListView.separated(
+                    // Without this a short list cannot overscroll, so the
+                    // pull gesture would never fire.
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.sm,
+                      AppSpacing.xs,
+                      AppSpacing.sm,
+                      AppSpacing.lg,
+                    ),
+                    itemCount: visible.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: AppSpacing.sm),
+                    itemBuilder: (_, i) => _OverviewCard(row: visible[i]),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Covers the list while déroulements are being pushed to FFSS, and says how
+/// far along the run is — dozens of round trips otherwise look like a freeze.
+class _SubmitOverlay extends StatelessWidget {
+  const _SubmitOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<ProgrammeController>();
+    return Positioned.fill(
+      child: ColoredBox(
+        color: Colors.black.withValues(alpha: 0.35),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: AppRadius.mdRadius,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: AppSpacing.md),
+                Text('race_format_creating'.tr, style: AppTypography.body),
+                Obx(() {
+                  final total = controller.submitTotal.value;
+                  if (total == 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.xs),
+                    child: Text(
+                      '${controller.submitDone.value} / $total',
+                      style: AppTypography.caption,
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -220,33 +261,6 @@ Future<bool> _confirm(
     ),
   );
   return confirmed == true;
-}
-
-/// Creating a déroulement writes to the FFSS server — the only outward-facing
-/// action in this feature — so it is confirmed, and the wording says so.
-Future<void> _confirmCreateMissing(
-  BuildContext context,
-  ProgrammeController controller,
-) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text('race_format_create_title'.tr),
-      content: Text('race_format_create_body'
-          .trParams({'count': '${controller.missingRaceFormatCount}'})),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text('cancel'.tr),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(true),
-          child: Text('confirm'.tr),
-        ),
-      ],
-    ),
-  );
-  if (confirmed == true) await controller.createMissingRaceFormats();
 }
 
 Future<void> _confirmDeleteAll(

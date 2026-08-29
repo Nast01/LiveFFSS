@@ -5,6 +5,7 @@ import 'package:live_ffss/app/data/mappers/athlete_mapper.dart'
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
+import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
@@ -81,11 +82,23 @@ class OverviewRow {
 }
 
 class ProgrammeController extends GetxController {
-  ProgrammeController(this._raceRepo, this._programme, this._raceFormatRepo);
+  ProgrammeController(
+    this._raceRepo,
+    this._programme,
+    this._raceFormatRepo,
+    this._user,
+  );
 
   final RaceRepository _raceRepo;
   final ProgrammeService _programme;
   final RaceFormatRepository _raceFormatRepo;
+  final UserService _user;
+
+  /// Whether anything can be written to FFSS at all. Every read in this screen
+  /// is public, so the app happily shows the whole overview to a signed-out
+  /// operator — and only the write comes back refused, as a bare
+  /// "Invalid Token" that reads like a server fault.
+  bool get canWriteToFfss => _user.currentUser.value != null;
 
   final Rxn<Competition> competition = Rxn<Competition>();
   final RxInt currentTabIndex = 0.obs;
@@ -96,6 +109,13 @@ class ProgrammeController extends GetxController {
   /// True while a déroulement is being written to FFSS. Unlike the rest of the
   /// programme feature, that call leaves the device.
   final RxBool isSubmitting = false.obs;
+
+  /// Progress of the current submission, in déroulements. One call goes out per
+  /// line, so a full programme is dozens of round trips — a bare spinner would
+  /// leave the operator unable to tell a slow run from a stuck one. Both fall
+  /// back to zero once the run ends, successfully or not.
+  final RxInt submitDone = 0.obs;
+  final RxInt submitTotal = 0.obs;
   final Rxn<UiMessage> message = Rxn<UiMessage>();
 
   // Kept so it can be disposed in onClose — _programme is a permanent service,
@@ -223,11 +243,21 @@ class ProgrammeController extends GetxController {
 
       await _programme.load(comp.id);
       final races = await _raceRepo.getRaces(comp.id);
+
+      // One round trip per épreuve, awaited in turn, is what made opening the
+      // Structure tab slow: a programme with twenty épreuves paid twenty
+      // latencies end to end. They depend on nothing but their own race, and
+      // the déroulements depend on nothing at all, so all of it goes at once.
+      final entriesPerRace = Future.wait(
+        races.map((race) => _raceRepo.getEntries(race.id)),
+      );
       final formats = await _loadRaceFormats(comp.id);
+      final entriesByRace = await entriesPerRace;
 
       final built = <OverviewRow>[];
-      for (final race in races) {
-        final entries = await _raceRepo.getEntries(race.id);
+      for (var i = 0; i < races.length; i++) {
+        final race = races[i];
+        final entries = entriesByRace[i];
         for (final category in race.categories) {
           final count =
               entries.where((e) => e.category.id == category.id).length;
@@ -307,8 +337,10 @@ class ProgrammeController extends GetxController {
   Future<Map<(int, Gender, int), RaceFormatConfiguration>> _loadRaceFormats(
       int competitionId) async {
     final byKey = <(int, Gender, int), RaceFormatConfiguration>{};
+    _serverRaceFormats.clear();
     try {
       final formats = await _raceFormatRepo.getRaceFormats(competitionId);
+      _serverRaceFormats.addAll(formats);
       for (final format in formats) {
         final gender = parseGender(format.gender);
         for (final category in format.categories) {
@@ -364,6 +396,58 @@ class ProgrammeController extends GetxController {
     );
   }
 
+  /// Every déroulement FFSS returned for the competition, kept beside the
+  /// row-indexed map so the ones no row claims can still be reported.
+  final RxList<RaceFormatConfiguration> _serverRaceFormats =
+      <RaceFormatConfiguration>[].obs;
+
+  /// Déroulements FFSS holds that no épreuve × category of this competition
+  /// matches — server drift the operator can act on.
+  ///
+  /// Covering one known category is enough to be claimed: a déroulement wider
+  /// than the competition is still the one its épreuve uses, and deleting it
+  /// would destroy that. Deliberately blind to the filters, since an orphan has
+  /// no row a chip could ever bring back.
+  List<RaceFormatConfiguration> get orphanRaceFormats {
+    final known = {
+      for (final row in rows) (row.disciplineId, row.gender, row.categoryId)
+    };
+    return _serverRaceFormats.where((format) {
+      final gender = parseGender(format.gender);
+      return !format.categories
+          .any((c) => known.contains((format.disciplineId, gender, c.id)));
+    }).toList();
+  }
+
+  /// Drops one déroulement from FFSS, its rounds with it, then re-reads the
+  /// server state — `deleteRaceFormat` only reports a boolean, so the reload is
+  /// what makes the list honest.
+  Future<void> deleteRaceFormat(RaceFormatConfiguration format) async {
+    final comp = competition.value;
+    if (comp == null || isSubmitting.value) return;
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
+    isSubmitting.value = true;
+    bool deleted;
+    try {
+      deleted = await _raceFormatRepo.deleteRaceFormat(format.id);
+    } on AppException catch (e) {
+      message.trigger(
+          UiMessageError('race_format_delete_failed', details: e.detail));
+      return;
+    } finally {
+      isSubmitting.value = false;
+    }
+    if (!deleted) {
+      message.trigger(const UiMessageError('race_format_delete_failed'));
+      return;
+    }
+    message.trigger(const UiMessageSuccess('race_format_deleted'));
+    await load(comp, silent: true);
+  }
+
   /// Visible rows for which FFSS holds no déroulement yet.
   List<OverviewRow> get rowsWithoutRaceFormat =>
       visibleRows.where((r) => !r.hasRaceFormat).toList();
@@ -387,52 +471,58 @@ class ProgrammeController extends GetxController {
   /// A déroulement spans every category of its (discipline, gender), so this
   /// submits the *whole* category set: the id of an existing déroulement when
   /// there is one, which turns the call into an update rather than a duplicate.
-  Future<void> createRaceFormatFor(OverviewRow row) =>
-      _submitGroups([(row.disciplineId, row.gender)]);
+  Future<void> createRaceFormatFor(OverviewRow row) => _submitRows([row]);
 
-  /// Same, for every épreuve × category FFSS does not cover yet, grouped so a
-  /// discipline × gender is submitted once with all its categories.
-  Future<void> createMissingRaceFormats() {
-    final groups = <(int, Gender)>[];
-    for (final row in rowsWithoutRaceFormat) {
-      final key = (row.disciplineId, row.gender);
-      if (!groups.contains(key)) groups.add(key);
-    }
-    return _submitGroups(groups);
-  }
+  /// Same, for every visible épreuve × category FFSS does not cover yet.
+  Future<void> createMissingRaceFormats() => _submitRows(rowsWithoutRaceFormat);
 
-  Future<void> _submitGroups(List<(int, Gender)> groups) async {
+  /// One déroulement per row, each carrying that row's single category.
+  ///
+  /// A déroulement is an épreuve × gender × *category* — the FFSS site lists
+  /// them as "90m Sprint - Messieurs - Cadet", one per line of this overview.
+  /// Submitting a whole category set in one call created a single over-broad
+  /// déroulement ("… - Cadet Junior Seniors et Masters") that stood in for the
+  /// three that were wanted.
+  ///
+  /// Always a creation, never an update: passing the id of a déroulement that
+  /// covers several categories would narrow it to one and strip the others.
+  Future<void> _submitRows(List<OverviewRow> targets) async {
     final comp = competition.value;
-    if (comp == null || groups.isEmpty || isSubmitting.value) return;
+    if (comp == null || targets.isEmpty || isSubmitting.value) return;
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
     isSubmitting.value = true;
+    submitDone.value = 0;
+    submitTotal.value = targets.length;
     var created = 0;
     try {
-      for (final (disciplineId, gender) in groups) {
-        final peers = rows
-            .where((r) => r.disciplineId == disciplineId && r.gender == gender);
-        final categoryIds = <int>{for (final r in peers) r.categoryId}.toList();
-        final existing = peers
-            .map((r) => r.raceFormat)
-            .whereType<RaceFormatConfiguration>()
-            .firstOrNull;
+      for (final row in targets) {
         final id = await _raceFormatRepo.submitRaceFormat(
           competitionId: comp.id,
-          disciplineId: disciplineId,
-          gender: genderCode(gender),
-          categoryIds: categoryIds,
-          id: existing?.id,
+          disciplineId: row.disciplineId,
+          gender: genderCode(row.gender),
+          categoryIds: [row.categoryId],
         );
         if (id > 0) created++;
+        submitDone.value++;
       }
-    } on AppException {
-      message.value = const UiMessageError('race_format_create_failed');
+    } on AppException catch (e) {
+      message.trigger(
+          UiMessageError('race_format_create_failed', details: e.detail));
       return;
     } finally {
       isSubmitting.value = false;
+      submitDone.value = 0;
+      submitTotal.value = 0;
     }
-    message.value = created == groups.length
+    message.trigger(created == targets.length
         ? const UiMessageSuccess('race_format_created')
-        : const UiMessageError('race_format_create_failed');
+        // FFSS answered without throwing but assigned no id — nothing more
+        // precise to report than the count that went through.
+        : UiMessageError('race_format_create_failed',
+            details: '$created/${targets.length}'));
     await load(comp);
   }
 

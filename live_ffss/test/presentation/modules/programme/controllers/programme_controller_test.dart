@@ -1,15 +1,19 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/data/repositories/auth_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/domain/models/discipline.dart';
 import 'package:live_ffss/app/domain/models/race_format_configuration.dart';
 import 'package:live_ffss/app/domain/models/race_format_detail.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
+import 'package:live_ffss/app/data/services/user_service.dart';
+import 'package:live_ffss/app/domain/models/user.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/category.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
@@ -29,6 +33,8 @@ class _MockRaceRepo extends Mock implements RaceRepository {}
 class _MockStorage extends Mock implements FlutterSecureStorage {}
 
 class _MockRaceFormatRepo extends Mock implements RaceFormatRepository {}
+
+class _MockAuthRepo extends Mock implements AuthRepository {}
 
 void main() {
   late _MockRaceRepo raceRepo;
@@ -86,6 +92,16 @@ void main() {
 
   late _MockStorage storage;
   late _MockRaceFormatRepo raceFormatRepo;
+  late UserService userService;
+
+  /// Any non-null user is a session as far as the overview is concerned.
+  final loggedInUser = User(
+    token: 'tok',
+    tokenExpiration: DateTime(2030),
+    label: 'FFSS',
+    type: UserType.organisme,
+    role: UserRole.admin,
+  );
 
   setUp(() {
     raceRepo = _MockRaceRepo();
@@ -99,7 +115,12 @@ void main() {
     raceFormatRepo = _MockRaceFormatRepo();
     when(() => raceFormatRepo.getRaceFormats(any()))
         .thenAnswer((_) async => const []);
-    controller = ProgrammeController(raceRepo, service, raceFormatRepo);
+    userService = UserService(_MockAuthRepo());
+    // An operator working the programme is signed in; the signed-out case has
+    // its own group below.
+    userService.currentUser.value = loggedInUser;
+    controller =
+        ProgrammeController(raceRepo, service, raceFormatRepo, userService);
   });
 
   test('builds one row per épreuve × category with its entry count', () async {
@@ -576,11 +597,14 @@ void main() {
           )).thenAnswer((_) async => 366);
     });
 
-    test('submits discipline, gender code and every category of the group',
+    // A déroulement is one épreuve × gender × *category* — what the overview
+    // shows as a single line, and what the FFSS site lists as
+    // "90m Sprint - Messieurs - Cadet". Submitting the whole category set at
+    // once produced one over-broad déroulement instead of one per line.
+    test('submits one déroulement per line, carrying that one category',
         () async {
       await loadRaces([
         raceOf(100, 8, Gender.male, [cadets]),
-        raceOf(101, 8, Gender.male, [juniors]),
       ]);
 
       await controller.createMissingRaceFormats();
@@ -595,11 +619,32 @@ void main() {
       expect(call[0], 42);
       expect(call[1], 8);
       expect(call[2], 'H'); // Gender.male → "H", not "M"
-      expect(call[3], [7, 8]);
-      expect(call[4], isNull); // nothing existed → a creation
+      expect(call[3], [7]);
+      expect(call[4], isNull); // always a creation, never a widening update
     });
 
-    test('one call per discipline × gender, not one per category', () async {
+    test('two categories of one épreuve become two déroulements', () async {
+      await loadRaces([
+        raceOf(100, 8, Gender.male, [cadets, juniors]),
+      ]);
+
+      await controller.createMissingRaceFormats();
+
+      final calls = verify(() => raceFormatRepo.submitRaceFormat(
+            competitionId: any(named: 'competitionId'),
+            disciplineId: any(named: 'disciplineId'),
+            gender: any(named: 'gender'),
+            categoryIds: captureAny(named: 'categoryIds'),
+            id: any(named: 'id'),
+          )).captured;
+      expect(calls, [
+        [7],
+        [8]
+      ]);
+    });
+
+    test('one call per épreuve × category, not one per discipline × gender',
+        () async {
       await loadRaces([
         raceOf(100, 8, Gender.male, [cadets]),
         raceOf(101, 8, Gender.male, [juniors]),
@@ -615,7 +660,7 @@ void main() {
             gender: any(named: 'gender'),
             categoryIds: any(named: 'categoryIds'),
             id: any(named: 'id'),
-          )).called(3);
+          )).called(4);
     });
 
     test('reloads afterwards so the new server state reaches the list',
@@ -1063,11 +1108,9 @@ void main() {
         expect(controller.missingRaceFormatCount, 1);
       });
 
-      test(
-          'a filtered submission still carries every category of the '
-          'discipline × gender', () async {
-        // A déroulement spans all the categories of its (discipline, gender);
-        // submitting only the visible ones would amputate it server-side.
+      test('a filtered submission touches only the visible lines', () async {
+        // One déroulement per line means the filter maps straight onto what is
+        // submitted: no hidden line can be dragged in by a neighbour.
         await loadAll();
         when(() => raceFormatRepo.submitRaceFormat(
               competitionId: any(named: 'competitionId'),
@@ -1087,16 +1130,440 @@ void main() {
               categoryIds: captureAny(named: 'categoryIds'),
               id: any(named: 'id'),
             )).captured;
-        // Only the two groups holding a Cadets row are submitted — the coastal
-        // one is filtered out — but the men's swim group carries Juniors too.
+        // The two visible Cadets lines, and nothing else: the men's Juniors
+        // line is hidden by the filter, so it is not created either.
         expect(calls, hasLength(6));
         expect(calls[0], 8);
         expect(calls[1], 'H');
-        expect(calls[2], [7, 8]);
+        expect(calls[2], [7]);
         expect(calls[3], 8);
         expect(calls[4], 'F');
         expect(calls[5], [7]);
       });
+    });
+  });
+
+  group('orphan déroulements', () {
+    /// Race 100 is Gender.mixed (gender code "M") with disciplineId 1, and
+    /// runs Cadets and Juniors — see the `race` helper.
+    RaceFormatConfiguration format({
+      required int id,
+      required int disciplineId,
+      required String gender,
+      required List<Category> categories,
+    }) =>
+        RaceFormatConfiguration(
+          id: id,
+          competitionId: 42,
+          disciplineId: disciplineId,
+          label: 'D$id',
+          fullLabel: 'Déroulement $id',
+          gender: gender,
+          genderLabel: gender,
+          discipline: const Discipline(
+              id: '1', name: 'Nage', speciality: 1, specialityLabel: 'Côtier'),
+          categories: categories,
+        );
+
+    Future<void> loadWithFormats(List<RaceFormatConfiguration> formats) async {
+      when(() => raceRepo.getRaces(42)).thenAnswer((_) async => [
+            race(100, '100m', [cadets, juniors])
+          ]);
+      when(() => raceRepo.getEntries(100))
+          .thenAnswer((_) async => [entry(1, 100, cadets)]);
+      when(() => raceFormatRepo.getRaceFormats(42))
+          .thenAnswer((_) async => formats);
+      controller.onInit();
+      await controller.load(competition);
+    }
+
+    test('a déroulement matching no épreuve of the competition is orphan',
+        () async {
+      await loadWithFormats([
+        format(
+            id: 900,
+            disciplineId: 99, // no épreuve runs this discipline
+            gender: 'M',
+            categories: const [cadets]),
+      ]);
+
+      expect(controller.orphanRaceFormats.map((f) => f.id), [900]);
+    });
+
+    test('a mismatched gender alone makes a déroulement orphan', () async {
+      await loadWithFormats([
+        format(
+            id: 900, disciplineId: 1, gender: 'F', categories: const [cadets]),
+      ]);
+
+      expect(controller.orphanRaceFormats.map((f) => f.id), [900]);
+    });
+
+    test('covering one known category is enough to not be orphan', () async {
+      // Wider than the competition, not foreign to it: deleting this would
+      // destroy a déroulement the épreuve actually uses.
+      const unknown = Category(id: 77, name: 'Vétérans');
+      await loadWithFormats([
+        format(
+            id: 900,
+            disciplineId: 1,
+            gender: 'M',
+            categories: const [cadets, unknown]),
+      ]);
+
+      expect(controller.orphanRaceFormats, isEmpty);
+    });
+
+    test('a déroulement carrying no category at all is orphan', () async {
+      await loadWithFormats([
+        format(id: 900, disciplineId: 1, gender: 'M', categories: const []),
+      ]);
+
+      expect(controller.orphanRaceFormats.map((f) => f.id), [900]);
+    });
+
+    test('nothing is orphan when every déroulement matches', () async {
+      await loadWithFormats([
+        format(
+            id: 900,
+            disciplineId: 1,
+            gender: 'M',
+            categories: const [cadets, juniors]),
+      ]);
+
+      expect(controller.orphanRaceFormats, isEmpty);
+    });
+
+    test('orphans are reported whatever the filters hide', () async {
+      await loadWithFormats([
+        format(
+            id: 900, disciplineId: 99, gender: 'M', categories: const [cadets]),
+      ]);
+
+      // An orphan has no row, so no chip could ever reveal it again — hiding
+      // it behind a filter would hide server drift for good.
+      controller.toggle(StructureFilter.category, 8); // Juniors only
+      expect(controller.visibleRows, hasLength(1));
+      expect(controller.orphanRaceFormats.map((f) => f.id), [900]);
+    });
+
+    group('deleting an orphan', () {
+      RaceFormatConfiguration orphan() => format(
+          id: 900, disciplineId: 99, gender: 'M', categories: const [cadets]);
+
+      test('drops it on the server and re-reads the state', () async {
+        await loadWithFormats([orphan()]);
+        when(() => raceFormatRepo.deleteRaceFormat(900))
+            .thenAnswer((_) async => true);
+        when(() => raceFormatRepo.getRaceFormats(42))
+            .thenAnswer((_) async => const []);
+        clearInteractions(raceFormatRepo);
+
+        await controller.deleteRaceFormat(orphan());
+
+        verify(() => raceFormatRepo.deleteRaceFormat(900)).called(1);
+        verify(() => raceFormatRepo.getRaceFormats(42)).called(1);
+        expect(controller.orphanRaceFormats, isEmpty);
+        expect(controller.message.value, isA<UiMessageSuccess>());
+      });
+
+      test('a refusal is reported and the déroulement stays listed', () async {
+        await loadWithFormats([orphan()]);
+        when(() => raceFormatRepo.deleteRaceFormat(900))
+            .thenAnswer((_) async => false);
+
+        await controller.deleteRaceFormat(orphan());
+
+        expect(controller.message.value, isA<UiMessageError>());
+        expect(controller.orphanRaceFormats.map((f) => f.id), [900]);
+      });
+
+      test('a network failure is reported, not swallowed', () async {
+        await loadWithFormats([orphan()]);
+        when(() => raceFormatRepo.deleteRaceFormat(900))
+            .thenThrow(const NetworkException('offline'));
+
+        await controller.deleteRaceFormat(orphan());
+
+        expect(controller.message.value, isA<UiMessageError>());
+        expect(controller.isSubmitting.value, isFalse);
+      });
+    });
+  });
+
+  group('reporting what FFSS actually answered', () {
+    Future<void> loadOneRow() async {
+      when(() => raceRepo.getRaces(42)).thenAnswer((_) async => [
+            race(100, '100m', [cadets])
+          ]);
+      when(() => raceRepo.getEntries(100))
+          .thenAnswer((_) async => [entry(1, 100, cadets)]);
+      controller.onInit();
+      await controller.load(competition);
+    }
+
+    void failSubmitWith(Object error) {
+      when(() => raceFormatRepo.submitRaceFormat(
+            competitionId: any(named: 'competitionId'),
+            disciplineId: any(named: 'disciplineId'),
+            gender: any(named: 'gender'),
+            categoryIds: any(named: 'categoryIds'),
+            id: any(named: 'id'),
+          )).thenThrow(error);
+    }
+
+    test('the same failure twice reaches the view twice', () async {
+      // GetX drops a set whose value equals the current one, and a const
+      // UiMessageError is the *same instance* every time — so a second
+      // identical failure used to be silent.
+      await loadOneRow();
+      failSubmitWith(const NetworkException('offline'));
+      var seen = 0;
+      final worker = ever<UiMessage?>(controller.message, (m) {
+        if (m != null) seen++;
+      });
+
+      await controller.createMissingRaceFormats();
+      await controller.createMissingRaceFormats();
+
+      worker.dispose();
+      expect(seen, 2);
+    });
+
+    test('a rejected submission carries the reason FFSS gave', () async {
+      await loadOneRow();
+      failSubmitWith(
+          const ApiException('Discipline inconnue', statusCode: 422));
+
+      await controller.createMissingRaceFormats();
+
+      final message = controller.message.value;
+      expect(message, isA<UiMessageError>());
+      expect(message!.details, 'Discipline inconnue (HTTP 422)');
+    });
+
+    test('a failed deletion carries the reason too', () async {
+      await loadOneRow();
+      when(() => raceFormatRepo.deleteRaceFormat(900)).thenThrow(
+          const ApiException('Déroulement verrouillé', statusCode: 409));
+
+      await controller.deleteRaceFormat(const RaceFormatConfiguration(
+        id: 900,
+        label: 'x',
+        fullLabel: 'x',
+        gender: 'H',
+        genderLabel: 'Homme',
+        discipline:
+            Discipline(id: '8', name: 'x', speciality: 1, specialityLabel: ''),
+      ));
+
+      expect(controller.message.value!.details,
+          'Déroulement verrouillé (HTTP 409)');
+    });
+
+    test('a success carries no diagnostic line', () async {
+      await loadOneRow();
+      when(() => raceFormatRepo.submitRaceFormat(
+            competitionId: any(named: 'competitionId'),
+            disciplineId: any(named: 'disciplineId'),
+            gender: any(named: 'gender'),
+            categoryIds: any(named: 'categoryIds'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 366);
+
+      await controller.createMissingRaceFormats();
+
+      expect(controller.message.value, isA<UiMessageSuccess>());
+      expect(controller.message.value!.details, isNull);
+    });
+  });
+
+  group('writing to FFSS needs a session', () {
+    setUp(() => userService.currentUser.value = null);
+
+    Future<void> loadOneRow() async {
+      when(() => raceRepo.getRaces(42)).thenAnswer((_) async => [
+            race(100, '100m', [cadets])
+          ]);
+      when(() => raceRepo.getEntries(100))
+          .thenAnswer((_) async => [entry(1, 100, cadets)]);
+      controller.onInit();
+      await controller.load(competition);
+    }
+
+    test('the overview knows whether anything can be written at all', () async {
+      await loadOneRow();
+      expect(controller.canWriteToFfss, isFalse);
+
+      userService.currentUser.value = loggedInUser;
+
+      expect(controller.canWriteToFfss, isTrue);
+    });
+
+    test('creating without a session is refused before it leaves the device',
+        () async {
+      // FFSS answers "Invalid Token" to an anonymous write, which reads as a
+      // server fault; refusing here names the real cause instead.
+      await loadOneRow();
+
+      await controller.createMissingRaceFormats();
+
+      verifyNever(() => raceFormatRepo.submitRaceFormat(
+            competitionId: any(named: 'competitionId'),
+            disciplineId: any(named: 'disciplineId'),
+            gender: any(named: 'gender'),
+            categoryIds: any(named: 'categoryIds'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value, isA<UiMessageError>());
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    test('deleting without a session is refused too', () async {
+      await loadOneRow();
+
+      await controller.deleteRaceFormat(const RaceFormatConfiguration(
+        id: 900,
+        label: 'x',
+        fullLabel: 'x',
+        gender: 'H',
+        genderLabel: 'Homme',
+        discipline:
+            Discipline(id: '8', name: 'x', speciality: 1, specialityLabel: ''),
+      ));
+
+      verifyNever(() => raceFormatRepo.deleteRaceFormat(any()));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    test('with a session the write goes through as before', () async {
+      await loadOneRow();
+      userService.currentUser.value = loggedInUser;
+      when(() => raceFormatRepo.submitRaceFormat(
+            competitionId: any(named: 'competitionId'),
+            disciplineId: any(named: 'disciplineId'),
+            gender: any(named: 'gender'),
+            categoryIds: any(named: 'categoryIds'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 366);
+
+      await controller.createMissingRaceFormats();
+
+      verify(() => raceFormatRepo.submitRaceFormat(
+            competitionId: any(named: 'competitionId'),
+            disciplineId: any(named: 'disciplineId'),
+            gender: any(named: 'gender'),
+            categoryIds: any(named: 'categoryIds'),
+            id: any(named: 'id'),
+          )).called(1);
+    });
+  });
+
+  group('load speed and submit progress', () {
+    Race raceOf(int id, int disciplineId) => Race(
+          id: id,
+          name: 'R$id',
+          nameEnglish: 'R$id',
+          distance: 100,
+          gender: Gender.male,
+          athletesPerTeam: 1,
+          specialityId: 1,
+          specialityLabel: 'Eau plate',
+          disciplineId: disciplineId,
+          isEligibleToNationalRecord: false,
+          categories: const [cadets],
+        );
+
+    test('entries are fetched concurrently, not one épreuve after another',
+        () async {
+      // Sequential fetches made the overview take one round trip per épreuve,
+      // which is what made opening Structure slow on a real programme.
+      final gates = {
+        for (final id in [100, 101, 102]) id: Completer<List<Entry>>()
+      };
+      when(() => raceRepo.getRaces(42)).thenAnswer(
+          (_) async => [raceOf(100, 1), raceOf(101, 2), raceOf(102, 3)]);
+      for (final id in gates.keys) {
+        when(() => raceRepo.getEntries(id))
+            .thenAnswer((_) => gates[id]!.future);
+      }
+
+      final loading = controller.load(competition);
+      await Future<void>.delayed(Duration.zero);
+
+      // All three are in flight before any of them answers.
+      verify(() => raceRepo.getEntries(100)).called(1);
+      verify(() => raceRepo.getEntries(101)).called(1);
+      verify(() => raceRepo.getEntries(102)).called(1);
+
+      for (final id in gates.keys) {
+        gates[id]!.complete([entry(1, id, cadets)]);
+      }
+      await loading;
+      expect(controller.rows, hasLength(3));
+    });
+
+    test('each row still gets the entry count of its own épreuve', () async {
+      when(() => raceRepo.getRaces(42))
+          .thenAnswer((_) async => [raceOf(100, 1), raceOf(101, 2)]);
+      when(() => raceRepo.getEntries(100)).thenAnswer(
+          (_) async => [entry(1, 100, cadets), entry(2, 100, cadets)]);
+      when(() => raceRepo.getEntries(101))
+          .thenAnswer((_) async => [entry(3, 101, cadets)]);
+
+      await controller.load(competition);
+
+      expect(controller.rows.firstWhere((r) => r.raceId == 100).entryCount, 2);
+      expect(controller.rows.firstWhere((r) => r.raceId == 101).entryCount, 1);
+    });
+
+    test('the submit reports how far along it is', () async {
+      when(() => raceRepo.getRaces(42))
+          .thenAnswer((_) async => [raceOf(100, 1), raceOf(101, 2)]);
+      when(() => raceRepo.getEntries(any()))
+          .thenAnswer((invocation) async => []);
+      await controller.load(competition);
+      expect(controller.submitTotal.value, 0);
+
+      final seen = <String>[];
+      when(() => raceFormatRepo.submitRaceFormat(
+            competitionId: any(named: 'competitionId'),
+            disciplineId: any(named: 'disciplineId'),
+            gender: any(named: 'gender'),
+            categoryIds: any(named: 'categoryIds'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async {
+        seen.add('${controller.submitDone.value}/${controller.submitTotal.value}');
+        return 366;
+      });
+
+      await controller.createMissingRaceFormats();
+
+      // Read at the start of each call: none done yet, then one.
+      expect(seen, ['0/2', '1/2']);
+      // Reset once finished, so no stale progress lingers on screen.
+      expect(controller.submitTotal.value, 0);
+      expect(controller.submitDone.value, 0);
+    });
+
+    test('a failure mid-way clears the progress too', () async {
+      when(() => raceRepo.getRaces(42))
+          .thenAnswer((_) async => [raceOf(100, 1)]);
+      when(() => raceRepo.getEntries(any()))
+          .thenAnswer((invocation) async => []);
+      await controller.load(competition);
+      when(() => raceFormatRepo.submitRaceFormat(
+            competitionId: any(named: 'competitionId'),
+            disciplineId: any(named: 'disciplineId'),
+            gender: any(named: 'gender'),
+            categoryIds: any(named: 'categoryIds'),
+            id: any(named: 'id'),
+          )).thenThrow(const NetworkException('offline'));
+
+      await controller.createMissingRaceFormats();
+
+      expect(controller.submitTotal.value, 0);
+      expect(controller.isSubmitting.value, isFalse);
     });
   });
 }

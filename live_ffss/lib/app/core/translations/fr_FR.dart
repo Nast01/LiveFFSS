@@ -282,6 +282,23 @@ final Map<String, String> frFR = {
   'round_finale': 'Finale',
   'round_unknown': 'Tour',
   'no_structures': 'Aucune épreuve à structurer',
+  'race_format_creating': 'Création des déroulements sur FFSS…',
+  'race_format_login_title': 'Connexion requise',
+  'race_format_login_body':
+      'Les déroulements se créent sur le site FFSS, qui refuse une écriture anonyme.',
+  'login_required': 'Connecte-toi pour écrire sur FFSS',
+  'race_format_missing_title': '@count épreuve(s) sans déroulement sur FFSS',
+  'race_format_missing_body':
+      'Le tirage des séries et la remontée des résultats en dépendent.',
+  'race_format_orphans': '@count déroulement(s) sans épreuve correspondante',
+  'race_format_orphans_title': 'Déroulements sans épreuve',
+  'race_format_orphans_body':
+      'Ces déroulements existent sur FFSS mais ne correspondent à aucune épreuve de cette compétition.',
+  'race_format_delete_title': 'Supprimer ce déroulement ?',
+  'race_format_delete_body':
+      'Les parties du déroulement seront supprimées avec lui sur FFSS. Cette action est irréversible.',
+  'race_format_deleted': 'Déroulement supprimé',
+  'race_format_delete_failed': 'Échec de la suppression du déroulement',
   'filter_speciality': 'Spécialité',
   'filter_discipline': 'Discipline',
   'filter_gender': 'Genre',
@@ -331,7 +348,6 @@ final Map<String, String> frFR = {
   'race_format_absent': 'Aucun déroulement FFSS',
   'race_format_present': 'Déroulement FFSS · @count tour(s)',
   'race_format_present_no_round': 'Déroulement FFSS · aucun tour',
-  'race_format_create_missing': 'Créer les @count déroulements manquants',
   'race_format_create_title': 'Créer sur le serveur FFSS ?',
   'race_format_create_body':
       '@count épreuve(s) sans déroulement seront créées sur le serveur de la fédération. Cette action sort de l\'appareil.',
