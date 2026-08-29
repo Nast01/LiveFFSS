@@ -47,6 +47,17 @@ class ApiEndpoints {
   static const String meetingList = 'competition/:id/reunion';
   static const String meetingDelete = 'competition/reunion/:id/delete';
   static const String runList = 'competition/reunion/creneau/:id/course';
+  static const String slotSubmit =
+      'competition/reunion/:reunion/creneau/submit';
+  static const String slotDelete = 'competition/reunion/creneau/:id/delete';
+  // Cassé côté FFSS au 2026-08-29 : tout POST répond
+  // « Unknown named parameter $creneau ». Déclaré pour que la couche soit
+  // complète, mais rien ne doit l'appeler tant que la fédération n'a pas
+  // corrigé la route.
+  static const String runSubmit =
+      'competition/reunion/creneau/:creneau/course/submit';
+  static const String runDelete =
+      'competition/reunion/creneau/course/:id/delete';
   // "Déroulement": one entry per (discipline, gender), carrying its categories
   // and its rounds (`parties`). The FFSS doc publishes these under
   // api.ffss.fr, but that host 301s to a 404 page — they resolve on the base
