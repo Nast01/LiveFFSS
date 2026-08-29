@@ -15,6 +15,19 @@ void main() {
   });
 
   group('getRaceFormats', () {
+    // FFSS serves this list 30 rows at a time when no window is asked for.
+    // Reading only the first page made every déroulement past the thirtieth
+    // look absent from the app while it sat plainly on the federal site.
+    test('asks for the window it was given', () async {
+      when(() => http.get(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'data': <dynamic>[]});
+
+      await ds.getRaceFormats(1451, start: 30, length: 30);
+
+      verify(() => http.get('competition/1451/deroulement',
+          query: {'start': 30, 'length': 30})).called(1);
+    });
+
     test('hits competition/<id>/deroulement and decodes the payload', () async {
       when(() => http.get(any(), query: any(named: 'query')))
           .thenAnswer((_) async => {
@@ -78,9 +91,10 @@ void main() {
                 ],
               });
 
-      final list = await ds.getRaceFormats(1337);
+      final list = await ds.getRaceFormats(1337, start: 0, length: 100);
 
-      verify(() => http.get('competition/1337/deroulement')).called(1);
+      verify(() => http.get('competition/1337/deroulement',
+          query: {'start': 0, 'length': 100})).called(1);
       final dto = list.single;
       expect(dto.id, 365);
       expect(dto.competitionId, 1337);
@@ -98,7 +112,7 @@ void main() {
       when(() => http.get(any(), query: any(named: 'query')))
           .thenAnswer((_) async => {'success': true, 'data': []});
 
-      expect(await ds.getRaceFormats(1337), isEmpty);
+      expect(await ds.getRaceFormats(1337, start: 0, length: 100), isEmpty);
     });
   });
 

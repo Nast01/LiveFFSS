@@ -31,11 +31,32 @@ class RaceFormatRepositoryImpl implements RaceFormatRepository {
 
   final RaceFormatRemoteDataSource _dataSource;
 
+  /// Rows per request. FFSS falls back to 30 when no window is asked for,
+  /// which is well under what a real competition holds.
+  static const _pageSize = 100;
+
+  /// Pages until the server returns a short batch.
+  ///
+  /// Asking for the whole list in one go is not an option: the endpoint caps
+  /// what it serves, and reading only the first page made every déroulement
+  /// past the cap look absent from the app while it sat plainly on the federal
+  /// site — a competition with 69 of them showed 30.
   @override
   Future<List<RaceFormatConfiguration>> getRaceFormats(
       int competitionId) async {
-    final dtos = await _dataSource.getRaceFormats(competitionId);
-    return dtos.map((d) => d.toDomain()).toList();
+    final all = <RaceFormatConfiguration>[];
+    var start = 0;
+    while (true) {
+      final batch = await _dataSource.getRaceFormats(
+        competitionId,
+        start: start,
+        length: _pageSize,
+      );
+      all.addAll(batch.map((d) => d.toDomain()));
+      if (batch.length < _pageSize) break;
+      start += _pageSize;
+    }
+    return all;
   }
 
   @override

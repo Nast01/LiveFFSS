@@ -3,7 +3,13 @@ import 'package:live_ffss/app/core/network/http_client.dart';
 import 'package:live_ffss/app/data/dtos/race_format_configuration_dto.dart';
 
 abstract class RaceFormatRemoteDataSource {
-  Future<List<RaceFormatConfigurationDto>> getRaceFormats(int competitionId);
+  /// One window of the competition's déroulements. FFSS caps this list — it
+  /// serves 30 rows when no window is asked for — so the caller has to page.
+  Future<List<RaceFormatConfigurationDto>> getRaceFormats(
+    int competitionId, {
+    required int start,
+    required int length,
+  });
 
   /// Creates a déroulement, or updates one when [id] is given. Returns the id
   /// FFSS assigned, or 0 when the call reported a failure.
@@ -28,12 +34,18 @@ class RaceFormatRemoteDataSourceImpl implements RaceFormatRemoteDataSource {
 
   @override
   Future<List<RaceFormatConfigurationDto>> getRaceFormats(
-      int competitionId) async {
+    int competitionId, {
+    required int start,
+    required int length,
+  }) async {
     final endpoint = ApiEndpoints.replacePath(
       ApiEndpoints.raceFormatList,
       {'id': competitionId.toString()},
     );
-    final body = await _http.get(endpoint);
+    final body = await _http.get(endpoint, query: {
+      'start': start,
+      'length': length,
+    });
     final list = (body['data'] as List?) ?? const [];
     return list
         .whereType<Map<String, dynamic>>()
