@@ -69,17 +69,6 @@ class _ScheduleViewState extends State<ScheduleView> {
   String _hhmm(int minutes) =>
       '${(minutes ~/ 60).toString().padLeft(2, '0')}:${(minutes % 60).toString().padLeft(2, '0')}';
 
-  Future<void> _pickStart(int siteId, DateTime day) async {
-    final current = _controller.startMinutesFor(siteId, day);
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: current ~/ 60, minute: current % 60),
-    );
-    if (picked != null) {
-      _controller.setDayStart(siteId, day, picked.hour * 60 + picked.minute);
-    }
-  }
-
   /// Prompts for a label only: the item's timing is not the operator's to
   /// choose — it starts at the day's current end and lasts
   /// [defaultItemMinutes], per the design.
@@ -109,6 +98,32 @@ class _ScheduleViewState extends State<ScheduleView> {
     }
   }
 
+  /// A créneau is deleted from the federal server, for everyone, and nothing
+  /// on this screen can bring it back — hence the confirmation, the same shape
+  /// the round editor uses. The delete icon also sits right next to the
+  /// duration tap target, so a miss is easy.
+  Future<void> _confirmRemoveSlot(int slotId, String label) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('schedule_delete_item_title'.tr),
+        content: Text('schedule_delete_item_body'.trParams({'item': label})),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('cancel'.tr),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.statusError),
+            child: Text('delete'.tr),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) _controller.removeSlot(slotId);
+  }
+
   /// Lets the operator pick a new duration for an existing manual créneau,
   /// in 5-minute steps — the same increment the old local planner's dialog
   /// used.
@@ -125,9 +140,8 @@ class _ScheduleViewState extends State<ScheduleView> {
             children: [
               IconButton(
                   icon: const Icon(Icons.remove),
-                  onPressed: minutes > 5
-                      ? () => setState(() => minutes -= 5)
-                      : null),
+                  onPressed:
+                      minutes > 5 ? () => setState(() => minutes -= 5) : null),
               Text('$minutes ${'min_short'.tr}', style: AppTypography.body),
               IconButton(
                   icon: const Icon(Icons.add),
@@ -165,10 +179,7 @@ class _ScheduleViewState extends State<ScheduleView> {
               _DayChips(controller: _controller),
               if (day != null)
                 _DayRangeHeader(controller: _controller, day: day, hhmm: _hhmm),
-              _SiteChips(
-                  controller: _controller,
-                  onEditStart: _pickStart,
-                  hhmm: _hhmm),
+              _SiteChips(controller: _controller),
               const SizedBox(height: AppSpacing.xs),
               Expanded(
                 child: (siteId == null || day == null)
@@ -178,6 +189,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                         controller: _controller,
                         day: day,
                         onEditDuration: _editSlotDuration,
+                        onDelete: _confirmRemoveSlot,
                       ),
               ),
               const Divider(height: 1),
@@ -248,15 +260,14 @@ class _DayChips extends StatelessWidget {
   }
 }
 
+/// The competition's sites, plus the way into their editor.
+///
+/// The chips no longer filter the timeline — the day's frise comes from FFSS
+/// and carries each course's own site — but the selection still gates the
+/// manual-item FAB, so it stays.
 class _SiteChips extends StatelessWidget {
-  const _SiteChips({
-    required this.controller,
-    required this.onEditStart,
-    required this.hhmm,
-  });
+  const _SiteChips({required this.controller});
   final ScheduleController controller;
-  final Future<void> Function(int siteId, DateTime day) onEditStart;
-  final String Function(int minutes) hhmm;
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +277,6 @@ class _SiteChips extends StatelessWidget {
       child: Obx(() {
         final sites = controller.sites;
         final selectedId = controller.selectedSiteId.value;
-        final day = controller.selectedDay;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -308,34 +318,15 @@ class _SiteChips extends StatelessWidget {
                   },
                 ),
               ),
-            Row(
-              children: [
-                if (selectedId != null && day != null)
-                  GestureDetector(
-                    onTap: () => onEditStart(selectedId, day),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.primarySurface,
-                        borderRadius: AppRadius.pillRadius,
-                      ),
-                      child: Text(
-                        '${'starts_at'.tr} ${hhmm(controller.startMinutesFor(selectedId, day))} ▾',
-                        style: AppTypography.caption
-                            .copyWith(color: AppColors.primaryDark),
-                      ),
-                    ),
-                  ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.settings),
-                  iconSize: 20,
-                  visualDensity: VisualDensity.compact,
-                  tooltip: 'sites'.tr,
-                  onPressed: () => Get.to<void>(() => const SitesView()),
-                ),
-              ],
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: const Icon(Icons.settings),
+                iconSize: 20,
+                visualDensity: VisualDensity.compact,
+                tooltip: 'sites'.tr,
+                onPressed: () => Get.to<void>(() => const SitesView()),
+              ),
             ),
           ],
         );
@@ -451,10 +442,12 @@ class _Timeline extends StatelessWidget {
     required this.controller,
     required this.day,
     required this.onEditDuration,
+    required this.onDelete,
   });
   final ScheduleController controller;
   final DateTime day;
   final void Function(int slotId, int currentMinutes) onEditDuration;
+  final void Function(int slotId, String label) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -480,7 +473,7 @@ class _Timeline extends StatelessWidget {
             _DaySectionView(
               section: section,
               onEditDuration: onEditDuration,
-              onDelete: controller.removeSlot,
+              onDelete: onDelete,
             ),
         ],
       );
@@ -496,7 +489,7 @@ class _DaySectionView extends StatelessWidget {
   });
   final _DaySection section;
   final void Function(int slotId, int currentMinutes) onEditDuration;
-  final void Function(int slotId) onDelete;
+  final void Function(int slotId, String label) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -531,7 +524,7 @@ class _DayEntryCard extends StatelessWidget {
   });
   final _DayEntry entry;
   final void Function(int slotId, int currentMinutes) onEditDuration;
-  final void Function(int slotId) onDelete;
+  final void Function(int slotId, String label) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -567,7 +560,7 @@ class _DayEntryCard extends StatelessWidget {
                 iconSize: 20,
                 visualDensity: VisualDensity.compact,
                 color: AppColors.textSecondary,
-                onPressed: () => onDelete(slotId),
+                onPressed: () => onDelete(slotId, entry.label),
               ),
             ],
           ],
@@ -590,9 +583,14 @@ double _paletteHeight(BuildContext context) =>
 
 /// The unscheduled races, one collapsible section per épreuve.
 ///
-/// Sections start collapsed so the whole programme is visible at a glance —
-/// with "add all" on the header, a full épreuve is scheduled without ever
-/// opening one. A single épreuve opens on its own: there is nothing to choose.
+/// Sections start collapsed so the whole programme is visible at a glance. A
+/// single épreuve opens on its own: there is nothing to choose.
+///
+/// Read-only for now: scheduling a course means `course/submit`, which answers
+/// every POST with `500 Unknown named parameter $creneau` — verified in
+/// production. The add buttons are shown greyed out with the reason rather
+/// than removed, because the palette is what the timeline is drawn from once
+/// FFSS fixes the endpoint.
 class _Palette extends StatefulWidget {
   const _Palette({required this.controller, required this.genderOf});
 
@@ -612,8 +610,6 @@ class _PaletteState extends State<_Palette> {
     return Obx(() {
       final groups = widget.controller.unscheduledGroups;
       final total = groups.fold<int>(0, (sum, g) => sum + g.items.length);
-      final siteId = widget.controller.selectedSiteId.value;
-      final day = widget.controller.selectedDay;
       // Resolved here, not in the itemBuilder below: that builder runs during
       // layout, outside this Obx, so reading the épreuve rows from there
       // registers no dependency and the badges stay stale until some other
@@ -630,8 +626,17 @@ class _PaletteState extends State<_Palette> {
           children: [
             Padding(
               padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Text('${'unscheduled'.tr} ($total)',
-                  style: AppTypography.caption),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${'unscheduled'.tr} ($total)',
+                      style: AppTypography.caption),
+                  const SizedBox(height: 2),
+                  Text('schedule_races_unavailable'.tr,
+                      style: AppTypography.caption
+                          .copyWith(color: AppColors.textMuted)),
+                ],
+              ),
             ),
             Expanded(
               child: ListView.builder(
@@ -646,16 +651,11 @@ class _PaletteState extends State<_Palette> {
                     onToggle: () => setState(() {
                       if (!_expanded.remove(key)) _expanded.add(key);
                     }),
-                    onAdd: (siteId == null || day == null)
-                        ? null
-                        : (raceId) =>
-                            widget.controller.addRace(raceId, siteId, day),
-                    onAddAll: (siteId == null || day == null)
-                        ? null
-                        : () => widget.controller.addRaces(
-                            group.items.map((it) => it.raceId).toList(),
-                            siteId,
-                            day),
+                    // Deliberately inert: see the class doc. `addRace` and
+                    // `addRaces` stay on the controller, waiting for the
+                    // endpoint.
+                    onAdd: null,
+                    onAddAll: null,
                   );
                 },
               ),

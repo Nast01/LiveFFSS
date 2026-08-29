@@ -349,12 +349,18 @@ final Map<String, String> frFR = {
   'schedule_day_range': '@begin → @end',
   'schedule_manual_items': 'Général',
   'schedule_item_failed': "FFSS n'a pas enregistré cet item",
-  'schedule_meeting_end_failed': "La nouvelle fin de journée n'a pas été enregistrée",
+  'schedule_meeting_end_failed':
+      "La nouvelle fin de journée n'a pas été enregistrée",
   'add_manual_item': 'Ajouter un item',
   'manual_label': 'Libellé',
-  'duration_min': 'Durée (min)',
   'starts_at': 'Départ',
   'edit_item': 'Modifier',
+  'schedule_races_unavailable':
+      "Planifier une course attend l'endpoint FFSS course/submit",
+  'schedule_delete_item_title': 'Supprimer cet item ?',
+  'schedule_delete_item_body':
+      '« @item » sera supprimé du serveur FFSS pour tout le monde. '
+          'Cette action est irréversible.',
   'no_programme': 'Programme non défini',
   'no_structure_defined': 'Structure non définie',
   'approach_bracelets': 'Approchez les bracelets à scanner',

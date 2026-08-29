@@ -349,9 +349,14 @@ final Map<String, String> enUS = {
   'schedule_meeting_end_failed': "The new end of day wasn't saved",
   'add_manual_item': 'Add an item',
   'manual_label': 'Label',
-  'duration_min': 'Duration (min)',
   'starts_at': 'Starts',
   'edit_item': 'Edit',
+  'schedule_races_unavailable':
+      'Scheduling races waits on the FFSS course/submit endpoint',
+  'schedule_delete_item_title': 'Delete this item?',
+  'schedule_delete_item_body':
+      '"@item" will be removed from the FFSS server for everyone. '
+          'This cannot be undone.',
   'no_programme': 'No programme defined',
   'no_structure_defined': 'No structure defined',
   'approach_bracelets': 'Hold each bracelet near the phone',
