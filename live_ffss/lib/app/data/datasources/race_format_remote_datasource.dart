@@ -23,6 +23,24 @@ abstract class RaceFormatRemoteDataSource {
 
   Future<bool> deleteRaceFormat(int raceFormatId);
 
+  /// Creates a round ("partie") of a déroulement, or updates the one with [id].
+  /// Returns the id FFSS assigned, or 0 when the call reported a failure.
+  ///
+  /// `nbCourse` is the round's [raceCount], `nbPlaceParCourse` its
+  /// [spotsPerRace] and `nbPlaceQualificative` its [qualifyingSpots] — the
+  /// first published description of these three had them muddled.
+  Future<int> submitRaceFormatDetail({
+    required int raceFormatId,
+    required int order,
+    required String level,
+    required int raceCount,
+    required String qualificationMethod,
+    required int spotsPerRace,
+    required int qualifyingSpots,
+    required List<int> categoryIds,
+    int? id,
+  });
+
   /// Deletes one round ("partie") of a déroulement.
   Future<bool> deleteRaceFormatDetail(int detailId);
 }
@@ -88,6 +106,37 @@ class RaceFormatRemoteDataSourceImpl implements RaceFormatRemoteDataSource {
     );
     final body = await _http.post(endpoint);
     return body['success'] == true;
+  }
+
+  @override
+  Future<int> submitRaceFormatDetail({
+    required int raceFormatId,
+    required int order,
+    required String level,
+    required int raceCount,
+    required String qualificationMethod,
+    required int spotsPerRace,
+    required int qualifyingSpots,
+    required List<int> categoryIds,
+    int? id,
+  }) async {
+    final endpoint = ApiEndpoints.replacePath(
+      ApiEndpoints.raceFormatDetailSubmit,
+      {'deroulement': raceFormatId.toString()},
+    );
+    final body = await _http.post(endpoint, query: {
+      'id': id?.toString() ?? '',
+      'ordre': order,
+      'niveau': level,
+      'nbCourse': raceCount,
+      'logiqueQualification': qualificationMethod,
+      'nbPlaceParCourse': spotsPerRace,
+      'nbPlaceQualificative': qualifyingSpots,
+      'categories[]': categoryIds,
+    });
+    if (body['success'] != true) return 0;
+    final assigned = body['id'];
+    return assigned is int ? assigned : int.tryParse('$assigned') ?? 0;
   }
 
   @override

@@ -31,7 +31,11 @@ mixin _$RoundLevel {
   int get spotsPerRace =>
       throw _privateConstructorUsedError; // Id of the FFSS `partie` this round came from, 0 for a round the operator
 // added by hand. Only a round with one can be deleted server-side.
-  int get serverId => throw _privateConstructorUsedError;
+  int get serverId =>
+      throw _privateConstructorUsedError; // FFSS `LogiqueQualification` code. Kept as the raw string rather than an
+// enum so a code this app does not know survives a round trip instead of
+// being flattened to a default and written back wrong.
+  String get qualificationMethod => throw _privateConstructorUsedError;
   List<ProgrammeRace> get races => throw _privateConstructorUsedError;
 
   /// Serializes this RoundLevel to a JSON map.
@@ -55,6 +59,7 @@ abstract class $RoundLevelCopyWith<$Res> {
       int qualifiersPerRace,
       int spotsPerRace,
       int serverId,
+      String qualificationMethod,
       List<ProgrammeRace> races});
 }
 
@@ -77,6 +82,7 @@ class _$RoundLevelCopyWithImpl<$Res, $Val extends RoundLevel>
     Object? qualifiersPerRace = null,
     Object? spotsPerRace = null,
     Object? serverId = null,
+    Object? qualificationMethod = null,
     Object? races = null,
   }) {
     return _then(_value.copyWith(
@@ -96,6 +102,10 @@ class _$RoundLevelCopyWithImpl<$Res, $Val extends RoundLevel>
           ? _value.serverId
           : serverId // ignore: cast_nullable_to_non_nullable
               as int,
+      qualificationMethod: null == qualificationMethod
+          ? _value.qualificationMethod
+          : qualificationMethod // ignore: cast_nullable_to_non_nullable
+              as String,
       races: null == races
           ? _value.races
           : races // ignore: cast_nullable_to_non_nullable
@@ -117,6 +127,7 @@ abstract class _$$RoundLevelImplCopyWith<$Res>
       int qualifiersPerRace,
       int spotsPerRace,
       int serverId,
+      String qualificationMethod,
       List<ProgrammeRace> races});
 }
 
@@ -137,6 +148,7 @@ class __$$RoundLevelImplCopyWithImpl<$Res>
     Object? qualifiersPerRace = null,
     Object? spotsPerRace = null,
     Object? serverId = null,
+    Object? qualificationMethod = null,
     Object? races = null,
   }) {
     return _then(_$RoundLevelImpl(
@@ -156,6 +168,10 @@ class __$$RoundLevelImplCopyWithImpl<$Res>
           ? _value.serverId
           : serverId // ignore: cast_nullable_to_non_nullable
               as int,
+      qualificationMethod: null == qualificationMethod
+          ? _value.qualificationMethod
+          : qualificationMethod // ignore: cast_nullable_to_non_nullable
+              as String,
       races: null == races
           ? _value._races
           : races // ignore: cast_nullable_to_non_nullable
@@ -172,6 +188,7 @@ class _$RoundLevelImpl implements _RoundLevel {
       this.qualifiersPerRace = 0,
       this.spotsPerRace = 0,
       this.serverId = 0,
+      this.qualificationMethod = qualificationNone,
       final List<ProgrammeRace> races = const <ProgrammeRace>[]})
       : _races = races;
 
@@ -197,6 +214,12 @@ class _$RoundLevelImpl implements _RoundLevel {
   @override
   @JsonKey()
   final int serverId;
+// FFSS `LogiqueQualification` code. Kept as the raw string rather than an
+// enum so a code this app does not know survives a round trip instead of
+// being flattened to a default and written back wrong.
+  @override
+  @JsonKey()
+  final String qualificationMethod;
   final List<ProgrammeRace> _races;
   @override
   @JsonKey()
@@ -208,7 +231,7 @@ class _$RoundLevelImpl implements _RoundLevel {
 
   @override
   String toString() {
-    return 'RoundLevel(type: $type, qualifiersPerRace: $qualifiersPerRace, spotsPerRace: $spotsPerRace, serverId: $serverId, races: $races)';
+    return 'RoundLevel(type: $type, qualifiersPerRace: $qualifiersPerRace, spotsPerRace: $spotsPerRace, serverId: $serverId, qualificationMethod: $qualificationMethod, races: $races)';
   }
 
   @override
@@ -223,13 +246,21 @@ class _$RoundLevelImpl implements _RoundLevel {
                 other.spotsPerRace == spotsPerRace) &&
             (identical(other.serverId, serverId) ||
                 other.serverId == serverId) &&
+            (identical(other.qualificationMethod, qualificationMethod) ||
+                other.qualificationMethod == qualificationMethod) &&
             const DeepCollectionEquality().equals(other._races, _races));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, type, qualifiersPerRace,
-      spotsPerRace, serverId, const DeepCollectionEquality().hash(_races));
+  int get hashCode => Object.hash(
+      runtimeType,
+      type,
+      qualifiersPerRace,
+      spotsPerRace,
+      serverId,
+      qualificationMethod,
+      const DeepCollectionEquality().hash(_races));
 
   /// Create a copy of RoundLevel
   /// with the given fields replaced by the non-null parameter values.
@@ -254,6 +285,7 @@ abstract class _RoundLevel implements RoundLevel {
       final int qualifiersPerRace,
       final int spotsPerRace,
       final int serverId,
+      final String qualificationMethod,
       final List<ProgrammeRace> races}) = _$RoundLevelImpl;
 
   factory _RoundLevel.fromJson(Map<String, dynamic> json) =
@@ -272,7 +304,11 @@ abstract class _RoundLevel implements RoundLevel {
   int get spotsPerRace; // Id of the FFSS `partie` this round came from, 0 for a round the operator
 // added by hand. Only a round with one can be deleted server-side.
   @override
-  int get serverId;
+  int get serverId; // FFSS `LogiqueQualification` code. Kept as the raw string rather than an
+// enum so a code this app does not know survives a round trip instead of
+// being flattened to a default and written back wrong.
+  @override
+  String get qualificationMethod;
   @override
   List<ProgrammeRace> get races;
 

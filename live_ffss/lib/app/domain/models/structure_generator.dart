@@ -75,6 +75,7 @@ List<RoundLevel> buildLevelsFromDetails({
       qualifiersPerRace: detail.qualifyingSpots,
       spotsPerRace: detail.spotsPerRace,
       serverId: detail.id,
+      qualificationMethod: detail.qualificationMethod,
     ));
     previousIds = races.map((r) => r.id).toList();
   }

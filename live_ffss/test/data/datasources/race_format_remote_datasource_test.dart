@@ -116,6 +116,82 @@ void main() {
     });
   });
 
+  group('submitRaceFormatDetail', () {
+    // nbCourse is the round's race count, nbPlaceParCourse its spotsPerRace
+    // and nbPlaceQualificative its qualifyingSpots — the first published
+    // description of these fields had them muddled.
+    test('sends the round as a partie, with an empty id for a creation',
+        () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 512});
+
+      final id = await ds.submitRaceFormatDetail(
+        raceFormatId: 428,
+        order: 2,
+        level: 'semi',
+        raceCount: 3,
+        qualificationMethod: 'course',
+        spotsPerRace: 18,
+        qualifyingSpots: 2,
+        categoryIds: const [10],
+      );
+
+      expect(id, 512);
+      final query = verify(() => http.post(
+          'competition/deroulement/428/partie/submit',
+          query: captureAny(named: 'query'))).captured.single;
+      expect(query, {
+        'id': '',
+        'ordre': 2,
+        'niveau': 'semi',
+        'nbCourse': 3,
+        'logiqueQualification': 'course',
+        'nbPlaceParCourse': 18,
+        'nbPlaceQualificative': 2,
+        'categories[]': [10],
+      });
+    });
+
+    test('carries the id when the partie already exists', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 512});
+
+      await ds.submitRaceFormatDetail(
+        raceFormatId: 428,
+        id: 512,
+        order: 1,
+        level: 'final',
+        raceCount: 1,
+        qualificationMethod: 'none',
+        spotsPerRace: 16,
+        qualifyingSpots: 0,
+        categoryIds: const [10],
+      );
+
+      final query = verify(() => http.post(any(),
+          query: captureAny(named: 'query'))).captured.single as Map;
+      expect(query['id'], '512');
+    });
+
+    test('a refused submission reports 0 rather than a made-up id', () async {
+      when(() => http.post(any(), query: any(named: 'query'))).thenAnswer(
+          (_) async => {'success': false, 'message': 'Niveau inconnu'});
+
+      final id = await ds.submitRaceFormatDetail(
+        raceFormatId: 428,
+        order: 1,
+        level: 'final',
+        raceCount: 1,
+        qualificationMethod: 'none',
+        spotsPerRace: 16,
+        qualifyingSpots: 0,
+        categoryIds: const [10],
+      );
+
+      expect(id, 0);
+    });
+  });
+
   group('submitRaceFormat', () {
     test('sends an empty id and PHP array notation for the categories',
         () async {

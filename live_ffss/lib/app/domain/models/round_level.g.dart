@@ -13,6 +13,8 @@ _$RoundLevelImpl _$$RoundLevelImplFromJson(Map<String, dynamic> json) =>
       qualifiersPerRace: (json['qualifiersPerRace'] as num?)?.toInt() ?? 0,
       spotsPerRace: (json['spotsPerRace'] as num?)?.toInt() ?? 0,
       serverId: (json['serverId'] as num?)?.toInt() ?? 0,
+      qualificationMethod:
+          json['qualificationMethod'] as String? ?? qualificationNone,
       races: (json['races'] as List<dynamic>?)
               ?.map((e) => ProgrammeRace.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -25,6 +27,7 @@ Map<String, dynamic> _$$RoundLevelImplToJson(_$RoundLevelImpl instance) =>
       'qualifiersPerRace': instance.qualifiersPerRace,
       'spotsPerRace': instance.spotsPerRace,
       'serverId': instance.serverId,
+      'qualificationMethod': instance.qualificationMethod,
       'races': instance.races,
     };
 

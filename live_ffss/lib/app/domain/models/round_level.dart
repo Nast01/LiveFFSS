@@ -7,6 +7,16 @@ part 'round_level.g.dart';
 
 enum RoundType { serie, quart, demi, finale, unknown }
 
+/// The `LogiqueQualification` codes FFSS accepts, with the translation key that
+/// names each. A code outside this list is still carried and shown as-is —
+/// these are the ones the editor offers, not the ones it tolerates.
+const String qualificationNone = 'none';
+const Map<String, String> qualificationLabelKeys = {
+  qualificationNone: 'qualification_none',
+  'course': 'qualification_per_race',
+  'partie': 'qualification_per_round',
+};
+
 @freezed
 class RoundLevel with _$RoundLevel {
   const factory RoundLevel({
@@ -21,6 +31,10 @@ class RoundLevel with _$RoundLevel {
     // Id of the FFSS `partie` this round came from, 0 for a round the operator
     // added by hand. Only a round with one can be deleted server-side.
     @Default(0) int serverId,
+    // FFSS `LogiqueQualification` code. Kept as the raw string rather than an
+    // enum so a code this app does not know survives a round trip instead of
+    // being flattened to a default and written back wrong.
+    @Default(qualificationNone) String qualificationMethod,
     @Default(<ProgrammeRace>[]) List<ProgrammeRace> races,
   }) = _RoundLevel;
 
@@ -38,4 +52,15 @@ RoundType roundTypeFromApi(Object? raw) => switch (raw) {
       'semi' => RoundType.demi,
       'final' => RoundType.finale,
       _ => RoundType.unknown,
+    };
+
+/// Inverse of [roundTypeFromApi], for the `niveau` a `partie/submit` takes.
+/// [RoundType.unknown] has no code to send, so it maps to the empty string and
+/// the caller refuses to submit rather than inventing a round.
+String roundTypeCode(RoundType type) => switch (type) {
+      RoundType.serie => 'heat',
+      RoundType.quart => 'quarter',
+      RoundType.demi => 'semi',
+      RoundType.finale => 'final',
+      RoundType.unknown => '',
     };

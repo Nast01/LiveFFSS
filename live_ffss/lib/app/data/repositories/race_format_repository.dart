@@ -22,6 +22,20 @@ abstract class RaceFormatRepository {
 
   Future<bool> deleteRaceFormat(int raceFormatId);
 
+  /// Creates a round of a déroulement, or updates the one with [id], and
+  /// returns the id FFSS assigned. Returns 0 when the API reported a failure.
+  Future<int> submitRaceFormatDetail({
+    required int raceFormatId,
+    required int order,
+    required String level,
+    required int raceCount,
+    required String qualificationMethod,
+    required int spotsPerRace,
+    required int qualifyingSpots,
+    required List<int> categoryIds,
+    int? id,
+  });
+
   /// Deletes one round of a déroulement, by its FFSS `partie` id.
   Future<bool> deleteRaceFormatDetail(int detailId);
 }
@@ -78,6 +92,30 @@ class RaceFormatRepositoryImpl implements RaceFormatRepository {
   @override
   Future<bool> deleteRaceFormat(int raceFormatId) =>
       _dataSource.deleteRaceFormat(raceFormatId);
+
+  @override
+  Future<int> submitRaceFormatDetail({
+    required int raceFormatId,
+    required int order,
+    required String level,
+    required int raceCount,
+    required String qualificationMethod,
+    required int spotsPerRace,
+    required int qualifyingSpots,
+    required List<int> categoryIds,
+    int? id,
+  }) =>
+      _dataSource.submitRaceFormatDetail(
+        raceFormatId: raceFormatId,
+        order: order,
+        level: level,
+        raceCount: raceCount,
+        qualificationMethod: qualificationMethod,
+        spotsPerRace: spotsPerRace,
+        qualifyingSpots: qualifyingSpots,
+        categoryIds: categoryIds,
+        id: id,
+      );
 
   @override
   Future<bool> deleteRaceFormatDetail(int detailId) =>

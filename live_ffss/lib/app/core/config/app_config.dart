@@ -55,6 +55,8 @@ class ApiEndpoints {
   static const String raceFormatSubmit =
       'competition/:competition/deroulement/submit';
   static const String raceFormatDelete = 'competition/deroulement/:id/delete';
+  static const String raceFormatDetailSubmit =
+      'competition/deroulement/:deroulement/partie/submit';
   static const String raceFormatDetailDelete =
       'competition/deroulement/partie/:id/delete';
 

@@ -243,4 +243,42 @@ void main() {
           (raceCount: 0, qualifiersPerRace: 0));
     });
   });
+
+  group('buildLevelsFromDetails carries the qualification logic', () {
+    RaceFormatDetail detail(String method) => RaceFormatDetail(
+          id: 32,
+          order: 1,
+          label: 'Demi',
+          fullLabel: 'Demi',
+          levelLabel: 'Demi',
+          level: 'semi',
+          numberOfRun: 2,
+          qualificationMethod: method,
+          qualificationMethodLabel: '',
+          spotsPerRace: 18,
+          qualifyingSpots: 2,
+        );
+
+    test('an imported round keeps the code FFSS gave it', () {
+      var next = 1;
+      final levels = buildLevelsFromDetails(
+        details: [detail('course')],
+        allocateId: () => next++,
+      );
+
+      // Flattening this to a default would write the wrong logic back on the
+      // next update.
+      expect(levels.single.qualificationMethod, 'course');
+    });
+
+    test('a code this app does not know is carried, not dropped', () {
+      var next = 1;
+      final levels = buildLevelsFromDetails(
+        details: [detail('une-logique-inventee')],
+        allocateId: () => next++,
+      );
+
+      expect(levels.single.qualificationMethod, 'une-logique-inventee');
+    });
+  });
 }
