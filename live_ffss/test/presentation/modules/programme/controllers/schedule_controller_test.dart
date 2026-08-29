@@ -1,5 +1,8 @@
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
@@ -278,7 +281,10 @@ void main() {
 
     /// A course of the day's single créneau, as FFSS returns it: its own
     /// site and a bare `HH:mm` begin/end, unrelated to the réunion's date.
-    Run run({required String site, required String begin, required String end}) =>
+    Run run(
+            {required String site,
+            required String begin,
+            required String end}) =>
         Run(
           id: 1,
           name: 'Course',
@@ -381,7 +387,8 @@ void main() {
       verifyNever(() => meetingRepo.getMeetings(any()));
     });
 
-    test('un chargement réussi remplit la journée sans laisser croire à une panne',
+    test(
+        'un chargement réussi remplit la journée sans laisser croire à une panne',
         () async {
       final meeting = Meeting(
         id: 2,
@@ -499,6 +506,114 @@ void main() {
           )).called(1);
     });
 
+    // Les heures du créneau sont calculées par le contrôleur, pas relues du
+    // serveur : sans les capturer, `beginMinutes` pourrait valoir n'importe
+    // quoi et la suite resterait verte, puisque les autres assertions lisent
+    // le rechargement simulé.
+    test('le créneau part à la fin de journée courante, pour 10 minutes',
+        () async {
+      stubWrites();
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      final times = verify(() => meetingRepo.submitSlot(
+            meetingId: 78,
+            name: 'Accueil des clubs',
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            raceFormatDetailId: null,
+            id: null,
+          )).captured;
+      expect(times, [timeOf(8, 0), timeOf(8, 10)]);
+    });
+
+    // La journée finit déjà à 08:10 : le nouvel item s'y accroche au lieu de
+    // repartir du début. Un `beginMinutes` codé en dur passerait le test
+    // précédent mais pas celui-ci.
+    test('un item suivant part de la fin réelle de la journée', () async {
+      stubWrites();
+      controller.meetings.value = [seedMeetingWithSlot()];
+
+      await controller.addManualItem('Briefing', day);
+
+      final times = verify(() => meetingRepo.submitSlot(
+            meetingId: 78,
+            name: 'Briefing',
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            raceFormatDetailId: null,
+            id: null,
+          )).captured;
+      expect(times, [timeOf(8, 10), timeOf(8, 20)]);
+    });
+
+    // meetingFor reconnaît la réunion du jour. Si elle cessait de la trouver,
+    // chaque item ajouterait une réunion de plus sur FFSS.
+    test('une journée qui a déjà sa réunion n en crée pas une seconde',
+        () async {
+      stubWrites();
+      controller.meetings.value = [seedMeetingWithSlot()];
+
+      await controller.addManualItem('Briefing', day);
+
+      verifyNever(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: null,
+          ));
+    });
+
+    // DateFormat('EEEE d MMMM y', 'fr_FR') lève une LocaleDataException tant
+    // que les symboles de date ne sont pas chargés. Ce n'est pas une
+    // AppException : rien ne la rattrape, et le premier item de la journée
+    // disparaît en silence. main() appelle initializeDateFormatting avant
+    // runApp, exactement comme ici.
+    test('la réunion créée porte le jour dans la langue de l app', () async {
+      await initializeDateFormatting();
+      Get.locale = const Locale('fr', 'FR');
+      addTearDown(() => Get.locale = null);
+      stubWrites();
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      final name = verify(() => meetingRepo.submitMeeting(
+            competitionId: 42,
+            name: captureAny(named: 'name'),
+            description: '',
+            date: day,
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: null,
+          )).captured.single;
+      expect(name, 'samedi 13 juin 2026');
+    });
+
+    // Le rechargement a échoué : endMinutesOfDay lirait la journée d'avant
+    // l'ajout et remonterait une fin trop courte, annoncée comme un succès.
+    test('un rechargement en échec empêche la remontée de fin', () async {
+      stubWrites();
+      when(() => meetingRepo.getMeetings(42))
+          .thenThrow(const NetworkException('offline'));
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      verifyNever(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: 78,
+          ));
+      expect(controller.message.value!.translationKey,
+          'schedule_meeting_end_failed');
+    });
+
     test('hors session, rien ne part', () async {
       userService.currentUser.value = null;
 
@@ -539,8 +654,8 @@ void main() {
           ));
       // L'opérateur tape "ajouter", rien ne part : sans message, il n'a
       // aucun moyen de savoir que ce n'est pas juste sans effet.
-      expect(controller.message.value!.translationKey,
-          'failed_to_create_meeting');
+      expect(
+          controller.message.value!.translationKey, 'failed_to_create_meeting');
     });
 
     test('un échec réseau à la création de la réunion le signale', () async {
@@ -564,8 +679,8 @@ void main() {
             raceFormatDetailId: any(named: 'raceFormatDetailId'),
             id: any(named: 'id'),
           ));
-      expect(controller.message.value!.translationKey,
-          'failed_to_create_meeting');
+      expect(
+          controller.message.value!.translationKey, 'failed_to_create_meeting');
       expect(controller.message.value!.details, 'offline');
     });
 
@@ -765,6 +880,35 @@ void main() {
       expect(controller.message.value!.translationKey, 'login_required');
     });
 
+    // Sans rechargement réussi, la fin remontée serait celle d'avant le
+    // redimensionnement — trop courte, et présentée comme un succès.
+    test('un rechargement en échec empêche la remontée de fin', () async {
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 66);
+      when(() => meetingRepo.getMeetings(42))
+          .thenThrow(const NetworkException('offline'));
+
+      await controller.setSlotDuration(66, 20);
+
+      verifyNever(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey,
+          'schedule_meeting_end_failed');
+    });
+
     test('un créneau inconnu ne fait rien', () async {
       await controller.setSlotDuration(999, 20);
 
@@ -855,6 +999,28 @@ void main() {
 
       expect(controller.message.value!.translationKey, 'schedule_item_failed');
       expect(controller.message.value!.details, 'offline');
+    });
+
+    // La suppression a bien eu lieu, mais la liste rechargée porte encore le
+    // créneau : la fin remontée serait trop longue, et donnée pour bonne.
+    test('un rechargement en échec empêche la remontée de fin', () async {
+      when(() => meetingRepo.deleteSlot(66)).thenAnswer((_) async => true);
+      when(() => meetingRepo.getMeetings(42))
+          .thenThrow(const NetworkException('offline'));
+
+      await controller.removeSlot(66);
+
+      verifyNever(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey,
+          'schedule_meeting_end_failed');
     });
 
     test('un créneau inconnu ne fait rien', () async {

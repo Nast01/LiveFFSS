@@ -100,6 +100,15 @@ class ScheduleController extends GetxController {
         : planner.dayStartMinutes(p, siteId, day);
   }
 
+  // ---------------------------------------------------------------------
+  // Local ScheduleBlock planner. Dormant: the timeline is drawn from the FFSS
+  // réunion tree now, and no view calls into this group any more. It is kept
+  // whole — with its tests — because placing a course on a créneau needs
+  // `course/submit`, which answers every POST with
+  // `500 Unknown named parameter $creneau` (verified in production). When FFSS
+  // fixes it, this is what the palette writes through again.
+  // ---------------------------------------------------------------------
+
   Future<void> addRace(int raceId, int siteId, DateTime day) async {
     if (_p == null) return;
     final id = _programme.allocateId();
@@ -184,6 +193,8 @@ class ScheduleController extends GetxController {
         : (planner.raceItemFor(p, raceId)?.roundType ?? RoundType.unknown);
   }
 
+  // ------------------------- end of the dormant planner ------------------
+
   /// Everything this screen reads is public, so a signed-out operator gets in
   /// without friction — only a write comes back refused.
   bool get canWriteToFfss => _user.currentUser.value != null;
@@ -238,15 +249,22 @@ class ScheduleController extends GetxController {
   /// the time they look up — the same convention as
   /// `ProgrammeController.load`. [meetings] is left as it was rather than
   /// cleared, so a stale-but-real day beats a blank one.
-  Future<void> reload() async {
+  ///
+  /// Returns whether [meetings] now reflects FFSS. A write that follows up
+  /// with [_pushMeetingEnd] has to know: computing the day's new end from a
+  /// list the reload could not refresh would push a `fin` derived from the
+  /// state *before* the write, and report it as a success.
+  Future<bool> reload() async {
     final id = competition.value?.id;
-    if (id == null) return;
+    if (id == null) return false;
     try {
       isLoading.value = true;
       hasError.value = false;
       meetings.value = await _meetings.getMeetings(id);
+      return true;
     } on AppException {
       hasError.value = true;
+      return false;
     } finally {
       isLoading.value = false;
     }
@@ -302,6 +320,10 @@ class ScheduleController extends GetxController {
   /// leaves a stale `fin` on FFSS rather than an unsaved item — still worth
   /// reporting, since the app's own header recomputes from the slots and
   /// would otherwise never let the operator know the two have diverged.
+  ///
+  /// Every caller checks [reload] succeeded first: [endMinutesOfDay] reads
+  /// [meetings], so a stale list would compute a `fin` for the day as it was
+  /// before the write.
   Future<void> _pushMeetingEnd(DateTime day) async {
     final meeting = meetingFor(day);
     final competitionId = competition.value?.id;
@@ -372,7 +394,10 @@ class ScheduleController extends GetxController {
       message.trigger(const UiMessageError('schedule_item_failed'));
       return;
     }
-    await reload();
+    if (!await reload()) {
+      message.trigger(const UiMessageError('schedule_meeting_end_failed'));
+      return;
+    }
     await _pushMeetingEnd(day);
   }
 
@@ -408,7 +433,10 @@ class ScheduleController extends GetxController {
       message.trigger(const UiMessageError('schedule_item_failed'));
       return;
     }
-    await reload();
+    if (!await reload()) {
+      message.trigger(const UiMessageError('schedule_meeting_end_failed'));
+      return;
+    }
     await _pushMeetingEnd(meeting.date);
   }
 
@@ -433,7 +461,10 @@ class ScheduleController extends GetxController {
       message.trigger(const UiMessageError('schedule_item_failed'));
       return;
     }
-    await reload();
+    if (!await reload()) {
+      message.trigger(const UiMessageError('schedule_meeting_end_failed'));
+      return;
+    }
     await _pushMeetingEnd(day);
   }
 }
