@@ -25,12 +25,37 @@ void main() {
   });
 
   test('getMeetings forwards id and maps to domain', () async {
-    when(() => ds.getMeetings(any()))
+    when(() => ds.getMeetings(any(),
+            start: any(named: 'start'), length: any(named: 'length')))
         .thenAnswer((_) async => [makeDto(1), makeDto(2)]);
     final list = await repo.getMeetings(42);
     expect(list.length, 2);
     expect(list.first.id, 1);
-    verify(() => ds.getMeetings(42)).called(1);
+    verify(() => ds.getMeetings(42, start: 0, length: 100)).called(1);
+  });
+
+  List<MeetingDto> page(int from, int count) =>
+      [for (var i = 0; i < count; i++) makeDto(from + i)];
+
+  // FFSS sert 30 lignes quand on ne demande pas de fenêtre : lire la première
+  // page seulement ferait disparaître des journées entières de l'écran.
+  test('pagine jusqu à une page courte', () async {
+    when(() => ds.getMeetings(1451, start: 0, length: 100))
+        .thenAnswer((_) async => page(1, 100));
+    when(() => ds.getMeetings(1451, start: 100, length: 100))
+        .thenAnswer((_) async => page(101, 5));
+
+    final all = await repo.getMeetings(1451);
+
+    expect(all, hasLength(105));
+  });
+
+  test('une page courte suffit, sans second appel', () async {
+    when(() => ds.getMeetings(1451, start: 0, length: 100))
+        .thenAnswer((_) async => page(1, 3));
+
+    expect(await repo.getMeetings(1451), hasLength(3));
+    verifyNever(() => ds.getMeetings(1451, start: 100, length: 100));
   });
 
   test('createMeeting formats date/times and forwards', () async {

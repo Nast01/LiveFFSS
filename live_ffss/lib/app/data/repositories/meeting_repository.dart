@@ -20,10 +20,25 @@ class MeetingRepositoryImpl implements MeetingRepository {
   MeetingRepositoryImpl(this._dataSource);
   final MeetingRemoteDataSource _dataSource;
 
+  /// Lignes par requête. FFSS retombe à 30 quand on ne demande rien, ce qui
+  /// est bien en dessous d'un vrai programme.
+  static const _pageSize = 100;
+
   @override
   Future<List<Meeting>> getMeetings(int competitionId) async {
-    final dtos = await _dataSource.getMeetings(competitionId);
-    return dtos.map((d) => d.toDomain()).toList();
+    final all = <Meeting>[];
+    var start = 0;
+    while (true) {
+      final batch = await _dataSource.getMeetings(
+        competitionId,
+        start: start,
+        length: _pageSize,
+      );
+      all.addAll(batch.map((d) => d.toDomain()));
+      if (batch.length < _pageSize) break;
+      start += _pageSize;
+    }
+    return all;
   }
 
   @override
