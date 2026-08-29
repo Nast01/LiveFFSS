@@ -1,6 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
@@ -356,6 +357,56 @@ void main() {
 
       expect(controller.meetings, isEmpty);
       verifyNever(() => meetingRepo.getMeetings(any()));
+    });
+
+    test('un chargement réussi remplit la journée sans laisser croire à une panne',
+        () async {
+      final meeting = Meeting(
+        id: 2,
+        name: 'Réunion',
+        description: '',
+        date: day,
+        beginHour: DateTime(day.year, day.month, day.day, 8),
+        endHour: DateTime(day.year, day.month, day.day, 18),
+      );
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [meeting]);
+
+      await controller.reload();
+
+      expect(controller.meetings, [meeting]);
+      expect(controller.hasError.value, isFalse);
+      expect(controller.isLoading.value, isFalse);
+    });
+
+    // Une panne réseau ne doit ni faire disparaître la journée déjà connue ni
+    // se taire : un jour obsolète mais réel vaut mieux qu'un jour vide qui se
+    // fait passer pour une réunion absente, et l'opérateur doit pouvoir voir
+    // que ça a échoué pour retenter.
+    test(
+        'une panne réseau signale l\'échec sans effacer la journée déjà chargée',
+        () async {
+      final meeting = Meeting(
+        id: 1,
+        name: 'Réunion',
+        description: '',
+        date: day,
+        beginHour: DateTime(day.year, day.month, day.day, 8),
+        endHour: DateTime(day.year, day.month, day.day, 18),
+      );
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [meeting]);
+      await controller.reload();
+      expect(controller.meetings, [meeting]);
+
+      when(() => meetingRepo.getMeetings(42))
+          .thenThrow(const NetworkException('offline'));
+
+      await controller.reload();
+
+      expect(controller.hasError.value, isTrue);
+      expect(controller.meetings, [meeting]);
+      expect(controller.isLoading.value, isFalse);
     });
   });
 }

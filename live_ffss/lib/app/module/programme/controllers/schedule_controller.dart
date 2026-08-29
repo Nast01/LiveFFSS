@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
@@ -32,6 +33,9 @@ class ScheduleController extends GetxController {
   /// The réunions of the current competition, as FFSS holds them — one per
   /// competition day, each with its créneaux and their courses.
   final RxList<Meeting> meetings = <Meeting>[].obs;
+
+  final RxBool isLoading = false.obs;
+  final RxBool hasError = false.obs;
 
   final Rxn<UiMessage> message = Rxn<UiMessage>();
 
@@ -221,9 +225,24 @@ class ScheduleController extends GetxController {
 
   /// Pulls the current competition's réunion tree from FFSS into [meetings].
   /// A no-op before a competition is known.
+  ///
+  /// A failure flips [hasError] rather than the one-shot [message]: an
+  /// operator who cannot see why the day looks empty needs a state the view
+  /// keeps rendering (with a retry), not a toast that has already vanished by
+  /// the time they look up — the same convention as
+  /// `ProgrammeController.load`. [meetings] is left as it was rather than
+  /// cleared, so a stale-but-real day beats a blank one.
   Future<void> reload() async {
     final id = competition.value?.id;
     if (id == null) return;
-    meetings.value = await _meetings.getMeetings(id);
+    try {
+      isLoading.value = true;
+      hasError.value = false;
+      meetings.value = await _meetings.getMeetings(id);
+    } on AppException {
+      hasError.value = true;
+    } finally {
+      isLoading.value = false;
+    }
   }
 }
