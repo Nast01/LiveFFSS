@@ -175,7 +175,12 @@ void main() {
       expect(headers['Authorization'], 'Bearer abc123');
     });
 
-    test('token is NOT included as a query parameter', () async {
+    // FFSS ignores the Authorization header outright: `GET /me` carrying only
+    // the Bearer answers "Utilisateur Anonyme", exactly as it does with no
+    // credentials at all. The `token` query parameter its documentation lists
+    // on every endpoint is the only auth it honours.
+    test('sends the token as a query parameter, beside the other params',
+        () async {
       when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
       when(() => httpMock.get(any(), headers: any(named: 'headers')))
           .thenAnswer((_) async => responseWith('{"success": true}', 200));
@@ -186,7 +191,82 @@ void main() {
               () => httpMock.get(captureAny(), headers: any(named: 'headers')))
           .captured;
       final uri = captured.single as Uri;
-      expect(uri.queryParameters.containsKey('token'), isFalse);
+      expect(uri.queryParameters['token'], 'abc123');
+      expect(uri.queryParameters['a'], 'b');
+    });
+
+    test('a post carries the token too, not just a get', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(() => httpMock.post(any(),
+              headers: any(named: 'headers'), body: any(named: 'body')))
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.post('x', query: {'a': 'b'});
+
+      final captured = verify(() => httpMock.post(captureAny(),
+          headers: any(named: 'headers'), body: any(named: 'body'))).captured;
+      expect((captured.single as Uri).queryParameters['token'], 'abc123');
+    });
+
+    test('a request with no query of its own still carries the token',
+        () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x');
+
+      final captured = verify(
+              () => httpMock.get(captureAny(), headers: any(named: 'headers')))
+          .captured;
+      expect((captured.single as Uri).queryParameters['token'], 'abc123');
+    });
+
+    test('a failure records that the request went out unauthenticated',
+        () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => null);
+      when(() =>
+          httpMock.post(any(),
+              headers: any(named: 'headers'),
+              body: any(named: 'body'))).thenAnswer((_) async =>
+          responseWith('{"success": false, "message": "Invalid Token"}', 200));
+
+      // FFSS answers "Invalid Token" to a bad token and to no token alike, so
+      // only the client knows which of the two just happened.
+      await expectLater(
+        client.post('x'),
+        throwsA(isA<ApiException>()
+            .having((e) => e.authenticated, 'authenticated', isFalse)),
+      );
+    });
+
+    test('a failure records that the request did carry a token', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(() =>
+          httpMock.post(any(),
+              headers: any(named: 'headers'),
+              body: any(named: 'body'))).thenAnswer((_) async =>
+          responseWith('{"success": false, "message": "Invalid Token"}', 200));
+
+      await expectLater(
+        client.post('x'),
+        throwsA(isA<ApiException>()
+            .having((e) => e.authenticated, 'authenticated', isTrue)),
+      );
+    });
+
+    test('no token means no token parameter, not an empty one', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => '');
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x');
+
+      final captured = verify(
+              () => httpMock.get(captureAny(), headers: any(named: 'headers')))
+          .captured;
+      expect((captured.single as Uri).queryParameters.containsKey('token'),
+          isFalse);
     });
   });
 

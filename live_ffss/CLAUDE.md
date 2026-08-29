@@ -65,7 +65,7 @@ One deliberate exception outside controllers: `InitialBinding._wireSessionExpira
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-(On Windows use the full path: `C:\Users\nast0\dev\flutter_windows_3.22.2-stable\flutter\bin\dart.bat run build_runner ...`.)
+(Plain `dart` works — the SDK's `bin` is on the user PATH. See Tooling pins.)
 
 After creating/modifying a freezed file. `.freezed.dart` and `.g.dart` are committed alongside the hand-written source — they're treated as source, not build output. A `freezed`/`build_runner` version bump regenerates **all** `.freezed.dart`/`.g.dart` (100+ files) on the first run — expect a large, mechanical diff and commit it on its own.
 
@@ -76,7 +76,7 @@ When `build_runner` regenerates other files via CRLF normalization (Windows quir
 - **Actual SDK: Flutter 3.41.9 / Dart 3.11.5.** The `environment.sdk` constraint is `>=3.4.3 <4.0.0`, but the project depends on `intl ^0.20.2`, which Flutter 3.22.2 (intl 0.19.0) cannot resolve — so it runs on the newer SDK. The install folder is named `flutter_windows_3.22.2-stable` but is a **git clone currently checked out to tag `3.41.9`**; the name is misleading. To change version: `git -C <flutterRoot> checkout <tag>` then `flutter --version` (re-downloads the matching Dart SDK).
 - `build_runner: ^2.5.4`, `freezed: ^2.5.8`, `json_serializable: ^6.9.5`, `freezed_annotation: ^2.4.4`, `json_annotation: ^4.9.0`.
 - Analyzer: `strict-casts: true` + `strict-raw-types: true` are ON. Don't reintroduce `dynamic` coercions.
-- `flutter`/`dart` are not on bash PATH on Windows — use `C:\Users\nast0\dev\flutter_windows_3.22.2-stable\flutter\bin\flutter.bat` and `dart.bat`.
+- `flutter`/`dart` resolve from the **user** PATH (`C:\Users\nast0\dev\flutter_windows_3.22.2-stable\flutter\bin`, appended 2026-08-16). Call them bare — `flutter test`, `dart format lib/`. Full `.bat` paths still work but defeat the permission allowlist in `.claude/settings.json`, which matches on the short forms. A process started before the PATH edit won't see it; restart the shell (or Claude Code) rather than falling back to full paths.
 - If `dart run build_runner` fails with `frontend_server.dart.snapshot not found`, the dart-sdk cache has drifted from the checked-out Flutter tag — re-run `flutter --version` to repopulate it (don't chase it as a code bug).
 
 ## API contract (FFSS, external, fixed)
@@ -84,7 +84,7 @@ When `build_runner` regenerates other files via CRLF normalization (Windows quir
 - Base URL: `https://ffss.fr` (single env). `AppConfig.fromEnv()` is the seam. Path templates (with `:id` placeholders) and the `replacePath(path, params)` helper live in `core/config/app_config.dart` (`ApiEndpoints`). A duplicate `ApiConstants` used to sit in `core/const/api_const.dart`; it was dead and has been deleted — don't reintroduce it.
 - `HttpClient.get/post` returns the **full decoded body** as `Map<String, dynamic>`. Datasources extract `body['data']` themselves — `me` endpoint has fields at both top-level and nested under `data`, so unwrapping in HttpClient would lose info.
 - **UTF-8 decoding:** HttpClient decodes `utf8.decode(response.bodyBytes)`, NOT `response.body`. FFSS omits the charset in the response `Content-Type`, so `http` would fall back to latin-1 and mangle accents (`é` → `Ã©`). Never switch back to `response.body`.
-- Auth: `Authorization: Bearer <token>` from `TokenStorage`. NEVER pass token as a URL query parameter.
+- **Auth: the `token` query parameter, from `TokenStorage`.** FFSS ignores `Authorization: Bearer` — `GET /me` carrying only the header answers `"Utilisateur Anonyme"`, identical to sending no credentials, while `GET /me?token=…` returns the real account. Reads still serve their public data anonymously, so a missing token shows up not as a 401 but as a write failing with `Invalid Token`. `HttpClient._buildUri` injects it on every request. The Bearer header is still sent alongside; it is inert but harmless. **Do not "fix" this back to header-only auth** — this file used to mandate exactly that, and it silently left the app unauthenticated. The token does land in server logs and proxies; the API leaves no alternative.
 - Success envelope: `success: true` (or absent). HttpClient throws `ApiException` on `success: false`, `AuthException` on 401, `ApiException` with statusCode on 4xx/5xx, `NetworkException` on `SocketException`/`TimeoutException`, `UnknownException` for anything else. **`AppException` rethrows pass through unchanged** — don't catch and re-wrap.
 - Single secure-storage key for the persisted user: `'user'` (JSON blob). Don't shred into per-field keys.
 

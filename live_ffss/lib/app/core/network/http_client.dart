@@ -33,32 +33,32 @@ class HttpClient {
     String path, {
     Map<String, dynamic>? query,
   }) =>
-      _send(() async {
-        final uri = _buildUri(path, query);
-        final headers = await _buildHeaders();
-        return _inner.get(uri, headers: headers);
-      });
+      _send((token) => _inner.get(
+            _buildUri(path, query, token),
+            headers: _buildHeaders(token),
+          ));
 
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? query,
     Object? body,
   }) =>
-      _send(() async {
-        final uri = _buildUri(path, query);
-        final headers = await _buildHeaders();
-        return _inner.post(
-          uri,
-          headers: headers,
-          body: body == null ? null : jsonEncode(body),
-        );
-      });
+      _send((token) => _inner.post(
+            _buildUri(path, query, token),
+            headers: _buildHeaders(token),
+            body: body == null ? null : jsonEncode(body),
+          ));
 
+  /// Reads the token here rather than in [get] and [post] so a failing
+  /// TokenStorage is caught by the same mapping as a failing request, and so
+  /// the decoder can say whether the call went out authenticated.
   Future<Map<String, dynamic>> _send(
-      Future<http.Response> Function() request) async {
+      Future<http.Response> Function(String? token) request) async {
     try {
-      final response = await request();
-      return _decode(response);
+      final token = await _tokenStorage.getToken();
+      final response = await request(token);
+      return _decode(response,
+          authenticated: token != null && token.isNotEmpty);
     } on AppException {
       rethrow;
     } on SocketException catch (e) {
@@ -70,7 +70,17 @@ class HttpClient {
     }
   }
 
-  Uri _buildUri(String path, Map<String, dynamic>? query) {
+  /// FFSS authenticates on the `token` query parameter its documentation lists
+  /// on every endpoint — and *only* on that. `GET /me` carrying nothing but the
+  /// Bearer header answers "Utilisateur Anonyme", word for word what it answers
+  /// with no credentials at all, so a request without this parameter is an
+  /// anonymous request. Reads still return their public data, which is why the
+  /// app looked fine until a write asked for a real identity and got back
+  /// "Invalid Token".
+  ///
+  /// A token in a URL does end up in server logs and proxies. The API leaves no
+  /// alternative.
+  Uri _buildUri(String path, Map<String, dynamic>? query, String? token) {
     final base = _trimSlashes(_config.baseUrl);
     final version = _trimSlashes(_config.apiVersion);
     final cleanPath = _trimSlashes(path);
@@ -81,6 +91,7 @@ class HttpClient {
     // (`categories[]=10&categories[]=24`), and a flattened list would arrive
     // as the literal "[10, 24]".
     final filtered = <String, dynamic>{};
+    if (token != null && token.isNotEmpty) filtered['token'] = token;
     query?.forEach((key, value) {
       if (value == null) return;
       if (value is Iterable) {
@@ -97,19 +108,24 @@ class HttpClient {
 
   String _trimSlashes(String s) => s.replaceAll(RegExp(r'^/+|/+$'), '');
 
-  Future<Map<String, String>> _buildHeaders() async {
+  /// The Bearer header is kept beside the query parameter even though FFSS
+  /// ignores it on `/me`: it costs nothing, and only that one endpoint has been
+  /// checked. The query parameter is what actually authenticates.
+  Map<String, String> _buildHeaders(String? token) {
     final headers = {
       'Content-Type': 'application/json; charset=UTF-8',
       'Accept': 'application/json',
     };
-    final token = await _tokenStorage.getToken();
     if (token != null && token.isNotEmpty) {
       headers['Authorization'] = 'Bearer $token';
     }
     return headers;
   }
 
-  Map<String, dynamic> _decode(http.Response response) {
+  Map<String, dynamic> _decode(
+    http.Response response, {
+    required bool authenticated,
+  }) {
     final status = response.statusCode;
 
     // Decode bytes as UTF-8 ourselves. `response.body` uses the charset from
@@ -126,6 +142,7 @@ class HttpClient {
       throw ApiException(
         _extractMessage(rawBody) ?? 'HTTP $status',
         statusCode: status,
+        authenticated: authenticated,
       );
     }
 
@@ -133,11 +150,13 @@ class HttpClient {
     try {
       body = jsonDecode(rawBody);
     } on FormatException catch (e) {
-      throw ApiException('Invalid JSON: ${e.message}', statusCode: status);
+      throw ApiException('Invalid JSON: ${e.message}',
+          statusCode: status, authenticated: authenticated);
     }
 
     if (body is! Map<String, dynamic>) {
-      throw ApiException('Unexpected response shape', statusCode: status);
+      throw ApiException('Unexpected response shape',
+          statusCode: status, authenticated: authenticated);
     }
 
     if (body['success'] == false) {
@@ -145,6 +164,7 @@ class HttpClient {
         body['message']?.toString() ?? 'API returned success: false',
         statusCode: status,
         code: body['code']?.toString(),
+        authenticated: authenticated,
       );
     }
 
