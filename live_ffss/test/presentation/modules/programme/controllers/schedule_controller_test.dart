@@ -537,6 +537,138 @@ void main() {
             raceFormatDetailId: any(named: 'raceFormatDetailId'),
             id: any(named: 'id'),
           ));
+      // L'opérateur tape "ajouter", rien ne part : sans message, il n'a
+      // aucun moyen de savoir que ce n'est pas juste sans effet.
+      expect(controller.message.value!.translationKey,
+          'failed_to_create_meeting');
+    });
+
+    test('un échec réseau à la création de la réunion le signale', () async {
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenThrow(const NetworkException('offline'));
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      verifyNever(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey,
+          'failed_to_create_meeting');
+      expect(controller.message.value!.details, 'offline');
+    });
+
+    test('un échec réseau à la création du créneau le signale', () async {
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 78);
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenThrow(const NetworkException('offline'));
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      expect(controller.message.value!.translationKey, 'schedule_item_failed');
+      expect(controller.message.value!.details, 'offline');
+    });
+
+    // Le créneau a bien été enregistré : seule la remontée de la fin de
+    // réunion échoue. FFSS garde alors une fin obsolète pour cette journée,
+    // invisible depuis l'appareil puisque l'en-tête recalcule la sienne à
+    // partir des créneaux — d'où l'obligation de le signaler ici.
+    test('une remontée de fin refusée par FFSS le signale', () async {
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: null,
+          )).thenAnswer((_) async => 78);
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: 78,
+          )).thenAnswer((_) async => 0);
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 66);
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [seedMeetingWithSlot()]);
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      expect(controller.message.value!.translationKey,
+          'schedule_meeting_end_failed');
+    });
+
+    test('un échec réseau lors de la remontée de fin le signale', () async {
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: null,
+          )).thenAnswer((_) async => 78);
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: 78,
+          )).thenThrow(const NetworkException('offline'));
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 66);
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [seedMeetingWithSlot()]);
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      expect(controller.message.value!.translationKey,
+          'schedule_meeting_end_failed');
+      expect(controller.message.value!.details, 'offline');
     });
 
     test('un créneau refusé par FFSS le signale', () async {
@@ -645,6 +777,24 @@ void main() {
             id: any(named: 'id'),
           ));
     });
+
+    // Un jeton expiré ou une coupure réseau ne doit pas planter en silence :
+    // l'opérateur doit voir pourquoi son geste n'a rien changé.
+    test('un échec réseau le signale', () async {
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenThrow(const NetworkException('offline'));
+
+      await controller.setSlotDuration(66, 20);
+
+      expect(controller.message.value!.translationKey, 'schedule_item_failed');
+      expect(controller.message.value!.details, 'offline');
+    });
   });
 
   group('removeSlot', () {
@@ -695,6 +845,16 @@ void main() {
       await controller.removeSlot(66);
 
       expect(controller.message.value!.translationKey, 'schedule_item_failed');
+    });
+
+    test('un échec réseau le signale', () async {
+      when(() => meetingRepo.deleteSlot(66))
+          .thenThrow(const NetworkException('offline'));
+
+      await controller.removeSlot(66);
+
+      expect(controller.message.value!.translationKey, 'schedule_item_failed');
+      expect(controller.message.value!.details, 'offline');
     });
 
     test('un créneau inconnu ne fait rien', () async {

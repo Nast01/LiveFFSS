@@ -346,6 +346,7 @@ final Map<String, String> enUS = {
   'schedule_day_range': '@begin → @end',
   'schedule_manual_items': 'General',
   'schedule_item_failed': 'FFSS did not save this item',
+  'schedule_meeting_end_failed': "The new end of day wasn't saved",
   'add_manual_item': 'Add an item',
   'manual_label': 'Label',
   'duration_min': 'Duration (min)',

@@ -264,39 +264,67 @@ class ScheduleController extends GetxController {
 
   /// The id of the réunion covering [day], creating it at
   /// [defaultMeetingStartMinutes] first when FFSS has none yet — the implicit
-  /// creation the design keeps for a day's first item. Returns 0 (or
-  /// whatever FFSS answered) when the creation itself was refused.
+  /// creation the design keeps for a day's first item. Returns 0 when the
+  /// creation itself was refused or failed — either way, [message] carries
+  /// why, so the caller can stop silently rather than send a créneau with no
+  /// parent.
   Future<int> _ensureMeeting(DateTime day) async {
     final existing = meetingFor(day);
     if (existing != null) return existing.id;
     final competitionId = competition.value?.id;
     if (competitionId == null) return 0;
-    return _meetings.submitMeeting(
-      competitionId: competitionId,
-      name: _meetingName(day),
-      description: '',
-      date: day,
-      beginHour: _atMinutes(day, defaultMeetingStartMinutes),
-      endHour: _atMinutes(day, defaultMeetingStartMinutes),
-    );
+    int id;
+    try {
+      id = await _meetings.submitMeeting(
+        competitionId: competitionId,
+        name: _meetingName(day),
+        description: '',
+        date: day,
+        beginHour: _atMinutes(day, defaultMeetingStartMinutes),
+        endHour: _atMinutes(day, defaultMeetingStartMinutes),
+      );
+    } on AppException catch (e) {
+      message.trigger(
+          UiMessageError('failed_to_create_meeting', details: e.detail));
+      return 0;
+    }
+    if (id <= 0) {
+      message.trigger(const UiMessageError('failed_to_create_meeting'));
+    }
+    return id;
   }
 
   /// Pushes the réunion's `fin` back out to [endMinutesOfDay]'s current
   /// maximum, now that a write may have moved it. Passing the réunion's own
   /// [Meeting.id] turns this into an update rather than a duplicate.
+  ///
+  /// This runs *after* the item itself already landed, so a failure here
+  /// leaves a stale `fin` on FFSS rather than an unsaved item — still worth
+  /// reporting, since the app's own header recomputes from the slots and
+  /// would otherwise never let the operator know the two have diverged.
   Future<void> _pushMeetingEnd(DateTime day) async {
     final meeting = meetingFor(day);
     final competitionId = competition.value?.id;
     if (meeting == null || competitionId == null) return;
-    await _meetings.submitMeeting(
-      competitionId: competitionId,
-      name: meeting.name,
-      description: meeting.description,
-      date: day,
-      beginHour: meeting.beginHour,
-      endHour: _atMinutes(day, endMinutesOfDay(day)),
-      id: meeting.id,
-    );
+    int id;
+    try {
+      id = await _meetings.submitMeeting(
+        competitionId: competitionId,
+        name: meeting.name,
+        description: meeting.description,
+        date: day,
+        beginHour: meeting.beginHour,
+        endHour: _atMinutes(day, endMinutesOfDay(day)),
+        id: meeting.id,
+      );
+    } on AppException catch (e) {
+      message.trigger(
+          UiMessageError('schedule_meeting_end_failed', details: e.detail));
+      return;
+    }
+    if (id <= 0) {
+      message.trigger(const UiMessageError('schedule_meeting_end_failed'));
+    }
   }
 
   /// The réunion holding [slotId] and the créneau itself, among the loaded
@@ -327,12 +355,19 @@ class ScheduleController extends GetxController {
 
     final beginMinutes = endMinutesOfDay(day);
     final endMinutes = beginMinutes + defaultItemMinutes;
-    final slotId = await _meetings.submitSlot(
-      meetingId: meetingId,
-      name: label,
-      beginHour: _atMinutes(day, beginMinutes),
-      endHour: _atMinutes(day, endMinutes),
-    );
+    int slotId;
+    try {
+      slotId = await _meetings.submitSlot(
+        meetingId: meetingId,
+        name: label,
+        beginHour: _atMinutes(day, beginMinutes),
+        endHour: _atMinutes(day, endMinutes),
+      );
+    } on AppException catch (e) {
+      message
+          .trigger(UiMessageError('schedule_item_failed', details: e.detail));
+      return;
+    }
     if (slotId <= 0) {
       message.trigger(const UiMessageError('schedule_item_failed'));
       return;
@@ -354,14 +389,21 @@ class ScheduleController extends GetxController {
     if (owner == null) return;
     final (meeting, slot) = owner;
     final beginMinutes = _minutesOf(slot.beginHour);
-    final updatedId = await _meetings.submitSlot(
-      meetingId: meeting.id,
-      name: slot.name,
-      beginHour: _atMinutes(meeting.date, beginMinutes),
-      endHour: _atMinutes(meeting.date, beginMinutes + minutes),
-      raceFormatDetailId: slot.raceFormatDetail?.id,
-      id: slotId,
-    );
+    int updatedId;
+    try {
+      updatedId = await _meetings.submitSlot(
+        meetingId: meeting.id,
+        name: slot.name,
+        beginHour: _atMinutes(meeting.date, beginMinutes),
+        endHour: _atMinutes(meeting.date, beginMinutes + minutes),
+        raceFormatDetailId: slot.raceFormatDetail?.id,
+        id: slotId,
+      );
+    } on AppException catch (e) {
+      message
+          .trigger(UiMessageError('schedule_item_failed', details: e.detail));
+      return;
+    }
     if (updatedId <= 0) {
       message.trigger(const UiMessageError('schedule_item_failed'));
       return;
@@ -379,7 +421,14 @@ class ScheduleController extends GetxController {
     final owner = _slotOwner(slotId);
     if (owner == null) return;
     final day = owner.$1.date;
-    final ok = await _meetings.deleteSlot(slotId);
+    bool ok;
+    try {
+      ok = await _meetings.deleteSlot(slotId);
+    } on AppException catch (e) {
+      message
+          .trigger(UiMessageError('schedule_item_failed', details: e.detail));
+      return;
+    }
     if (!ok) {
       message.trigger(const UiMessageError('schedule_item_failed'));
       return;

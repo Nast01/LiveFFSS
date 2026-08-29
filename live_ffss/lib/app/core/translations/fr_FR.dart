@@ -349,6 +349,7 @@ final Map<String, String> frFR = {
   'schedule_day_range': '@begin → @end',
   'schedule_manual_items': 'Général',
   'schedule_item_failed': "FFSS n'a pas enregistré cet item",
+  'schedule_meeting_end_failed': "La nouvelle fin de journée n'a pas été enregistrée",
   'add_manual_item': 'Ajouter un item',
   'manual_label': 'Libellé',
   'duration_min': 'Durée (min)',
