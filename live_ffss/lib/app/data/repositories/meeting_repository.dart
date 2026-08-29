@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
+import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
+import 'package:live_ffss/app/data/dtos/run_dto.dart';
 import 'package:live_ffss/app/data/mappers/meeting_mapper.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
 
@@ -45,7 +47,7 @@ class MeetingRepositoryImpl implements MeetingRepository {
 
   @override
   Future<List<Meeting>> getMeetings(int competitionId) async {
-    final all = <Meeting>[];
+    final all = <MeetingDto>[];
     var start = 0;
     while (true) {
       final batch = await _dataSource.getMeetings(
@@ -53,11 +55,30 @@ class MeetingRepositoryImpl implements MeetingRepository {
         start: start,
         length: _pageSize,
       );
-      all.addAll(batch.map((d) => d.toDomain()));
+      all.addAll(batch);
       if (batch.length < _pageSize) break;
       start += _pageSize;
     }
-    return all;
+
+    // One round trip per créneau, all in flight at once: in series, a
+    // twenty-créneau day would pay twenty latencies end to end.
+    final slotIds = [
+      for (final meeting in all)
+        for (final slot in meeting.slots) slot.id,
+    ];
+    final loaded = await Future.wait(
+      slotIds.map((id) => _dataSource.getRuns(id, start: 0, length: _pageSize)),
+    );
+    final runsBySlot = <int, List<RunDto>>{
+      for (var i = 0; i < slotIds.length; i++) slotIds[i]: loaded[i],
+    };
+
+    return all.map((meeting) {
+      final filledSlots = meeting.slots
+          .map((slot) => slot.copyWith(runs: runsBySlot[slot.id] ?? const []))
+          .toList();
+      return meeting.copyWith(slots: filledSlots).toDomain();
+    }).toList();
   }
 
   @override

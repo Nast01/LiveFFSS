@@ -60,6 +60,50 @@ void main() {
     });
   });
 
+  group('getRuns', () {
+    test('demande la fenêtre qu on lui donne', () async {
+      when(() => http.get(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'data': <dynamic>[]});
+
+      await ds.getRuns(66, start: 0, length: 100);
+
+      verify(() => http.get('competition/reunion/creneau/66/course',
+          query: {'start': 0, 'length': 100})).called(1);
+    });
+
+    test('decode le payload en une liste de RunDto', () async {
+      when(() => http.get(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {
+                'success': true,
+                'data': [
+                  {
+                    'id': 5,
+                    'Nom': 'Série 1',
+                    'label': 'S1',
+                    'fullLabel': 'Série 1 - Surfski',
+                    'statut': 0,
+                    'statutLabel': 'En attente',
+                    'site': 'Plage',
+                    'debut': '08:00',
+                    'fin': '08:10',
+                  },
+                ],
+              });
+
+      final list = await ds.getRuns(66, start: 0, length: 100);
+
+      expect(list.single.id, 5);
+      expect(list.single.name, 'Série 1');
+    });
+
+    test('un tableau vide donne une liste vide', () async {
+      when(() => http.get(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'data': []});
+
+      expect(await ds.getRuns(66, start: 0, length: 100), isEmpty);
+    });
+  });
+
   group('submitMeeting', () {
     test('crée une réunion avec un id vide et rend l id assigné', () async {
       when(() => http.post(any(), query: any(named: 'query')))
@@ -101,8 +145,10 @@ void main() {
         endTime: '11:20',
       );
 
-      final query = verify(() => http.post(any(),
-          query: captureAny(named: 'query'))).captured.single as Map;
+      final query =
+          verify(() => http.post(any(), query: captureAny(named: 'query')))
+              .captured
+              .single as Map;
       expect(query['id'], '78');
     });
 
@@ -163,8 +209,10 @@ void main() {
         raceFormatDetailId: 39,
       );
 
-      final query = verify(() => http.post(any(),
-          query: captureAny(named: 'query'))).captured.single as Map;
+      final query =
+          verify(() => http.post(any(), query: captureAny(named: 'query')))
+              .captured
+              .single as Map;
       expect(query['partie'], '39');
     });
 

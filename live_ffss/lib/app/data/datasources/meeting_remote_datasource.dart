@@ -1,6 +1,7 @@
 import 'package:live_ffss/app/core/config/app_config.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
 import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
+import 'package:live_ffss/app/data/dtos/run_dto.dart';
 
 abstract class MeetingRemoteDataSource {
   /// One window of the competition's réunions. FFSS caps this list — it
@@ -10,6 +11,14 @@ abstract class MeetingRemoteDataSource {
     required int start,
     required int length,
   });
+
+  /// One window of a créneau's courses. `GET reunion` doesn't carry them.
+  Future<List<RunDto>> getRuns(
+    int slotId, {
+    required int start,
+    required int length,
+  });
+
   /// Creates a réunion, or updates the one with the given [id]. Returns the
   /// id FFSS assigned, or 0 when the call reported a failure.
   Future<int> submitMeeting({
@@ -63,6 +72,24 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
         .whereType<Map<String, dynamic>>()
         .map(MeetingDto.fromJson)
         .toList();
+  }
+
+  @override
+  Future<List<RunDto>> getRuns(
+    int slotId, {
+    required int start,
+    required int length,
+  }) async {
+    final endpoint = ApiEndpoints.replacePath(
+      ApiEndpoints.runList,
+      {'id': slotId.toString()},
+    );
+    final body = await _http.get(endpoint, query: {
+      'start': start,
+      'length': length,
+    });
+    final list = (body['data'] as List?) ?? const [];
+    return list.whereType<Map<String, dynamic>>().map(RunDto.fromJson).toList();
   }
 
   @override

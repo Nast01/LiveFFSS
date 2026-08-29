@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
 import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
+import 'package:live_ffss/app/data/dtos/run_dto.dart';
+import 'package:live_ffss/app/data/dtos/slot_dto.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -95,5 +99,37 @@ void main() {
     final ok = await repo.deleteMeeting(7);
     expect(ok, true);
     verify(() => ds.deleteMeeting(7)).called(1);
+  });
+
+  test('the courses of each créneau go out together, not one after another',
+      () async {
+    // Twenty créneaux must not cost twenty latencies end to end.
+    final gates = {
+      for (final id in [1, 2, 3]) id: Completer<List<RunDto>>()
+    };
+    when(() => ds.getMeetings(1451, start: 0, length: 100)).thenAnswer(
+      (_) async => [
+        makeDto(78).copyWith(slots: [
+          for (final id in [1, 2, 3])
+            SlotDto(id: id, name: 'C$id', beginHour: '08:00', endHour: '08:10'),
+        ]),
+      ],
+    );
+    for (final id in gates.keys) {
+      when(() => ds.getRuns(id, start: 0, length: 100))
+          .thenAnswer((_) => gates[id]!.future);
+    }
+
+    final loading = repo.getMeetings(1451);
+    await Future<void>.delayed(Duration.zero);
+
+    verify(() => ds.getRuns(1, start: 0, length: 100)).called(1);
+    verify(() => ds.getRuns(2, start: 0, length: 100)).called(1);
+    verify(() => ds.getRuns(3, start: 0, length: 100)).called(1);
+
+    for (final id in gates.keys) {
+      gates[id]!.complete(const []);
+    }
+    await loading;
   });
 }
