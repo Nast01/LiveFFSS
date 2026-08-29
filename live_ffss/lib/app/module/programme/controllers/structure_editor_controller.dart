@@ -1,7 +1,9 @@
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/data/mappers/athlete_mapper.dart' show genderCode;
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
+import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
@@ -15,6 +17,14 @@ import 'package:live_ffss/app/domain/models/structure_generator.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
+/// What became of a round the operator asked to remove.
+///
+/// The distinction is the view's business: a round FFSS refused to drop can be
+/// dropped from the device anyway — a partie the server no longer holds would
+/// otherwise sit in the editor for good — whereas a round left because nobody
+/// is signed in is alive on FFSS, and hiding it would orphan it.
+enum LevelRemoval { removed, serverRefused, needsLogin }
+
 class StructureEditorArgs {
   const StructureEditorArgs({
     required this.competitionId,
@@ -23,6 +33,9 @@ class StructureEditorArgs {
     required this.raceLabel,
     required this.categoryLabel,
     required this.entryCount,
+    required this.eligibleCount,
+    this.disciplineId = 0,
+    this.raceFormatId = 0,
     this.gender = Gender.unknown,
     this.defaultSpotsPerRace = defaultPoolSpotsPerRace,
     this.serverDetails = const [],
@@ -34,6 +47,18 @@ class StructureEditorArgs {
   final String raceLabel;
   final String categoryLabel;
   final int entryCount;
+
+  /// Entries that will actually start — forfeits excluded. This is the figure
+  /// a round is sized on; [entryCount] is the roster, not the field.
+  final int eligibleCount;
+
+  /// With [gender] and the category, identifies the déroulement — that is what
+  /// `deroulement/submit` takes when one has to be created here.
+  final int disciplineId;
+
+  /// The FFSS déroulement holding this épreuve × category, 0 when none exists
+  /// yet. A round can only be pushed once there is one to hang it on.
+  final int raceFormatId;
 
   /// Carried for the heading only: [EventStructure] has no gender of its own,
   /// yet the editor must be titled exactly like the row it was opened from.
@@ -49,19 +74,45 @@ class StructureEditorArgs {
 }
 
 class StructureEditorController extends GetxController {
-  StructureEditorController(this._programme, this._raceFormatRepo);
+  StructureEditorController(this._programme, this._raceFormatRepo, this._user);
 
   final ProgrammeService _programme;
   final RaceFormatRepository _raceFormatRepo;
+  final UserService _user;
+
+  /// Whether anything can be written to FFSS. Everything this editor reads is
+  /// public, so a signed-out operator gets all the way here; without the check
+  /// the server answers an anonymous write with a bare "Invalid Token", which
+  /// reads as a server fault rather than a missing session.
+  bool get canWriteToFfss => _user.currentUser.value != null;
 
   final Rxn<EventStructure> structure = Rxn<EventStructure>();
 
   /// True while a round is being deleted on the FFSS server.
   final RxBool isDeletingLevel = false.obs;
+
+  /// True while rounds are being pushed to FFSS, with the progress of the run.
+  /// One request per round, so a bare spinner would not say whether a long
+  /// push is advancing or stuck. Both fall back to zero when it ends.
+  final RxBool isPushing = false.obs;
+  final RxInt pushDone = 0.obs;
+  final RxInt pushTotal = 0.obs;
+
   final Rxn<UiMessage> message = Rxn<UiMessage>();
   late StructureEditorArgs _args;
 
+  /// Assigned when a déroulement is created from here, so the rounds that
+  /// follow hang off it rather than off nothing.
+  int _raceFormatId = 0;
+
   Gender get gender => _args.gender;
+  int get entryCount => _args.entryCount;
+  int get eligibleCount => _args.eligibleCount;
+
+  /// Whether FFSS already holds the déroulement these rounds belong to. When
+  /// it does not, a round added here stays local until the next push creates
+  /// the déroulement and sends it.
+  bool get hasRaceFormat => _raceFormatId > 0;
 
   @override
   void onInit() {
@@ -85,6 +136,7 @@ class StructureEditorController extends GetxController {
   /// would mark a mounted widget dirty mid-build. See [seedFromServerIfNeeded].
   void start(StructureEditorArgs args) {
     _args = args;
+    _raceFormatId = args.raceFormatId;
     structure.value = _stored() ??
         EventStructure(
           raceId: args.raceId,
@@ -143,7 +195,9 @@ class StructureEditorController extends GetxController {
   void proposeDefault() {
     final s = structure.value!;
     final levels = buildDefaultLevels(
-      entryCount: _args.entryCount,
+      // The starters, not the roster: heats sized on entries that will not
+      // swim leave an empty heat behind.
+      entryCount: _args.eligibleCount,
       spotsPerRace: s.spotsPerRace,
       allocateId: _programme.allocateId,
     );
@@ -166,7 +220,13 @@ class StructureEditorController extends GetxController {
   /// The round arrives with the race count and qualifiers its level usually
   /// runs (see [defaultsForRound]) rather than empty, so the common bracket
   /// needs no stepper work at all.
-  void addLevel(RoundType type) {
+  /// The round is created on FFSS straight away when a déroulement exists to
+  /// hang it on, so the federal site never lags behind what is on screen.
+  /// Without one it stays local and goes out with the next [pushAll], which
+  /// creates the déroulement first. A refused or failed creation keeps the
+  /// round rather than discarding the operator's edit — it simply carries no
+  /// server id, and the next push will try again.
+  Future<void> addLevel(RoundType type) async {
     final s = structure.value!;
     final at = round_order.insertionIndexFor(s.levels, type);
     final defaults = defaultsForRound(type);
@@ -184,7 +244,124 @@ class StructureEditorController extends GetxController {
           ],
         ),
       );
-    _commit(s.copyWith(levels: round_order.rewireRange(levels, at, at + 1)));
+    final rewired = round_order.rewireRange(levels, at, at + 1);
+    _commit(s.copyWith(levels: rewired));
+
+    if (!hasRaceFormat) return;
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
+    int serverId;
+    try {
+      serverId = await _submitLevel(rewired[at], at);
+    } on AppException catch (e) {
+      message.trigger(UiMessageError('round_push_failed', details: e.detail));
+      return;
+    }
+    if (serverId <= 0) {
+      message.trigger(const UiMessageError('round_push_failed'));
+      return;
+    }
+    final withId = [...structure.value!.levels];
+    withId[at] = withId[at].copyWith(serverId: serverId);
+    _commit(structure.value!.copyWith(levels: withId));
+  }
+
+  /// Sets the FFSS qualification logic of one round. Local until the next push.
+  void setQualificationMethod(int levelIndex, String code) {
+    final levels = [...structure.value!.levels];
+    levels[levelIndex] = levels[levelIndex].copyWith(qualificationMethod: code);
+    _commit(structure.value!.copyWith(levels: levels));
+  }
+
+  /// Pushes every round on screen to FFSS: a creation for those with no server
+  /// id, an update for the rest.
+  ///
+  /// Nothing is compared against a previous state — the whole set is sent every
+  /// time. Tracking which round is dirty would mean storing a snapshot of the
+  /// last push on each one, a lot of machinery to save a few idempotent calls.
+  ///
+  /// When no déroulement exists yet it is created first, and a refusal there
+  /// stops the run: rounds have nothing to hang on, so sending them would fail
+  /// one by one for the same reason.
+  Future<void> pushAll() async {
+    final s = structure.value;
+    if (s == null || s.levels.isEmpty || isPushing.value) return;
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
+
+    isPushing.value = true;
+    pushDone.value = 0;
+    pushTotal.value = s.levels.length;
+    try {
+      if (!hasRaceFormat && !await _createRaceFormat()) return;
+
+      final updated = [...s.levels];
+      var sent = 0;
+      for (var i = 0; i < updated.length; i++) {
+        final serverId = await _submitLevel(updated[i], i);
+        if (serverId > 0) {
+          updated[i] = updated[i].copyWith(serverId: serverId);
+          sent++;
+        }
+        pushDone.value++;
+      }
+      _commit(structure.value!.copyWith(levels: updated));
+      message.trigger(sent == updated.length
+          ? const UiMessageSuccess('round_push_done')
+          : UiMessageError('round_push_failed',
+              details: '$sent/${updated.length}'));
+    } on AppException catch (e) {
+      message.trigger(UiMessageError('round_push_failed', details: e.detail));
+    } finally {
+      isPushing.value = false;
+      pushDone.value = 0;
+      pushTotal.value = 0;
+    }
+  }
+
+  /// Creates the déroulement these rounds belong to. Reports whether the id it
+  /// came back with is usable.
+  Future<bool> _createRaceFormat() async {
+    final id = await _raceFormatRepo.submitRaceFormat(
+      competitionId: _args.competitionId,
+      disciplineId: _args.disciplineId,
+      gender: genderCode(_args.gender),
+      categoryIds: [_args.categoryId],
+    );
+    if (id <= 0) {
+      message.trigger(const UiMessageError('race_format_create_failed'));
+      return false;
+    }
+    _raceFormatId = id;
+    return true;
+  }
+
+  /// Sends one round as a `partie`. Returns the id FFSS assigned, or 0 when it
+  /// refused — including for a round whose type has no code to send.
+  ///
+  /// Reporting is left to the callers: an [AppException] propagates so a push
+  /// stops at the first transport failure instead of grinding through the rest
+  /// of the rounds to fail identically.
+  Future<int> _submitLevel(RoundLevel level, int index) {
+    final code = roundTypeCode(level.type);
+    if (code.isEmpty) return Future.value(0);
+    return _raceFormatRepo.submitRaceFormatDetail(
+      raceFormatId: _raceFormatId,
+      id: level.serverId > 0 ? level.serverId : null,
+      order: index + 1,
+      level: code,
+      raceCount: level.races.length,
+      qualificationMethod: level.qualificationMethod,
+      spotsPerRace: level.spotsPerRace > 0
+          ? level.spotsPerRace
+          : structure.value!.spotsPerRace,
+      qualifyingSpots: level.qualifiersPerRace,
+      categoryIds: [_args.categoryId],
+    );
   }
 
   /// Whether the round at [index] can move by [delta] (-1 up, +1 down) without
@@ -207,23 +384,54 @@ class StructureEditorController extends GetxController {
   /// server copy is deleted first and the round is kept on failure — leaving a
   /// round the operator believes gone still defined on a shared server would be
   /// worse than refusing the action. A hand-added round has nothing to call.
-  Future<void> removeLevel(int levelIndex) async {
+  Future<LevelRemoval> removeLevel(int levelIndex) async {
     final level = structure.value!.levels[levelIndex];
     if (level.serverId > 0) {
+      // A round FFSS holds cannot be dropped anonymously, and removing it
+      // locally alone would leave it defined on a server everyone shares.
+      if (!canWriteToFfss) {
+        message.trigger(const UiMessageError('login_required'));
+        return LevelRemoval.needsLogin;
+      }
       isDeletingLevel.value = true;
       bool deleted;
+      // Kept rather than swallowed: "could not delete" says nothing an operator
+      // can act on, while the server's own words tell a partie already gone
+      // from a competition the account may not touch.
+      String? reason;
+      // FFSS answers 404 for a partie it no longer holds and 403 for a bad
+      // token, never one for the other — so a 404 means the round is
+      // definitively gone there, and dropping it here needs no question.
+      var goneFromServer = false;
       try {
         deleted = await _raceFormatRepo.deleteRaceFormatDetail(level.serverId);
-      } on AppException {
+      } on AppException catch (e) {
         deleted = false;
+        reason = e.detail;
+        goneFromServer = e is ApiException && e.statusCode == 404;
       } finally {
         isDeletingLevel.value = false;
       }
+      if (goneFromServer) {
+        message.trigger(const UiMessageSuccess('round_delete_already_gone'));
+        removeLevelLocally(levelIndex);
+        return LevelRemoval.removed;
+      }
       if (!deleted) {
-        message.trigger(const UiMessageError('round_delete_failed'));
-        return;
+        message.trigger(UiMessageError('round_delete_failed', details: reason));
+        return LevelRemoval.serverRefused;
       }
     }
+    removeLevelLocally(levelIndex);
+    return LevelRemoval.removed;
+  }
+
+  /// Drops a round from the device without touching FFSS.
+  ///
+  /// The way out of a round whose partie the server refuses to delete — most
+  /// often because it is already gone from FFSS. The view asks before calling
+  /// this, since on a mere transport failure the partie is still alive there.
+  void removeLevelLocally(int levelIndex) {
     final levels = [...structure.value!.levels]..removeAt(levelIndex);
     _commit(structure.value!.copyWith(levels: levels));
   }

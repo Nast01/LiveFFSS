@@ -280,6 +280,22 @@ final Map<String, String> enUS = {
   'round_finale': 'Final',
   'round_unknown': 'Round',
   'no_structures': 'No event to structure',
+  'eligible_athletes': 'eligible',
+  'engaged_count': 'entries',
+  'qualification': 'Qualification',
+  'qualification_none': 'None',
+  'qualification_per_race': 'Per race',
+  'qualification_per_round': 'Per round (all races combined)',
+  'round_delete_local_title': 'Remove it from the device anyway?',
+  'round_delete_local_body':
+      'FFSS did not delete its copy — most often because the round is already gone from there. Removing it here drops it from the editor; if it does still exist on the site, it stays there.',
+  'round_push': 'Send to FFSS (@count)',
+  'round_push_and_create': 'Create the race format and send (@count)',
+  'round_pushing': 'Sending the rounds to FFSS…',
+  'round_push_done': 'Rounds sent to FFSS',
+  'round_push_failed': 'Could not send the rounds',
+  'round_not_on_server': 'Not on FFSS yet',
+  'round_on_server': 'On FFSS',
   'race_format_creating': 'Creating race formats on FFSS…',
   'race_format_login_title': 'Sign in required',
   'race_format_login_body':
@@ -362,8 +378,9 @@ final Map<String, String> enUS = {
       'The draw for @athletes already-placed athlete(s) will be lost.',
   'round_delete_body_server':
       'This round comes from FFSS: it will also be deleted on the federation server.',
-  'round_delete_failed':
-      'The round could not be deleted on the server, so it was kept',
+  'round_delete_already_gone':
+      'This round was already gone from FFSS, so it was removed',
+  'round_delete_failed': 'FFSS did not delete this round',
   'race_format_create_failed': 'Could not create the race format',
   'delete_all_structures_title': 'Delete every structure?',
   'delete_structure_title': 'Delete this structure?',

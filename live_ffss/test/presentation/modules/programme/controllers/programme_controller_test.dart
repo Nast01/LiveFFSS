@@ -738,6 +738,7 @@ void main() {
             specialityId: r.specialityId,
             specialityLabel: r.specialityLabel,
             entryCount: r.entryCount,
+            eligibleCount: r.eligibleCount,
             structure: r.structure,
             defaultSpotsPerRace: r.defaultSpotsPerRace,
             raceFormat: const RaceFormatConfiguration(
@@ -1564,6 +1565,44 @@ void main() {
 
       expect(controller.submitTotal.value, 0);
       expect(controller.isSubmitting.value, isFalse);
+    });
+  });
+
+  group('eligible athletes', () {
+    Entry forfeit(int id, int raceId, Category cat) =>
+        entry(id, raceId, cat).copyWith(isForfeit: true);
+
+    test('a row counts its entries and, apart, the ones actually starting',
+        () async {
+      when(() => raceRepo.getRaces(42)).thenAnswer((_) async => [
+            race(100, '100m', [cadets])
+          ]);
+      when(() => raceRepo.getEntries(100)).thenAnswer((_) async => [
+            entry(1, 100, cadets),
+            entry(2, 100, cadets),
+            forfeit(3, 100, cadets),
+          ]);
+
+      await controller.load(competition);
+
+      final row = controller.rows.single;
+      expect(row.entryCount, 3);
+      // The forfeit is entered but will not start, so it must not weigh on how
+      // many heats the round needs.
+      expect(row.eligibleCount, 2);
+    });
+
+    test('a category with nothing but forfeits is eligible for none', () async {
+      when(() => raceRepo.getRaces(42)).thenAnswer((_) async => [
+            race(100, '100m', [cadets])
+          ]);
+      when(() => raceRepo.getEntries(100))
+          .thenAnswer((_) async => [forfeit(1, 100, cadets)]);
+
+      await controller.load(competition);
+
+      expect(controller.rows.single.entryCount, 1);
+      expect(controller.rows.single.eligibleCount, 0);
     });
   });
 }

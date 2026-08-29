@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
+import 'package:live_ffss/app/data/services/user_service.dart';
 import '../controllers/structure_editor_controller.dart';
 
 class StructureEditorBinding extends Bindings {
@@ -10,6 +11,7 @@ class StructureEditorBinding extends Bindings {
       () => StructureEditorController(
         Get.find<ProgrammeService>(),
         Get.find<RaceFormatRepository>(),
+        Get.find<UserService>(),
       ),
     );
   }

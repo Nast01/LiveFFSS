@@ -282,6 +282,22 @@ final Map<String, String> frFR = {
   'round_finale': 'Finale',
   'round_unknown': 'Tour',
   'no_structures': 'Aucune épreuve à structurer',
+  'eligible_athletes': 'éligibles',
+  'engaged_count': 'engagés',
+  'qualification': 'Qualification',
+  'qualification_none': 'Aucune',
+  'qualification_per_race': 'Par course',
+  'qualification_per_round': 'Par partie (toute course confondue)',
+  'round_delete_local_title': "Supprimer quand même de l'appareil ?",
+  'round_delete_local_body':
+      "FFSS n'a pas supprimé sa copie — le plus souvent parce que la partie n'y existe déjà plus. Retirer le niveau ici le fera disparaître de l'éditeur ; s'il est encore présent sur le site, il y restera.",
+  'round_push': 'Envoyer sur FFSS (@count)',
+  'round_push_and_create': 'Créer le déroulement et envoyer (@count)',
+  'round_pushing': 'Envoi des parties sur FFSS…',
+  'round_push_done': 'Parties envoyées sur FFSS',
+  'round_push_failed': "Échec de l'envoi des parties",
+  'round_not_on_server': 'Pas encore sur FFSS',
+  'round_on_server': 'Sur FFSS',
   'race_format_creating': 'Création des déroulements sur FFSS…',
   'race_format_login_title': 'Connexion requise',
   'race_format_login_body':
@@ -365,8 +381,9 @@ final Map<String, String> frFR = {
       'Le tirage de @athletes athlète(s) déjà placés sera perdu.',
   'round_delete_body_server':
       'Ce tour vient de la FFSS : il sera aussi supprimé sur le serveur de la fédération.',
-  'round_delete_failed':
-      'Le tour n\'a pas pu être supprimé sur le serveur, il est conservé',
+  'round_delete_already_gone':
+      "Cette partie n'existait plus sur FFSS, elle a été retirée",
+  'round_delete_failed': "FFSS n'a pas supprimé cette partie",
   'race_format_create_failed': 'Échec de la création du déroulement',
   'delete_all_structures_title': 'Supprimer toutes les structures ?',
   'delete_structure_title': 'Supprimer la structure ?',

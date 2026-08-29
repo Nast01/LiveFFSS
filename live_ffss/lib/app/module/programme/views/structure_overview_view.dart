@@ -392,21 +392,31 @@ class _OverviewCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: ListTile(
-        onTap: () => Get.toNamed<void>(
-          Routes.structureEditor,
-          arguments: StructureEditorArgs(
-            competitionId:
-                Get.find<ProgrammeController>().competition.value!.id,
-            raceId: row.raceId,
-            categoryId: row.categoryId,
-            raceLabel: row.raceLabel,
-            categoryLabel: row.categoryLabel,
-            entryCount: row.entryCount,
-            gender: row.gender,
-            defaultSpotsPerRace: row.defaultSpotsPerRace,
-            serverDetails: row.raceFormat?.details ?? const [],
-          ),
-        ),
+        // Awaited, then reloaded: the editor creates and deletes parties on
+        // FFSS, so coming back with the déroulement badges and round counts
+        // from before the visit would show a state that no longer exists.
+        // Silent, so the list does not blink back to a spinner.
+        onTap: () async {
+          await Get.toNamed<void>(
+            Routes.structureEditor,
+            arguments: StructureEditorArgs(
+              competitionId:
+                  Get.find<ProgrammeController>().competition.value!.id,
+              raceId: row.raceId,
+              categoryId: row.categoryId,
+              raceLabel: row.raceLabel,
+              categoryLabel: row.categoryLabel,
+              entryCount: row.entryCount,
+              eligibleCount: row.eligibleCount,
+              disciplineId: row.disciplineId,
+              raceFormatId: row.raceFormat?.id ?? 0,
+              gender: row.gender,
+              defaultSpotsPerRace: row.defaultSpotsPerRace,
+              serverDetails: row.raceFormat?.details ?? const [],
+            ),
+          );
+          await Get.find<ProgrammeController>().reload();
+        },
         title: Text(
           structureTitle(
             raceLabel: row.raceLabel,

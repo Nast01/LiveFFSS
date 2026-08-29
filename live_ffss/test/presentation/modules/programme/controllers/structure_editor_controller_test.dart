@@ -1,11 +1,16 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/data/repositories/auth_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
+import 'package:live_ffss/app/data/services/user_service.dart';
+import 'package:live_ffss/app/domain/models/user.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/race_format_detail.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
 import 'package:mocktail/mocktail.dart';
@@ -14,13 +19,25 @@ class _MockStorage extends Mock implements FlutterSecureStorage {}
 
 class _MockRaceFormatRepo extends Mock implements RaceFormatRepository {}
 
+class _MockAuthRepo extends Mock implements AuthRepository {}
+
 void main() {
   late _MockStorage storage;
   late ProgrammeService service;
   late StructureEditorController controller;
   late _MockRaceFormatRepo raceFormatRepo;
+  late UserService userService;
 
   setUpAll(() => registerFallbackValue(''));
+
+  /// Any non-null user is a session as far as the editor is concerned.
+  final loggedInUser = User(
+    token: 'tok',
+    tokenExpiration: DateTime(2030),
+    label: 'FFSS',
+    type: UserType.organisme,
+    role: UserRole.admin,
+  );
 
   const args = StructureEditorArgs(
     competitionId: 42,
@@ -29,6 +46,7 @@ void main() {
     raceLabel: '100m',
     categoryLabel: 'Cadets',
     entryCount: 20,
+    eligibleCount: 20,
   );
 
   setUp(() async {
@@ -43,7 +61,12 @@ void main() {
     raceFormatRepo = _MockRaceFormatRepo();
     when(() => raceFormatRepo.deleteRaceFormatDetail(any()))
         .thenAnswer((_) async => true);
-    controller = StructureEditorController(service, raceFormatRepo);
+    userService = UserService(_MockAuthRepo());
+    // An operator authoring a déroulement is signed in; the signed-out case
+    // has its own group below.
+    userService.currentUser.value = loggedInUser;
+    controller =
+        StructureEditorController(service, raceFormatRepo, userService);
     controller.start(args);
   });
 
@@ -62,6 +85,26 @@ void main() {
     expect(levels.map((l) => l.type), [RoundType.serie, RoundType.finale]);
     expect(levels[0].races.length, 3); // ceil(20 / 8)
     expect(levels[1].races.length, 1);
+  });
+
+  test('proposeDefault sizes the structure on the starters, not the roster',
+      () {
+    // 20 entered, 5 of them forfeit: fifteen swimmers need two heats at eight,
+    // not three. Sizing on the roster would leave a heat nobody swims.
+    controller.start(const StructureEditorArgs(
+      competitionId: 42,
+      raceId: 100,
+      categoryId: 7,
+      raceLabel: '100m',
+      categoryLabel: 'Cadets',
+      entryCount: 20,
+      eligibleCount: 15,
+    ));
+
+    controller.proposeDefault();
+
+    final levels = controller.structure.value!.levels;
+    expect(levels[0].races.length, 2); // ceil(15 / 8)
   });
 
   group('race size per round', () {
@@ -143,6 +186,7 @@ void main() {
       raceLabel: '100m',
       categoryLabel: 'Cadets',
       entryCount: 20,
+      eligibleCount: 20,
       serverDetails: [semi, finale],
     );
 
@@ -206,6 +250,7 @@ void main() {
         raceLabel: '100m',
         categoryLabel: 'Cadets',
         entryCount: 20,
+        eligibleCount: 20,
       ));
       controller.addLevel(RoundType.finale);
 
@@ -243,6 +288,7 @@ void main() {
         raceLabel: '100m',
         categoryLabel: 'Cadets',
         entryCount: 20,
+        eligibleCount: 20,
       ));
       controller.seedFromServerIfNeeded();
 
@@ -272,6 +318,7 @@ void main() {
       raceLabel: '100m',
       categoryLabel: 'Cadets',
       entryCount: 20,
+      eligibleCount: 20,
       serverDetails: [semi],
     );
 
@@ -350,6 +397,7 @@ void main() {
         raceLabel: '100m',
         categoryLabel: 'Cadets',
         entryCount: 20,
+        eligibleCount: 20,
         serverDetails: [semi],
       ));
       controller.seedFromServerIfNeeded();
@@ -358,27 +406,31 @@ void main() {
     test('a round backed by FFSS is deleted on the server too', () async {
       await withServerRound();
 
-      await controller.removeLevel(0);
+      expect(await controller.removeLevel(0), LevelRemoval.removed);
 
       verify(() => raceFormatRepo.deleteRaceFormatDetail(32)).called(1);
       expect(controller.structure.value!.levels, isEmpty);
     });
 
     test('a hand-added round calls nothing', () async {
-      controller.addLevel(RoundType.finale);
+      await controller.addLevel(RoundType.finale);
 
-      await controller.removeLevel(0);
+      expect(await controller.removeLevel(0), LevelRemoval.removed);
 
       verifyNever(() => raceFormatRepo.deleteRaceFormatDetail(any()));
       expect(controller.structure.value!.levels, isEmpty);
     });
 
-    test('a refused deletion keeps the round rather than diverging', () async {
+    // The round is kept and the refusal is named, so the view can offer to drop
+    // it from the device anyway — a partie FFSS no longer holds would otherwise
+    // be stuck in the editor for good.
+    test('a refused deletion keeps the round and says the server refused',
+        () async {
       await withServerRound();
       when(() => raceFormatRepo.deleteRaceFormatDetail(any()))
           .thenAnswer((_) async => false);
 
-      await controller.removeLevel(0);
+      expect(await controller.removeLevel(0), LevelRemoval.serverRefused);
 
       expect(controller.structure.value!.levels, hasLength(1));
       expect(controller.message.value, isA<UiMessageError>());
@@ -390,11 +442,75 @@ void main() {
       when(() => raceFormatRepo.deleteRaceFormatDetail(any()))
           .thenThrow(const NetworkException('offline'));
 
-      await controller.removeLevel(0);
+      expect(await controller.removeLevel(0), LevelRemoval.serverRefused);
 
       expect(controller.structure.value!.levels, hasLength(1));
       expect(controller.message.value, isA<UiMessageError>());
       expect(controller.isDeletingLevel.value, isFalse);
+    });
+
+    test('the failure carries the reason FFSS gave for it', () async {
+      // "Could not delete" says nothing an operator can act on; the server's
+      // own words distinguish a locked competition from a transport failure.
+      await withServerRound();
+      when(() => raceFormatRepo.deleteRaceFormatDetail(any())).thenThrow(
+          const ApiException('Déroulement verrouillé', statusCode: 409));
+
+      expect(await controller.removeLevel(0), LevelRemoval.serverRefused);
+
+      expect(controller.message.value!.details,
+          'Déroulement verrouillé (HTTP 409)');
+    });
+
+    // FFSS answers 404 for a partie it no longer holds, and 403 for a bad
+    // token — the two are never confused. A 404 means the round is definitively
+    // gone there, so asking "remove it anyway?" would ask a question whose
+    // answer can only be yes.
+    test('a partie FFSS no longer holds is dropped without asking', () async {
+      await withServerRound();
+      when(() => raceFormatRepo.deleteRaceFormatDetail(any())).thenThrow(
+          const ApiException('The requested resource was not found.',
+              statusCode: 404));
+
+      expect(await controller.removeLevel(0), LevelRemoval.removed);
+
+      expect(controller.structure.value!.levels, isEmpty);
+      expect(controller.message.value, isA<UiMessageSuccess>());
+      expect(controller.message.value!.translationKey,
+          'round_delete_already_gone');
+    });
+
+    test('a plain refusal carries no invented reason', () async {
+      await withServerRound();
+      when(() => raceFormatRepo.deleteRaceFormatDetail(any()))
+          .thenAnswer((_) async => false);
+
+      await controller.removeLevel(0);
+
+      expect(controller.message.value!.details, isNull);
+    });
+
+    test('signed out, the refusal is named as such and not as a server one',
+        () async {
+      // Offering "drop it locally" here would orphan a partie that is alive on
+      // FFSS; the operator needs to sign in, not to hide it.
+      await withServerRound();
+      userService.currentUser.value = null;
+
+      expect(await controller.removeLevel(0), LevelRemoval.needsLogin);
+
+      expect(controller.structure.value!.levels, hasLength(1));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    test('removeLevelLocally drops the round without calling the server',
+        () async {
+      await withServerRound();
+
+      controller.removeLevelLocally(0);
+
+      expect(controller.structure.value!.levels, isEmpty);
+      verifyNever(() => raceFormatRepo.deleteRaceFormatDetail(any()));
     });
   });
 
@@ -563,5 +679,408 @@ void main() {
     expect(stored.structures.any((s) => s.raceId == 100), isTrue);
     verify(() => storage.write(key: 'programme_42', value: any(named: 'value')))
         .called(greaterThan(0));
+  });
+
+  group('pushing rounds to FFSS', () {
+    const linked = StructureEditorArgs(
+      competitionId: 42,
+      raceId: 100,
+      categoryId: 7,
+      raceLabel: '100m',
+      categoryLabel: 'Cadets',
+      entryCount: 20,
+      eligibleCount: 18,
+      disciplineId: 8,
+      gender: Gender.male,
+      raceFormatId: 428,
+    );
+
+    void answerSubmitWith(int id) {
+      when(() => raceFormatRepo.submitRaceFormatDetail(
+            raceFormatId: any(named: 'raceFormatId'),
+            order: any(named: 'order'),
+            level: any(named: 'level'),
+            raceCount: any(named: 'raceCount'),
+            qualificationMethod: any(named: 'qualificationMethod'),
+            spotsPerRace: any(named: 'spotsPerRace'),
+            qualifyingSpots: any(named: 'qualifyingSpots'),
+            categoryIds: any(named: 'categoryIds'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => id);
+    }
+
+    test('the editor reports how many entries will actually start', () {
+      controller.start(linked);
+
+      expect(controller.entryCount, 20);
+      expect(controller.eligibleCount, 18);
+    });
+
+    group('adding a round', () {
+      test('creates the partie at once and keeps the id it was given',
+          () async {
+        controller.start(linked);
+        answerSubmitWith(512);
+
+        await controller.addLevel(RoundType.finale);
+
+        final level = controller.structure.value!.levels.single;
+        expect(level.serverId, 512);
+        final captured = verify(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: captureAny(named: 'raceFormatId'),
+              order: captureAny(named: 'order'),
+              level: captureAny(named: 'level'),
+              raceCount: any(named: 'raceCount'),
+              qualificationMethod: any(named: 'qualificationMethod'),
+              spotsPerRace: any(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: captureAny(named: 'categoryIds'),
+              id: captureAny(named: 'id'),
+            )).captured;
+        expect(captured[0], 428);
+        expect(captured[1], 1); // ordre, one-based
+        expect(captured[2], 'final'); // the API vocabulary, not ours
+        expect(captured[3], [7]);
+        expect(captured[4], isNull); // a creation
+      });
+
+      test('a round added with no déroulement stays local', () async {
+        // Nothing to hang a partie on yet; the round is kept and will go out
+        // with the next push, which creates the déroulement first.
+        controller.start(args);
+
+        await controller.addLevel(RoundType.finale);
+
+        expect(controller.structure.value!.levels.single.serverId, 0);
+        verifyNever(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: any(named: 'raceFormatId'),
+              order: any(named: 'order'),
+              level: any(named: 'level'),
+              raceCount: any(named: 'raceCount'),
+              qualificationMethod: any(named: 'qualificationMethod'),
+              spotsPerRace: any(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: any(named: 'categoryIds'),
+              id: any(named: 'id'),
+            ));
+      });
+
+      test('a refused creation keeps the round and says so', () async {
+        controller.start(linked);
+        answerSubmitWith(0);
+
+        await controller.addLevel(RoundType.finale);
+
+        expect(controller.structure.value!.levels, hasLength(1));
+        expect(controller.structure.value!.levels.single.serverId, 0);
+        expect(controller.message.value, isA<UiMessageError>());
+      });
+
+      test('a network failure keeps the round rather than losing the edit',
+          () async {
+        controller.start(linked);
+        when(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: any(named: 'raceFormatId'),
+              order: any(named: 'order'),
+              level: any(named: 'level'),
+              raceCount: any(named: 'raceCount'),
+              qualificationMethod: any(named: 'qualificationMethod'),
+              spotsPerRace: any(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: any(named: 'categoryIds'),
+              id: any(named: 'id'),
+            )).thenThrow(const NetworkException('offline'));
+
+        await controller.addLevel(RoundType.finale);
+
+        expect(controller.structure.value!.levels, hasLength(1));
+        expect(controller.message.value, isA<UiMessageError>());
+      });
+    });
+
+    group('pushAll', () {
+      test('sends every round in order, updating the ones already there',
+          () async {
+        controller.start(linked);
+        answerSubmitWith(0); // ids are captured, not consumed, below
+        when(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: any(named: 'raceFormatId'),
+              order: any(named: 'order'),
+              level: any(named: 'level'),
+              raceCount: any(named: 'raceCount'),
+              qualificationMethod: any(named: 'qualificationMethod'),
+              spotsPerRace: any(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: any(named: 'categoryIds'),
+              id: any(named: 'id'),
+            )).thenAnswer((_) async => 900);
+        controller.structure.value = controller.structure.value!.copyWith(
+          levels: const [
+            RoundLevel(
+              type: RoundType.serie,
+              serverId: 31,
+              spotsPerRace: 8,
+              qualifiersPerRace: 2,
+              qualificationMethod: 'course',
+              races: [
+                ProgrammeRace(id: 1, number: 1),
+                ProgrammeRace(id: 2, number: 2),
+                ProgrammeRace(id: 3, number: 3),
+              ],
+            ),
+            RoundLevel(
+              type: RoundType.finale,
+              spotsPerRace: 8,
+              races: [ProgrammeRace(id: 4, number: 1)],
+            ),
+          ],
+        );
+
+        await controller.pushAll();
+
+        final captured = verify(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: any(named: 'raceFormatId'),
+              order: captureAny(named: 'order'),
+              level: captureAny(named: 'level'),
+              raceCount: captureAny(named: 'raceCount'),
+              qualificationMethod: captureAny(named: 'qualificationMethod'),
+              spotsPerRace: captureAny(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: any(named: 'categoryIds'),
+              id: captureAny(named: 'id'),
+            )).captured;
+        // Round one: an update, carrying its own race count and logic.
+        expect(captured.sublist(0, 6), [1, 'heat', 3, 'course', 8, 31]);
+        // Round two: a creation, defaulting to no qualification logic.
+        expect(captured.sublist(6), [2, 'final', 1, 'none', 8, null]);
+      });
+
+      test('records the ids the server assigned', () async {
+        controller.start(linked);
+        answerSubmitWith(777);
+        controller.structure.value = controller.structure.value!.copyWith(
+          levels: const [RoundLevel(type: RoundType.finale)],
+        );
+
+        await controller.pushAll();
+
+        expect(controller.structure.value!.levels.single.serverId, 777);
+      });
+
+      test('creates the déroulement first when there is none', () async {
+        controller.start(args); // no raceFormatId
+        when(() => raceFormatRepo.submitRaceFormat(
+              competitionId: any(named: 'competitionId'),
+              disciplineId: any(named: 'disciplineId'),
+              gender: any(named: 'gender'),
+              categoryIds: any(named: 'categoryIds'),
+              id: any(named: 'id'),
+            )).thenAnswer((_) async => 999);
+        answerSubmitWith(512);
+        controller.structure.value = controller.structure.value!.copyWith(
+          levels: const [RoundLevel(type: RoundType.finale)],
+        );
+
+        await controller.pushAll();
+
+        verify(() => raceFormatRepo.submitRaceFormat(
+              competitionId: 42,
+              disciplineId: any(named: 'disciplineId'),
+              gender: any(named: 'gender'),
+              categoryIds: [7],
+              id: null,
+            )).called(1);
+        // The parties hang off the déroulement that was just created.
+        verify(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: 999,
+              order: any(named: 'order'),
+              level: any(named: 'level'),
+              raceCount: any(named: 'raceCount'),
+              qualificationMethod: any(named: 'qualificationMethod'),
+              spotsPerRace: any(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: any(named: 'categoryIds'),
+              id: any(named: 'id'),
+            )).called(1);
+      });
+
+      test('a refused déroulement stops before sending any partie', () async {
+        controller.start(args);
+        when(() => raceFormatRepo.submitRaceFormat(
+              competitionId: any(named: 'competitionId'),
+              disciplineId: any(named: 'disciplineId'),
+              gender: any(named: 'gender'),
+              categoryIds: any(named: 'categoryIds'),
+              id: any(named: 'id'),
+            )).thenAnswer((_) async => 0);
+        controller.structure.value = controller.structure.value!.copyWith(
+          levels: const [RoundLevel(type: RoundType.finale)],
+        );
+
+        await controller.pushAll();
+
+        verifyNever(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: any(named: 'raceFormatId'),
+              order: any(named: 'order'),
+              level: any(named: 'level'),
+              raceCount: any(named: 'raceCount'),
+              qualificationMethod: any(named: 'qualificationMethod'),
+              spotsPerRace: any(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: any(named: 'categoryIds'),
+              id: any(named: 'id'),
+            ));
+        expect(controller.message.value, isA<UiMessageError>());
+      });
+
+      test('progress is reported and cleared, failure included', () async {
+        controller.start(linked);
+        controller.structure.value = controller.structure.value!.copyWith(
+          levels: const [
+            RoundLevel(type: RoundType.serie),
+            RoundLevel(type: RoundType.finale),
+          ],
+        );
+        final seen = <String>[];
+        when(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: any(named: 'raceFormatId'),
+              order: any(named: 'order'),
+              level: any(named: 'level'),
+              raceCount: any(named: 'raceCount'),
+              qualificationMethod: any(named: 'qualificationMethod'),
+              spotsPerRace: any(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: any(named: 'categoryIds'),
+              id: any(named: 'id'),
+            )).thenAnswer((_) async {
+          seen.add('${controller.pushDone.value}/${controller.pushTotal.value}');
+          return 5;
+        });
+
+        await controller.pushAll();
+
+        expect(seen, ['0/2', '1/2']);
+        expect(controller.pushTotal.value, 0);
+        expect(controller.isPushing.value, isFalse);
+      });
+
+      test('nothing to push means no call at all', () async {
+        controller.start(linked);
+
+        await controller.pushAll();
+
+        verifyNever(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: any(named: 'raceFormatId'),
+              order: any(named: 'order'),
+              level: any(named: 'level'),
+              raceCount: any(named: 'raceCount'),
+              qualificationMethod: any(named: 'qualificationMethod'),
+              spotsPerRace: any(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: any(named: 'categoryIds'),
+              id: any(named: 'id'),
+            ));
+      });
+    });
+
+    test('setQualificationMethod changes only the targeted round', () {
+      controller.start(linked);
+      controller.structure.value = controller.structure.value!.copyWith(
+        levels: const [
+          RoundLevel(type: RoundType.serie),
+          RoundLevel(type: RoundType.finale),
+        ],
+      );
+
+      controller.setQualificationMethod(0, 'partie');
+
+      final levels = controller.structure.value!.levels;
+      expect(levels[0].qualificationMethod, 'partie');
+      expect(levels[1].qualificationMethod, 'none');
+    });
+  });
+
+  group('the editor refuses to write without a session', () {
+    const linked = StructureEditorArgs(
+      competitionId: 42,
+      raceId: 100,
+      categoryId: 7,
+      raceLabel: '100m',
+      categoryLabel: 'Cadets',
+      entryCount: 20,
+      eligibleCount: 20,
+      disciplineId: 8,
+      gender: Gender.male,
+      raceFormatId: 428,
+    );
+
+    setUp(() => userService.currentUser.value = null);
+
+    test('adding a round stays local and names the real cause', () async {
+      // FFSS answers an anonymous write with "Invalid Token", which reads as a
+      // server fault; refusing here says what actually needs doing.
+      controller.start(linked);
+
+      await controller.addLevel(RoundType.finale);
+
+      expect(controller.structure.value!.levels, hasLength(1));
+      verifyNever(() => raceFormatRepo.submitRaceFormatDetail(
+            raceFormatId: any(named: 'raceFormatId'),
+            order: any(named: 'order'),
+            level: any(named: 'level'),
+            raceCount: any(named: 'raceCount'),
+            qualificationMethod: any(named: 'qualificationMethod'),
+            spotsPerRace: any(named: 'spotsPerRace'),
+            qualifyingSpots: any(named: 'qualifyingSpots'),
+            categoryIds: any(named: 'categoryIds'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    test('pushAll sends nothing at all', () async {
+      controller.start(linked);
+      controller.structure.value = controller.structure.value!
+          .copyWith(levels: const [RoundLevel(type: RoundType.finale)]);
+
+      await controller.pushAll();
+
+      verifyNever(() => raceFormatRepo.submitRaceFormatDetail(
+            raceFormatId: any(named: 'raceFormatId'),
+            order: any(named: 'order'),
+            level: any(named: 'level'),
+            raceCount: any(named: 'raceCount'),
+            qualificationMethod: any(named: 'qualificationMethod'),
+            spotsPerRace: any(named: 'spotsPerRace'),
+            qualifyingSpots: any(named: 'qualifyingSpots'),
+            categoryIds: any(named: 'categoryIds'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey, 'login_required');
+      expect(controller.isPushing.value, isFalse);
+    });
+
+    test('removing a round backed by FFSS is refused, and it stays', () async {
+      controller.start(linked);
+      controller.structure.value = controller.structure.value!.copyWith(
+          levels: const [RoundLevel(type: RoundType.finale, serverId: 31)]);
+
+      await controller.removeLevel(0);
+
+      verifyNever(() => raceFormatRepo.deleteRaceFormatDetail(any()));
+      expect(controller.structure.value!.levels, hasLength(1));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    test('a purely local round can still be removed offline', () async {
+      // Nothing to call: the round exists only on this device.
+      controller.start(linked);
+      controller.structure.value = controller.structure.value!
+          .copyWith(levels: const [RoundLevel(type: RoundType.finale)]);
+
+      await controller.removeLevel(0);
+
+      expect(controller.structure.value!.levels, isEmpty);
+    });
   });
 }

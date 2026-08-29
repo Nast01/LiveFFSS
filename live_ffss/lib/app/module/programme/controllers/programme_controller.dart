@@ -46,6 +46,7 @@ class OverviewRow {
     required this.specialityId,
     required this.specialityLabel,
     required this.entryCount,
+    required this.eligibleCount,
     required this.structure,
     required this.defaultSpotsPerRace,
     this.raceFormat,
@@ -66,6 +67,11 @@ class OverviewRow {
   /// is what `deroulement/submit` takes, not a race id.
   final int disciplineId;
   final int entryCount;
+
+  /// Entries that will actually start — forfeits excluded. This is the number
+  /// a round should be sized on; [entryCount] is the roster, not the field.
+  final int eligibleCount;
+
   final EventStructure? structure;
 
   /// Heat size to seed a structure with, resolved from the race speciality —
@@ -259,8 +265,9 @@ class ProgrammeController extends GetxController {
         final race = races[i];
         final entries = entriesByRace[i];
         for (final category in race.categories) {
-          final count =
-              entries.where((e) => e.category.id == category.id).length;
+          final ofCategory = entries.where((e) => e.category.id == category.id);
+          final count = ofCategory.length;
+          final eligible = ofCategory.where((e) => !e.isForfeit).length;
           built.add(OverviewRow(
             raceId: race.id,
             categoryId: category.id,
@@ -271,6 +278,7 @@ class ProgrammeController extends GetxController {
             specialityId: race.specialityId,
             specialityLabel: race.specialityLabel,
             entryCount: count,
+            eligibleCount: eligible,
             structure: _structureFor(race.id, category.id),
             defaultSpotsPerRace: race.defaultSpotsPerRace,
             raceFormat: formats[(race.disciplineId, race.gender, category.id)],
@@ -587,6 +595,7 @@ class ProgrammeController extends GetxController {
           specialityId: row.specialityId,
           specialityLabel: row.specialityLabel,
           entryCount: row.entryCount,
+          eligibleCount: row.eligibleCount,
           structure: _structureFor(row.raceId, row.categoryId),
           defaultSpotsPerRace: row.defaultSpotsPerRace,
           raceFormat: row.raceFormat,
