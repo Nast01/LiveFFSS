@@ -101,6 +101,18 @@ void main() {
     verify(() => ds.deleteMeeting(7)).called(1);
   });
 
+  RunDto makeRunDto(int slotId) => RunDto(
+        id: slotId * 100,
+        name: 'run-of-slot-$slotId',
+        label: 'R$slotId',
+        fullLabel: 'Run of slot $slotId',
+        status: 0,
+        statusLabel: '',
+        site: '',
+        beginTime: '08:00',
+        endTime: '08:05',
+      );
+
   test('the courses of each créneau go out together, not one after another',
       () async {
     // Twenty créneaux must not cost twenty latencies end to end.
@@ -127,9 +139,42 @@ void main() {
     verify(() => ds.getRuns(2, start: 0, length: 100)).called(1);
     verify(() => ds.getRuns(3, start: 0, length: 100)).called(1);
 
+    // Each gate resolves with a run that names its own slot id, so a
+    // scrambled zip between slotIds and Future.wait's output — e.g. a
+    // reversed order, or an off-by-one index — would attach the wrong
+    // course to the wrong créneau and fail this assertion.
     for (final id in gates.keys) {
-      gates[id]!.complete(const []);
+      gates[id]!.complete([makeRunDto(id)]);
     }
-    await loading;
+    final meetings = await loading;
+
+    final slots = meetings.single.slots;
+    for (final id in [1, 2, 3]) {
+      final slot = slots.firstWhere((s) => s.id == id);
+      expect(slot.runs, hasLength(1));
+      expect(slot.runs.single.name, 'run-of-slot-$id');
+    }
+  });
+
+  test('a créneau s courses page past a full first batch', () async {
+    when(() => ds.getMeetings(1451, start: 0, length: 100)).thenAnswer(
+      (_) async => [
+        makeDto(78).copyWith(slots: [
+          const SlotDto(
+              id: 9, name: 'C9', beginHour: '08:00', endHour: '08:10'),
+        ]),
+      ],
+    );
+    when(() => ds.getRuns(9, start: 0, length: 100)).thenAnswer(
+      (_) async => [for (var i = 0; i < 100; i++) makeRunDto(9)],
+    );
+    when(() => ds.getRuns(9, start: 100, length: 100))
+        .thenAnswer((_) async => [makeRunDto(9)]);
+
+    final meetings = await repo.getMeetings(1451);
+
+    expect(meetings.single.slots.single.runs, hasLength(101));
+    verify(() => ds.getRuns(9, start: 0, length: 100)).called(1);
+    verify(() => ds.getRuns(9, start: 100, length: 100)).called(1);
   });
 }

@@ -60,15 +60,14 @@ class MeetingRepositoryImpl implements MeetingRepository {
       start += _pageSize;
     }
 
-    // One round trip per créneau, all in flight at once: in series, a
-    // twenty-créneau day would pay twenty latencies end to end.
+    // One paged sequence of round trips per créneau, all créneaux in flight
+    // at once: in series, a twenty-créneau day would pay twenty latencies
+    // end to end. Each créneau's own courses still page like any FFSS list.
     final slotIds = [
       for (final meeting in all)
         for (final slot in meeting.slots) slot.id,
     ];
-    final loaded = await Future.wait(
-      slotIds.map((id) => _dataSource.getRuns(id, start: 0, length: _pageSize)),
-    );
+    final loaded = await Future.wait(slotIds.map(_getAllRuns));
     final runsBySlot = <int, List<RunDto>>{
       for (var i = 0; i < slotIds.length; i++) slotIds[i]: loaded[i],
     };
@@ -79,6 +78,25 @@ class MeetingRepositoryImpl implements MeetingRepository {
           .toList();
       return meeting.copyWith(slots: filledSlots).toDomain();
     }).toList();
+  }
+
+  /// All courses of one créneau, paged the same way `getMeetings` pages
+  /// réunions — FFSS serves this list 30 rows at a time when no window is
+  /// asked for, and a créneau can hold more than one page of courses.
+  Future<List<RunDto>> _getAllRuns(int slotId) async {
+    final runs = <RunDto>[];
+    var start = 0;
+    while (true) {
+      final batch = await _dataSource.getRuns(
+        slotId,
+        start: start,
+        length: _pageSize,
+      );
+      runs.addAll(batch);
+      if (batch.length < _pageSize) break;
+      start += _pageSize;
+    }
+    return runs;
   }
 
   @override
