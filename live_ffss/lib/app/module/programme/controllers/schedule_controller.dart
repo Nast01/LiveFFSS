@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
@@ -9,6 +10,7 @@ import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/programme_site.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/domain/models/schedule_planner.dart' as planner;
+import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
 /// A réunion with no item yet defaults to 08:00 — the FFSS réunion's own
@@ -17,6 +19,10 @@ import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 /// schedule planner's fallback for a site with no [planner.dayStartMinutes]
 /// override, a different question the two planners simply answer differently.
 const int defaultMeetingStartMinutes = 8 * 60;
+
+/// Duration of a newly added manual item — the value the local planner
+/// already used, kept so the rhythm doesn't change for anyone who knows it.
+const int defaultItemMinutes = 10;
 
 class ScheduleController extends GetxController {
   ScheduleController(this._programme, this._meetings, this._user);
@@ -244,5 +250,141 @@ class ScheduleController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Minutes past midnight → a real [DateTime] on [day] — the counterpart of
+  /// [_minutesOf], needed because FFSS writes want a date-bearing time.
+  DateTime _atMinutes(DateTime day, int minutes) =>
+      DateTime(day.year, day.month, day.day, minutes ~/ 60, minutes % 60);
+
+  /// The réunion's name follows **the application's language**, not a forced
+  /// one: it will show up exactly like this on the federal site.
+  String _meetingName(DateTime day) =>
+      DateFormat('EEEE d MMMM y', Get.locale?.toString()).format(day);
+
+  /// The id of the réunion covering [day], creating it at
+  /// [defaultMeetingStartMinutes] first when FFSS has none yet — the implicit
+  /// creation the design keeps for a day's first item. Returns 0 (or
+  /// whatever FFSS answered) when the creation itself was refused.
+  Future<int> _ensureMeeting(DateTime day) async {
+    final existing = meetingFor(day);
+    if (existing != null) return existing.id;
+    final competitionId = competition.value?.id;
+    if (competitionId == null) return 0;
+    return _meetings.submitMeeting(
+      competitionId: competitionId,
+      name: _meetingName(day),
+      description: '',
+      date: day,
+      beginHour: _atMinutes(day, defaultMeetingStartMinutes),
+      endHour: _atMinutes(day, defaultMeetingStartMinutes),
+    );
+  }
+
+  /// Pushes the réunion's `fin` back out to [endMinutesOfDay]'s current
+  /// maximum, now that a write may have moved it. Passing the réunion's own
+  /// [Meeting.id] turns this into an update rather than a duplicate.
+  Future<void> _pushMeetingEnd(DateTime day) async {
+    final meeting = meetingFor(day);
+    final competitionId = competition.value?.id;
+    if (meeting == null || competitionId == null) return;
+    await _meetings.submitMeeting(
+      competitionId: competitionId,
+      name: meeting.name,
+      description: meeting.description,
+      date: day,
+      beginHour: meeting.beginHour,
+      endHour: _atMinutes(day, endMinutesOfDay(day)),
+      id: meeting.id,
+    );
+  }
+
+  /// The réunion holding [slotId] and the créneau itself, among the loaded
+  /// [meetings] — a write needs the meetingId to resubmit its own créneau.
+  (Meeting, Slot)? _slotOwner(int slotId) {
+    for (final meeting in meetings) {
+      for (final slot in meeting.slots) {
+        if (slot.id == slotId) return (meeting, slot);
+      }
+    }
+    return null;
+  }
+
+  /// Adds an informational item to [day], creating the réunion first when it
+  /// doesn't exist yet, then pushes the new end of day back to FFSS.
+  ///
+  /// The item starts at the day's current end and lasts
+  /// [defaultItemMinutes]. A signed-out operator is refused before anything
+  /// leaves the device — FFSS would otherwise answer an anonymous write with
+  /// a bare "Invalid Token" that reads like a server fault.
+  Future<void> addManualItem(String label, DateTime day) async {
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
+    final meetingId = await _ensureMeeting(day);
+    if (meetingId <= 0) return;
+
+    final beginMinutes = endMinutesOfDay(day);
+    final endMinutes = beginMinutes + defaultItemMinutes;
+    final slotId = await _meetings.submitSlot(
+      meetingId: meetingId,
+      name: label,
+      beginHour: _atMinutes(day, beginMinutes),
+      endHour: _atMinutes(day, endMinutes),
+    );
+    if (slotId <= 0) {
+      message.trigger(const UiMessageError('schedule_item_failed'));
+      return;
+    }
+    await reload();
+    await _pushMeetingEnd(day);
+  }
+
+  /// Resizes an existing créneau, keeping its own start time, then pushes the
+  /// day's new end. Works on any créneau [_slotOwner] can find — a manual
+  /// item today, since planning a course onto one is a later step.
+  Future<void> setSlotDuration(int slotId, int minutes) async {
+    if (minutes < 1) return;
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
+    final owner = _slotOwner(slotId);
+    if (owner == null) return;
+    final (meeting, slot) = owner;
+    final beginMinutes = _minutesOf(slot.beginHour);
+    final updatedId = await _meetings.submitSlot(
+      meetingId: meeting.id,
+      name: slot.name,
+      beginHour: _atMinutes(meeting.date, beginMinutes),
+      endHour: _atMinutes(meeting.date, beginMinutes + minutes),
+      raceFormatDetailId: slot.raceFormatDetail?.id,
+      id: slotId,
+    );
+    if (updatedId <= 0) {
+      message.trigger(const UiMessageError('schedule_item_failed'));
+      return;
+    }
+    await reload();
+    await _pushMeetingEnd(meeting.date);
+  }
+
+  /// Deletes a créneau, then pushes the day's new (possibly shorter) end.
+  Future<void> removeSlot(int slotId) async {
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
+    final owner = _slotOwner(slotId);
+    if (owner == null) return;
+    final day = owner.$1.date;
+    final ok = await _meetings.deleteSlot(slotId);
+    if (!ok) {
+      message.trigger(const UiMessageError('schedule_item_failed'));
+      return;
+    }
+    await reload();
+    await _pushMeetingEnd(day);
   }
 }

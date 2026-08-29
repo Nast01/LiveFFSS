@@ -348,6 +348,7 @@ final Map<String, String> frFR = {
   'no_placement_here': 'Aucune course ici',
   'schedule_day_range': '@begin → @end',
   'schedule_manual_items': 'Général',
+  'schedule_item_failed': "FFSS n'a pas enregistré cet item",
   'add_manual_item': 'Ajouter un item',
   'manual_label': 'Libellé',
   'duration_min': 'Durée (min)',

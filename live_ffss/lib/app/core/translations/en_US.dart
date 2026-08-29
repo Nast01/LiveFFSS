@@ -345,6 +345,7 @@ final Map<String, String> enUS = {
   'no_placement_here': 'No race here',
   'schedule_day_range': '@begin → @end',
   'schedule_manual_items': 'General',
+  'schedule_item_failed': 'FFSS did not save this item',
   'add_manual_item': 'Add an item',
   'manual_label': 'Label',
   'duration_min': 'Duration (min)',

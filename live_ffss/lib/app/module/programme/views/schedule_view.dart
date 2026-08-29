@@ -19,6 +19,7 @@ import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/gender_badge.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
 class ScheduleView extends StatefulWidget {
   const ScheduleView({super.key});
@@ -31,6 +32,7 @@ class _ScheduleViewState extends State<ScheduleView> {
   final _controller = Get.find<ScheduleController>();
   final _programme = Get.find<ProgrammeController>();
   Worker? _compWorker;
+  late final Worker _messageWorker;
 
   @override
   void initState() {
@@ -38,11 +40,20 @@ class _ScheduleViewState extends State<ScheduleView> {
     _compWorker =
         ever<Competition?>(_programme.competition, _onCompetitionChanged);
     _onCompetitionChanged(_programme.competition.value);
+    _messageWorker = ever<UiMessage?>(_controller.message, (m) {
+      if (m == null || !mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(m.text),
+        backgroundColor:
+            m is UiMessageError ? AppColors.statusError : AppColors.primary,
+      ));
+    });
   }
 
   @override
   void dispose() {
     _compWorker?.dispose();
+    _messageWorker.dispose();
     super.dispose();
   }
 
@@ -69,39 +80,58 @@ class _ScheduleViewState extends State<ScheduleView> {
     }
   }
 
-  Future<void> _addManual(int siteId, DateTime day) async {
+  /// Prompts for a label only: the item's timing is not the operator's to
+  /// choose — it starts at the day's current end and lasts
+  /// [defaultItemMinutes], per the design.
+  Future<void> _addManualItem(DateTime day) async {
     final labelController = TextEditingController();
-    var minutes = 15;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('add_manual_item'.tr),
+        content: TextField(
+          controller: labelController,
+          decoration: InputDecoration(labelText: 'manual_label'.tr),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text('cancel'.tr)),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text('save'.tr)),
+        ],
+      ),
+    );
+    if (ok == true && labelController.text.trim().isNotEmpty) {
+      _controller.addManualItem(labelController.text.trim(), day);
+    }
+  }
+
+  /// Lets the operator pick a new duration for an existing manual créneau,
+  /// in 5-minute steps — the same increment the old local planner's dialog
+  /// used.
+  Future<void> _editSlotDuration(int slotId, int currentMinutes) async {
+    var minutes = currentMinutes;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          title: Text('add_manual_item'.tr),
-          content: Column(
+          title: Text('edit_item'.tr),
+          content: Row(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextField(
-                controller: labelController,
-                decoration: InputDecoration(labelText: 'manual_label'.tr),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('duration_min'.tr, style: AppTypography.caption),
-                  Row(children: [
-                    IconButton(
-                        icon: const Icon(Icons.remove),
-                        onPressed: minutes > 5
-                            ? () => setState(() => minutes -= 5)
-                            : null),
-                    Text('$minutes', style: AppTypography.body),
-                    IconButton(
-                        icon: const Icon(Icons.add),
-                        onPressed: () => setState(() => minutes += 5)),
-                  ]),
-                ],
-              ),
+              IconButton(
+                  icon: const Icon(Icons.remove),
+                  onPressed: minutes > 5
+                      ? () => setState(() => minutes -= 5)
+                      : null),
+              Text('$minutes ${'min_short'.tr}', style: AppTypography.body),
+              IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () => setState(() => minutes += 5)),
             ],
           ),
           actions: [
@@ -115,8 +145,8 @@ class _ScheduleViewState extends State<ScheduleView> {
         ),
       ),
     );
-    if (ok == true) {
-      _controller.addManual(labelController.text, minutes, siteId, day);
+    if (ok == true && minutes != currentMinutes) {
+      _controller.setSlotDuration(slotId, minutes);
     }
   }
 
@@ -144,7 +174,11 @@ class _ScheduleViewState extends State<ScheduleView> {
                 child: (siteId == null || day == null)
                     ? EmptyState(
                         icon: Icons.place_outlined, title: 'no_sites'.tr)
-                    : _Timeline(controller: _controller, day: day),
+                    : _Timeline(
+                        controller: _controller,
+                        day: day,
+                        onEditDuration: _editSlotDuration,
+                      ),
               ),
               const Divider(height: 1),
               _Palette(
@@ -161,7 +195,7 @@ class _ScheduleViewState extends State<ScheduleView> {
               bottom: _paletteHeight(context) + AppSpacing.lg,
               child: FloatingActionButton.extended(
                 heroTag: 'addManual',
-                onPressed: () => _addManual(siteId, day),
+                onPressed: () => _addManualItem(day),
                 icon: const Icon(Icons.add),
                 label: Text('add_manual_item'.tr),
               ),
@@ -350,10 +384,18 @@ class _DayRangeHeader extends StatelessWidget {
 /// at its own `beginHour`/`endHour`.
 class _DayEntry {
   const _DayEntry(
-      {required this.begin, required this.end, required this.label});
+      {required this.begin,
+      required this.end,
+      required this.label,
+      this.slotId});
   final DateTime begin;
   final DateTime end;
   final String label;
+
+  /// The créneau backing this row, set only for a manual item — the only
+  /// kind this screen can resize or delete today. A course's duration and
+  /// removal go through `course/submit`, still broken on FFSS (see design).
+  final int? slotId;
 }
 
 /// A group of [_DayEntry]s sharing a site — [Run.site] for course entries, or
@@ -375,7 +417,11 @@ List<_DaySection> _sectionsFor(Meeting? meeting) {
   for (final slot in meeting.slots) {
     if (slot.runs.isEmpty) {
       manual.add(_DayEntry(
-          begin: slot.beginHour, end: slot.endHour, label: slot.name));
+        begin: slot.beginHour,
+        end: slot.endHour,
+        label: slot.name,
+        slotId: slot.id,
+      ));
       continue;
     }
     for (final run in slot.runs) {
@@ -397,14 +443,18 @@ List<_DaySection> _sectionsFor(Meeting? meeting) {
 int _byBegin(_DayEntry a, _DayEntry b) => a.begin.compareTo(b.begin);
 
 /// The day's réunion, read straight from FFSS: courses grouped by
-/// [Run.site], manual créneaux under their own section. Read-only — the
-/// local planner's `rowsFor` and its editing (reorder, duration, remove)
-/// stayed on ["Non planifiées"]'s add flow; wiring the same actions onto
-/// this tree is a later task.
+/// [Run.site], manual créneaux under their own section. A manual item can be
+/// resized or removed straight from here; a course still can't — that goes
+/// through `course/submit`, still broken on FFSS (see design).
 class _Timeline extends StatelessWidget {
-  const _Timeline({required this.controller, required this.day});
+  const _Timeline({
+    required this.controller,
+    required this.day,
+    required this.onEditDuration,
+  });
   final ScheduleController controller;
   final DateTime day;
+  final void Function(int slotId, int currentMinutes) onEditDuration;
 
   @override
   Widget build(BuildContext context) {
@@ -426,7 +476,12 @@ class _Timeline extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(
             AppSpacing.md, AppSpacing.md, AppSpacing.md, _fabClearance),
         children: [
-          for (final section in sections) _DaySectionView(section: section),
+          for (final section in sections)
+            _DaySectionView(
+              section: section,
+              onEditDuration: onEditDuration,
+              onDelete: controller.removeSlot,
+            ),
         ],
       );
     });
@@ -434,8 +489,14 @@ class _Timeline extends StatelessWidget {
 }
 
 class _DaySectionView extends StatelessWidget {
-  const _DaySectionView({required this.section});
+  const _DaySectionView({
+    required this.section,
+    required this.onEditDuration,
+    required this.onDelete,
+  });
   final _DaySection section;
+  final void Function(int slotId, int currentMinutes) onEditDuration;
+  final void Function(int slotId) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -450,7 +511,11 @@ class _DaySectionView extends StatelessWidget {
           for (final entry in section.items)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-              child: _DayEntryCard(entry: entry),
+              child: _DayEntryCard(
+                entry: entry,
+                onEditDuration: onEditDuration,
+                onDelete: onDelete,
+              ),
             ),
         ],
       ),
@@ -459,11 +524,18 @@ class _DaySectionView extends StatelessWidget {
 }
 
 class _DayEntryCard extends StatelessWidget {
-  const _DayEntryCard({required this.entry});
+  const _DayEntryCard({
+    required this.entry,
+    required this.onEditDuration,
+    required this.onDelete,
+  });
   final _DayEntry entry;
+  final void Function(int slotId, int currentMinutes) onEditDuration;
+  final void Function(int slotId) onDelete;
 
   @override
   Widget build(BuildContext context) {
+    final slotId = entry.slotId;
     return Material(
       color: AppColors.surface,
       borderRadius: AppRadius.mdRadius,
@@ -481,6 +553,23 @@ class _DayEntryCard extends StatelessWidget {
                 style: AppTypography.caption),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: Text(entry.label, style: AppTypography.body)),
+            if (slotId != null) ...[
+              InkWell(
+                onTap: () => onEditDuration(
+                    slotId, entry.end.difference(entry.begin).inMinutes),
+                child: Text(
+                    '${entry.end.difference(entry.begin).inMinutes} ${'min_short'.tr}',
+                    style: AppTypography.caption
+                        .copyWith(color: AppColors.primaryDark)),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                iconSize: 20,
+                visualDensity: VisualDensity.compact,
+                color: AppColors.textSecondary,
+                onPressed: () => onDelete(slotId),
+              ),
+            ],
           ],
         ),
       ),

@@ -71,6 +71,28 @@ void main() {
   );
   final day = DateTime(2026, 6, 13);
 
+  /// [day] at a given hour/minute — the réunion's real date, unlike a bare
+  /// `HH:mm` Slot/Run time (see [ScheduleController.endMinutesOfDay] doc).
+  DateTime timeOf(int h, int m) => DateTime(day.year, day.month, day.day, h, m);
+
+  /// A réunion already on FFSS, with one manual créneau (08:00 → 08:10).
+  Meeting seedMeetingWithSlot() => Meeting(
+        id: 78,
+        name: 'Réunion',
+        description: '',
+        date: day,
+        beginHour: timeOf(8, 0),
+        endHour: timeOf(8, 10),
+        slots: [
+          Slot(
+            id: 66,
+            name: 'Accueil des clubs',
+            beginHour: timeOf(8, 0),
+            endHour: timeOf(8, 10),
+          ),
+        ],
+      );
+
   CompetitionProgramme seed() => const CompetitionProgramme(
         competitionId: 42,
         nextLocalId: 100,
@@ -407,6 +429,278 @@ void main() {
       expect(controller.hasError.value, isTrue);
       expect(controller.meetings, [meeting]);
       expect(controller.isLoading.value, isFalse);
+    });
+  });
+
+  group('addManualItem', () {
+    void stubWrites({int meetingId = 78, int slotId = 66}) {
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => meetingId);
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => slotId);
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [seedMeetingWithSlot()]);
+    }
+
+    // Aucune réunion n'existe pour ce jour : le premier item la crée, sinon
+    // il n'aurait rien où s'accrocher.
+    test('le premier item d une journée crée la réunion', () async {
+      stubWrites();
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      verify(() => meetingRepo.submitMeeting(
+            competitionId: 42,
+            name: any(named: 'name'),
+            description: '',
+            date: day,
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: null,
+          )).called(1);
+      verify(() => meetingRepo.submitSlot(
+            meetingId: 78,
+            name: 'Accueil des clubs',
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: null,
+            id: null,
+          )).called(1);
+    });
+
+    // Le créneau dure 10 minutes, donc la journée finit à 08:10 : la réunion
+    // doit être renvoyée une seconde fois pour porter cette nouvelle fin.
+    test('la fin de réunion est renvoyée après l ajout', () async {
+      stubWrites();
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      verify(() => meetingRepo.submitMeeting(
+            competitionId: 42,
+            name: any(named: 'name'),
+            description: '',
+            date: day,
+            beginHour: any(named: 'beginHour'),
+            endHour: timeOf(8, 10),
+            id: 78,
+          )).called(1);
+    });
+
+    test('hors session, rien ne part', () async {
+      userService.currentUser.value = null;
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      verifyNever(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    // Sans réunion valide, le créneau n'aurait aucun parent où s'accrocher.
+    test('une réunion refusée par FFSS n envoie aucun créneau', () async {
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 0);
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      verifyNever(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          ));
+    });
+
+    test('un créneau refusé par FFSS le signale', () async {
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 78);
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 0);
+
+      await controller.addManualItem('Accueil des clubs', day);
+
+      expect(controller.message.value!.translationKey, 'schedule_item_failed');
+    });
+  });
+
+  group('setSlotDuration', () {
+    setUp(() {
+      controller.meetings.value = [seedMeetingWithSlot()];
+    });
+
+    test('redimensionne le créneau à partir de son propre début', () async {
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 66);
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 78);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            seedMeetingWithSlot().copyWith(slots: [
+              seedMeetingWithSlot()
+                  .slots
+                  .single
+                  .copyWith(endHour: timeOf(8, 20)),
+            ]),
+          ]);
+
+      await controller.setSlotDuration(66, 20);
+
+      verify(() => meetingRepo.submitSlot(
+            meetingId: 78,
+            name: 'Accueil des clubs',
+            beginHour: timeOf(8, 0),
+            endHour: timeOf(8, 20),
+            raceFormatDetailId: null,
+            id: 66,
+          )).called(1);
+      verify(() => meetingRepo.submitMeeting(
+            competitionId: 42,
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: day,
+            beginHour: any(named: 'beginHour'),
+            endHour: timeOf(8, 20),
+            id: 78,
+          )).called(1);
+    });
+
+    test('hors session, rien ne part', () async {
+      userService.currentUser.value = null;
+
+      await controller.setSlotDuration(66, 20);
+
+      verifyNever(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    test('un créneau inconnu ne fait rien', () async {
+      await controller.setSlotDuration(999, 20);
+
+      verifyNever(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          ));
+    });
+  });
+
+  group('removeSlot', () {
+    setUp(() {
+      controller.meetings.value = [seedMeetingWithSlot()];
+    });
+
+    test('supprime le créneau puis pousse la nouvelle fin', () async {
+      when(() => meetingRepo.deleteSlot(66)).thenAnswer((_) async => true);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer(
+          (_) async => [seedMeetingWithSlot().copyWith(slots: const [])]);
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 78);
+
+      await controller.removeSlot(66);
+
+      verify(() => meetingRepo.deleteSlot(66)).called(1);
+      verify(() => meetingRepo.submitMeeting(
+            competitionId: 42,
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: day,
+            beginHour: any(named: 'beginHour'),
+            endHour: timeOf(8, 0),
+            id: 78,
+          )).called(1);
+    });
+
+    test('hors session, rien ne part', () async {
+      userService.currentUser.value = null;
+
+      await controller.removeSlot(66);
+
+      verifyNever(() => meetingRepo.deleteSlot(any()));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    test('un échec de suppression le signale', () async {
+      when(() => meetingRepo.deleteSlot(66)).thenAnswer((_) async => false);
+
+      await controller.removeSlot(66);
+
+      expect(controller.message.value!.translationKey, 'schedule_item_failed');
+    });
+
+    test('un créneau inconnu ne fait rien', () async {
+      await controller.removeSlot(999);
+
+      verifyNever(() => meetingRepo.deleteSlot(any()));
     });
   });
 }
