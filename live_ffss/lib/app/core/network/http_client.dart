@@ -22,7 +22,8 @@ class HttpClient {
 
   Future<void> Function()? _onAuthFailure;
 
-  /// Fired when the server returns 401 (session expired / token invalid).
+  /// Fired when the session is over — a 401, or the 403 "Invalid token" FFSS
+  /// actually uses (see [_decode]).
   /// The handler runs fire-and-forget; errors inside it are swallowed so the
   /// `AuthException` always propagates to the caller. Wired in
   /// `InitialBinding` to logout + navigate to the login screen.
@@ -136,6 +137,22 @@ class HttpClient {
     if (status == 401) {
       _notifyAuthFailure();
       throw AuthException(_extractMessage(rawBody) ?? 'Unauthorized');
+    }
+
+    // FFSS never answers 401. A write carrying a dead token comes back as
+    // `403 {"error":"Forbiden","message":"Invalid token"}`, while a read with
+    // that same dead token is served anonymously as a 200 — so nothing else in
+    // the app can tell that the session is over, and the operator keeps a token
+    // they believe good while every write fails as if the server were at fault.
+    //
+    // Matched on the wording rather than on the status alone: a 403 is also how
+    // a genuine refusal arrives, and signing someone out because one action was
+    // denied would be worse than reporting the denial.
+    final message = _extractMessage(rawBody);
+    if (status == 403 &&
+        (message?.toLowerCase().contains('invalid token') ?? false)) {
+      _notifyAuthFailure();
+      throw AuthException(message!);
     }
 
     if (status >= 400) {

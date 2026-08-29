@@ -474,6 +474,53 @@ void main() {
       expect(handlerCalled, isFalse);
     });
 
+    // FFSS answers a write carrying a dead token with
+    // `403 {"error":"Forbiden","message":"Invalid token"}` — never a 401 — and
+    // serves reads to that same dead token as an anonymous 200. Without this,
+    // nothing ever tells the operator the session is over: the app keeps a
+    // token it believes valid and every write fails as a server fault.
+    test('on a 403 saying the token is invalid, signs the session out',
+        () async {
+      var handlerCalled = false;
+      client.onAuthFailure = () async {
+        handlerCalled = true;
+      };
+      when(() => httpMock.post(any(),
+              headers: any(named: 'headers'), body: any(named: 'body')))
+          .thenAnswer((_) async => responseWith(
+              '{"error":"Forbiden","message":"Invalid token"}', 403));
+
+      await expectLater(client.post('x'), throwsA(isA<AuthException>()));
+      await Future<void>.delayed(Duration.zero);
+      expect(handlerCalled, isTrue);
+    });
+
+    test('the wording is matched loosely, since only FFSS controls it',
+        () async {
+      when(() => httpMock.post(any(),
+              headers: any(named: 'headers'), body: any(named: 'body')))
+          .thenAnswer((_) async =>
+              responseWith('{"message":"INVALID TOKEN"}', 403));
+
+      await expectLater(client.post('x'), throwsA(isA<AuthException>()));
+    });
+
+    test('a 403 that is a genuine refusal stays an ApiException', () async {
+      var handlerCalled = false;
+      client.onAuthFailure = () async {
+        handlerCalled = true;
+      };
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith(
+              '{"error":"Forbiden","message":"Compétition verrouillée"}', 403));
+
+      // Signing the operator out because one action was refused would be far
+      // worse than reporting the refusal.
+      await expectLater(client.get('x'), throwsA(isA<ApiException>()));
+      await Future<void>.delayed(Duration.zero);
+      expect(handlerCalled, isFalse);
+    });
+
     test('errors thrown inside the handler do not mask the AuthException',
         () async {
       client.onAuthFailure = () async {
