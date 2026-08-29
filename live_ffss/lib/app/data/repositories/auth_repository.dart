@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
 import 'package:live_ffss/app/data/mappers/user_mapper.dart';
@@ -79,6 +80,37 @@ class AuthRepositoryImpl implements AuthRepository {
       return null;
     }
 
-    return user;
+    if (await _isStillSignedIn()) return user;
+    await _tokenStorage.clearToken();
+    await _secureStorage.delete(key: _userKey);
+    return null;
+  }
+
+  /// Asks the server who we are, because the stored expiration date does not
+  /// say: a token issued with `expiration: "2026-08-30"` was already dead hours
+  /// later. FFSS never reports that on a read either — it serves an anonymous
+  /// 200 — so the app would keep a session that ended and only find out when a
+  /// write came back refused, after the operator had done the work.
+  ///
+  /// A real account is a licencie or an organisme; anything else is the
+  /// anonymous identity. The cost of that reading is that a type FFSS may add
+  /// later would force a needless sign-in until the mapper learns it — a
+  /// nuisance, where the opposite default silently keeps dead sessions alive.
+  ///
+  /// Anything other than a clear "you are nobody" keeps the session: being
+  /// offline proves nothing, and the timeout is there so a socket that never
+  /// answers cannot hold up application start.
+  Future<bool> _isStillSignedIn() async {
+    try {
+      final me = await _dataSource
+          .getCurrentUser()
+          .timeout(const Duration(seconds: 4));
+      final type = me.toDomain(token: '', tokenExpiration: DateTime.now()).type;
+      return type == UserType.licensee || type == UserType.organisme;
+    } on AppException {
+      return true;
+    } on TimeoutException {
+      return true;
+    }
   }
 }

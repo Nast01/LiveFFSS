@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
 import 'package:live_ffss/app/data/dtos/auth_token_dto.dart';
@@ -124,12 +125,95 @@ void main() {
       when(() => secure.read(key: 'user')).thenAnswer((_) async => '''
 {"token":"good","tokenExpiration":"$future","label":"X","type":"licensee","role":"admin"}
 ''');
+      when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
+            label: 'X',
+            type: 'licencie',
+            data: UserDtoData(role: 'admin'),
+          ));
 
       final user = await repo.restoreSession();
 
       expect(user, isNotNull);
       expect(user!.token, 'good');
       expect(user.role, UserRole.admin);
+    });
+  });
+
+  // The date `requestToken` hands back proves nothing: a token issued with
+  // `expiration: "2026-08-30"` was already dead hours later. And FFSS never
+  // says so on a read — it serves an anonymous 200 — so only asking who we are
+  // reveals a session that ended.
+  group('AuthRepository.restoreSession checks the session is still real', () {
+    final future = DateTime.utc(2099, 12, 31).toIso8601String();
+
+    void storedSession() {
+      when(() => secure.read(key: 'user')).thenAnswer((_) async => '''
+{"token":"good","tokenExpiration":"$future","label":"X","type":"licensee","role":"admin"}
+''');
+      when(() => tokens.clearToken()).thenAnswer((_) async {});
+      when(() => secure.delete(key: 'user')).thenAnswer((_) async {});
+    }
+
+    test('drops the session when the server answers anonymously', () async {
+      storedSession();
+      // What FFSS returns for a dead token: no licencie, no organisme.
+      when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
+            label: 'Utilisateur Anonyme',
+            type: 'public',
+            data: UserDtoData(role: 'user'),
+          ));
+
+      expect(await repo.restoreSession(), isNull);
+      verify(() => tokens.clearToken()).called(1);
+      verify(() => secure.delete(key: 'user')).called(1);
+    });
+
+    test('keeps the session when the server names a real account', () async {
+      storedSession();
+      when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
+            label: 'FFSS',
+            type: 'organisme',
+            data: UserDtoData(role: 'admin'),
+          ));
+
+      expect(await repo.restoreSession(), isNotNull);
+      verifyNever(() => tokens.clearToken());
+    });
+
+    test('keeps the session when the check cannot be made', () async {
+      // Offline is not proof of anything. Signing the operator out on a dead
+      // network would be worse than the stale session this guards against.
+      storedSession();
+      when(() => ds.getCurrentUser())
+          .thenThrow(const NetworkException('offline'));
+
+      expect(await repo.restoreSession(), isNotNull);
+      verifyNever(() => tokens.clearToken());
+    });
+
+    test('keeps the session rather than hanging on a silent network', () async {
+      storedSession();
+      when(() => ds.getCurrentUser())
+          .thenAnswer((_) => Future<UserDto>.delayed(
+              const Duration(minutes: 1),
+              () => const UserDto(
+                  label: 'X', type: 'licencie', data: UserDtoData(role: 'user'))));
+
+      // Startup must not wait on a socket that never answers.
+      expect(await repo.restoreSession(), isNotNull);
+      verifyNever(() => tokens.clearToken());
+    });
+
+    test('an expired date short-circuits before any call', () async {
+      final past = DateTime.utc(2000, 1, 1).toIso8601String();
+      when(() => secure.read(key: 'user')).thenAnswer((_) async => '''
+{"token":"old","tokenExpiration":"$past","label":"X","type":"licensee","role":"user"}
+''');
+      when(() => tokens.clearToken()).thenAnswer((_) async {});
+      when(() => secure.delete(key: 'user')).thenAnswer((_) async {});
+
+      expect(await repo.restoreSession(), isNull);
+      verifyNever(() => ds.getCurrentUser());
     });
   });
 }
