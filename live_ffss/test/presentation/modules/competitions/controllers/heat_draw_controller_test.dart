@@ -863,4 +863,58 @@ void main() {
       expect(levels.last.races.single.sourceRaceIds, [1, 2]);
     });
   });
+
+  group('entries, as opposed to athletes', () {
+    test('a relay team counts once, however many athletes it fields', () async {
+      // Heats seat entries: a team of four takes one lane, not four. The
+      // athlete count still drives the presence line, hence the two figures.
+      when(() => raceRepo.getRaces(competitionId))
+          .thenAnswer((_) async => [makeRace()]);
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(1), athlete(2), athlete(3), athlete(4)]),
+            entry(2, [athlete(5), athlete(6), athlete(7), athlete(8)]),
+          ]);
+      when(() => attendance.forRace(raceId)).thenReturn({});
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.engagedCount.value, 8); // athletes
+      expect(controller.entryCount.value, 2); // teams
+      expect(controller.eligibleCount.value, 2);
+    });
+
+    test('a forfeited entry is entered but does not start', () async {
+      when(() => raceRepo.getRaces(competitionId))
+          .thenAnswer((_) async => [makeRace()]);
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(1)]),
+            entry(2, [athlete(2)]).copyWith(isForfeit: true),
+          ]);
+      when(() => attendance.forRace(raceId)).thenReturn({});
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.entryCount.value, 2);
+      // The structure editor sizes its heats on this one.
+      expect(controller.eligibleCount.value, 1);
+    });
+
+    test('another category weighs on neither count', () async {
+      when(() => raceRepo.getRaces(competitionId))
+          .thenAnswer((_) async => [makeRace()]);
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(1)]),
+            entry(2, [athlete(2)], category: 999),
+          ]);
+      when(() => attendance.forRace(raceId)).thenReturn({});
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.entryCount.value, 1);
+      expect(controller.eligibleCount.value, 1);
+    });
+  });
 }

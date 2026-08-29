@@ -130,7 +130,10 @@ class _HeatDrawViewState extends State<HeatDrawView> {
         categoryId: _ctrl.categoryId,
         raceLabel: race.name,
         categoryLabel: _ctrl.categoryLabel,
-        entryCount: _ctrl.engagedCount.value,
+        // Entries, not athletes: the editor sizes heats on lanes taken, and
+        // a relay team takes one whatever its size.
+        entryCount: _ctrl.entryCount.value,
+        eligibleCount: _ctrl.eligibleCount.value,
         gender: race.gender,
         defaultSpotsPerRace: race.defaultSpotsPerRace,
       ),

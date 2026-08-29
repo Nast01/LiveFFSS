@@ -61,6 +61,13 @@ class HeatDrawController extends GetxController {
 
   final RxInt engagedCount = 0.obs;
 
+  /// Entries of this category, and the ones that will actually start —
+  /// forfeits excluded. Entries, not athletes: a heat seats a relay team in one
+  /// lane whatever its size, so the structure is sized on these. [engagedCount]
+  /// stays an athlete count, because the presence line counts people.
+  final RxInt entryCount = 0.obs;
+  final RxInt eligibleCount = 0.obs;
+
   /// Athletes eligible for the draw — those marked present in Engagés.
   final RxList<Athlete> presentAthletes = <Athlete>[].obs;
 
@@ -164,6 +171,10 @@ class HeatDrawController extends GetxController {
           if (entry.category.id == categoryId) ...entry.athletes,
       ];
       engagedCount.value = ofCategory.length;
+      final entriesOfCategory =
+          entries.where((e) => e.category.id == categoryId);
+      entryCount.value = entriesOfCategory.length;
+      eligibleCount.value = entriesOfCategory.where((e) => !e.isForfeit).length;
 
       final attendance = _attendance.forRace(raceId);
       final present = [
