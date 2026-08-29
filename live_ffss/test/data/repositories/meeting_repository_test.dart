@@ -58,17 +58,18 @@ void main() {
     verifyNever(() => ds.getMeetings(1451, start: 100, length: 100));
   });
 
-  test('createMeeting formats date/times and forwards', () async {
-    when(() => ds.createMeeting(
+  test('submitMeeting formats date/times and forwards', () async {
+    when(() => ds.submitMeeting(
+          competitionId: any(named: 'competitionId'),
           name: any(named: 'name'),
           description: any(named: 'description'),
           dayIso: any(named: 'dayIso'),
           beginTime: any(named: 'beginTime'),
           endTime: any(named: 'endTime'),
-          competitionId: any(named: 'competitionId'),
-        )).thenAnswer((_) async => true);
+          id: any(named: 'id'),
+        )).thenAnswer((_) async => 78);
 
-    final ok = await repo.createMeeting(
+    final id = await repo.submitMeeting(
       name: 'Test',
       description: 'Desc',
       date: DateTime(2026, 5, 1),
@@ -77,14 +78,15 @@ void main() {
       competitionId: 99,
     );
 
-    expect(ok, true);
-    verify(() => ds.createMeeting(
+    expect(id, 78);
+    verify(() => ds.submitMeeting(
+          competitionId: 99,
           name: 'Test',
           description: 'Desc',
           dayIso: '2026-05-01',
           beginTime: '10:30',
           endTime: '11:45',
-          competitionId: 99,
+          id: null,
         )).called(1);
   });
 

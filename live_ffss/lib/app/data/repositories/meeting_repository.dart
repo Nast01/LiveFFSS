@@ -5,13 +5,17 @@ import 'package:live_ffss/app/domain/models/meeting.dart';
 
 abstract class MeetingRepository {
   Future<List<Meeting>> getMeetings(int competitionId);
-  Future<bool> createMeeting({
+
+  /// Creates a réunion, or updates the one with the given [id]. Returns the
+  /// id FFSS assigned, or 0 when the call reported a failure.
+  Future<int> submitMeeting({
+    required int competitionId,
     required String name,
     required String description,
     required DateTime date,
     required DateTime beginHour,
     required DateTime endHour,
-    required int competitionId,
+    int? id,
   });
   Future<bool> deleteMeeting(int meetingId);
 }
@@ -42,21 +46,23 @@ class MeetingRepositoryImpl implements MeetingRepository {
   }
 
   @override
-  Future<bool> createMeeting({
+  Future<int> submitMeeting({
+    required int competitionId,
     required String name,
     required String description,
     required DateTime date,
     required DateTime beginHour,
     required DateTime endHour,
-    required int competitionId,
+    int? id,
   }) =>
-      _dataSource.createMeeting(
+      _dataSource.submitMeeting(
+        competitionId: competitionId,
         name: name,
         description: description,
         dayIso: DateFormat('yyyy-MM-dd').format(date),
         beginTime: DateFormat('HH:mm').format(beginHour),
         endTime: DateFormat('HH:mm').format(endHour),
-        competitionId: competitionId,
+        id: id,
       );
 
   @override

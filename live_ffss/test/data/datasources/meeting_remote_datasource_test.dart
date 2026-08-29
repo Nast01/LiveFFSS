@@ -59,4 +59,67 @@ void main() {
       expect(await ds.getMeetings(1337, start: 0, length: 100), isEmpty);
     });
   });
+
+  group('submitMeeting', () {
+    test('crée une réunion avec un id vide et rend l id assigné', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 78});
+
+      final id = await ds.submitMeeting(
+        competitionId: 1451,
+        name: 'Samedi 12 septembre 2026',
+        description: '',
+        dayIso: '2026-09-12',
+        beginTime: '08:00',
+        endTime: '18:00',
+      );
+
+      expect(id, 78);
+      final query = verify(() => http.post('competition/1451/reunion/submit',
+          query: captureAny(named: 'query'))).captured.single;
+      expect(query, {
+        'id': '',
+        'nom': 'Samedi 12 septembre 2026',
+        'description': '',
+        'jour': '2026-09-12',
+        'debut': '08:00',
+        'fin': '18:00',
+      });
+    });
+
+    test('porte l id quand la réunion existe déjà', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 78});
+
+      await ds.submitMeeting(
+        competitionId: 1451,
+        id: 78,
+        name: 'Samedi 12 septembre 2026',
+        description: '',
+        dayIso: '2026-09-12',
+        beginTime: '08:00',
+        endTime: '11:20',
+      );
+
+      final query = verify(() => http.post(any(),
+          query: captureAny(named: 'query'))).captured.single as Map;
+      expect(query['id'], '78');
+    });
+
+    test('un refus rend 0 plutôt qu un id inventé', () async {
+      when(() => http.post(any(), query: any(named: 'query'))).thenAnswer(
+          (_) async => {'success': false, 'message': 'Jour invalide'});
+
+      final id = await ds.submitMeeting(
+        competitionId: 1451,
+        name: 'x',
+        description: '',
+        dayIso: '2026-09-12',
+        beginTime: '08:00',
+        endTime: '18:00',
+      );
+
+      expect(id, 0);
+    });
+  });
 }

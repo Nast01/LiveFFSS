@@ -10,13 +10,16 @@ abstract class MeetingRemoteDataSource {
     required int start,
     required int length,
   });
-  Future<bool> createMeeting({
+  /// Creates a réunion, or updates the one with the given [id]. Returns the
+  /// id FFSS assigned, or 0 when the call reported a failure.
+  Future<int> submitMeeting({
+    required int competitionId,
     required String name,
     required String description,
     required String dayIso, // 'YYYY-MM-DD'
     required String beginTime, // 'HH:mm'
     required String endTime, // 'HH:mm'
-    required int competitionId,
+    int? id,
   });
   Future<bool> deleteMeeting(int meetingId);
 }
@@ -47,27 +50,31 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
   }
 
   @override
-  Future<bool> createMeeting({
+  Future<int> submitMeeting({
+    required int competitionId,
     required String name,
     required String description,
     required String dayIso,
     required String beginTime,
     required String endTime,
-    required int competitionId,
+    int? id,
   }) async {
     final endpoint = ApiEndpoints.replacePath(
       ApiEndpoints.meetingSubmit,
       {'competition': competitionId.toString()},
     );
     final body = await _http.post(endpoint, query: {
-      'id': '',
+      // Empty means "create"; a value means "update".
+      'id': id?.toString() ?? '',
       'nom': name,
       'description': description,
       'jour': dayIso,
       'debut': beginTime,
       'fin': endTime,
     });
-    return body['success'] == true;
+    if (body['success'] != true) return 0;
+    final assigned = body['id'];
+    return assigned is int ? assigned : int.tryParse('$assigned') ?? 0;
   }
 
   @override

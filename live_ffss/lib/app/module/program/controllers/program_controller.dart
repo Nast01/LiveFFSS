@@ -80,7 +80,7 @@ class ProgramController extends GetxController {
 
     try {
       isCreatingMeeting.value = true;
-      await _meetingRepo.createMeeting(
+      final id = await _meetingRepo.submitMeeting(
         name: name.trim(),
         description: description.trim(),
         date: date,
@@ -88,6 +88,10 @@ class ProgramController extends GetxController {
         endHour: endDateTime,
         competitionId: competitionId,
       );
+      if (id <= 0) {
+        message.trigger(const UiMessageError('failed_to_create_meeting'));
+        return false;
+      }
       message.trigger(const UiMessageSuccess('meeting_created_successfully'));
       await loadMeetings();
       return true;

@@ -99,14 +99,14 @@ void main() {
   group('ProgramController.submitMeeting', () {
     test('on success: emits UiMessageSuccess and reloads', () async {
       controller.competition.value = makeCompetition(99);
-      when(() => repo.createMeeting(
+      when(() => repo.submitMeeting(
             name: any(named: 'name'),
             description: any(named: 'description'),
             date: any(named: 'date'),
             beginHour: any(named: 'beginHour'),
             endHour: any(named: 'endHour'),
             competitionId: any(named: 'competitionId'),
-          )).thenAnswer((_) async => true);
+          )).thenAnswer((_) async => 78);
       when(() => repo.getMeetings(any())).thenAnswer((_) async => []);
 
       final ok = await controller.submitMeeting(
@@ -121,7 +121,7 @@ void main() {
       expect(controller.message.value, isA<UiMessageSuccess>());
       expect(controller.message.value?.translationKey,
           'meeting_created_successfully');
-      verify(() => repo.createMeeting(
+      verify(() => repo.submitMeeting(
             name: 'N',
             description: 'D',
             date: DateTime(2026, 5, 1),
@@ -147,7 +147,7 @@ void main() {
       expect(controller.message.value, isA<UiMessageError>());
       expect(controller.message.value?.translationKey,
           'end_time_must_be_after_begin_time');
-      verifyNever(() => repo.createMeeting(
+      verifyNever(() => repo.submitMeeting(
             name: any(named: 'name'),
             description: any(named: 'description'),
             date: any(named: 'date'),
@@ -157,9 +157,35 @@ void main() {
           ));
     });
 
+    test('server refusal (id <= 0): emits UiMessageError, returns false',
+        () async {
+      controller.competition.value = makeCompetition(99);
+      when(() => repo.submitMeeting(
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            competitionId: any(named: 'competitionId'),
+          )).thenAnswer((_) async => 0);
+
+      final ok = await controller.submitMeeting(
+        name: 'N',
+        description: 'D',
+        date: DateTime(2026, 5, 1),
+        beginTime: const TimeOfDay(hour: 10, minute: 0),
+        endTime: const TimeOfDay(hour: 12, minute: 0),
+      );
+
+      expect(ok, isFalse);
+      expect(controller.message.value, isA<UiMessageError>());
+      expect(controller.message.value?.translationKey,
+          'failed_to_create_meeting');
+    });
+
     test('on exception: emits UiMessageError', () async {
       controller.competition.value = makeCompetition(99);
-      when(() => repo.createMeeting(
+      when(() => repo.submitMeeting(
             name: any(named: 'name'),
             description: any(named: 'description'),
             date: any(named: 'date'),
