@@ -346,6 +346,8 @@ final Map<String, String> frFR = {
   'gender_short_unknown': '?',
   'min_short': 'min',
   'no_placement_here': 'Aucune course ici',
+  'schedule_day_range': '@begin → @end',
+  'schedule_manual_items': 'Général',
   'add_manual_item': 'Ajouter un item',
   'manual_label': 'Libellé',
   'duration_min': 'Durée (min)',

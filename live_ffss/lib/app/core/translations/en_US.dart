@@ -343,6 +343,8 @@ final Map<String, String> enUS = {
   'gender_short_unknown': '?',
   'min_short': 'min',
   'no_placement_here': 'No race here',
+  'schedule_day_range': '@begin → @end',
+  'schedule_manual_items': 'General',
   'add_manual_item': 'Add an item',
   'manual_label': 'Label',
   'duration_min': 'Duration (min)',

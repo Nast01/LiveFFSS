@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/const/format_const.dart';
@@ -6,14 +8,17 @@ import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
-import 'package:live_ffss/app/domain/models/round_level.dart';
+import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/schedule_planner.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
 import 'package:live_ffss/app/module/programme/controllers/schedule_controller.dart';
 import 'package:live_ffss/app/module/programme/views/sites_view.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
+import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/gender_badge.dart';
+import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 
 class ScheduleView extends StatefulWidget {
   const ScheduleView({super.key});
@@ -30,14 +35,24 @@ class _ScheduleViewState extends State<ScheduleView> {
   @override
   void initState() {
     super.initState();
-    _compWorker = ever(_programme.competition, _controller.setCompetition);
-    _controller.setCompetition(_programme.competition.value);
+    _compWorker =
+        ever<Competition?>(_programme.competition, _onCompetitionChanged);
+    _onCompetitionChanged(_programme.competition.value);
   }
 
   @override
   void dispose() {
     _compWorker?.dispose();
     super.dispose();
+  }
+
+  // setCompetition derives the local days/site selection synchronously;
+  // reload() then pulls the FFSS réunion tree for whichever competition that
+  // just resolved to. Fire-and-forget: the Timeline below renders its own
+  // isLoading/hasError state off the controller.
+  void _onCompetitionChanged(Competition? comp) {
+    _controller.setCompetition(comp);
+    unawaited(_controller.reload());
   }
 
   String _hhmm(int minutes) =>
@@ -105,31 +120,6 @@ class _ScheduleViewState extends State<ScheduleView> {
     }
   }
 
-  Future<void> _editLabel(int blockId, String current) async {
-    final labelController = TextEditingController(text: current);
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('edit_item'.tr),
-        content: TextField(
-          controller: labelController,
-          decoration: InputDecoration(labelText: 'manual_label'.tr),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text('cancel'.tr)),
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: Text('save'.tr)),
-        ],
-      ),
-    );
-    if (ok == true) {
-      _controller.setManualLabel(blockId, labelController.text);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -143,6 +133,8 @@ class _ScheduleViewState extends State<ScheduleView> {
           Column(
             children: [
               _DayChips(controller: _controller),
+              if (day != null)
+                _DayRangeHeader(controller: _controller, day: day, hhmm: _hhmm),
               _SiteChips(
                   controller: _controller,
                   onEditStart: _pickStart,
@@ -152,13 +144,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                 child: (siteId == null || day == null)
                     ? EmptyState(
                         icon: Icons.place_outlined, title: 'no_sites'.tr)
-                    : _Timeline(
-                        controller: _controller,
-                        siteId: siteId,
-                        day: day,
-                        onEditLabel: _editLabel,
-                        genderOf: _programme.genderForRace,
-                      ),
+                    : _Timeline(controller: _controller, day: day),
               ),
               const Divider(height: 1),
               _Palette(
@@ -324,108 +310,157 @@ class _SiteChips extends StatelessWidget {
   }
 }
 
-class _Timeline extends StatelessWidget {
-  const _Timeline({
+/// The day's start → end range, e.g. "08:00 → 11:20". The start is the day's
+/// réunion's own `beginHour` when FFSS holds one, [defaultMeetingStartMinutes]
+/// otherwise; the end is [ScheduleController.endMinutesOfDay]'s maximum across
+/// every site's frise.
+class _DayRangeHeader extends StatelessWidget {
+  const _DayRangeHeader({
     required this.controller,
-    required this.siteId,
     required this.day,
-    required this.onEditLabel,
-    required this.genderOf,
+    required this.hhmm,
   });
   final ScheduleController controller;
-  final int siteId;
   final DateTime day;
-  final Future<void> Function(int blockId, String current) onEditLabel;
-  final Gender Function(int structureRaceId) genderOf;
+  final String Function(int minutes) hhmm;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final rows = controller.rowsFor(siteId, day);
-      if (rows.isEmpty) {
-        return EmptyState(icon: Icons.schedule, title: 'no_placement_here'.tr);
-      }
-      // Resolved here rather than in the itemBuilder below, which runs during
-      // layout and outside this Obx: a read from there registers no dependency
-      // and the labels would stay on whatever the first frame held.
-      final items = <int, ScheduleItem>{
-        for (final r in rows)
-          if (r.block.raceId != null)
-            if (controller.scheduleItemFor(r.block.raceId!) case final item?)
-              r.block.raceId!: item,
-      };
-      final genders = <int, Gender>{
-        for (final e in items.entries) e.key: genderOf(e.value.structureRaceId),
-      };
-      return ReorderableListView.builder(
-        // Clears the manual-item FAB, which floats over the bottom of this
-        // list: without it the last card's delete button sits under the FAB
-        // and cannot be tapped.
+      final meeting = controller.meetingFor(day);
+      final begin = meeting == null
+          ? defaultMeetingStartMinutes
+          : meeting.beginHour.hour * 60 + meeting.beginHour.minute;
+      final end = controller.endMinutesOfDay(day);
+      return Padding(
         padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md, AppSpacing.md, AppSpacing.md, _fabClearance),
-        itemCount: rows.length,
-        onReorder: (oldIndex, newIndex) =>
-            controller.reorder(siteId, day, oldIndex, newIndex),
-        itemBuilder: (context, i) {
-          final row = rows[i];
-          final b = row.block;
-          final isManual = b.raceId == null;
-          return Padding(
-            key: ValueKey(b.id),
-            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-            child: _AccentCard(
-              index: i,
-              begin: FormatConst.timeFormat.format(row.begin),
-              end: FormatConst.timeFormat.format(row.end),
-              duration: b.durationMinutes,
-              gender: isManual ? null : genders[b.raceId!],
-              label: isManual ? b.manualLabel : (items[b.raceId!]?.label ?? ''),
-              accent: isManual
-                  ? AppColors.statusWaiting
-                  : (controller.roundOf(b.raceId!) == RoundType.finale
-                      ? AppColors.statusFinished
-                      : AppColors.primary),
-              onMinus: () =>
-                  controller.setDuration(b.id, b.durationMinutes - 5),
-              onPlus: () => controller.setDuration(b.id, b.durationMinutes + 5),
-              onRemove: () => controller.removeBlock(b.id),
-              onEditLabel:
-                  isManual ? () => onEditLabel(b.id, b.manualLabel) : null,
-            ),
-          );
-        },
+            AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
+        child: Text(
+          'schedule_day_range'
+              .trParams({'begin': hhmm(begin), 'end': hhmm(end)}),
+          style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+        ),
       );
     });
   }
 }
 
-class _AccentCard extends StatelessWidget {
-  const _AccentCard({
-    required this.index,
-    required this.begin,
-    required this.end,
-    required this.duration,
-    required this.label,
-    required this.gender,
-    required this.accent,
-    required this.onMinus,
-    required this.onPlus,
-    required this.onRemove,
-    required this.onEditLabel,
-  });
-  final int index;
-  final String begin;
-  final String end;
-  final int duration;
+/// A single item on the day's réunion: either a course (a [Slot]'s [Run]) or,
+/// when a créneau carries no course, the créneau itself — a manual item shown
+/// at its own `beginHour`/`endHour`.
+class _DayEntry {
+  const _DayEntry(
+      {required this.begin, required this.end, required this.label});
+  final DateTime begin;
+  final DateTime end;
   final String label;
+}
 
-  /// Null for a manual block, which belongs to no épreuve.
-  final Gender? gender;
-  final Color accent;
-  final VoidCallback onMinus;
-  final VoidCallback onPlus;
-  final VoidCallback onRemove;
-  final VoidCallback? onEditLabel;
+/// A group of [_DayEntry]s sharing a site — [Run.site] for course entries, or
+/// the générique bucket for manual (course-less) créneaux, which carry no
+/// site of their own.
+class _DaySection {
+  const _DaySection({required this.title, required this.items});
+  final String title;
+  final List<_DayEntry> items;
+}
+
+/// Splits the réunion's créneaux into per-[Run.site] sections, plus one
+/// générique section for the créneaux with no course. Sections are ordered by
+/// their earliest item so the day reads top to bottom.
+List<_DaySection> _sectionsFor(Meeting? meeting) {
+  if (meeting == null) return const [];
+  final bySite = <String, List<_DayEntry>>{};
+  final manual = <_DayEntry>[];
+  for (final slot in meeting.slots) {
+    if (slot.runs.isEmpty) {
+      manual.add(_DayEntry(
+          begin: slot.beginHour, end: slot.endHour, label: slot.name));
+      continue;
+    }
+    for (final run in slot.runs) {
+      (bySite[run.site] ??= []).add(_DayEntry(
+          begin: run.beginTime, end: run.endTime, label: run.fullLabel));
+    }
+  }
+  final sections = [
+    for (final entry in bySite.entries)
+      _DaySection(title: entry.key, items: entry.value..sort(_byBegin)),
+    if (manual.isNotEmpty)
+      _DaySection(
+          title: 'schedule_manual_items'.tr, items: manual..sort(_byBegin)),
+  ];
+  sections.sort((a, b) => a.items.first.begin.compareTo(b.items.first.begin));
+  return sections;
+}
+
+int _byBegin(_DayEntry a, _DayEntry b) => a.begin.compareTo(b.begin);
+
+/// The day's réunion, read straight from FFSS: courses grouped by
+/// [Run.site], manual créneaux under their own section. Read-only — the
+/// local planner's `rowsFor` and its editing (reorder, duration, remove)
+/// stayed on ["Non planifiées"]'s add flow; wiring the same actions onto
+/// this tree is a later task.
+class _Timeline extends StatelessWidget {
+  const _Timeline({required this.controller, required this.day});
+  final ScheduleController controller;
+  final DateTime day;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (controller.isLoading.value) return const LoadingIndicator();
+      if (controller.hasError.value) {
+        return ErrorState(
+          message: 'error_occured'.tr,
+          onRetry: controller.reload,
+        );
+      }
+      final sections = _sectionsFor(controller.meetingFor(day));
+      if (sections.isEmpty) {
+        return EmptyState(icon: Icons.schedule, title: 'no_placement_here'.tr);
+      }
+      return ListView(
+        // Clears the manual-item FAB, which floats over the bottom of this
+        // list: without it the last section's last card sits under the FAB.
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md, AppSpacing.md, AppSpacing.md, _fabClearance),
+        children: [
+          for (final section in sections) _DaySectionView(section: section),
+        ],
+      );
+    });
+  }
+}
+
+class _DaySectionView extends StatelessWidget {
+  const _DaySectionView({required this.section});
+  final _DaySection section;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(section.title,
+              style: AppTypography.body.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: AppSpacing.xs),
+          for (final entry in section.items)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: _DayEntryCard(entry: entry),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DayEntryCard extends StatelessWidget {
+  const _DayEntryCard({required this.entry});
+  final _DayEntry entry;
 
   @override
   Widget build(BuildContext context) {
@@ -433,75 +468,19 @@ class _AccentCard extends StatelessWidget {
       color: AppColors.surface,
       borderRadius: AppRadius.mdRadius,
       elevation: 1,
-      // The label wraps, so the card has no height of its own to know up
-      // front: IntrinsicHeight is what lets the accent strip run the full
-      // height whatever the label costs.
-      child: IntrinsicHeight(
+      child: Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 10),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              width: 5,
-              constraints: const BoxConstraints(minHeight: 56),
-              decoration: BoxDecoration(
-                color: accent,
-                borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(AppRadius.md)),
-              ),
-            ),
-            ReorderableDragStartListener(
-              index: index,
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6),
-                child: Center(
-                  child: Icon(Icons.drag_indicator, color: AppColors.textMuted),
-                ),
-              ),
-            ),
-            Expanded(
-              child: GestureDetector(
-                onTap: onEditLabel,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(children: [
-                        Text(begin,
-                            style: AppTypography.body.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primaryDark)),
-                        const SizedBox(width: 6),
-                        Text('→ $end · $duration ${'min_short'.tr}',
-                            style: AppTypography.caption),
-                      ]),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (gender != null) ...[
-                            GenderBadge(gender: gender!, size: 18),
-                            const SizedBox(width: 6),
-                          ],
-                          // Wraps rather than ellipsing: the tail of the label
-                          // is what tells two races of an épreuve apart.
-                          Expanded(
-                            child: Text(label, style: AppTypography.body),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            IconButton(
-                icon: const Icon(Icons.remove, size: 20), onPressed: onMinus),
-            IconButton(
-                icon: const Icon(Icons.add, size: 20), onPressed: onPlus),
-            IconButton(
-                icon: const Icon(Icons.close, size: 20), onPressed: onRemove),
+            Text(FormatConst.timeFormat.format(entry.begin),
+                style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+            const SizedBox(width: 6),
+            Text('→ ${FormatConst.timeFormat.format(entry.end)}',
+                style: AppTypography.caption),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(child: Text(entry.label, style: AppTypography.body)),
           ],
         ),
       ),
