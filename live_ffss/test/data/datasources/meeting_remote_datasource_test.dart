@@ -122,4 +122,75 @@ void main() {
       expect(id, 0);
     });
   });
+
+  group('submitSlot', () {
+    test('un item manuel part sans partie', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 66});
+
+      final id = await ds.submitSlot(
+        meetingId: 78,
+        name: 'Accueil des clubs',
+        beginTime: '08:00',
+        endTime: '08:10',
+      );
+
+      expect(id, 66);
+      final query = verify(() => http.post(
+          'competition/reunion/78/creneau/submit',
+          query: captureAny(named: 'query'))).captured.single;
+      // An empty `partie` is what distinguishes an informational item from
+      // an event's round — verified in production, the response then shows
+      // partie: null.
+      expect(query, {
+        'id': '',
+        'nom': 'Accueil des clubs',
+        'debut': '08:00',
+        'fin': '08:10',
+        'partie': '',
+      });
+    });
+
+    test('un tour d épreuve porte l id de sa partie', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 67});
+
+      await ds.submitSlot(
+        meetingId: 78,
+        name: 'Séries - Surfski - Dames - Junior',
+        beginTime: '08:10',
+        endTime: '08:20',
+        raceFormatDetailId: 39,
+      );
+
+      final query = verify(() => http.post(any(),
+          query: captureAny(named: 'query'))).captured.single as Map;
+      expect(query['partie'], '39');
+    });
+
+    test('un refus rend 0 plutôt qu un id inventé', () async {
+      when(() => http.post(any(), query: any(named: 'query'))).thenAnswer(
+          (_) async => {'success': false, 'message': 'Créneau invalide'});
+
+      final id = await ds.submitSlot(
+        meetingId: 78,
+        name: 'x',
+        beginTime: '08:00',
+        endTime: '08:10',
+      );
+
+      expect(id, 0);
+    });
+  });
+
+  group('deleteSlot', () {
+    test('supprimer un créneau', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true});
+
+      expect(await ds.deleteSlot(66), isTrue);
+      verify(() => http.post('competition/reunion/creneau/66/delete'))
+          .called(1);
+    });
+  });
 }

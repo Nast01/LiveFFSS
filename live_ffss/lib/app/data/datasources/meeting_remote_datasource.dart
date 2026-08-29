@@ -22,6 +22,22 @@ abstract class MeetingRemoteDataSource {
     int? id,
   });
   Future<bool> deleteMeeting(int meetingId);
+
+  /// Creates a créneau of a réunion, or updates the one with the given [id].
+  ///
+  /// [raceFormatDetailId] is the round ("partie") this créneau schedules;
+  /// left null, the créneau is a plain informational item — that's the only
+  /// difference between the two, and the response then shows `partie: null`.
+  Future<int> submitSlot({
+    required int meetingId,
+    required String name,
+    required String beginTime,
+    required String endTime,
+    int? raceFormatDetailId,
+    int? id,
+  });
+
+  Future<bool> deleteSlot(int slotId);
 }
 
 class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
@@ -82,6 +98,41 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
     final endpoint = ApiEndpoints.replacePath(
       ApiEndpoints.meetingDelete,
       {'id': meetingId.toString()},
+    );
+    final body = await _http.post(endpoint);
+    return body['success'] == true;
+  }
+
+  @override
+  Future<int> submitSlot({
+    required int meetingId,
+    required String name,
+    required String beginTime,
+    required String endTime,
+    int? raceFormatDetailId,
+    int? id,
+  }) async {
+    final endpoint = ApiEndpoints.replacePath(
+      ApiEndpoints.slotSubmit,
+      {'reunion': meetingId.toString()},
+    );
+    final body = await _http.post(endpoint, query: {
+      'id': id?.toString() ?? '',
+      'nom': name,
+      'debut': beginTime,
+      'fin': endTime,
+      'partie': raceFormatDetailId?.toString() ?? '',
+    });
+    if (body['success'] != true) return 0;
+    final assigned = body['id'];
+    return assigned is int ? assigned : int.tryParse('$assigned') ?? 0;
+  }
+
+  @override
+  Future<bool> deleteSlot(int slotId) async {
+    final endpoint = ApiEndpoints.replacePath(
+      ApiEndpoints.slotDelete,
+      {'id': slotId.toString()},
     );
     final body = await _http.post(endpoint);
     return body['success'] == true;
