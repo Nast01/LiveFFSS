@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
@@ -22,7 +23,11 @@ class ProgrammeBinding extends Bindings {
       () => SitesController(Get.find<ProgrammeService>()),
     );
     Get.lazyPut<ScheduleController>(
-      () => ScheduleController(Get.find<ProgrammeService>()),
+      () => ScheduleController(
+        Get.find<ProgrammeService>(),
+        Get.find<MeetingRepository>(),
+        Get.find<UserService>(),
+      ),
     );
   }
 }

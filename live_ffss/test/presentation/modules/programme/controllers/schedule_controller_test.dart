@@ -1,24 +1,47 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
+import 'package:live_ffss/app/data/repositories/auth_repository.dart';
+import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
+import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
+import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/programme_site.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
+import 'package:live_ffss/app/domain/models/run.dart';
+import 'package:live_ffss/app/domain/models/slot.dart';
+import 'package:live_ffss/app/domain/models/user.dart';
 import 'package:live_ffss/app/module/programme/controllers/schedule_controller.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockStorage extends Mock implements FlutterSecureStorage {}
 
+class _MockMeetingRepo extends Mock implements MeetingRepository {}
+
+class _MockAuthRepo extends Mock implements AuthRepository {}
+
 void main() {
   late _MockStorage storage;
   late ProgrammeService service;
+  late _MockMeetingRepo meetingRepo;
+  late UserService userService;
   late ScheduleController controller;
 
   setUpAll(() => registerFallbackValue(''));
+
+  /// Any non-null user is a session as far as this screen is concerned.
+  final loggedInUser = User(
+    token: 'tok',
+    tokenExpiration: DateTime(2030),
+    label: 'FFSS',
+    type: UserType.organisme,
+    role: UserRole.admin,
+  );
 
   const competition = Competition(
     id: 42,
@@ -76,7 +99,10 @@ void main() {
         .thenAnswer((_) async {});
     service = ProgrammeService(storage);
     await service.save(seed());
-    controller = ScheduleController(service);
+    meetingRepo = _MockMeetingRepo();
+    userService = UserService(_MockAuthRepo());
+    userService.currentUser.value = loggedInUser;
+    controller = ScheduleController(service, meetingRepo, userService);
     controller.setCompetition(withDates);
   });
 
@@ -187,7 +213,7 @@ void main() {
     test('deleting the selected site reselects the first remaining site',
         () async {
       await service.save(seedTwoSites());
-      controller = ScheduleController(service);
+      controller = ScheduleController(service, meetingRepo, userService);
       controller.onInit();
       controller.setCompetition(withDates);
       expect(controller.selectedSiteId.value, 1);
@@ -204,7 +230,7 @@ void main() {
 
     test('deleting the last site clears the selection', () async {
       await service.save(seed());
-      controller = ScheduleController(service);
+      controller = ScheduleController(service, meetingRepo, userService);
       controller.onInit();
       controller.setCompetition(withDates);
       expect(controller.selectedSiteId.value, 1);
@@ -215,6 +241,121 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(controller.selectedSiteId.value, null);
+    });
+  });
+
+  group('endMinutesOfDay', () {
+    /// Minutes past midnight — the controller's unit, per the class doc: a
+    /// [Slot]/[Run] `DateTime` is parsed from a bare `HH:mm` and lands on
+    /// 1970-01-01, while [Meeting.beginHour] carries the réunion's real date,
+    /// so comparing the two as [DateTime]s would always read as "before".
+    int minutes(int h, int m) => h * 60 + m;
+
+    DateTime time(String hhmm) => DateFormat('HH:mm').parse(hhmm);
+
+    /// A course of the day's single créneau, as FFSS returns it: its own
+    /// site and a bare `HH:mm` begin/end, unrelated to the réunion's date.
+    Run run({required String site, required String begin, required String end}) =>
+        Run(
+          id: 1,
+          name: 'Course',
+          label: '',
+          fullLabel: '',
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: site,
+          beginTime: time(begin),
+          endTime: time(end),
+        );
+
+    /// A réunion on [day] starting at 08:00, with at most one créneau: one
+    /// carrying [runs] when given, or a manual one spanning
+    /// [slotBegin]..[slotEnd] when there are no runs to hang it on.
+    Meeting meetingWith(
+        {List<Run> runs = const [], String? slotBegin, String? slotEnd}) {
+      final slots = [
+        if (runs.isNotEmpty || slotBegin != null)
+          Slot(
+            id: 1,
+            name: 'Créneau',
+            beginHour: time(slotBegin ?? '08:00'),
+            endHour: time(slotEnd ?? '08:00'),
+            runs: runs,
+          ),
+      ];
+      return Meeting(
+        id: 1,
+        name: 'Réunion',
+        description: '',
+        date: day,
+        beginHour: DateTime(day.year, day.month, day.day, 8),
+        endHour: DateTime(day.year, day.month, day.day, 18),
+        slots: slots,
+      );
+    }
+
+    test('la fin de journée est le maximum des sites, pas leur somme', () {
+      controller.meetings.value = [
+        meetingWith(runs: [
+          run(site: 'Plage', begin: '08:00', end: '08:30'),
+          run(site: 'Bassin', begin: '08:00', end: '09:00'),
+        ])
+      ];
+
+      expect(controller.endMinutesOfDay(day), minutes(9, 0));
+    });
+
+    test('une journée sans item finit à son heure de départ', () {
+      controller.meetings.value = [meetingWith(runs: const [])];
+
+      expect(controller.endMinutesOfDay(day), minutes(8, 0));
+    });
+
+    test('un créneau sans course compte par ses propres heures', () {
+      // A manual item has no course: without this case it would not weigh on
+      // the day's end, and the réunion would come back too short.
+      controller.meetings.value = [
+        meetingWith(slotBegin: '08:00', slotEnd: '08:40', runs: const [])
+      ];
+
+      expect(controller.endMinutesOfDay(day), minutes(8, 40));
+    });
+
+    test('une journée sans réunion du tout démarre par défaut à 08:00', () {
+      // The réunion's own default (08:00) differs from the local planner's
+      // (09:00, see [planner.defaultStartMinutes]) — reconciled in
+      // ScheduleController.defaultMeetingStartMinutes.
+      expect(controller.meetings, isEmpty);
+
+      expect(controller.endMinutesOfDay(day), minutes(8, 0));
+    });
+  });
+
+  group('reload', () {
+    test('pulls the current competition\'s réunion tree', () async {
+      final meeting = Meeting(
+        id: 1,
+        name: 'Réunion',
+        description: '',
+        date: day,
+        beginHour: DateTime(day.year, day.month, day.day, 8),
+        endHour: DateTime(day.year, day.month, day.day, 18),
+      );
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [meeting]);
+
+      await controller.reload();
+
+      expect(controller.meetings, [meeting]);
+    });
+
+    test('does nothing before a competition is known', () async {
+      controller = ScheduleController(service, meetingRepo, userService);
+
+      await controller.reload();
+
+      expect(controller.meetings, isEmpty);
+      verifyNever(() => meetingRepo.getMeetings(any()));
     });
   });
 }
