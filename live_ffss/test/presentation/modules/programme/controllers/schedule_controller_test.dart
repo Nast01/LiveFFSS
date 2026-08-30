@@ -14,6 +14,7 @@ import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
+import 'package:live_ffss/app/domain/models/race_format_detail.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/programme_site.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
@@ -1027,6 +1028,685 @@ void main() {
       await controller.removeSlot(999);
 
       verifyNever(() => meetingRepo.deleteSlot(any()));
+    });
+  });
+
+  group('setMeetingStart', () {
+    /// The hour and minute a write actually carried, ignoring its date.
+    String hm(DateTime t) =>
+        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+    /// A day already on FFSS: réunion 78 starting at 08:00 with one manual
+    /// créneau 66 running 08:00 → 08:10.
+    void loadedDay() {
+      controller.setCompetition(withDates);
+      controller.meetings.value = [seedMeetingWithSlot()];
+    }
+
+    void answerWrites() {
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 66);
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 78);
+      when(() => meetingRepo.getMeetings(any()))
+          .thenAnswer((_) async => [seedMeetingWithSlot()]);
+    }
+
+    test('hors session, rien ne part', () async {
+      loadedDay();
+      userService.currentUser.value = null;
+
+      await controller.setMeetingStart(day, 9 * 60);
+
+      verifyNever(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    test('décale chaque créneau du même écart que le départ', () async {
+      // Déplacer le départ sans déplacer les items laisserait la journée
+      // commencer avant son premier créneau : les horaires ne voudraient plus
+      // rien dire.
+      loadedDay();
+      answerWrites();
+
+      await controller.setMeetingStart(day, 9 * 60);
+
+      final captured = verify(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: captureAny(named: 'id'),
+          )).captured;
+      expect(hm(captured[0] as DateTime), '09:00');
+      expect(hm(captured[1] as DateTime), '09:10');
+      expect(captured[2], 66); // une mise à jour, pas un doublon
+    });
+
+    test('pousse le nouveau départ de la réunion', () async {
+      loadedDay();
+      answerWrites();
+
+      await controller.setMeetingStart(day, 9 * 60);
+
+      final captured = verify(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: captureAny(named: 'id'),
+          )).captured;
+      expect(hm(captured[0] as DateTime), '09:00');
+      expect(captured[1], 78); // la réunion existante, mise à jour
+    });
+
+    test('un créneau refusé arrête le décalage et le dit', () async {
+      // Poursuivre laisserait la journée à moitié décalée, ce que le
+      // rechargement suivant afficherait sans jamais l'expliquer.
+      loadedDay();
+      answerWrites();
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 0);
+
+      await controller.setMeetingStart(day, 9 * 60);
+
+      expect(controller.message.value!.translationKey, 'schedule_item_failed');
+      verifyNever(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          ));
+    });
+
+    test('une panne réseau porte la raison du serveur', () async {
+      loadedDay();
+      answerWrites();
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenThrow(const NetworkException('offline'));
+
+      await controller.setMeetingStart(day, 9 * 60);
+
+      expect(controller.message.value!.details, 'offline');
+    });
+
+    test('une journée sans réunion ne crée rien et le dit', () async {
+      // Rien à décaler : créer une réunion vide sur un simple réglage d'heure
+      // laisserait des journées fantômes sur le site fédéral.
+      controller.setCompetition(withDates);
+      answerWrites();
+
+      await controller.setMeetingStart(day, 9 * 60);
+
+      verifyNever(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey, 'schedule_no_meeting');
+    });
+  });
+
+  group('reload silencieux', () {
+    test('ne lève jamais isLoading, pour ne pas arracher le geste', () async {
+      // Un tirer-pour-rafraîchir qui remplace la liste par un indicateur de
+      // chargement retire la roue de sous le doigt de l'opérateur.
+      controller.setCompetition(withDates);
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [seedMeetingWithSlot()]);
+      var sawLoading = false;
+      final worker = ever<bool>(controller.isLoading, (v) {
+        if (v) sawLoading = true;
+      });
+
+      await controller.reload(silent: true);
+
+      worker.dispose();
+      expect(sawLoading, isFalse);
+      expect(controller.isLoading.value, isFalse);
+      expect(controller.meetings, hasLength(1));
+    });
+
+    test('un échec reste signalé même en silencieux', () async {
+      controller.setCompetition(withDates);
+      when(() => meetingRepo.getMeetings(42))
+          .thenThrow(const NetworkException('offline'));
+
+      expect(await controller.reload(silent: true), isFalse);
+      expect(controller.hasError.value, isTrue);
+    });
+
+    test('un rechargement ordinaire lève toujours isLoading', () async {
+      controller.setCompetition(withDates);
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [seedMeetingWithSlot()]);
+      var sawLoading = false;
+      final worker = ever<bool>(controller.isLoading, (v) {
+        if (v) sawLoading = true;
+      });
+
+      await controller.reload();
+
+      worker.dispose();
+      expect(sawLoading, isTrue);
+    });
+  });
+
+  group('recalcul des horaires apres une modification', () {
+    String hm(DateTime t) =>
+        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+    /// A day of three back-to-back manual items, 10 minutes each from 08:00.
+    Meeting threeItems() => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: day,
+          beginHour: timeOf(8, 0),
+          endHour: timeOf(8, 30),
+          slots: [
+            Slot(
+                id: 1,
+                name: 'Accueil',
+                beginHour: timeOf(8, 0),
+                endHour: timeOf(8, 10)),
+            Slot(
+                id: 2,
+                name: 'Briefing',
+                beginHour: timeOf(8, 10),
+                endHour: timeOf(8, 20)),
+            Slot(
+                id: 3,
+                name: 'Remise des prix',
+                beginHour: timeOf(8, 20),
+                endHour: timeOf(8, 30)),
+          ],
+        );
+
+    /// After the delete, FFSS no longer holds the middle item — but the third
+    /// still carries the times it had, which is the hole under test.
+    Meeting withoutMiddle() => threeItems().copyWith(
+          slots: [threeItems().slots.first, threeItems().slots.last],
+        );
+
+    void answerWrites() {
+      when(() => meetingRepo.deleteSlot(any())).thenAnswer((_) async => true);
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 3);
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 78);
+    }
+
+    setUp(() {
+      controller.setCompetition(withDates);
+      controller.meetings.value = [threeItems()];
+      answerWrites();
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [withoutMiddle()]);
+    });
+
+    test('supprimer au milieu remonte les items suivants', () async {
+      // Sans ce recalcul la journee garde un trou de dix minutes la ou l item
+      // se trouvait, et les horaires affiches deviennent faux jusqu au soir.
+      await controller.removeSlot(2);
+
+      final captured = verify(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: captureAny(named: 'id'),
+          )).captured;
+      expect(captured, hasLength(3)); // un seul creneau reecrit
+      expect(hm(captured[0] as DateTime), '08:10');
+      expect(hm(captured[1] as DateTime), '08:20');
+      expect(captured[2], 3);
+    });
+
+    test('les items situes avant ne sont pas reecrits pour rien', () async {
+      await controller.removeSlot(2);
+
+      verifyNever(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: 1,
+          ));
+    });
+
+    test('la fin de reunion suit le dernier item recale', () async {
+      await controller.removeSlot(2);
+
+      final captured = verify(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            id: any(named: 'id'),
+          )).captured;
+      expect(hm(captured.last as DateTime), '08:20');
+    });
+
+    test('un recalage refuse est signale', () async {
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 0);
+
+      await controller.removeSlot(2);
+
+      expect(controller.message.value!.translationKey, 'schedule_item_failed');
+    });
+
+    test('raccourcir un item remonte aussi ceux qui suivent', () async {
+      // Meme trou, meme cause : changer une duree deplace tout ce qui suit.
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            threeItems().copyWith(slots: [
+              threeItems().slots.first.copyWith(endHour: timeOf(8, 5)),
+              threeItems().slots[1],
+              threeItems().slots.last,
+            ])
+          ]);
+
+      await controller.setSlotDuration(1, 5);
+
+      final captured = verify(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: captureAny(named: 'id'),
+          )).captured;
+      // Le premier a deja ete recale par setSlotDuration lui-meme ; les deux
+      // suivants remontent de cinq minutes.
+      expect(hm(captured[captured.length - 4] as DateTime), '08:05');
+      expect(captured[captured.length - 3], 2);
+      expect(hm(captured[captured.length - 2] as DateTime), '08:15');
+      expect(captured.last, 3);
+    });
+  });
+
+  group('reorderSlots', () {
+    String hm(DateTime t) =>
+        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+    Meeting threeItems() => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: day,
+          beginHour: timeOf(8, 0),
+          endHour: timeOf(8, 30),
+          slots: [
+            Slot(
+                id: 1,
+                name: 'Accueil',
+                beginHour: timeOf(8, 0),
+                endHour: timeOf(8, 10)),
+            Slot(
+                id: 2,
+                name: 'Briefing',
+                beginHour: timeOf(8, 10),
+                endHour: timeOf(8, 25)),
+            Slot(
+                id: 3,
+                name: 'Remise des prix',
+                beginHour: timeOf(8, 25),
+                endHour: timeOf(8, 35)),
+          ],
+        );
+
+    setUp(() {
+      controller.setCompetition(withDates);
+      controller.meetings.value = [threeItems()];
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [threeItems()]);
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 1);
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 78);
+    });
+
+    test('remonter le dernier en tête recale toute la journée', () async {
+      // 10 + 15 + 10 minutes : l'ordre change, les durées ne bougent pas.
+      await controller.reorderSlots(day, 2, 0);
+
+      final captured = verify(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: captureAny(named: 'name'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).captured;
+      expect(captured[0], 'Remise des prix');
+      expect(hm(captured[1] as DateTime), '08:00');
+      expect(hm(captured[2] as DateTime), '08:10'); // garde ses 10 minutes
+      expect(captured[3], 'Accueil');
+      expect(hm(captured[4] as DateTime), '08:10');
+      expect(captured[6], 'Briefing');
+      expect(hm(captured[7] as DateTime), '08:20');
+      expect(hm(captured[8] as DateTime), '08:35'); // garde ses 15 minutes
+    });
+
+    test('un déplacement vers le bas vise la bonne place', () async {
+      // ReorderableListView compte newIndex sur la liste AVANT le retrait :
+      // sans la correction, l'item atterrirait une place trop loin.
+      await controller.reorderSlots(day, 0, 2);
+
+      final captured = verify(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: captureAny(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).captured;
+      expect(captured, ['Briefing', 'Accueil']);
+    });
+
+    test('déposer un item à sa propre place n envoie rien', () async {
+      await controller.reorderSlots(day, 1, 2);
+
+      verifyNever(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          ));
+    });
+
+    test('hors session, rien ne part', () async {
+      userService.currentUser.value = null;
+
+      await controller.reorderSlots(day, 2, 0);
+
+      verifyNever(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+  });
+
+  group('placer un tour sans ses courses', () {
+    String hm(DateTime t) =>
+        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+    /// A local structure whose rounds carry the FFSS partie ids they were
+    /// given when the déroulement was pushed from the Structure tab.
+    CompetitionProgramme structures({int serieServerId = 39}) =>
+        CompetitionProgramme(
+          competitionId: 42,
+          nextLocalId: 100,
+          sites: const [
+            ProgrammeSite(id: 1, name: 'Plage', type: SiteType.cotier)
+          ],
+          structures: [
+            EventStructure(
+              raceId: 500,
+              categoryId: 7,
+              raceLabel: 'Surfski',
+              categoryLabel: 'Junior',
+              levels: [
+                RoundLevel(
+                  type: RoundType.serie,
+                  serverId: serieServerId,
+                  races: const [
+                    ProgrammeRace(id: 1, number: 1),
+                    ProgrammeRace(id: 2, number: 2),
+                  ],
+                ),
+                const RoundLevel(
+                  type: RoundType.finale,
+                  serverId: 40,
+                  races: [ProgrammeRace(id: 3, number: 1)],
+                ),
+              ],
+            ),
+          ],
+        );
+
+    Meeting emptyDay() => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: day,
+          beginHour: timeOf(8, 0),
+          endHour: timeOf(8, 0),
+        );
+
+    setUp(() async {
+      controller.setCompetition(withDates);
+      await service.save(structures());
+      controller.meetings.value = [emptyDay()];
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [emptyDay()]);
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 66);
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 78);
+    });
+
+    test('propose un tour par niveau, avec son nombre de courses', () {
+      final rounds = controller.unscheduledRounds;
+
+      expect(rounds, hasLength(2));
+      expect(rounds.first.type, RoundType.serie);
+      expect(rounds.first.partieId, 39);
+      expect(rounds.first.courseCount, 2);
+      expect(rounds.first.raceLabel, 'Surfski');
+      expect(rounds.first.categoryLabel, 'Junior');
+    });
+
+    test('un tour absent de FFSS n est pas proposé', () async {
+      // Sans partie sur le serveur, aucun créneau ne peut s'y accrocher : le
+      // proposer mènerait droit à un refus que l'opérateur ne comprendrait pas.
+      await service.save(structures(serieServerId: 0));
+
+      expect(controller.unscheduledRounds.map((r) => r.partieId), [40]);
+    });
+
+    test('un tour déjà porté par un créneau disparaît de la liste', () {
+      controller.meetings.value = [
+        emptyDay().copyWith(slots: [
+          Slot(
+            id: 66,
+            name: 'Séries - Surfski',
+            beginHour: timeOf(8, 0),
+            endHour: timeOf(8, 10),
+            raceFormatDetail: const RaceFormatDetail(
+              id: 39,
+              order: 1,
+              label: '',
+              fullLabel: '',
+              levelLabel: '',
+              level: 'heat',
+              numberOfRun: 2,
+              qualificationMethod: 'none',
+              qualificationMethodLabel: '',
+              spotsPerRace: 8,
+              qualifyingSpots: 0,
+            ),
+          ),
+        ])
+      ];
+
+      expect(controller.unscheduledRounds.map((r) => r.partieId), [40]);
+    });
+
+    test('placer un tour crée un créneau lié à sa partie', () async {
+      // Les courses viendront du site FFSS : ce créneau les accueillera, et sa
+      // durée vaut la durée par défaut multipliée par leur nombre — deux ici.
+      await controller.scheduleRound(
+        partieId: 39,
+        name: 'Séries - Surfski - Dames - Junior',
+        day: day,
+        courseCount: 2,
+      );
+
+      final captured = verify(() => meetingRepo.submitSlot(
+            meetingId: captureAny(named: 'meetingId'),
+            name: captureAny(named: 'name'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            raceFormatDetailId: captureAny(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).captured;
+      expect(captured[0], 78);
+      expect(captured[1], 'Séries - Surfski - Dames - Junior');
+      expect(hm(captured[2] as DateTime), '08:00');
+      expect(hm(captured[3] as DateTime), '08:20');
+      expect(captured[4], 39);
+    });
+
+    test('hors session, rien ne part', () async {
+      userService.currentUser.value = null;
+
+      await controller.scheduleRound(
+          partieId: 39, name: 'x', day: day, courseCount: 2);
+
+      verifyNever(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    test('un tour sans course occupe quand même la durée par défaut', () async {
+      // Une durée nulle rendrait l'item invisible sur la frise et laisserait
+      // le suivant démarrer à la même minute.
+      await controller.scheduleRound(
+          partieId: 39, name: 'x', day: day, courseCount: 0);
+
+      final captured = verify(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).captured;
+      expect(hm(captured[0] as DateTime), '08:00');
+      expect(hm(captured[1] as DateTime), '08:10');
+    });
+
+    test('un refus du serveur est signalé', () async {
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 0);
+
+      await controller.scheduleRound(
+          partieId: 39, name: 'x', day: day, courseCount: 2);
+
+      expect(controller.message.value!.translationKey, 'schedule_item_failed');
     });
   });
 }

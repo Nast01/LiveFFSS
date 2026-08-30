@@ -348,6 +348,11 @@ final Map<String, String> frFR = {
   'no_placement_here': 'Aucune course ici',
   'schedule_day_range': '@begin → @end',
   'schedule_manual_items': 'Général',
+  'schedule_no_meeting': "Aucune réunion sur FFSS pour cette journée",
+  'schedule_start_title': "Heure de départ de la journée",
+  'schedule_all_placed': 'Tous les tours sont placés',
+  'schedule_course_count': '@count course(s)',
+  'schedule_place_round': 'Placer sur cette journée',
   'schedule_item_failed': "FFSS n'a pas enregistré cet item",
   'schedule_meeting_end_failed':
       "La nouvelle fin de journée n'a pas été enregistrée",

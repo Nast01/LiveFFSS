@@ -6,6 +6,7 @@ import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
+import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/programme_site.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
@@ -23,6 +24,35 @@ const int defaultMeetingStartMinutes = 8 * 60;
 /// Duration of a newly added manual item — the value the local planner
 /// already used, kept so the rhythm doesn't change for anyone who knows it.
 const int defaultItemMinutes = 10;
+
+/// A round of a structure that FFSS holds a `partie` for, and that no créneau
+/// of the loaded réunions points at yet — one line of the palette.
+///
+/// The unit is the round, not the race: a créneau links to a partie, so a
+/// whole round is what gets placed on a day at once.
+class UnscheduledRound {
+  const UnscheduledRound({
+    required this.partieId,
+    required this.raceId,
+    required this.categoryId,
+    required this.raceLabel,
+    required this.categoryLabel,
+    required this.type,
+    required this.courseCount,
+  });
+
+  /// The FFSS `partie` this round became when the déroulement was pushed.
+  final int partieId;
+  final int raceId;
+  final int categoryId;
+  final String raceLabel;
+  final String categoryLabel;
+  final RoundType type;
+
+  /// How many courses the round runs — shown so the operator knows what they
+  /// will be creating on the federal site afterwards.
+  final int courseCount;
+}
 
 class ScheduleController extends GetxController {
   ScheduleController(this._programme, this._meetings, this._user);
@@ -254,11 +284,15 @@ class ScheduleController extends GetxController {
   /// with [_pushMeetingEnd] has to know: computing the day's new end from a
   /// list the reload could not refresh would push a `fin` derived from the
   /// state *before* the write, and report it as a success.
-  Future<bool> reload() async {
+  /// [silent] keeps [isLoading] down so the list stays on screen — a
+  /// pull-to-refresh that swapped the day for a spinner would take the
+  /// indicator out from under the operator's finger. A failure is still
+  /// reported either way.
+  Future<bool> reload({bool silent = false}) async {
     final id = competition.value?.id;
     if (id == null) return false;
     try {
-      isLoading.value = true;
+      if (!silent) isLoading.value = true;
       hasError.value = false;
       meetings.value = await _meetings.getMeetings(id);
       return true;
@@ -266,7 +300,7 @@ class ScheduleController extends GetxController {
       hasError.value = true;
       return false;
     } finally {
-      isLoading.value = false;
+      if (!silent) isLoading.value = false;
     }
   }
 
@@ -347,6 +381,240 @@ class ScheduleController extends GetxController {
     if (id <= 0) {
       message.trigger(const UiMessageError('schedule_meeting_end_failed'));
     }
+  }
+
+  /// Moves the whole day to a new start time, in minutes past midnight.
+  ///
+  /// Every créneau shifts by the same amount, because a réunion that starts at
+  /// 09:00 while its first item still says 08:00 states two different things
+  /// about the same morning. The items go out first and the réunion last: if a
+  /// créneau is refused the day is left where it was rather than half moved.
+  ///
+  /// Only shifts a day FFSS already holds. Creating a réunion here would leave
+  /// an empty day on the federal site for nothing more than a change of mind
+  /// about an hour.
+  Future<void> setMeetingStart(DateTime day, int startMinutes) async {
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
+    final meeting = meetingFor(day);
+    final competitionId = competition.value?.id;
+    if (meeting == null || competitionId == null) {
+      message.trigger(const UiMessageError('schedule_no_meeting'));
+      return;
+    }
+
+    final delta = startMinutes - _minutesOf(meeting.beginHour);
+    if (delta == 0) return;
+
+    try {
+      for (final slot in meeting.slots) {
+        final moved = await _meetings.submitSlot(
+          meetingId: meeting.id,
+          name: slot.name,
+          beginHour: _atMinutes(day, _minutesOf(slot.beginHour) + delta),
+          endHour: _atMinutes(day, _minutesOf(slot.endHour) + delta),
+          raceFormatDetailId: slot.raceFormatDetail?.id,
+          id: slot.id,
+        );
+        if (moved <= 0) {
+          message.trigger(const UiMessageError('schedule_item_failed'));
+          return;
+        }
+      }
+
+      final id = await _meetings.submitMeeting(
+        competitionId: competitionId,
+        name: meeting.name,
+        description: meeting.description,
+        date: day,
+        beginHour: _atMinutes(day, startMinutes),
+        endHour: _atMinutes(day, endMinutesOfDay(day) + delta),
+        id: meeting.id,
+      );
+      if (id <= 0) {
+        message.trigger(const UiMessageError('schedule_meeting_end_failed'));
+        return;
+      }
+    } on AppException catch (e) {
+      message
+          .trigger(UiMessageError('schedule_item_failed', details: e.detail));
+      return;
+    }
+
+    await reload();
+  }
+
+  /// Repacks a day back-to-back from the réunion's start, in the order of
+  /// [ordered], keeping each item's own duration — then pushes the réunion's
+  /// new end.
+  ///
+  /// A créneau carries no rank of its own on FFSS: its place in the day *is*
+  /// its start time. So reordering and repacking are the same operation, and
+  /// removing or shortening an item without this leaves a hole — every item
+  /// after it keeps the time it had, and the day reads wrong until the last
+  /// one.
+  ///
+  /// Only the items whose times actually move are sent. On a day of twenty,
+  /// deleting the last one should not rewrite the nineteen before it.
+  Future<bool> _resequenceDay(DateTime day, List<Slot> ordered) async {
+    final meeting = meetingFor(day);
+    final competitionId = competition.value?.id;
+    if (meeting == null || competitionId == null) return false;
+
+    var cursor = _minutesOf(meeting.beginHour);
+    try {
+      for (final slot in ordered) {
+        final duration = _minutesOf(slot.endHour) - _minutesOf(slot.beginHour);
+        if (_minutesOf(slot.beginHour) != cursor) {
+          final moved = await _meetings.submitSlot(
+            meetingId: meeting.id,
+            name: slot.name,
+            beginHour: _atMinutes(day, cursor),
+            endHour: _atMinutes(day, cursor + duration),
+            raceFormatDetailId: slot.raceFormatDetail?.id,
+            id: slot.id,
+          );
+          if (moved <= 0) {
+            message.trigger(const UiMessageError('schedule_item_failed'));
+            return false;
+          }
+        }
+        cursor += duration;
+      }
+
+      final id = await _meetings.submitMeeting(
+        competitionId: competitionId,
+        name: meeting.name,
+        description: meeting.description,
+        date: day,
+        beginHour: meeting.beginHour,
+        endHour: _atMinutes(day, cursor),
+        id: meeting.id,
+      );
+      if (id <= 0) {
+        message.trigger(const UiMessageError('schedule_meeting_end_failed'));
+        return false;
+      }
+    } on AppException catch (e) {
+      message
+          .trigger(UiMessageError('schedule_item_failed', details: e.detail));
+      return false;
+    }
+    return true;
+  }
+
+  /// Moves the item at [oldIndex] to [newIndex] within [day], then recomputes
+  /// every time from the réunion's start.
+  ///
+  /// The new times *are* the new order — FFSS has nowhere else to record it —
+  /// so this reuses the same repacking as a deletion.
+  Future<void> reorderSlots(DateTime day, int oldIndex, int newIndex) async {
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
+    final meeting = meetingFor(day);
+    if (meeting == null) return;
+    final ordered = [...meeting.slots];
+    if (oldIndex < 0 || oldIndex >= ordered.length) return;
+    // A downward move is reported against the list *before* the item leaves
+    // it, so the target index is one too high once it has been taken out.
+    final target = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    if (target == oldIndex) return;
+    ordered.insert(
+        target.clamp(0, ordered.length - 1), ordered.removeAt(oldIndex));
+
+    if (await _resequenceDay(day, ordered)) await reload(silent: true);
+  }
+
+  /// The rounds still to place: those FFSS holds a `partie` for, minus those a
+  /// créneau already points at.
+  ///
+  /// A round with no `serverId` is left out on purpose — nothing on FFSS could
+  /// carry its créneau, so offering it would only earn the operator a refusal
+  /// they could not act on. Pushing the déroulement from the Structure tab is
+  /// what brings it into this list.
+  List<UnscheduledRound> get unscheduledRounds {
+    final placed = <int>{
+      for (final meeting in meetings)
+        for (final slot in meeting.slots)
+          if (slot.raceFormatDetail != null) slot.raceFormatDetail!.id,
+    };
+    final rounds = <UnscheduledRound>[];
+    for (final structure in _p?.structures ?? const <EventStructure>[]) {
+      for (final level in structure.levels) {
+        if (level.serverId <= 0 || placed.contains(level.serverId)) continue;
+        rounds.add(UnscheduledRound(
+          partieId: level.serverId,
+          raceId: structure.raceId,
+          categoryId: structure.categoryId,
+          raceLabel: structure.raceLabel,
+          categoryLabel: structure.categoryLabel,
+          type: level.type,
+          courseCount: level.races.length,
+        ));
+      }
+    }
+    return rounds;
+  }
+
+  /// Places a round on [day] as a créneau linked to its `partie`, with no
+  /// course of its own.
+  ///
+  /// The courses would belong here too, but `course/submit` answers every POST
+  /// with `500 Unknown named parameter $creneau` on the FFSS side. Until that
+  /// is fixed the operator creates them on the federal site and pulls this
+  /// screen down to collect them — which works, because the créneau this
+  /// creates is exactly what they hang off.
+  ///
+  /// The créneau lasts [defaultItemMinutes] per course it will hold, so a
+  /// round of three séries takes three times the room of one — the operator
+  /// still adjusts it, but the day is roughly right before they do.
+  ///
+  /// [name] is composed by the view: naming a round needs the gender, and a
+  /// gender is a translated word this controller has no business resolving.
+  Future<void> scheduleRound({
+    required int partieId,
+    required String name,
+    required DateTime day,
+    required int courseCount,
+  }) async {
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
+    final meetingId = await _ensureMeeting(day);
+    if (meetingId <= 0) return;
+
+    final beginMinutes = endMinutesOfDay(day);
+    // At least one course's worth: a zero-length créneau would be invisible on
+    // the timeline and would let the next item start on the same minute.
+    final duration = defaultItemMinutes * (courseCount < 1 ? 1 : courseCount);
+    int slotId;
+    try {
+      slotId = await _meetings.submitSlot(
+        meetingId: meetingId,
+        name: name,
+        beginHour: _atMinutes(day, beginMinutes),
+        endHour: _atMinutes(day, beginMinutes + duration),
+        raceFormatDetailId: partieId,
+      );
+    } on AppException catch (e) {
+      message
+          .trigger(UiMessageError('schedule_item_failed', details: e.detail));
+      return;
+    }
+    if (slotId <= 0) {
+      message.trigger(const UiMessageError('schedule_item_failed'));
+      return;
+    }
+    if (!await reload()) {
+      message.trigger(const UiMessageError('schedule_meeting_end_failed'));
+      return;
+    }
+    await _pushMeetingEnd(day);
   }
 
   /// The réunion holding [slotId] and the créneau itself, among the loaded
@@ -437,10 +705,15 @@ class ScheduleController extends GetxController {
       message.trigger(const UiMessageError('schedule_meeting_end_failed'));
       return;
     }
-    await _pushMeetingEnd(meeting.date);
+    // Repacked, not just re-ended: shortening an item leaves the same hole a
+    // deletion does, and lengthening one has it overlap the next.
+    final refreshed = meetingFor(meeting.date);
+    if (refreshed != null) {
+      await _resequenceDay(meeting.date, refreshed.slots);
+    }
   }
 
-  /// Deletes a créneau, then pushes the day's new (possibly shorter) end.
+  /// Deletes a créneau, then repacks the day so nothing is left floating.
   Future<void> removeSlot(int slotId) async {
     if (!canWriteToFfss) {
       message.trigger(const UiMessageError('login_required'));
@@ -465,6 +738,9 @@ class ScheduleController extends GetxController {
       message.trigger(const UiMessageError('schedule_meeting_end_failed'));
       return;
     }
-    await _pushMeetingEnd(day);
+    // Repacked, not just re-ended: the items after the one that went keep the
+    // times they had, leaving a hole where it used to be.
+    final meeting = meetingFor(day);
+    if (meeting != null) await _resequenceDay(day, meeting.slots);
   }
 }

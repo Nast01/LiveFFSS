@@ -10,10 +10,10 @@ import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
-import 'package:live_ffss/app/domain/models/schedule_planner.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
 import 'package:live_ffss/app/module/programme/controllers/schedule_controller.dart';
 import 'package:live_ffss/app/module/programme/views/sites_view.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
@@ -74,27 +74,36 @@ class _ScheduleViewState extends State<ScheduleView> {
   /// [defaultItemMinutes], per the design.
   Future<void> _addManualItem(DateTime day) async {
     final labelController = TextEditingController();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('add_manual_item'.tr),
-        content: TextField(
-          controller: labelController,
-          decoration: InputDecoration(labelText: 'manual_label'.tr),
-          autofocus: true,
+    try {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('add_manual_item'.tr),
+          content: TextField(
+            controller: labelController,
+            decoration: InputDecoration(labelText: 'manual_label'.tr),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text('cancel'.tr)),
+            TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text('save'.tr)),
+          ],
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text('cancel'.tr)),
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: Text('save'.tr)),
-        ],
-      ),
-    );
-    if (ok == true && labelController.text.trim().isNotEmpty) {
-      _controller.addManualItem(labelController.text.trim(), day);
+      );
+      final label = labelController.text.trim();
+      if (ok != true || label.isEmpty) return;
+      // Awaited: the write reports its own outcome through `message`, and a
+      // failure left unawaited would be an unobserved async error with
+      // nothing whatsoever on screen.
+      await _controller.addManualItem(label, day);
+    } finally {
+      // In a `finally` so the controller is released whichever way the dialog
+      // was left — cancelled, dismissed, or thrown out of.
+      labelController.dispose();
     }
   }
 
@@ -197,6 +206,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                 controller: _controller,
                 // EventStructure carries no gender; the overview rows do.
                 genderOf: _programme.genderForRace,
+                day: day,
               ),
             ],
           ),
@@ -339,6 +349,24 @@ class _SiteChips extends StatelessWidget {
 /// réunion's own `beginHour` when FFSS holds one, [defaultMeetingStartMinutes]
 /// otherwise; the end is [ScheduleController.endMinutesOfDay]'s maximum across
 /// every site's frise.
+/// Asks for the day's new start, then moves the whole day to it. Opened from
+/// the view with its own [context] — controllers here never reach for a picker.
+Future<void> _pickDayStart(
+  BuildContext context,
+  ScheduleController controller,
+  DateTime day,
+  int currentMinutes,
+) async {
+  final picked = await showTimePicker(
+    context: context,
+    initialTime:
+        TimeOfDay(hour: currentMinutes ~/ 60, minute: currentMinutes % 60),
+    helpText: 'schedule_start_title'.tr,
+  );
+  if (picked == null) return;
+  await controller.setMeetingStart(day, picked.hour * 60 + picked.minute);
+}
+
 class _DayRangeHeader extends StatelessWidget {
   const _DayRangeHeader({
     required this.controller,
@@ -360,10 +388,32 @@ class _DayRangeHeader extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.fromLTRB(
             AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
-        child: Text(
-          'schedule_day_range'
-              .trParams({'begin': hhmm(begin), 'end': hhmm(end)}),
-          style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'schedule_day_range'
+                    .trParams({'begin': hhmm(begin), 'end': hhmm(end)}),
+                style: AppTypography.caption
+                    .copyWith(color: AppColors.textSecondary),
+              ),
+            ),
+            // Only offered once FFSS holds the day: moving a start shifts the
+            // créneaux that already exist, and there is nothing to shift —
+            // nor anything to update — before the first item is added.
+            if (meeting != null)
+              TextButton.icon(
+                onPressed: () => _pickDayStart(context, controller, day, begin),
+                icon: const Icon(Icons.schedule, size: 16),
+                label: Text(hhmm(begin)),
+                style: TextButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+          ],
         ),
       );
     });
@@ -460,22 +510,74 @@ class _Timeline extends StatelessWidget {
         );
       }
       final sections = _sectionsFor(controller.meetingFor(day));
-      if (sections.isEmpty) {
-        return EmptyState(icon: Icons.schedule, title: 'no_placement_here'.tr);
-      }
-      return ListView(
-        // Clears the manual-item FAB, which floats over the bottom of this
-        // list: without it the last section's last card sits under the FAB.
-        padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md, AppSpacing.md, AppSpacing.md, _fabClearance),
-        children: [
-          for (final section in sections)
-            _DaySectionView(
-              section: section,
-              onEditDuration: onEditDuration,
-              onDelete: onDelete,
+
+      // Dragging reorders the day, and a créneau's rank on FFSS *is* its start
+      // time — so a drop recomputes every time from the réunion's start. Only
+      // offered while the day forms a single sequence: once courses land on
+      // several sites, the day runs as parallel timelines and one flat list
+      // could no longer say where an item was dropped.
+      if (sections.length == 1) {
+        final items = sections.single.items;
+        return RefreshIndicator(
+          onRefresh: () => controller.reload(silent: true),
+          child: ReorderableListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md, AppSpacing.md, AppSpacing.md, _fabClearance),
+            onReorder: (oldIndex, newIndex) =>
+                controller.reorderSlots(day, oldIndex, newIndex),
+            header: Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: Text(sections.single.title,
+                  style:
+                      AppTypography.body.copyWith(fontWeight: FontWeight.w700)),
             ),
-        ],
+            children: [
+              for (final entry in items)
+                Padding(
+                  key: ValueKey(entry.slotId),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: _DayEntryCard(
+                    entry: entry,
+                    onEditDuration: onEditDuration,
+                    onDelete: onDelete,
+                  ),
+                ),
+            ],
+          ),
+        );
+      }
+
+      return RefreshIndicator(
+        // Silent: the list must stay on screen while the wheel spins, or the
+        // indicator is pulled out from under the finger.
+        onRefresh: () => controller.reload(silent: true),
+        child: ListView(
+          // AlwaysScrollable so a short day — or an empty one — can still
+          // overscroll: without it the gesture never fires, and an empty day
+          // is exactly when an operator pulls, to collect what was created on
+          // the website.
+          physics: const AlwaysScrollableScrollPhysics(),
+          // Clears the manual-item FAB, which floats over the bottom of this
+          // list: without it the last section's last card sits under the FAB.
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, AppSpacing.md, AppSpacing.md, _fabClearance),
+          children: [
+            if (sections.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xl),
+                child: EmptyState(
+                    icon: Icons.schedule, title: 'no_placement_here'.tr),
+              )
+            else
+              for (final section in sections)
+                _DaySectionView(
+                  section: section,
+                  onEditDuration: onEditDuration,
+                  onDelete: onDelete,
+                ),
+          ],
+        ),
       );
     });
   }
@@ -590,33 +692,40 @@ double _paletteHeight(BuildContext context) =>
 /// every POST with `500 Unknown named parameter $creneau` — verified in
 /// production. The add buttons are shown greyed out with the reason rather
 /// than removed, because the palette is what the timeline is drawn from once
-/// FFSS fixes the endpoint.
-class _Palette extends StatefulWidget {
-  const _Palette({required this.controller, required this.genderOf});
+/// FFSS fixes the endpoint./// The rounds still to place on a day.
+///
+/// A line is a round, not a race: a créneau links to a `partie`, so placing is
+/// what a whole round does at once. Its courses are not created here —
+/// `course/submit` answers every POST with `500 Unknown named parameter
+/// $creneau` on the FFSS side, so the operator adds them on the federal site
+/// and pulls the timeline down to collect them onto the créneau this creates.
+class _Palette extends StatelessWidget {
+  const _Palette({
+    required this.controller,
+    required this.genderOf,
+    required this.day,
+  });
 
   final ScheduleController controller;
-  final Gender Function(int structureRaceId) genderOf;
+  final Gender Function(int raceId) genderOf;
+  final DateTime? day;
 
-  @override
-  State<_Palette> createState() => _PaletteState();
-}
-
-class _PaletteState extends State<_Palette> {
-  /// Keyed by (épreuve, category) — the pair identifying a group.
-  final Set<(int, int)> _expanded = <(int, int)>{};
+  /// "Séries - Surfski - Dames - Junior" — composed here rather than in the
+  /// controller, which has no business resolving a translated gender.
+  String _nameFor(UnscheduledRound round, Gender gender) =>
+      '${round.type.labelKey.tr} - ${round.raceLabel} - ${gender.label}'
+      ' - ${round.categoryLabel}';
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final groups = widget.controller.unscheduledGroups;
-      final total = groups.fold<int>(0, (sum, g) => sum + g.items.length);
+      final rounds = controller.unscheduledRounds;
       // Resolved here, not in the itemBuilder below: that builder runs during
       // layout, outside this Obx, so reading the épreuve rows from there
       // registers no dependency and the badges stay stale until some other
       // rebuild happens to come along.
       final genders = <int, Gender>{
-        for (final g in groups)
-          g.structureRaceId: widget.genderOf(g.structureRaceId),
+        for (final r in rounds) r.raceId: genderOf(r.raceId),
       };
       return Container(
         constraints: BoxConstraints(maxHeight: _paletteHeight(context)),
@@ -626,39 +735,36 @@ class _PaletteState extends State<_Palette> {
           children: [
             Padding(
               padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('${'unscheduled'.tr} ($total)',
-                      style: AppTypography.caption),
-                  const SizedBox(height: 2),
-                  Text('schedule_races_unavailable'.tr,
-                      style: AppTypography.caption
-                          .copyWith(color: AppColors.textMuted)),
-                ],
-              ),
+              child: Text('${'unscheduled'.tr} (${rounds.length})',
+                  style: AppTypography.caption),
             ),
             Expanded(
-              child: ListView.builder(
-                itemCount: groups.length,
-                itemBuilder: (_, i) {
-                  final group = groups[i];
-                  final key = (group.structureRaceId, group.categoryId);
-                  return _GroupSection(
-                    group: group,
-                    gender: genders[group.structureRaceId] ?? Gender.unknown,
-                    expanded: groups.length == 1 || _expanded.contains(key),
-                    onToggle: () => setState(() {
-                      if (!_expanded.remove(key)) _expanded.add(key);
-                    }),
-                    // Deliberately inert: see the class doc. `addRace` and
-                    // `addRaces` stay on the controller, waiting for the
-                    // endpoint.
-                    onAdd: null,
-                    onAddAll: null,
-                  );
-                },
-              ),
+              child: rounds.isEmpty
+                  ? Center(
+                      child: Text('schedule_all_placed'.tr,
+                          style: AppTypography.caption
+                              .copyWith(color: AppColors.textMuted)),
+                    )
+                  : ListView.builder(
+                      itemCount: rounds.length,
+                      itemBuilder: (_, i) {
+                        final round = rounds[i];
+                        final gender = genders[round.raceId] ?? Gender.unknown;
+                        return _RoundRow(
+                          round: round,
+                          gender: gender,
+                          // No day selected means nowhere to put it.
+                          onAdd: day == null
+                              ? null
+                              : () => controller.scheduleRound(
+                                    partieId: round.partieId,
+                                    name: _nameFor(round, gender),
+                                    day: day!,
+                                    courseCount: round.courseCount,
+                                  ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -667,85 +773,58 @@ class _PaletteState extends State<_Palette> {
   }
 }
 
-class _GroupSection extends StatelessWidget {
-  const _GroupSection({
-    required this.group,
+class _RoundRow extends StatelessWidget {
+  const _RoundRow({
+    required this.round,
     required this.gender,
-    required this.expanded,
-    required this.onToggle,
     required this.onAdd,
-    required this.onAddAll,
   });
 
-  final ScheduleGroup group;
+  final UnscheduledRound round;
   final Gender gender;
-  final bool expanded;
-  final VoidCallback onToggle;
-  final void Function(int raceId)? onAdd;
-  final VoidCallback? onAddAll;
+  final VoidCallback? onAdd;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: onToggle,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm, vertical: 6),
-            child: Row(
+    return Padding(
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+      child: Row(
+        children: [
+          GenderBadge(gender: gender),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(expanded ? Icons.expand_more : Icons.chevron_right,
-                    size: 20, color: AppColors.textSecondary),
-                const SizedBox(width: 2),
-                GenderBadge(gender: gender),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text('${group.raceLabel} · ${group.categoryLabel}',
-                      style: AppTypography.body
-                          .copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  '${round.type.labelKey.tr} · ${round.raceLabel}',
+                  style: AppTypography.body,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Text('${group.items.length}', style: AppTypography.caption),
-                IconButton(
-                  icon: const Icon(Icons.playlist_add),
-                  color: AppColors.primary,
-                  visualDensity: VisualDensity.compact,
-                  tooltip: 'add_all_races'.tr,
-                  onPressed: onAddAll,
+                Text(
+                  '${round.categoryLabel} · '
+                  '${'schedule_course_count'.trParams({
+                        'count': '${round.courseCount}'
+                      })}',
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.textSecondary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-        ),
-        if (expanded)
-          for (final item in group.items)
-            InkWell(
-              onTap: onAdd == null ? null : () => onAdd!(item.raceId),
-              child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 46, right: AppSpacing.sm, top: 4, bottom: 4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        // The heading names the épreuve and the category; only
-                        // the round is left to tell these rows apart.
-                        '${item.roundType.labelKey.tr} ${item.number}',
-                        style: AppTypography.body,
-                      ),
-                    ),
-                    Icon(Icons.add_circle_outline,
-                        size: 20,
-                        color: onAdd == null
-                            ? AppColors.textMuted
-                            : AppColors.primary),
-                  ],
-                ),
-              ),
-            ),
-        const Divider(height: 1),
-      ],
+          IconButton(
+            onPressed: onAdd,
+            icon: const Icon(Icons.add_circle_outline),
+            color: AppColors.primary,
+            tooltip: 'schedule_place_round'.tr,
+          ),
+        ],
+      ),
     );
   }
 }
