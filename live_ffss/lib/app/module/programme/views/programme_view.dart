@@ -16,6 +16,11 @@ class ProgrammeView extends GetView<ProgrammeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surfaceMuted,
+      // The palette below sizes itself from the full screen height, so letting
+      // the keyboard shrink this body overflows it. Nothing on this page takes
+      // typed input directly — the dialogs that do handle their own inset — so
+      // the page has no reason to reflow when a keyboard opens over it.
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         bottom: false,
         child: Column(
