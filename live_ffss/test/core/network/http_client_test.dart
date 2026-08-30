@@ -485,10 +485,11 @@ void main() {
       client.onAuthFailure = () async {
         handlerCalled = true;
       };
-      when(() => httpMock.post(any(),
-              headers: any(named: 'headers'), body: any(named: 'body')))
-          .thenAnswer((_) async => responseWith(
-              '{"error":"Forbiden","message":"Invalid token"}', 403));
+      when(() =>
+          httpMock.post(any(),
+              headers: any(named: 'headers'),
+              body: any(named: 'body'))).thenAnswer((_) async =>
+          responseWith('{"error":"Forbiden","message":"Invalid token"}', 403));
 
       await expectLater(client.post('x'), throwsA(isA<AuthException>()));
       await Future<void>.delayed(Duration.zero);
@@ -499,8 +500,8 @@ void main() {
         () async {
       when(() => httpMock.post(any(),
               headers: any(named: 'headers'), body: any(named: 'body')))
-          .thenAnswer((_) async =>
-              responseWith('{"message":"INVALID TOKEN"}', 403));
+          .thenAnswer(
+              (_) async => responseWith('{"message":"INVALID TOKEN"}', 403));
 
       await expectLater(client.post('x'), throwsA(isA<AuthException>()));
     });
@@ -547,6 +548,43 @@ void main() {
       when(() => tokens.getToken()).thenThrow(StateError('keystore broken'));
 
       expect(client.get('x'), throwsA(isA<UnknownException>()));
+    });
+  });
+
+  group('HttpClient bare-boolean bodies', () {
+    // Every FFSS delete endpoint answers with a bare `true` instead of the
+    // usual envelope — verified in production on creneau, partie and reunion
+    // deletes, all `HTTP 201` with a body of exactly `true`. Rejecting that
+    // shape made a delete that had genuinely succeeded look like a failure:
+    // the item stayed on screen, an error was shown, and only a refresh
+    // revealed it was gone all along.
+    test('a bare true reads as a success envelope', () async {
+      when(() => httpMock.post(any(),
+              headers: any(named: 'headers'), body: any(named: 'body')))
+          .thenAnswer((_) async => responseWith('true', 201));
+
+      expect(await client.post('x'), {'success': true});
+    });
+
+    test('a bare false is a refusal, not a success', () async {
+      when(() => httpMock.post(any(),
+              headers: any(named: 'headers'), body: any(named: 'body')))
+          .thenAnswer((_) async => responseWith('false', 201));
+
+      await expectLater(client.post('x'), throwsA(isA<ApiException>()));
+    });
+
+    test('any other shape is still rejected', () async {
+      // Normalising a boolean is a documented quirk of two endpoints, not a
+      // licence to accept whatever arrives.
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith('[1, 2]', 200));
+
+      await expectLater(
+        client.get('x'),
+        throwsA(isA<ApiException>()
+            .having((e) => e.message, 'message', 'Unexpected response shape')),
+      );
     });
   });
 }

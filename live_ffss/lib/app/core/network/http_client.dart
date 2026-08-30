@@ -171,21 +171,32 @@ class HttpClient {
           statusCode: status, authenticated: authenticated);
     }
 
-    if (body is! Map<String, dynamic>) {
+    // Every FFSS delete endpoint answers with a bare `true` rather than the
+    // usual envelope — checked in production on créneau, partie and réunion
+    // deletes, each `HTTP 201` with a body of exactly `true`. Rejecting that
+    // shape made a deletion that had genuinely succeeded look like a failure:
+    // the item stayed on screen, an error was shown, and only a refresh
+    // revealed the server had dropped it all along.
+    //
+    // Normalised rather than returned outright, so a bare `false` still falls
+    // through to the refusal check below instead of passing for a success.
+    final decoded = body is bool ? <String, dynamic>{'success': body} : body;
+
+    if (decoded is! Map<String, dynamic>) {
       throw ApiException('Unexpected response shape',
           statusCode: status, authenticated: authenticated);
     }
 
-    if (body['success'] == false) {
+    if (decoded['success'] == false) {
       throw ApiException(
-        body['message']?.toString() ?? 'API returned success: false',
+        decoded['message']?.toString() ?? 'API returned success: false',
         statusCode: status,
-        code: body['code']?.toString(),
+        code: decoded['code']?.toString(),
         authenticated: authenticated,
       );
     }
 
-    return body;
+    return decoded;
   }
 
   void _notifyAuthFailure() {
