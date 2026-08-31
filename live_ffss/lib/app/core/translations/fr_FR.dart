@@ -330,6 +330,7 @@ final Map<String, String> frFR = {
       'Les niveaux, les courses et les séries déjà tirées des @count épreuves affichées seront perdus. Les épreuves masquées par les filtres ne sont pas touchées.',
 
   // Programme scheduling
+  'site_all': 'Tous',
   'sites': 'Sites',
   'add_site': 'Ajouter un site',
   'site_name': 'Nom du site',

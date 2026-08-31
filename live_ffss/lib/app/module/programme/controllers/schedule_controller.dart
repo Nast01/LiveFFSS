@@ -64,7 +64,14 @@ class ScheduleController extends GetxController {
   final Rxn<Competition> competition = Rxn<Competition>();
   final RxList<DateTime> days = <DateTime>[].obs;
   final RxInt selectedDayIndex = 0.obs;
-  final Rxn<int> selectedSiteId = Rxn<int>();
+
+  /// The site the timeline is narrowed to; `null` means every site at once —
+  /// the « Tous » chip, and the default.
+  ///
+  /// Keyed by name, not by local id: half the sites on screen come from the
+  /// courses FFSS returns, and those carry a free-text site with no id to
+  /// match on.
+  final Rxn<String> selectedSite = Rxn<String>();
 
   /// The réunions of the current competition, as FFSS holds them — one per
   /// competition day, each with its créneaux and their courses.
@@ -90,12 +97,46 @@ class ScheduleController extends GetxController {
     super.onClose();
   }
 
+  /// Drops a selection whose site no longer exists anywhere — deleted from the
+  /// local list *and* absent from every course. Falls back to « Tous » rather
+  /// than to another site: silently narrowing the day to a site the operator
+  /// never picked is worse than showing them everything.
   void _ensureValidSite() {
-    final ids = sites.map((s) => s.id).toSet();
-    if (selectedSiteId.value == null || !ids.contains(selectedSiteId.value)) {
-      selectedSiteId.value = sites.isEmpty ? null : sites.first.id;
+    final selected = selectedSite.value;
+    if (selected != null && !_knownSiteNames.contains(selected)) {
+      selectedSite.value = null;
     }
   }
+
+  /// Every site name in play, across all days: the ones the operator declared
+  /// locally and the ones FFSS puts on its courses.
+  Set<String> get _knownSiteNames => {
+        for (final site in sites)
+          if (site.name.isNotEmpty) site.name,
+        for (final meeting in meetings)
+          for (final slot in meeting.slots)
+            for (final run in slot.runs)
+              if (run.site.isNotEmpty) run.site,
+      };
+
+  /// The sites [day] can be narrowed by: those its courses carry, plus those
+  /// declared locally, merged and sorted. A site with no name would make a
+  /// blank chip, so it is left out.
+  List<String> siteNamesFor(DateTime day) {
+    final names = <String>{
+      for (final site in sites)
+        if (site.name.isNotEmpty) site.name,
+      for (final slot in meetingFor(day)?.slots ?? const <Slot>[])
+        for (final run in slot.runs)
+          if (run.site.isNotEmpty) run.site,
+    }.toList()
+      ..sort();
+    return names;
+  }
+
+  /// Whether [site] passes the current selection. « Tous » lets everything by.
+  bool showsSite(String site) =>
+      selectedSite.value == null || selectedSite.value == site;
 
   CompetitionProgramme? get _p => _programme.current.value;
 

@@ -327,6 +327,7 @@ final Map<String, String> enUS = {
       'The levels, races and any heats already drawn for the @count events shown will be lost. Events hidden by the filters are left untouched.',
 
   // Programme scheduling
+  'site_all': 'All',
   'sites': 'Sites',
   'add_site': 'Add a site',
   'site_name': 'Site name',

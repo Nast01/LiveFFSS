@@ -179,7 +179,6 @@ class _ScheduleViewState extends State<ScheduleView> {
       if (_controller.days.isEmpty) {
         return EmptyState(icon: Icons.event_busy, title: 'no_days'.tr);
       }
-      final siteId = _controller.selectedSiteId.value;
       final day = _controller.selectedDay;
       return Stack(
         children: [
@@ -188,12 +187,11 @@ class _ScheduleViewState extends State<ScheduleView> {
               _DayChips(controller: _controller),
               if (day != null)
                 _DayRangeHeader(controller: _controller, day: day, hhmm: _hhmm),
-              _SiteChips(controller: _controller),
+              _SiteChips(controller: _controller, day: day),
               const SizedBox(height: AppSpacing.xs),
               Expanded(
-                child: (siteId == null || day == null)
-                    ? EmptyState(
-                        icon: Icons.place_outlined, title: 'no_sites'.tr)
+                child: day == null
+                    ? EmptyState(icon: Icons.event_busy, title: 'no_days'.tr)
                     : _Timeline(
                         controller: _controller,
                         day: day,
@@ -210,7 +208,7 @@ class _ScheduleViewState extends State<ScheduleView> {
               ),
             ],
           ),
-          if (siteId != null && day != null)
+          if (day != null)
             Positioned(
               right: AppSpacing.md,
               // Sits clear of the palette, whose height varies with the screen.
@@ -270,14 +268,16 @@ class _DayChips extends StatelessWidget {
   }
 }
 
-/// The competition's sites, plus the way into their editor.
+/// The day's sites, plus the way into their editor.
 ///
-/// The chips no longer filter the timeline — the day's frise comes from FFSS
-/// and carries each course's own site — but the selection still gates the
-/// manual-item FAB, so it stays.
+/// « Tous » comes first and is the default: the operator sees the whole day
+/// before deciding to narrow it. The other chips merge the sites FFSS puts on
+/// the day's courses with the ones declared locally — neither list knows them
+/// all, and a site can matter before a single course lands on it.
 class _SiteChips extends StatelessWidget {
-  const _SiteChips({required this.controller});
+  const _SiteChips({required this.controller, required this.day});
   final ScheduleController controller;
+  final DateTime? day;
 
   @override
   Widget build(BuildContext context) {
@@ -285,49 +285,37 @@ class _SiteChips extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(
           AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
       child: Obx(() {
-        final sites = controller.sites;
-        final selectedId = controller.selectedSiteId.value;
+        final names =
+            day == null ? const <String>[] : controller.siteNamesFor(day!);
+        final selected = controller.selectedSite.value;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // The sites get the whole width. Sharing the line with the start
             // time and the settings button left room for barely one chip: the
             // bar scrolled, but there was nothing worth scrolling to.
-            if (sites.isEmpty)
-              Text('no_sites'.tr, style: AppTypography.caption)
-            else
-              SizedBox(
-                height: 36,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: sites.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(width: AppSpacing.sm),
-                  itemBuilder: (_, i) {
-                    final s = sites[i];
-                    final active = selectedId == s.id;
-                    return GestureDetector(
-                      onTap: () => controller.selectedSiteId.value = s.id,
-                      child: Container(
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: active ? AppColors.primary : AppColors.surface,
-                          borderRadius: AppRadius.pillRadius,
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Text(
-                          s.name,
-                          style: AppTypography.caption.copyWith(
-                              color: active
-                                  ? Colors.white
-                                  : AppColors.textPrimary),
-                        ),
+            SizedBox(
+              height: 36,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                // One extra leading entry: « Tous ».
+                itemCount: names.length + 1,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(width: AppSpacing.sm),
+                itemBuilder: (_, i) => i == 0
+                    ? _SiteChip(
+                        label: 'site_all'.tr,
+                        active: selected == null,
+                        onTap: () => controller.selectedSite.value = null,
+                      )
+                    : _SiteChip(
+                        label: names[i - 1],
+                        active: selected == names[i - 1],
+                        onTap: () =>
+                            controller.selectedSite.value = names[i - 1],
                       ),
-                    );
-                  },
-                ),
               ),
+            ),
             Align(
               alignment: Alignment.centerRight,
               child: IconButton(
@@ -341,6 +329,35 @@ class _SiteChips extends StatelessWidget {
           ],
         );
       }),
+    );
+  }
+}
+
+class _SiteChip extends StatelessWidget {
+  const _SiteChip(
+      {required this.label, required this.active, required this.onTap});
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primary : AppColors.surface,
+          borderRadius: AppRadius.pillRadius,
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.caption
+              .copyWith(color: active ? Colors.white : AppColors.textPrimary),
+        ),
+      ),
     );
   }
 }
@@ -443,9 +460,14 @@ class _DayEntry {
 /// the générique bucket for manual (course-less) créneaux, which carry no
 /// site of their own.
 class _DaySection {
-  const _DaySection({required this.title, required this.items});
+  const _DaySection(
+      {required this.title, required this.items, this.isManual = false});
   final String title;
   final List<_DayEntry> items;
+
+  /// The créneaux with no course. They belong to no site — a lunch break or a
+  /// prize-giving concerns the whole day — so a site filter never hides them.
+  final bool isManual;
 }
 
 /// Splits the réunion's créneaux into per-[Run.site] sections, plus one
@@ -475,7 +497,9 @@ List<_DaySection> _sectionsFor(Meeting? meeting) {
       _DaySection(title: entry.key, items: entry.value..sort(_byBegin)),
     if (manual.isNotEmpty)
       _DaySection(
-          title: 'schedule_manual_items'.tr, items: manual..sort(_byBegin)),
+          title: 'schedule_manual_items'.tr,
+          items: manual..sort(_byBegin),
+          isManual: true),
   ];
   sections.sort((a, b) => a.items.first.begin.compareTo(b.items.first.begin));
   return sections;
@@ -509,14 +533,23 @@ class _Timeline extends StatelessWidget {
           onRetry: controller.reload,
         );
       }
-      final sections = _sectionsFor(controller.meetingFor(day));
+      final sections = _sectionsFor(controller.meetingFor(day))
+          .where((s) => s.isManual || controller.showsSite(s.title))
+          .toList();
 
       // Dragging reorders the day, and a créneau's rank on FFSS *is* its start
       // time — so a drop recomputes every time from the réunion's start. Only
       // offered while the day forms a single sequence: once courses land on
       // several sites, the day runs as parallel timelines and one flat list
       // could no longer say where an item was dropped.
-      if (sections.length == 1) {
+      // Only when the list maps one-to-one onto the day's créneaux, in their
+      // real order: `reorderSlots` indexes into the unfiltered réunion, and a
+      // course entry carries no créneau of its own. Under a site filter, or on
+      // a section built from courses, a drop would move the wrong item.
+      final canReorder = sections.length == 1 &&
+          controller.selectedSite.value == null &&
+          sections.single.items.every((e) => e.slotId != null);
+      if (canReorder) {
         final items = sections.single.items;
         return RefreshIndicator(
           onRefresh: () => controller.reload(silent: true),

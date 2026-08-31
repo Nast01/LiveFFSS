@@ -133,9 +133,11 @@ void main() {
     controller.setCompetition(withDates);
   });
 
-  test('setCompetition derives days and defaults the site', () {
+  test('setCompetition derives days and defaults to every site', () {
     expect(controller.days, [DateTime(2026, 6, 13), DateTime(2026, 6, 14)]);
-    expect(controller.selectedSiteId.value, 1);
+    // « Tous » : la vue s'ouvre sur la journée entière, pas sur un site
+    // arbitraire dont l'opérateur ignore qu'il en masque d'autres.
+    expect(controller.selectedSite.value, isNull);
   });
 
   test('unscheduled lists races with no block', () {
@@ -237,13 +239,12 @@ void main() {
           ],
         );
 
-    test('deleting the selected site reselects the first remaining site',
-        () async {
+    test('supprimer le site sélectionné rebascule sur « Tous »', () async {
       await service.save(seedTwoSites());
       controller = ScheduleController(service, meetingRepo, userService);
       controller.onInit();
       controller.setCompetition(withDates);
-      expect(controller.selectedSiteId.value, 1);
+      controller.selectedSite.value = 'Côtier 1';
 
       await service.save(service.current.value!.copyWith(
         sites: const [
@@ -252,22 +253,58 @@ void main() {
       ));
       await Future<void>.delayed(Duration.zero);
 
-      expect(controller.selectedSiteId.value, 2);
+      expect(controller.selectedSite.value, isNull);
     });
 
-    test('deleting the last site clears the selection', () async {
-      await service.save(seed());
+    test('un site encore porté par une course survit à sa suppression locale',
+        () async {
+      // Le site vient de FFSS autant que de la liste locale : effacer la
+      // fiche locale ne fait pas disparaître les courses qui s'y courent.
+      await service.save(seedTwoSites());
       controller = ScheduleController(service, meetingRepo, userService);
       controller.onInit();
       controller.setCompetition(withDates);
-      expect(controller.selectedSiteId.value, 1);
+      controller.meetings.value = [
+        Meeting(
+          id: 1,
+          name: 'Réunion',
+          description: '',
+          date: day,
+          beginHour: DateTime(2026, 6, 13, 8),
+          endHour: DateTime(2026, 6, 13, 18),
+          slots: [
+            Slot(
+              id: 1,
+              name: 'Créneau',
+              beginHour: DateFormat('HH:mm').parse('08:00'),
+              endHour: DateFormat('HH:mm').parse('08:10'),
+              runs: [
+                Run(
+                  id: 1,
+                  name: 'Course',
+                  label: '',
+                  fullLabel: '',
+                  status: RunStatus.waiting,
+                  statusLabel: '',
+                  site: 'Côtier 1',
+                  beginTime: DateFormat('HH:mm').parse('08:00'),
+                  endTime: DateFormat('HH:mm').parse('08:10'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ];
+      controller.selectedSite.value = 'Côtier 1';
 
-      await service.save(
-        service.current.value!.copyWith(sites: const []),
-      );
+      await service.save(service.current.value!.copyWith(
+        sites: const [
+          ProgrammeSite(id: 2, name: 'Côtier 2', type: SiteType.cotier),
+        ],
+      ));
       await Future<void>.delayed(Duration.zero);
 
-      expect(controller.selectedSiteId.value, null);
+      expect(controller.selectedSite.value, 'Côtier 1');
     });
   });
 
@@ -1707,6 +1744,84 @@ void main() {
           partieId: 39, name: 'x', day: day, courseCount: 2);
 
       expect(controller.message.value!.translationKey, 'schedule_item_failed');
+    });
+  });
+
+  group('filtrage par site', () {
+    DateTime time(String hhmm) => DateFormat('HH:mm').parse(hhmm);
+
+    Run run(String site) => Run(
+          id: 1,
+          name: 'Course',
+          label: '',
+          fullLabel: '',
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: site,
+          beginTime: time('08:00'),
+          endTime: time('08:10'),
+        );
+
+    void seedRuns(List<Run> runs) {
+      controller.meetings.value = [
+        Meeting(
+          id: 1,
+          name: 'Réunion',
+          description: '',
+          date: day,
+          beginHour: DateTime(day.year, day.month, day.day, 8),
+          endHour: DateTime(day.year, day.month, day.day, 18),
+          slots: [
+            Slot(
+              id: 1,
+              name: 'Créneau',
+              beginHour: time('08:00'),
+              endHour: time('08:10'),
+              runs: runs,
+            ),
+          ],
+        ),
+      ];
+    }
+
+    // La liste locale est saisie à la main, les courses portent le site que
+    // FFSS leur donne : ni l'une ni l'autre ne connaît la totalité.
+    test('les sites proposés réunissent ceux des courses et la liste locale',
+        () {
+      seedRuns([run('OCEAN 1'), run('OCEAN 2')]);
+
+      expect(controller.siteNamesFor(day), ['Côtier 1', 'OCEAN 1', 'OCEAN 2']);
+    });
+
+    test('un site connu des deux côtés n apparaît qu une fois', () {
+      seedRuns([run('Côtier 1')]);
+
+      expect(controller.siteNamesFor(day), ['Côtier 1']);
+    });
+
+    test('un site sans nom ne devient pas un bouton vide', () {
+      seedRuns([run('')]);
+
+      expect(controller.siteNamesFor(day), ['Côtier 1']);
+    });
+
+    test('les sites d une autre journée ne polluent pas celle-ci', () {
+      seedRuns([run('OCEAN 1')]);
+
+      expect(controller.siteNamesFor(DateTime(2026, 6, 14)), ['Côtier 1']);
+    });
+
+    test('« Tous » laisse passer tous les sites', () {
+      expect(controller.selectedSite.value, isNull);
+      expect(controller.showsSite('OCEAN 1'), isTrue);
+      expect(controller.showsSite('OCEAN 2'), isTrue);
+    });
+
+    test('un site sélectionné ne laisse passer que lui', () {
+      controller.selectedSite.value = 'OCEAN 1';
+
+      expect(controller.showsSite('OCEAN 1'), isTrue);
+      expect(controller.showsSite('OCEAN 2'), isFalse);
     });
   });
 }
