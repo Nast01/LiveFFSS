@@ -37,4 +37,44 @@ void main() {
     });
     expect(dto.toDomain().status, RunStatus.unknown);
   });
+
+  // FFSS construit le `fullLabel` d'une course en collant le libellé à
+  // lui-même — payload réel, compétition 1451, course 20 :
+  //   label     "Demie 1 - Surfski - Messieurs - Junior"
+  //   fullLabel "Demie 1 - Surfski - Messieurs - Junior - Demie 1 - Surfski…"
+  // Affiché tel quel, le nom de la course apparaît deux fois à l'écran.
+  test('un fullLabel collé à lui-même retombe sur le libellé simple', () {
+    final dto = RunDto.fromJson(const {
+      'id': 20,
+      'Nom': 'Demie 1 - Surfski - Messieurs - Junior',
+      'label': 'Demie 1 - Surfski - Messieurs - Junior',
+      'fullLabel': 'Demie 1 - Surfski - Messieurs - Junior - '
+          'Demie 1 - Surfski - Messieurs - Junior',
+      'statut': 0,
+      'statutLabel': 'En attente',
+      'site': 'OCEAN 1',
+      'debut': '08:00',
+      'fin': '08:10',
+    });
+
+    expect(dto.toDomain().fullLabel, 'Demie 1 - Surfski - Messieurs - Junior');
+  });
+
+  // Une partie porte un vrai fullLabel enrichi (« Surfski - Homme - Demi-finale
+  // - Junior ») : seul le doublon exact doit être réduit.
+  test('un fullLabel qui apporte du contexte est conservé', () {
+    final dto = RunDto.fromJson(const {
+      'id': 1,
+      'Nom': 'Demie 1',
+      'label': 'Demie 1',
+      'fullLabel': 'Surfski - Homme - Demie 1',
+      'statut': 0,
+      'statutLabel': '',
+      'site': '',
+      'debut': '08:00',
+      'fin': '08:10',
+    });
+
+    expect(dto.toDomain().fullLabel, 'Surfski - Homme - Demie 1');
+  });
 }
