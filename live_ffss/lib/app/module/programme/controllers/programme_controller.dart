@@ -14,24 +14,12 @@ import 'package:live_ffss/app/domain/models/race_format_configuration.dart';
 import 'package:live_ffss/app/domain/models/race_format_detail.dart';
 import 'package:live_ffss/app/domain/models/structure_generator.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
+import 'package:live_ffss/app/presentation/shared/filter_chip_bar.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
 /// The four criteria the structure overview can be narrowed by. The view
 /// renders one chip per arm, so a new criterion costs a single enum value.
 enum StructureFilter { speciality, discipline, gender, category }
-
-/// One selectable value of a criterion: what rows are matched on, and how to
-/// name it in the selection sheet.
-///
-/// [value] is an id for every criterion but the gender, whose rows are matched
-/// on the [Gender] itself — and whose [label] is left empty, since naming a
-/// gender needs `.tr`, which belongs to the view.
-class FilterOption {
-  const FilterOption(this.value, this.label);
-
-  final Object value;
-  final String label;
-}
 
 /// One line of the structure overview: an épreuve × category, its entry count,
 /// and the structure defined for it (null if none yet).

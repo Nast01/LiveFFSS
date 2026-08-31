@@ -3,7 +3,15 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_races_controller.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
+import 'package:live_ffss/app/presentation/shared/filter_chip_bar.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
+
+String _criterionKey(RaceFilter filter) => switch (filter) {
+      RaceFilter.speciality => 'filter_speciality',
+      RaceFilter.discipline => 'filter_discipline',
+      RaceFilter.gender => 'filter_gender',
+      RaceFilter.category => 'filter_category',
+    };
 
 class CompetitionDetailRacesView
     extends GetView<CompetitionDetailRacesController> {
@@ -71,55 +79,30 @@ class CompetitionDetailRacesView
     });
   }
 
+  /// Binds the shared chip bar onto this controller. The bar itself is the one
+  /// the Structure overview uses — the two screens narrow long lists by the
+  /// same four criteria, and keeping two copies in step by hand is how they
+  /// drift apart.
   Widget _buildFilterTabs() {
     final controller = Get.find<CompetitionDetailRacesController>();
 
-    return Obx(() {
-      return SizedBox(
-        height: 40,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          children: [
-            _buildFilterTab('all'.tr, 0, controller.selectedFilterIndex.value),
-            const SizedBox(width: 8),
-            _buildFilterTab(
-                'beach'.tr, 1, controller.selectedFilterIndex.value),
-            const SizedBox(width: 8),
-            _buildFilterTab(
-                'swimming'.tr, 2, controller.selectedFilterIndex.value),
+    return Obx(() => FilterChipBar(
+          visibleCount: controller.filteredRaces.length,
+          totalCount: controller.allRaces.length,
+          hasActiveFilters: controller.hasActiveFilters,
+          onClearAll: controller.clearFilters,
+          criteria: [
+            for (final filter in RaceFilter.values)
+              FilterCriterion(
+                labelKey: _criterionKey(filter),
+                options: controller.optionsFor(filter),
+                selectedCount: controller.selectedCount(filter),
+                isSelected: (value) => controller.isSelected(filter, value),
+                onToggle: (value) => controller.toggle(filter, value),
+                onClear: () => controller.clear(filter),
+              ),
           ],
-        ),
-      );
-    });
-  }
-
-  Widget _buildFilterTab(String title, int index, int selectedIndex) {
-    final controller = Get.find<CompetitionDetailRacesController>();
-    final isSelected = selectedIndex == index;
-
-    return GestureDetector(
-      onTap: () {
-        controller.setFilterIndex(index);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey[300]!,
-          ),
-        ),
-        child: Text(
-          title,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[600],
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildRaceItem({required Race race}) {
