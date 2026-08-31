@@ -64,6 +64,15 @@ class ApiEndpoints {
       'competition/reunion/creneau/:creneau/course/submit';
   static const String runDelete =
       'competition/reunion/creneau/course/:id/delete';
+  // « Place » : un emplacement numéroté d'une course. Contrairement à
+  // `course/submit`, ces trois routes fonctionnent — création, mise à jour et
+  // suppression vérifiées en production le 2026-09-01. Le seul paramètre
+  // métier attendu par `submit` est `numero` ; la documentation fédérale, qui
+  // annonce nom/debut/fin/partie, recopie celle du créneau.
+  static const String laneSubmit =
+      'competition/reunion/creneau/course/:course/place/submit';
+  static const String laneDelete =
+      'competition/reunion/creneau/course/place/:id/delete';
   // "Déroulement": one entry per (discipline, gender), carrying its categories
   // and its rounds (`parties`). The FFSS doc publishes these under
   // api.ffss.fr, but that host 301s to a 404 page — they resolve on the base

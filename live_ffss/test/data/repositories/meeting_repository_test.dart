@@ -269,7 +269,56 @@ void main() {
     final slots = (await repo.getMeetings(1451)).single.slots;
 
     expect(slots.firstWhere((s) => s.id == 1).runs, isEmpty);
-    expect(slots.firstWhere((s) => s.id == 2).runs.single.name,
-        'run-of-slot-2');
+    expect(
+        slots.firstWhere((s) => s.id == 2).runs.single.name, 'run-of-slot-2');
+  });
+
+  group('createDefaultLanes', () {
+    setUp(() {
+      when(() => ds.submitLane(
+          runId: any(named: 'runId'),
+          number: any(named: 'number'),
+          id: any(named: 'id'))).thenAnswer((_) async => 1);
+    });
+
+    // Une course s'ouvre avec autant d'emplacements que son tour en déclare
+    // (`RaceFormatDetail.spotsPerRace`), numérotés à partir de 1 : c'est le
+    // dossard que l'opérateur lit sur la ligne de départ.
+    test('crée autant de places que le tour en déclare, numérotées dès 1',
+        () async {
+      final created = await repo.createDefaultLanes(runId: 20, count: 3);
+
+      expect(created, 3);
+      final numbers = verify(() => ds.submitLane(
+          runId: 20,
+          number: captureAny(named: 'number'),
+          id: any(named: 'id'))).captured;
+      expect(numbers, [1, 2, 3]);
+    });
+
+    test('un tour sans place déclarée n appelle pas le serveur', () async {
+      expect(await repo.createDefaultLanes(runId: 20, count: 0), 0);
+
+      verifyNever(() => ds.submitLane(
+          runId: any(named: 'runId'),
+          number: any(named: 'number'),
+          id: any(named: 'id')));
+    });
+
+    // Un refus isolé ne doit pas laisser la course à moitié équipée sans
+    // qu'on le sache : les suivantes partent, et le compte rendu est exact.
+    test('une place refusée n empêche pas les suivantes', () async {
+      when(() => ds.submitLane(runId: 20, number: 2, id: any(named: 'id')))
+          .thenAnswer((_) async => 0);
+
+      expect(await repo.createDefaultLanes(runId: 20, count: 3), 2);
+    });
+  });
+
+  test('deleteLane forwards the lane id', () async {
+    when(() => ds.deleteLane(any())).thenAnswer((_) async => true);
+
+    expect(await repo.deleteLane(6), isTrue);
+    verify(() => ds.deleteLane(6)).called(1);
   });
 }

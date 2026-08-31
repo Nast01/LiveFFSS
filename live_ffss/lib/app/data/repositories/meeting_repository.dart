@@ -37,6 +37,16 @@ abstract class MeetingRepository {
   });
 
   Future<bool> deleteSlot(int slotId);
+
+  /// Opens a freshly created course with [count] numbered spots, 1..count —
+  /// as many as its round declares in `RaceFormatDetail.spotsPerRace`.
+  ///
+  /// Returns how many FFSS actually accepted. A refusal on one spot does not
+  /// stop the others: leaving a course half-equipped is bad, leaving it
+  /// half-equipped *and* silent is worse.
+  Future<int> createDefaultLanes({required int runId, required int count});
+
+  Future<bool> deleteLane(int laneId);
 }
 
 class MeetingRepositoryImpl implements MeetingRepository {
@@ -167,4 +177,22 @@ class MeetingRepositoryImpl implements MeetingRepository {
 
   @override
   Future<bool> deleteSlot(int slotId) => _dataSource.deleteSlot(slotId);
+
+  @override
+  Future<int> createDefaultLanes({
+    required int runId,
+    required int count,
+  }) async {
+    var created = 0;
+    // Sequential on purpose: FFSS numbers nothing itself, so the spots are
+    // ours to number, and a course carries a handful of them at most.
+    for (var number = 1; number <= count; number++) {
+      final id = await _dataSource.submitLane(runId: runId, number: number);
+      if (id != 0) created++;
+    }
+    return created;
+  }
+
+  @override
+  Future<bool> deleteLane(int laneId) => _dataSource.deleteLane(laneId);
 }

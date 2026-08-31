@@ -47,6 +47,16 @@ abstract class MeetingRemoteDataSource {
   });
 
   Future<bool> deleteSlot(int slotId);
+
+  /// Creates a numbered spot on a course, or renumbers the one with the given
+  /// [id]. Returns the id FFSS assigned, or 0 when the call reported failure.
+  Future<int> submitLane({
+    required int runId,
+    required int number,
+    int? id,
+  });
+
+  Future<bool> deleteLane(int laneId);
 }
 
 class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
@@ -160,6 +170,35 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
     final endpoint = ApiEndpoints.replacePath(
       ApiEndpoints.slotDelete,
       {'id': slotId.toString()},
+    );
+    final body = await _http.post(endpoint);
+    return body['success'] == true;
+  }
+
+  @override
+  Future<int> submitLane({
+    required int runId,
+    required int number,
+    int? id,
+  }) async {
+    final endpoint = ApiEndpoints.replacePath(
+      ApiEndpoints.laneSubmit,
+      {'course': runId.toString()},
+    );
+    final body = await _http.post(endpoint, query: {
+      // Empty means "create"; a value means "update".
+      'id': id?.toString() ?? '',
+      'numero': number.toString(),
+    });
+    final assigned = body['id'];
+    return assigned is int ? assigned : 0;
+  }
+
+  @override
+  Future<bool> deleteLane(int laneId) async {
+    final endpoint = ApiEndpoints.replacePath(
+      ApiEndpoints.laneDelete,
+      {'id': laneId.toString()},
     );
     final body = await _http.post(endpoint);
     return body['success'] == true;

@@ -241,4 +241,55 @@ void main() {
           .called(1);
     });
   });
+
+  group('submitLane', () {
+    // Vérifié en production le 2026-09-01 : le seul paramètre métier attendu
+    // est `numero`. La documentation fédérale annonce nom/debut/fin/partie,
+    // recopiés du créneau ; envoyés seuls, le serveur répond « Le numero de
+    // la place est obligatoire ».
+    test('une place part avec son seul numéro', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 6});
+
+      final id = await ds.submitLane(runId: 20, number: 1);
+
+      expect(id, 6);
+      final query = verify(() => http.post(
+          'competition/reunion/creneau/course/20/place/submit',
+          query: captureAny(named: 'query'))).captured.single;
+      expect(query, {'id': '', 'numero': '1'});
+    });
+
+    test('un id renseigné met à jour la place existante', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 6});
+
+      await ds.submitLane(runId: 20, number: 3, id: 6);
+
+      final query =
+          verify(() => http.post(any(), query: captureAny(named: 'query')))
+              .captured
+              .single as Map;
+      expect(query['id'], '6');
+    });
+
+    test('une réponse sans id vaut échec', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true});
+
+      expect(await ds.submitLane(runId: 20, number: 1), 0);
+    });
+  });
+
+  group('deleteLane', () {
+    test('la suppression cible la place, pas la course', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true});
+
+      expect(await ds.deleteLane(6), isTrue);
+      verify(() => http.post(
+          'competition/reunion/creneau/course/place/6/delete',
+          query: any(named: 'query'))).called(1);
+    });
+  });
 }
