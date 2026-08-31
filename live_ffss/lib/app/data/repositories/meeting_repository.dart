@@ -1,7 +1,9 @@
 import 'package:intl/intl.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
 import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
 import 'package:live_ffss/app/data/dtos/run_dto.dart';
+import 'package:live_ffss/app/data/dtos/slot_dto.dart';
 import 'package:live_ffss/app/data/mappers/meeting_mapper.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
 
@@ -72,16 +74,16 @@ class MeetingRepositoryImpl implements MeetingRepository {
     // three-day competition can hold well over a hundred créneaux and there is
     // no bulk course route. Each créneau's own courses still page like any
     // FFSS list.
-    final slotIds = [
+    final slots = [
       for (final meeting in all)
-        for (final slot in meeting.slots) slot.id,
+        for (final slot in meeting.slots) slot,
     ];
     final runsBySlot = <int, List<RunDto>>{};
-    for (var i = 0; i < slotIds.length; i += _runsBatchSize) {
-      final batch = slotIds.skip(i).take(_runsBatchSize).toList();
+    for (var i = 0; i < slots.length; i += _runsBatchSize) {
+      final batch = slots.skip(i).take(_runsBatchSize).toList();
       final loaded = await Future.wait(batch.map(_getAllRuns));
       for (var j = 0; j < batch.length; j++) {
-        runsBySlot[batch[j]] = loaded[j];
+        runsBySlot[batch[j].id] = loaded[j];
       }
     }
 
@@ -96,18 +98,27 @@ class MeetingRepositoryImpl implements MeetingRepository {
   /// All courses of one créneau, paged the same way `getMeetings` pages
   /// réunions — FFSS serves this list 30 rows at a time when no window is
   /// asked for, and a créneau can hold more than one page of courses.
-  Future<List<RunDto>> _getAllRuns(int slotId) async {
+  ///
+  /// Falls back to the courses the réunion payload already carried when the
+  /// route refuses: `creneau/:id/course` has been answering `success: false`
+  /// for every créneau since 2026-08-31, and letting that surface would empty
+  /// the whole Programme tab over one unreadable créneau.
+  Future<List<RunDto>> _getAllRuns(SlotDto slot) async {
     final runs = <RunDto>[];
     var start = 0;
-    while (true) {
-      final batch = await _dataSource.getRuns(
-        slotId,
-        start: start,
-        length: _pageSize,
-      );
-      runs.addAll(batch);
-      if (batch.length < _pageSize) break;
-      start += _pageSize;
+    try {
+      while (true) {
+        final batch = await _dataSource.getRuns(
+          slot.id,
+          start: start,
+          length: _pageSize,
+        );
+        runs.addAll(batch);
+        if (batch.length < _pageSize) break;
+        start += _pageSize;
+      }
+    } on AppException {
+      return slot.runs;
     }
     return runs;
   }

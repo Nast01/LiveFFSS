@@ -40,6 +40,33 @@ HTTP 500 {"error":"Internal server error",
 
 La route existe (un GET dessus répond « Method not allowed. Must be one of: POST »), mais son gabarit d'URL ne déclare pas le paramètre que le gestionnaire attend. Aucun réglage côté application ne peut y remédier — **c'est à signaler à la FFSS**.
 
+### Vérification du 2026-08-31 : la route n'est toujours pas utilisable
+
+La fédération a livré un correctif. Il déplace la panne sans la lever, et il en
+ouvre une seconde.
+
+`POST competition/reunion/creneau/:creneau/course/submit` répond désormais :
+
+```
+HTTP 500 Course::setCreneau(): Argument #1 ($v) must be of type ?…\programme\Creneau,
+         …\competition\Evenement given, called in …/service/evenement/Course.php on line 181
+```
+
+`GET competition/reunion/creneau/:id/course`, qui n'avait jamais été signalé,
+échoue maintenant de la même façon :
+
+```
+{"success":false,"message":"filterByCreneau() only accepts arguments of type …\Creneau or Collection"}
+```
+
+Les deux routes résolvent l'id de créneau en `Evenement`. Vérifié avec et sans
+partie rattachée, sur créneau existant, et sur 150 compétitions dont aucune ne
+porte la moindre course. Aucune autre forme d'URL n'existe (toutes en 404).
+
+Effet de bord côté application : `getRuns` étant appelé pour chaque créneau,
+l'onglet Programme remontait l'erreur et se vidait entièrement. Le repository
+retombe désormais sur les courses portées par la réponse `reunion`.
+
 **Conséquence sur ce plan :** il couvre les étapes 1 à 3 de la spec — couche données, affichage en lecture, items manuels. L'étape 4 (planification des courses) et l'étape 5 (recalculs en cascade) attendent le correctif fédéral, puisqu'elles reposent entièrement sur `course/submit`. `RunDto` reste donc **non vérifié** : aucune course n'a pu être créée.
 
 ---

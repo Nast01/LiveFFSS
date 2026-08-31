@@ -46,14 +46,20 @@ class ApiEndpoints {
   static const String meetingSubmit = 'competition/:competition/reunion/submit';
   static const String meetingList = 'competition/:id/reunion';
   static const String meetingDelete = 'competition/reunion/:id/delete';
+  // Cassé côté FFSS au 2026-08-31, comme `runSubmit` : tout GET répond
+  // `success: false, filterByCreneau() only accepts arguments of type Creneau`.
+  // Le repository retombe sur les courses déjà portées par la réponse
+  // `reunion`, faute de quoi un seul créneau illisible viderait l'onglet.
   static const String runList = 'competition/reunion/creneau/:id/course';
   static const String slotSubmit =
       'competition/reunion/:reunion/creneau/submit';
   static const String slotDelete = 'competition/reunion/creneau/:id/delete';
-  // Cassé côté FFSS au 2026-08-29 : tout POST répond
-  // « Unknown named parameter $creneau ». Déclaré pour que la couche soit
-  // complète, mais rien ne doit l'appeler tant que la fédération n'a pas
-  // corrigé la route.
+  // Cassé côté FFSS. Au 2026-08-29 tout POST répondait « Unknown named
+  // parameter $creneau » ; le correctif fédéral du 2026-08-31 a déplacé la
+  // panne sans la lever — la route résout désormais l'id de créneau en
+  // `Evenement` et casse sur `Course::setCreneau()`. Déclaré pour que la
+  // couche soit complète, mais rien ne doit l'appeler tant que la fédération
+  // n'a pas corrigé la route.
   static const String runSubmit =
       'competition/reunion/creneau/:creneau/course/submit';
   static const String runDelete =

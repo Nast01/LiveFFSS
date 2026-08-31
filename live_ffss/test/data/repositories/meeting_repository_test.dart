@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
 import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
 import 'package:live_ffss/app/data/dtos/run_dto.dart';
@@ -221,5 +222,54 @@ void main() {
     expect(meetings.single.slots.single.runs, hasLength(101));
     verify(() => ds.getRuns(9, start: 0, length: 100)).called(1);
     verify(() => ds.getRuns(9, start: 100, length: 100)).called(1);
+  });
+
+  // La route « courses d'un créneau » est cassée côté FFSS : elle répond
+  // success:false quel que soit le créneau. Laisser remonter l'erreur vide
+  // l'onglet Programme entier, alors que la réunion transporte déjà ses
+  // courses. Un créneau illisible ne doit coûter que ses propres courses.
+  test('un créneau dont les courses sont illisibles garde celles de la réunion',
+      () async {
+    when(() => ds.getMeetings(1451, start: 0, length: 100))
+        .thenAnswer((_) async => [
+              makeDto(1).copyWith(slots: [
+                SlotDto(
+                  id: 9,
+                  name: 'C9',
+                  beginHour: '08:00',
+                  endHour: '08:10',
+                  runs: [makeRunDto(9)],
+                ),
+              ]),
+            ]);
+    when(() => ds.getRuns(9, start: 0, length: 100))
+        .thenThrow(const ApiException('filterByCreneau() only accepts...'));
+
+    final meetings = await repo.getMeetings(1451);
+
+    expect(meetings.single.slots.single.runs.single.name, 'run-of-slot-9');
+  });
+
+  test('l échec d un créneau n emporte pas les courses de ses voisins',
+      () async {
+    when(() => ds.getMeetings(1451, start: 0, length: 100))
+        .thenAnswer((_) async => [
+              makeDto(1).copyWith(slots: [
+                const SlotDto(
+                    id: 1, name: 'C1', beginHour: '08:00', endHour: '08:10'),
+                const SlotDto(
+                    id: 2, name: 'C2', beginHour: '08:10', endHour: '08:20'),
+              ]),
+            ]);
+    when(() => ds.getRuns(1, start: 0, length: 100))
+        .thenThrow(const ApiException('cassé'));
+    when(() => ds.getRuns(2, start: 0, length: 100))
+        .thenAnswer((_) async => [makeRunDto(2)]);
+
+    final slots = (await repo.getMeetings(1451)).single.slots;
+
+    expect(slots.firstWhere((s) => s.id == 1).runs, isEmpty);
+    expect(slots.firstWhere((s) => s.id == 2).runs.single.name,
+        'run-of-slot-2');
   });
 }
