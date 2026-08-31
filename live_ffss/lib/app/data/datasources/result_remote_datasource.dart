@@ -1,7 +1,7 @@
-import 'package:live_ffss/app/data/dtos/live_result_dto.dart';
+import 'package:live_ffss/app/data/dtos/lane_dto.dart';
 
 abstract class ResultRemoteDataSource {
-  Future<List<LiveResultDto>> getRunResults(int runId);
+  Future<List<LaneDto>> getRunResults(int runId);
   Future<bool> updateBeachRankings(int runId, Map<int, int> rankings);
   Future<bool> updateSwimmingTimes(int runId, Map<int, List<String>> times);
   Future<bool> withdrawAthlete({required int athleteId, required int runId});
@@ -11,7 +11,7 @@ class ResultRemoteDataSourceImpl implements ResultRemoteDataSource {
   ResultRemoteDataSourceImpl();
 
   @override
-  Future<List<LiveResultDto>> getRunResults(int runId) {
+  Future<List<LaneDto>> getRunResults(int runId) {
     throw UnimplementedError(
       'getRunResults: backend endpoint not documented. '
       'Legacy SlotController._loadRunResultsFromApi was a TODO stub. '

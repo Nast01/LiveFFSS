@@ -40,8 +40,8 @@ mixin _$RunDto {
   String get endTime => throw _privateConstructorUsedError;
   @JsonKey(name: 'serie')
   HeatDto? get heat => throw _privateConstructorUsedError;
-  @JsonKey(name: 'liveResults')
-  List<LiveResultDto> get liveResults => throw _privateConstructorUsedError;
+  @JsonKey(name: 'places')
+  List<LaneDto> get lanes => throw _privateConstructorUsedError;
 
   /// Serializes this RunDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -68,7 +68,7 @@ abstract class $RunDtoCopyWith<$Res> {
       @JsonKey(name: 'debut') String beginTime,
       @JsonKey(name: 'fin') String endTime,
       @JsonKey(name: 'serie') HeatDto? heat,
-      @JsonKey(name: 'liveResults') List<LiveResultDto> liveResults});
+      @JsonKey(name: 'places') List<LaneDto> lanes});
 
   $HeatDtoCopyWith<$Res>? get heat;
 }
@@ -98,7 +98,7 @@ class _$RunDtoCopyWithImpl<$Res, $Val extends RunDto>
     Object? beginTime = null,
     Object? endTime = null,
     Object? heat = freezed,
-    Object? liveResults = null,
+    Object? lanes = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -141,10 +141,10 @@ class _$RunDtoCopyWithImpl<$Res, $Val extends RunDto>
           ? _value.heat
           : heat // ignore: cast_nullable_to_non_nullable
               as HeatDto?,
-      liveResults: null == liveResults
-          ? _value.liveResults
-          : liveResults // ignore: cast_nullable_to_non_nullable
-              as List<LiveResultDto>,
+      lanes: null == lanes
+          ? _value.lanes
+          : lanes // ignore: cast_nullable_to_non_nullable
+              as List<LaneDto>,
     ) as $Val);
   }
 
@@ -181,7 +181,7 @@ abstract class _$$RunDtoImplCopyWith<$Res> implements $RunDtoCopyWith<$Res> {
       @JsonKey(name: 'debut') String beginTime,
       @JsonKey(name: 'fin') String endTime,
       @JsonKey(name: 'serie') HeatDto? heat,
-      @JsonKey(name: 'liveResults') List<LiveResultDto> liveResults});
+      @JsonKey(name: 'places') List<LaneDto> lanes});
 
   @override
   $HeatDtoCopyWith<$Res>? get heat;
@@ -210,7 +210,7 @@ class __$$RunDtoImplCopyWithImpl<$Res>
     Object? beginTime = null,
     Object? endTime = null,
     Object? heat = freezed,
-    Object? liveResults = null,
+    Object? lanes = null,
   }) {
     return _then(_$RunDtoImpl(
       id: null == id
@@ -253,10 +253,10 @@ class __$$RunDtoImplCopyWithImpl<$Res>
           ? _value.heat
           : heat // ignore: cast_nullable_to_non_nullable
               as HeatDto?,
-      liveResults: null == liveResults
-          ? _value._liveResults
-          : liveResults // ignore: cast_nullable_to_non_nullable
-              as List<LiveResultDto>,
+      lanes: null == lanes
+          ? _value._lanes
+          : lanes // ignore: cast_nullable_to_non_nullable
+              as List<LaneDto>,
     ));
   }
 }
@@ -275,9 +275,8 @@ class _$RunDtoImpl implements _RunDto {
       @JsonKey(name: 'debut') required this.beginTime,
       @JsonKey(name: 'fin') required this.endTime,
       @JsonKey(name: 'serie') this.heat,
-      @JsonKey(name: 'liveResults')
-      final List<LiveResultDto> liveResults = const <LiveResultDto>[]})
-      : _liveResults = liveResults;
+      @JsonKey(name: 'places') final List<LaneDto> lanes = const <LaneDto>[]})
+      : _lanes = lanes;
 
   factory _$RunDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$RunDtoImplFromJson(json);
@@ -312,18 +311,18 @@ class _$RunDtoImpl implements _RunDto {
   @override
   @JsonKey(name: 'serie')
   final HeatDto? heat;
-  final List<LiveResultDto> _liveResults;
+  final List<LaneDto> _lanes;
   @override
-  @JsonKey(name: 'liveResults')
-  List<LiveResultDto> get liveResults {
-    if (_liveResults is EqualUnmodifiableListView) return _liveResults;
+  @JsonKey(name: 'places')
+  List<LaneDto> get lanes {
+    if (_lanes is EqualUnmodifiableListView) return _lanes;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_liveResults);
+    return EqualUnmodifiableListView(_lanes);
   }
 
   @override
   String toString() {
-    return 'RunDto(id: $id, name: $name, label: $label, fullLabel: $fullLabel, status: $status, statusLabel: $statusLabel, site: $site, beginTime: $beginTime, endTime: $endTime, heat: $heat, liveResults: $liveResults)';
+    return 'RunDto(id: $id, name: $name, label: $label, fullLabel: $fullLabel, status: $status, statusLabel: $statusLabel, site: $site, beginTime: $beginTime, endTime: $endTime, heat: $heat, lanes: $lanes)';
   }
 
   @override
@@ -344,8 +343,7 @@ class _$RunDtoImpl implements _RunDto {
                 other.beginTime == beginTime) &&
             (identical(other.endTime, endTime) || other.endTime == endTime) &&
             (identical(other.heat, heat) || other.heat == heat) &&
-            const DeepCollectionEquality()
-                .equals(other._liveResults, _liveResults));
+            const DeepCollectionEquality().equals(other._lanes, _lanes));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -362,7 +360,7 @@ class _$RunDtoImpl implements _RunDto {
       beginTime,
       endTime,
       heat,
-      const DeepCollectionEquality().hash(_liveResults));
+      const DeepCollectionEquality().hash(_lanes));
 
   /// Create a copy of RunDto
   /// with the given fields replaced by the non-null parameter values.
@@ -392,8 +390,7 @@ abstract class _RunDto implements RunDto {
       @JsonKey(name: 'debut') required final String beginTime,
       @JsonKey(name: 'fin') required final String endTime,
       @JsonKey(name: 'serie') final HeatDto? heat,
-      @JsonKey(name: 'liveResults')
-      final List<LiveResultDto> liveResults}) = _$RunDtoImpl;
+      @JsonKey(name: 'places') final List<LaneDto> lanes}) = _$RunDtoImpl;
 
   factory _RunDto.fromJson(Map<String, dynamic> json) = _$RunDtoImpl.fromJson;
 
@@ -428,8 +425,8 @@ abstract class _RunDto implements RunDto {
   @JsonKey(name: 'serie')
   HeatDto? get heat;
   @override
-  @JsonKey(name: 'liveResults')
-  List<LiveResultDto> get liveResults;
+  @JsonKey(name: 'places')
+  List<LaneDto> get lanes;
 
   /// Create a copy of RunDto
   /// with the given fields replaced by the non-null parameter values.

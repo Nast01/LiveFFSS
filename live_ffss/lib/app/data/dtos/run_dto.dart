@@ -1,7 +1,7 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss/app/data/dtos/heat_dto.dart';
-import 'package:live_ffss/app/data/dtos/live_result_dto.dart';
+import 'package:live_ffss/app/data/dtos/lane_dto.dart';
 
 part 'run_dto.freezed.dart';
 part 'run_dto.g.dart';
@@ -11,11 +11,9 @@ part 'run_dto.g.dart';
 /// `fullLabel`, `statut`, `statutLabel`, `site`, `debut`, `fin` et `serie`
 /// correspondent.
 ///
-/// Une seule ne correspond pas : les résultats arrivent sous `places`, pas
-/// `liveResults`. Le champ ci-dessous reste donc toujours vide. La clé n'est
-/// pas corrigée tant que la forme d'un élément de `places` n'a pas été
-/// observée peuplée — la renommer à l'aveugle échangerait un champ mort
-/// contre un plantage au parsing.
+/// `places` a été vérifié à son tour le 2026-09-01, sur la première place
+/// jamais créée : voir [LaneDto], dont les clés ne sont celles ni de la
+/// documentation ni de l'ancien `LiveResultDto`.
 @freezed
 class RunDto with _$RunDto {
   const factory RunDto({
@@ -29,7 +27,7 @@ class RunDto with _$RunDto {
     @JsonKey(name: 'debut') required String beginTime,
     @JsonKey(name: 'fin') required String endTime,
     @JsonKey(name: 'serie') HeatDto? heat,
-    @JsonKey(name: 'liveResults') @Default(<LiveResultDto>[]) List<LiveResultDto> liveResults,
+    @JsonKey(name: 'places') @Default(<LaneDto>[]) List<LaneDto> lanes,
   }) = _RunDto;
 
   factory RunDto.fromJson(Map<String, dynamic> json) => _$RunDtoFromJson(json);

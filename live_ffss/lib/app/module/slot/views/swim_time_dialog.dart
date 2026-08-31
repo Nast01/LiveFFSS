@@ -57,7 +57,8 @@ class SwimmingTimesDialog extends GetView<SlotController> {
                 itemCount: controller.currentRunResults.length,
                 itemBuilder: (context, index) {
                   final result = controller.currentRunResults[index];
-                  final laneNumber = int.tryParse(result.number) ?? (index + 1);
+                  final laneNumber =
+                      result.number == 0 ? index + 1 : result.number;
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
@@ -82,7 +83,7 @@ class SwimmingTimesDialog extends GetView<SlotController> {
                               ),
                               child: Center(
                                 child: Text(
-                                  result.number,
+                                  '${result.number}',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.blue,
@@ -100,7 +101,8 @@ class SwimmingTimesDialog extends GetView<SlotController> {
                                   if (result.entry?.athletes.isNotEmpty == true)
                                     Text(
                                       result.entry!.athletes
-                                          .map((a) => '${a.firstName} ${a.lastName}')
+                                          .map((a) =>
+                                              '${a.firstName} ${a.lastName}')
                                           .join(' / '),
                                       style: const TextStyle(
                                         fontSize: 16,

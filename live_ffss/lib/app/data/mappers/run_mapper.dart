@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/dtos/run_dto.dart';
 import 'package:live_ffss/app/data/mappers/heat_mapper.dart';
-import 'package:live_ffss/app/data/mappers/live_result_mapper.dart';
+import 'package:live_ffss/app/data/mappers/lane_mapper.dart';
 import 'package:live_ffss/app/domain/models/run.dart';
 
 final _timeFormat = DateFormat('HH:mm');
@@ -32,6 +32,6 @@ extension RunMapper on RunDto {
         beginTime: _parseTime(beginTime),
         endTime: _parseTime(endTime),
         heat: heat?.toDomain(),
-        liveResults: liveResults.map((lr) => lr.toDomain()).toList(),
+        lanes: lanes.map((lane) => lane.toDomain()).toList(),
       );
 }

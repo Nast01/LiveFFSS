@@ -1,9 +1,9 @@
 import 'package:live_ffss/app/data/datasources/result_remote_datasource.dart';
-import 'package:live_ffss/app/data/mappers/live_result_mapper.dart';
-import 'package:live_ffss/app/domain/models/live_result.dart';
+import 'package:live_ffss/app/data/mappers/lane_mapper.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
 
 abstract class ResultRepository {
-  Future<List<LiveResult>> getRunResults(int runId);
+  Future<List<Lane>> getRunResults(int runId);
   Future<bool> updateBeachRankings(int runId, Map<int, int> rankings);
   Future<bool> updateSwimmingTimes(int runId, Map<int, List<String>> times);
   Future<bool> withdrawAthlete({required int athleteId, required int runId});
@@ -14,7 +14,7 @@ class ResultRepositoryImpl implements ResultRepository {
   final ResultRemoteDataSource _dataSource;
 
   @override
-  Future<List<LiveResult>> getRunResults(int runId) async {
+  Future<List<Lane>> getRunResults(int runId) async {
     // TODO(post-batch-6): wire to FFSS backend once endpoint is documented.
     // Legacy code called _apiService.getRunResults() which never existed.
     final dtos = await _dataSource.getRunResults(runId);

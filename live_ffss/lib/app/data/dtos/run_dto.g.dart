@@ -19,10 +19,10 @@ _$RunDtoImpl _$$RunDtoImplFromJson(Map<String, dynamic> json) => _$RunDtoImpl(
       heat: json['serie'] == null
           ? null
           : HeatDto.fromJson(json['serie'] as Map<String, dynamic>),
-      liveResults: (json['liveResults'] as List<dynamic>?)
-              ?.map((e) => LiveResultDto.fromJson(e as Map<String, dynamic>))
+      lanes: (json['places'] as List<dynamic>?)
+              ?.map((e) => LaneDto.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          const <LiveResultDto>[],
+          const <LaneDto>[],
     );
 
 Map<String, dynamic> _$$RunDtoImplToJson(_$RunDtoImpl instance) =>
@@ -37,5 +37,5 @@ Map<String, dynamic> _$$RunDtoImplToJson(_$RunDtoImpl instance) =>
       'debut': instance.beginTime,
       'fin': instance.endTime,
       'serie': instance.heat,
-      'liveResults': instance.liveResults,
+      'places': instance.lanes,
     };

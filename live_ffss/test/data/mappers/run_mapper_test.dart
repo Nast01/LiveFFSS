@@ -77,4 +77,45 @@ void main() {
 
     expect(dto.toDomain().fullLabel, 'Surfski - Homme - Demie 1');
   });
+
+  // Payload réel d'une course (compétition 1451, course 20) : ses places
+  // arrivent sous `places`, imbriquées dans la course elle-même. Rien à
+  // aller chercher ailleurs quand la course vient du site.
+  test('les places de la course deviennent ses couloirs', () {
+    final run = RunDto.fromJson(const {
+      'id': 20,
+      'Nom': 'Demie 1',
+      'label': 'Demie 1',
+      'fullLabel': 'Demie 1',
+      'statut': 0,
+      'statutLabel': 'En attente',
+      'site': 'OCEAN 1',
+      'debut': '08:00',
+      'fin': '08:10',
+      'places': [
+        {'id': 6, 'Numero': 1, 'label': 'Place 1'},
+        {'id': 7, 'Numero': 2, 'label': 'Place 2'},
+      ],
+    }).toDomain();
+
+    expect(run.lanes.map((l) => l.number), [1, 2]);
+    expect(run.lanes.first.id, 6);
+    expect(run.lanes.first.label, 'Place 1');
+  });
+
+  test('une course sans place a une liste vide, pas une erreur', () {
+    final run = RunDto.fromJson(const {
+      'id': 21,
+      'Nom': 'Demie 2',
+      'label': '',
+      'fullLabel': '',
+      'statut': 0,
+      'statutLabel': '',
+      'site': '',
+      'debut': '08:10',
+      'fin': '08:20',
+    }).toDomain();
+
+    expect(run.lanes, isEmpty);
+  });
 }

@@ -30,7 +30,10 @@ mixin _$Run {
   DateTime get beginTime => throw _privateConstructorUsedError;
   DateTime get endTime => throw _privateConstructorUsedError;
   Heat? get heat => throw _privateConstructorUsedError;
-  List<LiveResult> get liveResults => throw _privateConstructorUsedError;
+
+  /// The course's numbered spots, as many as its round declares in
+  /// `RaceFormatDetail.spotsPerRace`. Empty until they are created.
+  List<Lane> get lanes => throw _privateConstructorUsedError;
 
   /// Serializes this Run to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -57,7 +60,7 @@ abstract class $RunCopyWith<$Res> {
       DateTime beginTime,
       DateTime endTime,
       Heat? heat,
-      List<LiveResult> liveResults});
+      List<Lane> lanes});
 
   $HeatCopyWith<$Res>? get heat;
 }
@@ -86,7 +89,7 @@ class _$RunCopyWithImpl<$Res, $Val extends Run> implements $RunCopyWith<$Res> {
     Object? beginTime = null,
     Object? endTime = null,
     Object? heat = freezed,
-    Object? liveResults = null,
+    Object? lanes = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -129,10 +132,10 @@ class _$RunCopyWithImpl<$Res, $Val extends Run> implements $RunCopyWith<$Res> {
           ? _value.heat
           : heat // ignore: cast_nullable_to_non_nullable
               as Heat?,
-      liveResults: null == liveResults
-          ? _value.liveResults
-          : liveResults // ignore: cast_nullable_to_non_nullable
-              as List<LiveResult>,
+      lanes: null == lanes
+          ? _value.lanes
+          : lanes // ignore: cast_nullable_to_non_nullable
+              as List<Lane>,
     ) as $Val);
   }
 
@@ -168,7 +171,7 @@ abstract class _$$RunImplCopyWith<$Res> implements $RunCopyWith<$Res> {
       DateTime beginTime,
       DateTime endTime,
       Heat? heat,
-      List<LiveResult> liveResults});
+      List<Lane> lanes});
 
   @override
   $HeatCopyWith<$Res>? get heat;
@@ -195,7 +198,7 @@ class __$$RunImplCopyWithImpl<$Res> extends _$RunCopyWithImpl<$Res, _$RunImpl>
     Object? beginTime = null,
     Object? endTime = null,
     Object? heat = freezed,
-    Object? liveResults = null,
+    Object? lanes = null,
   }) {
     return _then(_$RunImpl(
       id: null == id
@@ -238,10 +241,10 @@ class __$$RunImplCopyWithImpl<$Res> extends _$RunCopyWithImpl<$Res, _$RunImpl>
           ? _value.heat
           : heat // ignore: cast_nullable_to_non_nullable
               as Heat?,
-      liveResults: null == liveResults
-          ? _value._liveResults
-          : liveResults // ignore: cast_nullable_to_non_nullable
-              as List<LiveResult>,
+      lanes: null == lanes
+          ? _value._lanes
+          : lanes // ignore: cast_nullable_to_non_nullable
+              as List<Lane>,
     ));
   }
 }
@@ -260,8 +263,8 @@ class _$RunImpl implements _Run {
       required this.beginTime,
       required this.endTime,
       this.heat,
-      final List<LiveResult> liveResults = const <LiveResult>[]})
-      : _liveResults = liveResults;
+      final List<Lane> lanes = const <Lane>[]})
+      : _lanes = lanes;
 
   factory _$RunImpl.fromJson(Map<String, dynamic> json) =>
       _$$RunImplFromJson(json);
@@ -286,18 +289,24 @@ class _$RunImpl implements _Run {
   final DateTime endTime;
   @override
   final Heat? heat;
-  final List<LiveResult> _liveResults;
+
+  /// The course's numbered spots, as many as its round declares in
+  /// `RaceFormatDetail.spotsPerRace`. Empty until they are created.
+  final List<Lane> _lanes;
+
+  /// The course's numbered spots, as many as its round declares in
+  /// `RaceFormatDetail.spotsPerRace`. Empty until they are created.
   @override
   @JsonKey()
-  List<LiveResult> get liveResults {
-    if (_liveResults is EqualUnmodifiableListView) return _liveResults;
+  List<Lane> get lanes {
+    if (_lanes is EqualUnmodifiableListView) return _lanes;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_liveResults);
+    return EqualUnmodifiableListView(_lanes);
   }
 
   @override
   String toString() {
-    return 'Run(id: $id, name: $name, label: $label, fullLabel: $fullLabel, status: $status, statusLabel: $statusLabel, site: $site, beginTime: $beginTime, endTime: $endTime, heat: $heat, liveResults: $liveResults)';
+    return 'Run(id: $id, name: $name, label: $label, fullLabel: $fullLabel, status: $status, statusLabel: $statusLabel, site: $site, beginTime: $beginTime, endTime: $endTime, heat: $heat, lanes: $lanes)';
   }
 
   @override
@@ -318,8 +327,7 @@ class _$RunImpl implements _Run {
                 other.beginTime == beginTime) &&
             (identical(other.endTime, endTime) || other.endTime == endTime) &&
             (identical(other.heat, heat) || other.heat == heat) &&
-            const DeepCollectionEquality()
-                .equals(other._liveResults, _liveResults));
+            const DeepCollectionEquality().equals(other._lanes, _lanes));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -336,7 +344,7 @@ class _$RunImpl implements _Run {
       beginTime,
       endTime,
       heat,
-      const DeepCollectionEquality().hash(_liveResults));
+      const DeepCollectionEquality().hash(_lanes));
 
   /// Create a copy of Run
   /// with the given fields replaced by the non-null parameter values.
@@ -366,7 +374,7 @@ abstract class _Run implements Run {
       required final DateTime beginTime,
       required final DateTime endTime,
       final Heat? heat,
-      final List<LiveResult> liveResults}) = _$RunImpl;
+      final List<Lane> lanes}) = _$RunImpl;
 
   factory _Run.fromJson(Map<String, dynamic> json) = _$RunImpl.fromJson;
 
@@ -390,8 +398,11 @@ abstract class _Run implements Run {
   DateTime get endTime;
   @override
   Heat? get heat;
+
+  /// The course's numbered spots, as many as its round declares in
+  /// `RaceFormatDetail.spotsPerRace`. Empty until they are created.
   @override
-  List<LiveResult> get liveResults;
+  List<Lane> get lanes;
 
   /// Create a copy of Run
   /// with the given fields replaced by the non-null parameter values.

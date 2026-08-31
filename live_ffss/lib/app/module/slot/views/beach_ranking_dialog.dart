@@ -58,7 +58,7 @@ class BeachRankingDialog extends GetView<SlotController> {
                     itemBuilder: (context, index) {
                       final result = controller.currentRunResults[index];
                       final laneNumber =
-                          int.tryParse(result.number) ?? (index + 1);
+                          result.number == 0 ? index + 1 : result.number;
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
@@ -80,7 +80,7 @@ class BeachRankingDialog extends GetView<SlotController> {
                               ),
                               child: Center(
                                 child: Text(
-                                  result.number,
+                                  '${result.number}',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.blue,
@@ -98,7 +98,8 @@ class BeachRankingDialog extends GetView<SlotController> {
                                   if (result.entry?.athletes.isNotEmpty == true)
                                     Text(
                                       result.entry!.athletes
-                                          .map((a) => '${a.firstName} ${a.lastName}')
+                                          .map((a) =>
+                                              '${a.firstName} ${a.lastName}')
                                           .join(' / '),
                                       style: const TextStyle(
                                         fontSize: 16,

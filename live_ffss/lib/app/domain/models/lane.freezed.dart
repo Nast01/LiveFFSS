@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'live_result.dart';
+part of 'lane.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -14,56 +14,56 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-LiveResult _$LiveResultFromJson(Map<String, dynamic> json) {
-  return _LiveResult.fromJson(json);
+Lane _$LaneFromJson(Map<String, dynamic> json) {
+  return _Lane.fromJson(json);
 }
 
 /// @nodoc
-mixin _$LiveResult {
+mixin _$Lane {
   int get id => throw _privateConstructorUsedError;
-  String get number => throw _privateConstructorUsedError;
+  int get number => throw _privateConstructorUsedError;
+  String get label => throw _privateConstructorUsedError;
   Entry? get entry => throw _privateConstructorUsedError;
   Result? get result => throw _privateConstructorUsedError;
 
-  /// Serializes this LiveResult to a JSON map.
+  /// Serializes this Lane to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of LiveResult
+  /// Create a copy of Lane
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $LiveResultCopyWith<LiveResult> get copyWith =>
-      throw _privateConstructorUsedError;
+  $LaneCopyWith<Lane> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $LiveResultCopyWith<$Res> {
-  factory $LiveResultCopyWith(
-          LiveResult value, $Res Function(LiveResult) then) =
-      _$LiveResultCopyWithImpl<$Res, LiveResult>;
+abstract class $LaneCopyWith<$Res> {
+  factory $LaneCopyWith(Lane value, $Res Function(Lane) then) =
+      _$LaneCopyWithImpl<$Res, Lane>;
   @useResult
-  $Res call({int id, String number, Entry? entry, Result? result});
+  $Res call({int id, int number, String label, Entry? entry, Result? result});
 
   $EntryCopyWith<$Res>? get entry;
   $ResultCopyWith<$Res>? get result;
 }
 
 /// @nodoc
-class _$LiveResultCopyWithImpl<$Res, $Val extends LiveResult>
-    implements $LiveResultCopyWith<$Res> {
-  _$LiveResultCopyWithImpl(this._value, this._then);
+class _$LaneCopyWithImpl<$Res, $Val extends Lane>
+    implements $LaneCopyWith<$Res> {
+  _$LaneCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of LiveResult
+  /// Create a copy of Lane
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? id = null,
     Object? number = null,
+    Object? label = null,
     Object? entry = freezed,
     Object? result = freezed,
   }) {
@@ -75,6 +75,10 @@ class _$LiveResultCopyWithImpl<$Res, $Val extends LiveResult>
       number: null == number
           ? _value.number
           : number // ignore: cast_nullable_to_non_nullable
+              as int,
+      label: null == label
+          ? _value.label
+          : label // ignore: cast_nullable_to_non_nullable
               as String,
       entry: freezed == entry
           ? _value.entry
@@ -87,7 +91,7 @@ class _$LiveResultCopyWithImpl<$Res, $Val extends LiveResult>
     ) as $Val);
   }
 
-  /// Create a copy of LiveResult
+  /// Create a copy of Lane
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -101,7 +105,7 @@ class _$LiveResultCopyWithImpl<$Res, $Val extends LiveResult>
     });
   }
 
-  /// Create a copy of LiveResult
+  /// Create a copy of Lane
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -117,14 +121,13 @@ class _$LiveResultCopyWithImpl<$Res, $Val extends LiveResult>
 }
 
 /// @nodoc
-abstract class _$$LiveResultImplCopyWith<$Res>
-    implements $LiveResultCopyWith<$Res> {
-  factory _$$LiveResultImplCopyWith(
-          _$LiveResultImpl value, $Res Function(_$LiveResultImpl) then) =
-      __$$LiveResultImplCopyWithImpl<$Res>;
+abstract class _$$LaneImplCopyWith<$Res> implements $LaneCopyWith<$Res> {
+  factory _$$LaneImplCopyWith(
+          _$LaneImpl value, $Res Function(_$LaneImpl) then) =
+      __$$LaneImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id, String number, Entry? entry, Result? result});
+  $Res call({int id, int number, String label, Entry? entry, Result? result});
 
   @override
   $EntryCopyWith<$Res>? get entry;
@@ -133,24 +136,24 @@ abstract class _$$LiveResultImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$LiveResultImplCopyWithImpl<$Res>
-    extends _$LiveResultCopyWithImpl<$Res, _$LiveResultImpl>
-    implements _$$LiveResultImplCopyWith<$Res> {
-  __$$LiveResultImplCopyWithImpl(
-      _$LiveResultImpl _value, $Res Function(_$LiveResultImpl) _then)
+class __$$LaneImplCopyWithImpl<$Res>
+    extends _$LaneCopyWithImpl<$Res, _$LaneImpl>
+    implements _$$LaneImplCopyWith<$Res> {
+  __$$LaneImplCopyWithImpl(_$LaneImpl _value, $Res Function(_$LaneImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of LiveResult
+  /// Create a copy of Lane
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? id = null,
     Object? number = null,
+    Object? label = null,
     Object? entry = freezed,
     Object? result = freezed,
   }) {
-    return _then(_$LiveResultImpl(
+    return _then(_$LaneImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -158,6 +161,10 @@ class __$$LiveResultImplCopyWithImpl<$Res>
       number: null == number
           ? _value.number
           : number // ignore: cast_nullable_to_non_nullable
+              as int,
+      label: null == label
+          ? _value.label
+          : label // ignore: cast_nullable_to_non_nullable
               as String,
       entry: freezed == entry
           ? _value.entry
@@ -173,18 +180,25 @@ class __$$LiveResultImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$LiveResultImpl implements _LiveResult {
-  const _$LiveResultImpl(
-      {required this.id, this.number = '', this.entry, this.result});
+class _$LaneImpl implements _Lane {
+  const _$LaneImpl(
+      {required this.id,
+      this.number = 0,
+      this.label = '',
+      this.entry,
+      this.result});
 
-  factory _$LiveResultImpl.fromJson(Map<String, dynamic> json) =>
-      _$$LiveResultImplFromJson(json);
+  factory _$LaneImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LaneImplFromJson(json);
 
   @override
   final int id;
   @override
   @JsonKey()
-  final String number;
+  final int number;
+  @override
+  @JsonKey()
+  final String label;
   @override
   final Entry? entry;
   @override
@@ -192,63 +206,67 @@ class _$LiveResultImpl implements _LiveResult {
 
   @override
   String toString() {
-    return 'LiveResult(id: $id, number: $number, entry: $entry, result: $result)';
+    return 'Lane(id: $id, number: $number, label: $label, entry: $entry, result: $result)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$LiveResultImpl &&
+            other is _$LaneImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.number, number) || other.number == number) &&
+            (identical(other.label, label) || other.label == label) &&
             (identical(other.entry, entry) || other.entry == entry) &&
             (identical(other.result, result) || other.result == result));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, number, entry, result);
+  int get hashCode =>
+      Object.hash(runtimeType, id, number, label, entry, result);
 
-  /// Create a copy of LiveResult
+  /// Create a copy of Lane
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$LiveResultImplCopyWith<_$LiveResultImpl> get copyWith =>
-      __$$LiveResultImplCopyWithImpl<_$LiveResultImpl>(this, _$identity);
+  _$$LaneImplCopyWith<_$LaneImpl> get copyWith =>
+      __$$LaneImplCopyWithImpl<_$LaneImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$LiveResultImplToJson(
+    return _$$LaneImplToJson(
       this,
     );
   }
 }
 
-abstract class _LiveResult implements LiveResult {
-  const factory _LiveResult(
+abstract class _Lane implements Lane {
+  const factory _Lane(
       {required final int id,
-      final String number,
+      final int number,
+      final String label,
       final Entry? entry,
-      final Result? result}) = _$LiveResultImpl;
+      final Result? result}) = _$LaneImpl;
 
-  factory _LiveResult.fromJson(Map<String, dynamic> json) =
-      _$LiveResultImpl.fromJson;
+  factory _Lane.fromJson(Map<String, dynamic> json) = _$LaneImpl.fromJson;
 
   @override
   int get id;
   @override
-  String get number;
+  int get number;
+  @override
+  String get label;
   @override
   Entry? get entry;
   @override
   Result? get result;
 
-  /// Create a copy of LiveResult
+  /// Create a copy of Lane
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$LiveResultImplCopyWith<_$LiveResultImpl> get copyWith =>
+  _$$LaneImplCopyWith<_$LaneImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -19,10 +19,10 @@ _$RunImpl _$$RunImplFromJson(Map<String, dynamic> json) => _$RunImpl(
       heat: json['heat'] == null
           ? null
           : Heat.fromJson(json['heat'] as Map<String, dynamic>),
-      liveResults: (json['liveResults'] as List<dynamic>?)
-              ?.map((e) => LiveResult.fromJson(e as Map<String, dynamic>))
+      lanes: (json['lanes'] as List<dynamic>?)
+              ?.map((e) => Lane.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          const <LiveResult>[],
+          const <Lane>[],
     );
 
 Map<String, dynamic> _$$RunImplToJson(_$RunImpl instance) => <String, dynamic>{
@@ -36,7 +36,7 @@ Map<String, dynamic> _$$RunImplToJson(_$RunImpl instance) => <String, dynamic>{
       'beginTime': instance.beginTime.toIso8601String(),
       'endTime': instance.endTime.toIso8601String(),
       'heat': instance.heat,
-      'liveResults': instance.liveResults,
+      'lanes': instance.lanes,
     };
 
 const _$RunStatusEnumMap = {

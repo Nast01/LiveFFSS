@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss/app/domain/models/heat.dart';
-import 'package:live_ffss/app/domain/models/live_result.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
 
 part 'run.freezed.dart';
 part 'run.g.dart';
@@ -20,7 +20,9 @@ class Run with _$Run {
     required DateTime beginTime,
     required DateTime endTime,
     Heat? heat,
-    @Default(<LiveResult>[]) List<LiveResult> liveResults,
+    /// The course's numbered spots, as many as its round declares in
+    /// `RaceFormatDetail.spotsPerRace`. Empty until they are created.
+    @Default(<Lane>[]) List<Lane> lanes,
   }) = _Run;
 
   factory Run.fromJson(Map<String, dynamic> json) => _$RunFromJson(json);

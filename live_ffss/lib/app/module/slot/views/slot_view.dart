@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
-import 'package:live_ffss/app/domain/models/live_result.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
 import 'package:live_ffss/app/domain/models/run.dart';
 import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/module/slot/controllers/slot_controller.dart';
@@ -484,7 +484,7 @@ class SlotView extends GetView<SlotController> {
     });
   }
 
-  Widget _buildResultCard(LiveResult result, int position) {
+  Widget _buildResultCard(Lane result, int position) {
     final hasResult = result.result != null;
     final isDisqualified = result.isDisqualified;
 
@@ -515,7 +515,7 @@ class SlotView extends GetView<SlotController> {
                 ),
                 child: Center(
                   child: Text(
-                    result.number,
+                    '${result.number}',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

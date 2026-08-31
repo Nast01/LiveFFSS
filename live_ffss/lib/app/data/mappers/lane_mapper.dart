@@ -1,12 +1,13 @@
-import 'package:live_ffss/app/data/dtos/live_result_dto.dart';
+import 'package:live_ffss/app/data/dtos/lane_dto.dart';
 import 'package:live_ffss/app/data/mappers/entry_mapper.dart';
 import 'package:live_ffss/app/data/mappers/result_mapper.dart';
-import 'package:live_ffss/app/domain/models/live_result.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
 
-extension LiveResultMapper on LiveResultDto {
-  LiveResult toDomain() => LiveResult(
+extension LaneMapper on LaneDto {
+  Lane toDomain() => Lane(
         id: id,
         number: number,
+        label: label,
         entry: entry?.toDomain(),
         result: result?.toDomain(),
       );

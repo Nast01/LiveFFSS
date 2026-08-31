@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/result_repository.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
-import 'package:live_ffss/app/domain/models/live_result.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
 import 'package:live_ffss/app/domain/models/run.dart';
 import 'package:live_ffss/app/domain/models/slot.dart';
 
@@ -23,15 +23,13 @@ class SlotController extends GetxController
   final RxInt currentBottomTabIndex = 0.obs;
 
   // Keyed by runId — was list-index in legacy (spec bug #8 fix).
-  final RxMap<int, List<LiveResult>> runResults =
-      <int, List<LiveResult>>{}.obs;
+  final RxMap<int, List<Lane>> runResults = <int, List<Lane>>{}.obs;
   final RxList<Athlete> allAthletes = <Athlete>[].obs;
 
   final RxBool isUpdatingResults = false.obs;
   final RxBool isWithdrawingAthlete = false.obs;
   final RxMap<int, int> beachRankings = <int, int>{}.obs;
-  final RxMap<int, List<String>> swimmingTimes =
-      <int, List<String>>{}.obs;
+  final RxMap<int, List<String>> swimmingTimes = <int, List<String>>{}.obs;
 
   @override
   void onInit() {
@@ -96,8 +94,8 @@ class SlotController extends GetxController
       }
     }
     allAthletes.value = athletes.toList()
-      ..sort((a, b) =>
-          '${a.firstName} ${a.lastName}'.compareTo('${b.firstName} ${b.lastName}'));
+      ..sort((a, b) => '${a.firstName} ${a.lastName}'
+          .compareTo('${b.firstName} ${b.lastName}'));
   }
 
   // Discipline checks — string-matching preserved (TODO(batch-6): typed enum).
@@ -239,8 +237,7 @@ class SlotController extends GetxController
     return s.runs[currentRunIndex.value];
   }
 
-  List<LiveResult> get currentRunResults =>
-      runResults[currentRun?.id] ?? const [];
+  List<Lane> get currentRunResults => runResults[currentRun?.id] ?? const [];
 
   String _formatTime(DateTime time) =>
       '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
