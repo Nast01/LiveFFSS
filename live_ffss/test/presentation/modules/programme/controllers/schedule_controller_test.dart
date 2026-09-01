@@ -2133,4 +2133,211 @@ void main() {
       verifyNever(() => meetingRepo.deleteRun(any()));
     });
   });
+
+  group('modifier la durée d une course', () {
+    String hm(DateTime t) =>
+        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+    DateTime hhmm(String v) => DateFormat('HH:mm').parse(v);
+
+    Run courseOf(int id, String name, String begin, String end) => Run(
+          id: id,
+          name: name,
+          label: name,
+          fullLabel: name,
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: 'OCEAN 1',
+          beginTime: hhmm(begin),
+          endTime: hhmm(end),
+        );
+
+    Meeting dayWith(List<Run> runs, String slotEnd) => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: day,
+          beginHour: timeOf(8, 0),
+          endHour: timeOf(8, 20),
+          slots: [
+            Slot(
+              id: 66,
+              name: 'Demies - Surfski',
+              beginHour: hhmm('08:00'),
+              endHour: hhmm(slotEnd),
+              runs: runs,
+            ),
+          ],
+        );
+
+    setUp(() {
+      controller.setCompetition(withDates);
+      controller.meetings.value = [
+        dayWith([
+          courseOf(25, 'Demie 1', '08:00', '08:10'),
+          courseOf(26, 'Demie 2', '08:10', '08:20'),
+        ], '08:20')
+      ];
+      when(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 25);
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 66);
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 78);
+      // Ce que FFSS renvoie une fois la première course allongée : elle dure
+      // vingt minutes, la seconde n'a pas encore bougé.
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            dayWith([
+              courseOf(25, 'Demie 1', '08:00', '08:20'),
+              courseOf(26, 'Demie 2', '08:10', '08:20'),
+            ], '08:20')
+          ]);
+    });
+
+    test('la course est réécrite avec sa nouvelle fin, son début intact',
+        () async {
+      await controller.setRunDuration(25, 20);
+
+      final captured = verify(() => meetingRepo.submitRun(
+            slotId: captureAny(named: 'slotId'),
+            name: any(named: 'name'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            site: captureAny(named: 'site'),
+            id: captureAny(named: 'id'),
+          )).captured;
+      expect(captured[0], 66);
+      expect(hm(captured[1] as DateTime), '08:00');
+      expect(hm(captured[2] as DateTime), '08:20');
+      expect(captured[3], 'OCEAN 1');
+      expect(captured[4], 25);
+    });
+
+    // Allonger une course pousse celles qui suivent : sans recalcul, deux
+    // courses se chevaucheraient sur la frise.
+    test('la course suivante est repoussée et le créneau s étend', () async {
+      await controller.setRunDuration(25, 20);
+
+      final runs = verify(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: 'Demie 2',
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          )).captured;
+      expect(hm(runs[0] as DateTime), '08:20');
+      expect(hm(runs[1] as DateTime), '08:30');
+
+      final slots = verify(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).captured;
+      expect(hm(slots[0] as DateTime), '08:00');
+      expect(hm(slots[1] as DateTime), '08:30');
+    });
+
+    test('la réunion se referme sur la nouvelle fin de journée', () async {
+      await controller.setRunDuration(25, 20);
+
+      final captured = verify(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            id: any(named: 'id'),
+          )).captured;
+      expect(hm(captured.last as DateTime), '08:30');
+    });
+
+    test('une durée nulle ou négative ne part pas', () async {
+      await controller.setRunDuration(25, 0);
+
+      verifyNever(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          ));
+    });
+
+    test('hors session, rien ne part', () async {
+      userService.currentUser.value = null;
+
+      await controller.setRunDuration(25, 20);
+
+      verifyNever(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          ));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    test('un refus du serveur est signalé et ne recalcule rien', () async {
+      when(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 0);
+
+      await controller.setRunDuration(25, 20);
+
+      expect(controller.message.value!.translationKey, 'schedule_item_failed');
+      verifyNever(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          ));
+    });
+
+    test('une course inconnue ne déclenche aucun appel', () async {
+      await controller.setRunDuration(999, 20);
+
+      verifyNever(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          ));
+    });
+  });
 }

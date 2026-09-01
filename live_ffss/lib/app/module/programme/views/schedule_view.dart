@@ -111,18 +111,6 @@ class _ScheduleViewState extends State<ScheduleView> {
   /// on this screen can bring it back — hence the confirmation, the same shape
   /// the round editor uses. The delete icon also sits right next to the
   /// duration tap target, so a miss is easy.
-  Future<void> _confirmRemoveSlot(int slotId, String label) async {
-    if (await _confirmRemoval(label)) _controller.removeSlot(slotId);
-  }
-
-  /// Deleting a course can take its créneau with it — when it was the last
-  /// one — so the warning says so rather than letting the round vanish.
-  Future<void> _confirmRemoveRun(int runId, String label) async {
-    if (await _confirmRemoval(label, body: 'schedule_delete_course_body')) {
-      _controller.removeRun(runId);
-    }
-  }
-
   Future<bool> _confirmRemoval(String label,
       {String body = 'schedule_delete_item_body'}) async {
     final confirmed = await showDialog<bool>(
@@ -149,7 +137,39 @@ class _ScheduleViewState extends State<ScheduleView> {
   /// Lets the operator pick a new duration for an existing manual créneau,
   /// in 5-minute steps — the same increment the old local planner's dialog
   /// used.
-  Future<void> _editSlotDuration(int slotId, int currentMinutes) async {
+  /// A manual item is a créneau, a course is a course — but the operator is
+  /// setting the same thing, so they get the same dialog.
+  Future<void> _editDuration(_DayEntry entry) async {
+    final current = entry.end.difference(entry.begin).inMinutes;
+    final minutes = await _askDuration(current);
+    if (minutes == null || minutes == current) return;
+    final slotId = entry.slotId;
+    if (slotId != null) {
+      _controller.setSlotDuration(slotId, minutes);
+      return;
+    }
+    final runId = entry.runId;
+    if (runId != null) _controller.setRunDuration(runId, minutes);
+  }
+
+  Future<void> _confirmRemove(_DayEntry entry) async {
+    final slotId = entry.slotId;
+    if (slotId != null) {
+      if (await _confirmRemoval(entry.label)) _controller.removeSlot(slotId);
+      return;
+    }
+    final runId = entry.runId;
+    if (runId == null) return;
+    // Deleting a course can take its créneau with it — when it was the last
+    // one — so the warning says so rather than letting the round vanish.
+    if (await _confirmRemoval(entry.label,
+        body: 'schedule_delete_course_body')) {
+      _controller.removeRun(runId);
+    }
+  }
+
+  /// The chosen duration in minutes, or null when the operator backed out.
+  Future<int?> _askDuration(int currentMinutes) async {
     var minutes = currentMinutes;
     final ok = await showDialog<bool>(
       context: context,
@@ -181,9 +201,7 @@ class _ScheduleViewState extends State<ScheduleView> {
         ),
       ),
     );
-    if (ok == true && minutes != currentMinutes) {
-      _controller.setSlotDuration(slotId, minutes);
-    }
+    return ok == true ? minutes : null;
   }
 
   @override
@@ -208,9 +226,8 @@ class _ScheduleViewState extends State<ScheduleView> {
                     : _Timeline(
                         controller: _controller,
                         day: day,
-                        onEditDuration: _editSlotDuration,
-                        onDelete: _confirmRemoveSlot,
-                        onDeleteRun: _confirmRemoveRun,
+                        onEditDuration: _editDuration,
+                        onDelete: _confirmRemove,
                       ),
               ),
               const Divider(height: 1),
@@ -540,13 +557,11 @@ class _Timeline extends StatelessWidget {
     required this.day,
     required this.onEditDuration,
     required this.onDelete,
-    required this.onDeleteRun,
   });
   final ScheduleController controller;
   final DateTime day;
-  final void Function(int slotId, int currentMinutes) onEditDuration;
-  final void Function(int slotId, String label) onDelete;
-  final void Function(int runId, String label) onDeleteRun;
+  final void Function(_DayEntry entry) onEditDuration;
+  final void Function(_DayEntry entry) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -599,7 +614,6 @@ class _Timeline extends StatelessWidget {
                     entry: entry,
                     onEditDuration: onEditDuration,
                     onDelete: onDelete,
-                    onDeleteRun: onDeleteRun,
                   ),
                 ),
             ],
@@ -634,7 +648,6 @@ class _Timeline extends StatelessWidget {
                   section: section,
                   onEditDuration: onEditDuration,
                   onDelete: onDelete,
-                  onDeleteRun: onDeleteRun,
                 ),
           ],
         ),
@@ -648,12 +661,10 @@ class _DaySectionView extends StatelessWidget {
     required this.section,
     required this.onEditDuration,
     required this.onDelete,
-    required this.onDeleteRun,
   });
   final _DaySection section;
-  final void Function(int slotId, int currentMinutes) onEditDuration;
-  final void Function(int slotId, String label) onDelete;
-  final void Function(int runId, String label) onDeleteRun;
+  final void Function(_DayEntry entry) onEditDuration;
+  final void Function(_DayEntry entry) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -672,7 +683,6 @@ class _DaySectionView extends StatelessWidget {
                 entry: entry,
                 onEditDuration: onEditDuration,
                 onDelete: onDelete,
-                onDeleteRun: onDeleteRun,
               ),
             ),
         ],
@@ -686,17 +696,17 @@ class _DayEntryCard extends StatelessWidget {
     required this.entry,
     required this.onEditDuration,
     required this.onDelete,
-    required this.onDeleteRun,
   });
   final _DayEntry entry;
-  final void Function(int slotId, int currentMinutes) onEditDuration;
-  final void Function(int slotId, String label) onDelete;
-  final void Function(int runId, String label) onDeleteRun;
+  final void Function(_DayEntry entry) onEditDuration;
+  final void Function(_DayEntry entry) onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final slotId = entry.slotId;
-    final runId = entry.runId;
+    // Both kinds of row carry the same two gestures now — a course's duration
+    // and a manual item's are set the same way, and so is their removal. The
+    // row itself is passed back, so the page decides which call each one is.
+    final editable = entry.slotId != null || entry.runId != null;
     return Material(
       color: AppColors.surface,
       borderRadius: AppRadius.mdRadius,
@@ -714,25 +724,22 @@ class _DayEntryCard extends StatelessWidget {
                 style: AppTypography.caption),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: Text(entry.label, style: AppTypography.body)),
-            if (slotId != null)
+            if (editable) ...[
               InkWell(
-                onTap: () => onEditDuration(
-                    slotId, entry.end.difference(entry.begin).inMinutes),
+                onTap: () => onEditDuration(entry),
                 child: Text(
                     '${entry.end.difference(entry.begin).inMinutes} ${'min_short'.tr}',
                     style: AppTypography.caption
                         .copyWith(color: AppColors.primaryDark)),
               ),
-            if (slotId != null || runId != null)
               IconButton(
                 icon: const Icon(Icons.delete_outline),
                 iconSize: 20,
                 visualDensity: VisualDensity.compact,
                 color: AppColors.textSecondary,
-                onPressed: slotId != null
-                    ? () => onDelete(slotId, entry.label)
-                    : () => onDeleteRun(runId!, entry.label),
+                onPressed: () => onDelete(entry),
               ),
+            ],
           ],
         ),
       ),

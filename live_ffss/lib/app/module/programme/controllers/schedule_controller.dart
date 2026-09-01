@@ -759,6 +759,55 @@ class ScheduleController extends GetxController {
 
   /// The réunion holding [slotId] and the créneau itself, among the loaded
   /// [meetings] — a write needs the meetingId to resubmit its own créneau.
+  /// Sets one course's duration. Its start does not move; everything after it
+  /// does.
+  ///
+  /// A round's courses are created all the same length, but a beach final does
+  /// not take what a série takes — so the operator adjusts the one that
+  /// differs rather than the whole round.
+  Future<void> setRunDuration(int runId, int minutes) async {
+    if (minutes < 1) return;
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
+    final owner = _runOwner(runId);
+    if (owner == null) return;
+    final (meeting, slot) = owner;
+    final run = slot.runs.firstWhere((r) => r.id == runId);
+    final beginMinutes = _minutesOf(run.beginTime);
+
+    int updatedId;
+    try {
+      updatedId = await _meetings.submitRun(
+        slotId: slot.id,
+        name: run.name,
+        beginHour: _atMinutes(meeting.date, beginMinutes),
+        endHour: _atMinutes(meeting.date, beginMinutes + minutes),
+        site: run.site,
+        id: runId,
+      );
+    } on AppException catch (e) {
+      message
+          .trigger(UiMessageError('schedule_item_failed', details: e.detail));
+      return;
+    }
+    if (updatedId <= 0) {
+      message.trigger(const UiMessageError('schedule_item_failed'));
+      return;
+    }
+    if (!await reload()) {
+      message.trigger(const UiMessageError('schedule_meeting_end_failed'));
+      return;
+    }
+    // Repacked, not just re-ended: a longer course overlaps the next one, a
+    // shorter one leaves a hole — and its créneau has to follow either way.
+    final refreshed = meetingFor(meeting.date);
+    if (refreshed != null) {
+      await _resequenceDay(meeting.date, refreshed.slots);
+    }
+  }
+
   /// Removes one course from the day, and its créneau with it when it was the
   /// last one.
   ///
