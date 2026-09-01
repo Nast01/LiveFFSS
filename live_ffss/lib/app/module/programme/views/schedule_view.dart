@@ -112,11 +112,24 @@ class _ScheduleViewState extends State<ScheduleView> {
   /// the round editor uses. The delete icon also sits right next to the
   /// duration tap target, so a miss is easy.
   Future<void> _confirmRemoveSlot(int slotId, String label) async {
+    if (await _confirmRemoval(label)) _controller.removeSlot(slotId);
+  }
+
+  /// Deleting a course can take its créneau with it — when it was the last
+  /// one — so the warning says so rather than letting the round vanish.
+  Future<void> _confirmRemoveRun(int runId, String label) async {
+    if (await _confirmRemoval(label, body: 'schedule_delete_course_body')) {
+      _controller.removeRun(runId);
+    }
+  }
+
+  Future<bool> _confirmRemoval(String label,
+      {String body = 'schedule_delete_item_body'}) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('schedule_delete_item_title'.tr),
-        content: Text('schedule_delete_item_body'.trParams({'item': label})),
+        content: Text(body.trParams({'item': label})),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -130,7 +143,7 @@ class _ScheduleViewState extends State<ScheduleView> {
         ],
       ),
     );
-    if (confirmed == true) _controller.removeSlot(slotId);
+    return confirmed == true;
   }
 
   /// Lets the operator pick a new duration for an existing manual créneau,
@@ -197,6 +210,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                         day: day,
                         onEditDuration: _editSlotDuration,
                         onDelete: _confirmRemoveSlot,
+                        onDeleteRun: _confirmRemoveRun,
                       ),
               ),
               const Divider(height: 1),
@@ -445,16 +459,20 @@ class _DayEntry {
       {required this.begin,
       required this.end,
       required this.label,
-      this.slotId});
+      this.slotId,
+      this.runId});
   final DateTime begin;
   final DateTime end;
   final String label;
 
   /// The créneau backing this row, set only for a manual item — the only
-  /// kind this screen can resize or delete today. `course/submit` would now
-  /// take a course's own duration, but nothing here drives it yet: a course
-  /// moves with its créneau.
+  /// kind this screen can resize. A course's duration comes from its round.
   final int? slotId;
+
+  /// The course backing this row, set only for a course entry. Deleting one
+  /// takes its créneau with it when it was the last, so both kinds of row
+  /// offer the same gesture.
+  final int? runId;
 }
 
 /// A group of [_DayEntry]s sharing a site — [Run.site] for course entries, or
@@ -490,7 +508,11 @@ List<_DaySection> _sectionsFor(Meeting? meeting) {
     }
     for (final run in slot.runs) {
       (bySite[run.site] ??= []).add(_DayEntry(
-          begin: run.beginTime, end: run.endTime, label: run.fullLabel));
+        begin: run.beginTime,
+        end: run.endTime,
+        label: run.fullLabel,
+        runId: run.id,
+      ));
     }
   }
   final sections = [
@@ -518,11 +540,13 @@ class _Timeline extends StatelessWidget {
     required this.day,
     required this.onEditDuration,
     required this.onDelete,
+    required this.onDeleteRun,
   });
   final ScheduleController controller;
   final DateTime day;
   final void Function(int slotId, int currentMinutes) onEditDuration;
   final void Function(int slotId, String label) onDelete;
+  final void Function(int runId, String label) onDeleteRun;
 
   @override
   Widget build(BuildContext context) {
@@ -575,6 +599,7 @@ class _Timeline extends StatelessWidget {
                     entry: entry,
                     onEditDuration: onEditDuration,
                     onDelete: onDelete,
+                    onDeleteRun: onDeleteRun,
                   ),
                 ),
             ],
@@ -609,6 +634,7 @@ class _Timeline extends StatelessWidget {
                   section: section,
                   onEditDuration: onEditDuration,
                   onDelete: onDelete,
+                  onDeleteRun: onDeleteRun,
                 ),
           ],
         ),
@@ -622,10 +648,12 @@ class _DaySectionView extends StatelessWidget {
     required this.section,
     required this.onEditDuration,
     required this.onDelete,
+    required this.onDeleteRun,
   });
   final _DaySection section;
   final void Function(int slotId, int currentMinutes) onEditDuration;
   final void Function(int slotId, String label) onDelete;
+  final void Function(int runId, String label) onDeleteRun;
 
   @override
   Widget build(BuildContext context) {
@@ -644,6 +672,7 @@ class _DaySectionView extends StatelessWidget {
                 entry: entry,
                 onEditDuration: onEditDuration,
                 onDelete: onDelete,
+                onDeleteRun: onDeleteRun,
               ),
             ),
         ],
@@ -657,14 +686,17 @@ class _DayEntryCard extends StatelessWidget {
     required this.entry,
     required this.onEditDuration,
     required this.onDelete,
+    required this.onDeleteRun,
   });
   final _DayEntry entry;
   final void Function(int slotId, int currentMinutes) onEditDuration;
   final void Function(int slotId, String label) onDelete;
+  final void Function(int runId, String label) onDeleteRun;
 
   @override
   Widget build(BuildContext context) {
     final slotId = entry.slotId;
+    final runId = entry.runId;
     return Material(
       color: AppColors.surface,
       borderRadius: AppRadius.mdRadius,
@@ -682,7 +714,7 @@ class _DayEntryCard extends StatelessWidget {
                 style: AppTypography.caption),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: Text(entry.label, style: AppTypography.body)),
-            if (slotId != null) ...[
+            if (slotId != null)
               InkWell(
                 onTap: () => onEditDuration(
                     slotId, entry.end.difference(entry.begin).inMinutes),
@@ -691,14 +723,16 @@ class _DayEntryCard extends StatelessWidget {
                     style: AppTypography.caption
                         .copyWith(color: AppColors.primaryDark)),
               ),
+            if (slotId != null || runId != null)
               IconButton(
                 icon: const Icon(Icons.delete_outline),
                 iconSize: 20,
                 visualDensity: VisualDensity.compact,
                 color: AppColors.textSecondary,
-                onPressed: () => onDelete(slotId, entry.label),
+                onPressed: slotId != null
+                    ? () => onDelete(slotId, entry.label)
+                    : () => onDeleteRun(runId!, entry.label),
               ),
-            ],
           ],
         ),
       ),

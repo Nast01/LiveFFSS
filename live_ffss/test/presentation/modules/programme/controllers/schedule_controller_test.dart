@@ -1958,4 +1958,179 @@ void main() {
       expect(controller.showsSite('OCEAN 2'), isFalse);
     });
   });
+
+  group('supprimer une course', () {
+    String hm(DateTime t) =>
+        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+    DateTime hhmm(String v) => DateFormat('HH:mm').parse(v);
+
+    Run courseOf(int id, String name, String begin, String end) => Run(
+          id: id,
+          name: name,
+          label: name,
+          fullLabel: name,
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: 'OCEAN 1',
+          beginTime: hhmm(begin),
+          endTime: hhmm(end),
+        );
+
+    /// Une journée d'un seul créneau portant deux courses de dix minutes.
+    Meeting twoCourses() => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: day,
+          beginHour: timeOf(8, 0),
+          endHour: timeOf(8, 20),
+          slots: [
+            Slot(
+              id: 66,
+              name: 'Demies - Surfski',
+              beginHour: hhmm('08:00'),
+              endHour: hhmm('08:20'),
+              runs: [
+                courseOf(25, 'Demie 1', '08:00', '08:10'),
+                courseOf(26, 'Demie 2', '08:10', '08:20'),
+              ],
+            ),
+          ],
+        );
+
+    /// Ce que FFSS renvoie une fois la première course partie : la seconde
+    /// garde l'heure qu'elle avait, et le créneau sa durée — le trou à combler.
+    Meeting oneCourseLeft() => twoCourses().copyWith(
+          slots: [
+            twoCourses().slots.single.copyWith(
+              runs: [courseOf(26, 'Demie 2', '08:10', '08:20')],
+            ),
+          ],
+        );
+
+    setUp(() {
+      controller.setCompetition(withDates);
+      controller.meetings.value = [twoCourses()];
+      when(() => meetingRepo.deleteRun(any())).thenAnswer((_) async => true);
+      when(() => meetingRepo.deleteSlot(any())).thenAnswer((_) async => true);
+      when(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 26);
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 66);
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 78);
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [oneCourseLeft()]);
+    });
+
+    test('la course part du serveur', () async {
+      await controller.removeRun(25);
+
+      verify(() => meetingRepo.deleteRun(25)).called(1);
+    });
+
+    // Le créneau garde son rang dans la journée : seule sa durée change.
+    test('le créneau rétrécit de la durée de la course partie', () async {
+      await controller.removeRun(25);
+
+      final captured = verify(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).captured;
+      expect(hm(captured[0] as DateTime), '08:00');
+      expect(hm(captured[1] as DateTime), '08:10');
+    });
+
+    // Sans cela la course restante garde 08:10 alors que son créneau commence
+    // à 08:00 : la frise affiche un trou de dix minutes qui n'existe pas.
+    test('la course restante remonte au début de son créneau', () async {
+      await controller.removeRun(25);
+
+      final captured = verify(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: any(named: 'name'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            site: any(named: 'site'),
+            id: captureAny(named: 'id'),
+          )).captured;
+      expect(hm(captured[0] as DateTime), '08:00');
+      expect(hm(captured[1] as DateTime), '08:10');
+      expect(captured[2], 26);
+    });
+
+    // Un créneau vidé de ses courses réapparaîtrait sous « Items manuels »,
+    // là où l'opérateur ne le cherchera jamais.
+    test('supprimer la dernière course emporte son créneau', () async {
+      controller.meetings.value = [oneCourseLeft()];
+      when(() => meetingRepo.getMeetings(42)).thenAnswer(
+          (_) async => [oneCourseLeft().copyWith(slots: const [])]);
+
+      await controller.removeRun(26);
+
+      verify(() => meetingRepo.deleteRun(26)).called(1);
+      verify(() => meetingRepo.deleteSlot(66)).called(1);
+    });
+
+    test('un créneau qui garde des courses n est pas supprimé', () async {
+      await controller.removeRun(25);
+
+      verifyNever(() => meetingRepo.deleteSlot(any()));
+    });
+
+    test('hors session, rien ne part', () async {
+      userService.currentUser.value = null;
+
+      await controller.removeRun(25);
+
+      verifyNever(() => meetingRepo.deleteRun(any()));
+      expect(controller.message.value!.translationKey, 'login_required');
+    });
+
+    test('un refus du serveur est signalé et ne recalcule rien', () async {
+      when(() => meetingRepo.deleteRun(any())).thenAnswer((_) async => false);
+
+      await controller.removeRun(25);
+
+      expect(controller.message.value!.translationKey, 'schedule_item_failed');
+      verifyNever(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          ));
+    });
+
+    test('une course inconnue ne déclenche aucun appel', () async {
+      await controller.removeRun(999);
+
+      verifyNever(() => meetingRepo.deleteRun(any()));
+    });
+  });
 }

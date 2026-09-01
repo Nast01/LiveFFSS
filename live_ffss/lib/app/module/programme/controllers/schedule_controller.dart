@@ -510,8 +510,20 @@ class ScheduleController extends GetxController {
     var cursor = _minutesOf(meeting.beginHour);
     try {
       for (final slot in ordered) {
-        final duration = _minutesOf(slot.endHour) - _minutesOf(slot.beginHour);
-        if (_minutesOf(slot.beginHour) != cursor) {
+        final runs = [...slot.runs]
+          ..sort((a, b) => a.beginTime.compareTo(b.beginTime));
+        // A créneau carrying courses is exactly as long as they are. Reading
+        // its own span instead would keep the room a deleted course used to
+        // take: FFSS still holds the span it was created with.
+        final duration = runs.isEmpty
+            ? _minutesOf(slot.endHour) - _minutesOf(slot.beginHour)
+            : runs.fold<int>(
+                0,
+                (sum, run) =>
+                    sum + _minutesOf(run.endTime) - _minutesOf(run.beginTime));
+
+        if (_minutesOf(slot.beginHour) != cursor ||
+            _minutesOf(slot.endHour) != cursor + duration) {
           final moved = await _meetings.submitSlot(
             meetingId: meeting.id,
             name: slot.name,
@@ -525,6 +537,30 @@ class ScheduleController extends GetxController {
             return false;
           }
         }
+
+        // The courses ride with their créneau: moving it without them would
+        // show a round starting at one time and its first course at another.
+        var runCursor = cursor;
+        for (final run in runs) {
+          final runDuration =
+              _minutesOf(run.endTime) - _minutesOf(run.beginTime);
+          if (_minutesOf(run.beginTime) != runCursor) {
+            final moved = await _meetings.submitRun(
+              slotId: slot.id,
+              name: run.name,
+              beginHour: _atMinutes(day, runCursor),
+              endHour: _atMinutes(day, runCursor + runDuration),
+              site: run.site,
+              id: run.id,
+            );
+            if (moved <= 0) {
+              message.trigger(const UiMessageError('schedule_item_failed'));
+              return false;
+            }
+          }
+          runCursor += runDuration;
+        }
+
         cursor += duration;
       }
 
@@ -723,6 +759,55 @@ class ScheduleController extends GetxController {
 
   /// The réunion holding [slotId] and the créneau itself, among the loaded
   /// [meetings] — a write needs the meetingId to resubmit its own créneau.
+  /// Removes one course from the day, and its créneau with it when it was the
+  /// last one.
+  ///
+  /// A créneau emptied of its courses is not harmless: it has no site of its
+  /// own, so the timeline files it under the manual items, where nobody will
+  /// think to look for the round they just emptied.
+  Future<void> removeRun(int runId) async {
+    if (!canWriteToFfss) {
+      message.trigger(const UiMessageError('login_required'));
+      return;
+    }
+    final owner = _runOwner(runId);
+    if (owner == null) return;
+    final (meeting, slot) = owner;
+    final day = meeting.date;
+
+    try {
+      if (!await _meetings.deleteRun(runId)) {
+        message.trigger(const UiMessageError('schedule_item_failed'));
+        return;
+      }
+      if (slot.runs.length == 1) {
+        await _meetings.deleteSlot(slot.id);
+      }
+    } on AppException catch (e) {
+      message
+          .trigger(UiMessageError('schedule_item_failed', details: e.detail));
+      return;
+    }
+
+    if (!await reload()) {
+      message.trigger(const UiMessageError('schedule_meeting_end_failed'));
+      return;
+    }
+    // Repacked, not just re-ended: the course that went leaves a hole inside
+    // its créneau, and the créneau leaves one in the day.
+    final refreshed = meetingFor(day);
+    if (refreshed != null) await _resequenceDay(day, refreshed.slots);
+  }
+
+  (Meeting, Slot)? _runOwner(int runId) {
+    for (final meeting in meetings) {
+      for (final slot in meeting.slots) {
+        if (slot.runs.any((run) => run.id == runId)) return (meeting, slot);
+      }
+    }
+    return null;
+  }
+
   (Meeting, Slot)? _slotOwner(int slotId) {
     for (final meeting in meetings) {
       for (final slot in meeting.slots) {

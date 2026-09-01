@@ -364,6 +364,9 @@ final Map<String, String> enUS = {
   'starts_at': 'Starts',
   'edit_item': 'Edit',
   'schedule_delete_item_title': 'Delete this item?',
+  'schedule_delete_course_body':
+      'Delete "@item"? If it is the last course of its créneau, the '
+      'créneau goes with it.',
   'schedule_delete_item_body':
       '"@item" will be removed from the FFSS server for everyone. '
           'This cannot be undone.',

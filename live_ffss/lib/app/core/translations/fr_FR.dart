@@ -368,6 +368,9 @@ final Map<String, String> frFR = {
   'starts_at': 'Départ',
   'edit_item': 'Modifier',
   'schedule_delete_item_title': 'Supprimer cet item ?',
+  'schedule_delete_course_body':
+      "Supprimer « @item » ? Si c'est la dernière course de son créneau, "
+      'le créneau part avec elle.',
   'schedule_delete_item_body':
       '« @item » sera supprimé du serveur FFSS pour tout le monde. '
           'Cette action est irréversible.',
