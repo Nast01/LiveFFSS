@@ -128,10 +128,30 @@ class HeatDrawController extends GetxController {
   }
 
   /// Whether the operator must validate the structure before this draw runs.
-  /// Coastal séries only: a pool draw keeps the direct path, and a bracket
-  /// round is seated by its qualifiers rather than by who is on the beach.
+  ///
+  /// Two reasons. A coastal série always asks — the operator is validating
+  /// their structure, not being warned. And any round whose declared
+  /// composition cannot seat everyone present asks too: nobody but the
+  /// operator can decide between running the round they authored and running
+  /// the one the turnout forces.
+  ///
+  /// A round declaring nothing has no déroulement to respect, so it keeps the
+  /// direct path rather than opening a dialog with an empty side.
   bool get requiresStructureValidation =>
-      (race.value?.isBeach ?? false) && selectedLevel.value == RoundType.serie;
+      ((race.value?.isBeach ?? false) &&
+          selectedLevel.value == RoundType.serie) ||
+      (hasDeclaredPlan && !declaredPlanSeatsPresent);
+
+  /// Whether the round declares a composition at all. A série added by hand
+  /// starts at zero races, unlike a quart, a demi or a finale.
+  bool get hasDeclaredPlan => declaredPlan.raceCount > 0;
+
+  /// Whether the round as declared has room for everyone checked in.
+  bool get declaredPlanSeatsPresent {
+    final plan = declaredPlan;
+    return plan.raceCount > 0 &&
+        plan.raceCount * plan.spotsPerRace >= presentCount;
+  }
 
   /// The selected round exactly as authored.
   HeatPlan get declaredPlan => (
@@ -272,10 +292,19 @@ class HeatDrawController extends GetxController {
     pendingPlan.value = null;
   }
 
-  /// Draws without validation, for the rounds that need none — a pool race, or
-  /// a bracket round. The count follows the athletes present, which is what
-  /// this path has always done.
-  void drawFromPresent() => drawWithPlan(proposedPlan);
+  /// Draws the round as the déroulement declares it, for the rounds that need
+  /// no validation.
+  ///
+  /// The heat count comes from the structure the organiser settled on, not
+  /// from the turnout. Recomputing it here quietly authored a different round
+  /// — and [save] then wrote that count back over the declared one, so a draw
+  /// could shrink a structure nobody had touched.
+  ///
+  /// Falls back to the proposal only when the round declares nothing to
+  /// respect; [requiresStructureValidation] sends every other mismatch to the
+  /// operator first.
+  void drawFromDeclared() =>
+      drawWithPlan(declaredPlanSeatsPresent ? declaredPlan : proposedPlan);
 
   void drawWithPlan(HeatPlan plan) {
     if (presentAthletes.isEmpty) {

@@ -299,7 +299,7 @@ void main() {
     });
   });
 
-  group('HeatDrawController.drawFromPresent', () {
+  group('HeatDrawController.drawFromDeclared', () {
     Future<HeatDrawController> withPresent(int count) async {
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
             entry(1, [for (var i = 1; i <= count; i++) athlete(i)]),
@@ -315,7 +315,7 @@ void main() {
     test('draws the present athletes into balanced heats', () async {
       final controller = await withPresent(10);
 
-      controller.drawFromPresent();
+      controller.drawFromDeclared();
 
       // 10 present, 4 spots per race → 3 heats of 4/3/3.
       expect(controller.heats, hasLength(3));
@@ -330,7 +330,7 @@ void main() {
         () async {
       final controller = await withPresent(0);
 
-      controller.drawFromPresent();
+      controller.drawFromDeclared();
 
       expect(controller.heats, isEmpty);
       expect(controller.message.value, isA<UiMessageError>());
@@ -338,7 +338,7 @@ void main() {
 
     test('changing level clears a draw made for the previous one', () async {
       final controller = await withPresent(6);
-      controller.drawFromPresent();
+      controller.drawFromDeclared();
       expect(controller.heats, isNotEmpty);
 
       controller.selectLevel(RoundType.finale);
@@ -358,7 +358,7 @@ void main() {
       });
       final controller = build();
       await controller.load();
-      controller.drawFromPresent();
+      controller.drawFromDeclared();
       expect(controller.heats, isNotEmpty);
       expect(controller.pendingPlan.value, isNotNull);
 
@@ -379,7 +379,7 @@ void main() {
       });
       final controller = build();
       await controller.load();
-      controller.drawFromPresent();
+      controller.drawFromDeclared();
       return controller;
     }
 
@@ -441,7 +441,7 @@ void main() {
       });
       final controller = build();
       await controller.load();
-      controller.drawFromPresent();
+      controller.drawFromDeclared();
       return controller;
     }
 
@@ -484,7 +484,10 @@ void main() {
       expect(races.map((r) => r.id).toSet(), hasLength(3));
     });
 
-    test('adjusts the race count downwards, dropping the surplus', () async {
+    // Un tirage seul ne réduit plus un tour déclaré : c'est le déroulement qui
+    // fixe le nombre de séries. Mais l'opérateur peut adopter la proposition
+    // depuis la boîte de validation, et les courses en trop doivent partir.
+    test('adopter un plan plus étroit retire les courses en trop', () async {
       final controller = await drawn(
         3,
         levels: const [
@@ -495,7 +498,9 @@ void main() {
           ]),
         ],
       );
+      expect(controller.heats, hasLength(3));
 
+      controller.drawWithPlan((raceCount: 1, spotsPerRace: 4));
       await controller.save();
 
       expect(savedRaces(RoundType.serie), hasLength(1));
@@ -536,7 +541,7 @@ void main() {
       // 6 present at 8 declared spots draws into a single heat of 6 — the
       // proposal a validated path would show, but this pool round takes the
       // no-dialog path and must not let the draw shrink its declared size.
-      controller.drawFromPresent();
+      controller.drawFromDeclared();
 
       await controller.save();
 
@@ -915,6 +920,122 @@ void main() {
 
       expect(controller.entryCount.value, 1);
       expect(controller.eligibleCount.value, 1);
+    });
+  });
+
+  group('le tirage suit le déroulement', () {
+    /// Loads a controller whose round declares [raceCount] courses of [spots]
+    /// places, with [present] athletes checked in.
+    Future<HeatDrawController> withDeclared({
+      required int present,
+      required int raceCount,
+      int spots = 8,
+      String speciality = 'Eau-plate',
+    }) async {
+      programme = _FakeProgrammeService(programmeWith(levels: [
+        RoundLevel(
+          type: RoundType.serie,
+          spotsPerRace: spots,
+          races: [
+            for (var i = 1; i <= raceCount; i++)
+              ProgrammeRace(id: i, number: i),
+          ],
+        ),
+        const RoundLevel(type: RoundType.finale, spotsPerRace: 8),
+      ]));
+      final all = [for (var i = 1; i <= present; i++) athlete(i)];
+      when(() => raceRepo.getEntries(raceId))
+          .thenAnswer((_) async => [entry(1, all)]);
+      when(() => attendance.forRace(raceId)).thenReturn({
+        for (final a in all) a.id: AttendanceStatus.present,
+      });
+      final controller = HeatDrawController(
+        raceRepo,
+        clubRepo,
+        attendance,
+        programme,
+        random: Random(7),
+      )
+        ..race.value = makeRace(speciality: speciality)
+        ..competition.value = makeCompetition()
+        ..categoryId = categoryId
+        ..categoryLabel = 'Senior';
+      await controller.load();
+      return controller;
+    }
+
+    // Le déroulement est ce que l'organisateur a arrêté pour l'épreuve. Recompter
+    // les séries sur le nombre de présents en fabrique un autre en silence, et
+    // l'enregistrement écrase alors le déroulement par ce compte-là.
+    test('un tour déclaré à trois séries en tire trois', () async {
+      final controller = await withDeclared(present: 10, raceCount: 3);
+
+      controller.drawFromDeclared();
+
+      expect(controller.heats, hasLength(3));
+      expect(controller.pendingPlan.value, (raceCount: 3, spotsPerRace: 8));
+    });
+
+    test('les présents se répartissent sur toutes les séries déclarées',
+        () async {
+      final controller = await withDeclared(present: 10, raceCount: 3);
+
+      controller.drawFromDeclared();
+
+      expect(controller.heats.expand((h) => h).map((a) => a.id).toSet(),
+          hasLength(10));
+      expect(controller.heats.every((h) => h.isNotEmpty), isTrue);
+    });
+
+    // Enregistrer sur un tirage recompté remplaçait les trois séries déclarées
+    // par deux : le déroulement se trouvait modifié par un tirage.
+    test('enregistrer conserve les courses du déroulement', () async {
+      final controller = await withDeclared(present: 10, raceCount: 3);
+      controller.drawFromDeclared();
+
+      await controller.save();
+
+      final level = programme.current.value!.structures.single.levels
+          .firstWhere((l) => l.type == RoundType.serie);
+      expect(level.races, hasLength(3));
+      expect(level.races.map((r) => r.number), [1, 2, 3]);
+      expect(level.spotsPerRace, 8);
+    });
+
+    // Douze présents sur deux séries de quatre ne tiennent pas : personne ne
+    // peut trancher à la place de l'opérateur, donc on lui demande.
+    test('un déroulement trop étroit pour les présents demande validation',
+        () async {
+      final controller =
+          await withDeclared(present: 12, raceCount: 2, spots: 4);
+
+      expect(controller.requiresStructureValidation, isTrue);
+    });
+
+    test('un déroulement qui suffit ne demande rien en bassin', () async {
+      final controller = await withDeclared(present: 10, raceCount: 3);
+
+      expect(controller.requiresStructureValidation, isFalse);
+    });
+
+    // Rien n'a été arrêté pour ce tour : il n'y a pas de déroulement à
+    // respecter, donc rien à faire valider non plus.
+    test('un tour sans course déclarée garde le tirage direct', () async {
+      final controller = await withDeclared(present: 10, raceCount: 0);
+
+      expect(controller.requiresStructureValidation, isFalse);
+
+      controller.drawFromDeclared();
+
+      expect(controller.heats, hasLength(2)); // 10 présents, 8 places
+    });
+
+    test('une série côtière reste soumise à validation même si elle suffit',
+        () async {
+      final controller =
+          await withDeclared(present: 10, raceCount: 3, speciality: 'Côtier');
+
+      expect(controller.requiresStructureValidation, isTrue);
     });
   });
 }

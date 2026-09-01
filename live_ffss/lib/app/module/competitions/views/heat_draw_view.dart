@@ -82,7 +82,7 @@ class _HeatDrawViewState extends State<HeatDrawView> {
   /// the dialog with the numbers the editor just changed.
   Future<void> _draw() async {
     if (!_ctrl.requiresStructureValidation) {
-      _ctrl.drawFromPresent();
+      _ctrl.drawFromDeclared();
       return;
     }
     while (true) {
@@ -238,17 +238,35 @@ class _DrawContext extends GetView<HeatDrawController> {
           controller.selectedLevel.value!.labelKey.tr,
       ];
       if (parts.isEmpty) return const SizedBox.shrink();
+      final declared = controller.declaredPlan;
       return Padding(
         padding: const EdgeInsets.fromLTRB(
             AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
-        child: Text(
-          parts.join(' · '),
-          style: AppTypography.body.copyWith(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              parts.join(' · '),
+              style: AppTypography.body.copyWith(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            // The draw follows the déroulement, so the déroulement is on
+            // screen: the operator should not have to open the structure tab
+            // to know how many heats the button is about to produce.
+            if (controller.hasDeclaredPlan)
+              Text(
+                '${'heat_draw_structure_declared'.tr} · '
+                '${'heat_draw_structure_plan'.trParams({
+                      'races': '${declared.raceCount}',
+                      'spots': '${declared.spotsPerRace}',
+                    })}',
+                style: AppTypography.caption,
+              ),
+          ],
         ),
       );
     });
