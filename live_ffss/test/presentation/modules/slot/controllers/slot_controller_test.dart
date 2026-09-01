@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/data/repositories/result_repository.dart';
-import 'package:live_ffss/app/domain/models/live_result.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
 import 'package:live_ffss/app/domain/models/run.dart';
 import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/module/slot/controllers/slot_controller.dart';
@@ -49,9 +49,9 @@ void main() {
     test('keys runResults by runId, not list index', () async {
       controller.slot.value = makeSlot(runs: [makeRun(101), makeRun(202)]);
       when(() => repo.getRunResults(101))
-          .thenAnswer((_) async => const <LiveResult>[]);
+          .thenAnswer((_) async => const <Lane>[]);
       when(() => repo.getRunResults(202))
-          .thenAnswer((_) async => const <LiveResult>[]);
+          .thenAnswer((_) async => const <Lane>[]);
 
       await controller.loadAllRunResults();
 
@@ -77,7 +77,7 @@ void main() {
 
     test('on success populates runResults', () async {
       controller.slot.value = makeSlot(runs: [makeRun(1)]);
-      const sample = LiveResult(id: 99, number: '5');
+      const sample = Lane(id: 99, number: 5);
       when(() => repo.getRunResults(1))
           .thenAnswer((_) async => const [sample]);
 
