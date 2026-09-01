@@ -38,6 +38,20 @@ abstract class MeetingRepository {
 
   Future<bool> deleteSlot(int slotId);
 
+  /// Creates a course inside a créneau, or updates the one with [id]. Returns
+  /// the id FFSS assigned, or 0 when the call reported failure.
+  Future<int> submitRun({
+    required int slotId,
+    required String name,
+    required DateTime beginHour,
+    required DateTime endHour,
+    required String site,
+    int? id,
+  });
+
+  Future<bool> deleteRun(int runId);
+
+
   /// Opens a freshly created course with [count] numbered spots, 1..count —
   /// as many as its round declares in `RaceFormatDetail.spotsPerRace`.
   ///
@@ -195,4 +209,25 @@ class MeetingRepositoryImpl implements MeetingRepository {
 
   @override
   Future<bool> deleteLane(int laneId) => _dataSource.deleteLane(laneId);
+
+  @override
+  Future<int> submitRun({
+    required int slotId,
+    required String name,
+    required DateTime beginHour,
+    required DateTime endHour,
+    required String site,
+    int? id,
+  }) =>
+      _dataSource.submitRun(
+        slotId: slotId,
+        name: name,
+        beginTime: DateFormat('HH:mm').format(beginHour),
+        endTime: DateFormat('HH:mm').format(endHour),
+        site: site,
+        id: id,
+      );
+
+  @override
+  Future<bool> deleteRun(int runId) => _dataSource.deleteRun(runId);
 }

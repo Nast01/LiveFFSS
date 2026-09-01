@@ -39,6 +39,7 @@ class UnscheduledRound {
     required this.categoryLabel,
     required this.type,
     required this.courseCount,
+    required this.spotsPerRace,
   });
 
   /// The FFSS `partie` this round became when the déroulement was pushed.
@@ -49,9 +50,12 @@ class UnscheduledRound {
   final String categoryLabel;
   final RoundType type;
 
-  /// How many courses the round runs — shown so the operator knows what they
-  /// will be creating on the federal site afterwards.
+  /// How many courses the round runs — one créneau will hold them all.
   final int courseCount;
+
+  /// Starting spots per course, as this round declares them. Falls back to the
+  /// event's own figure for programmes authored before rounds carried one.
+  final int spotsPerRace;
 }
 
 class ScheduleController extends GetxController {
@@ -173,11 +177,10 @@ class ScheduleController extends GetxController {
 
   // ---------------------------------------------------------------------
   // Local ScheduleBlock planner. Dormant: the timeline is drawn from the FFSS
-  // réunion tree now, and no view calls into this group any more. It is kept
-  // whole — with its tests — because placing a course on a créneau needs
-  // `course/submit`, which answers every POST with
-  // `500 Unknown named parameter $creneau` (verified in production). When FFSS
-  // fixes it, this is what the palette writes through again.
+  // réunion tree, and no view calls into this group any more — `scheduleRound`
+  // writes rounds, courses and spots straight to the federation. Kept whole,
+  // with its tests, as the only device-local schedule this app still knows how
+  // to compute; delete it the day nothing wants an offline programme.
   // ---------------------------------------------------------------------
 
   Future<void> addRace(int raceId, int siteId, DateTime day) async {
@@ -595,32 +598,34 @@ class ScheduleController extends GetxController {
           categoryLabel: structure.categoryLabel,
           type: level.type,
           courseCount: level.races.length,
+          spotsPerRace: structure.spotsForLevel(level),
         ));
       }
     }
     return rounds;
   }
 
-  /// Places a round on [day] as a créneau linked to its `partie`, with no
-  /// course of its own.
+  /// Places a round on [day]: its créneau, then the courses inside it, then
+  /// each course's starting spots.
   ///
-  /// The courses would belong here too, but `course/submit` answers every POST
-  /// with `500 Unknown named parameter $creneau` on the FFSS side. Until that
-  /// is fixed the operator creates them on the federal site and pulls this
-  /// screen down to collect them — which works, because the créneau this
-  /// creates is exactly what they hang off.
-  ///
-  /// The créneau lasts [defaultItemMinutes] per course it will hold, so a
-  /// round of three séries takes three times the room of one — the operator
-  /// still adjusts it, but the day is roughly right before they do.
+  /// The créneau lasts [defaultItemMinutes] per course, and the courses fill
+  /// it back to back — a round of three séries takes three times the room of
+  /// one. The operator still adjusts it, but the day is roughly right first.
   ///
   /// [name] is composed by the view: naming a round needs the gender, and a
   /// gender is a translated word this controller has no business resolving.
+  ///
+  /// [courseNames] is built by the view, one entry per course — naming needs
+  /// `.tr` and controllers here never translate. Its length is the round's
+  /// course count. [spotsPerRace] is what the round declares; 0 means the
+  /// courses open empty.
   Future<void> scheduleRound({
     required int partieId,
     required String name,
+    required List<String> courseNames,
+    required int spotsPerRace,
+    required String site,
     required DateTime day,
-    required int courseCount,
   }) async {
     if (!canWriteToFfss) {
       message.trigger(const UiMessageError('login_required'));
@@ -632,6 +637,7 @@ class ScheduleController extends GetxController {
     final beginMinutes = endMinutesOfDay(day);
     // At least one course's worth: a zero-length créneau would be invisible on
     // the timeline and would let the next item start on the same minute.
+    final courseCount = courseNames.length;
     final duration = defaultItemMinutes * (courseCount < 1 ? 1 : courseCount);
     int slotId;
     try {
@@ -651,11 +657,68 @@ class ScheduleController extends GetxController {
       message.trigger(const UiMessageError('schedule_item_failed'));
       return;
     }
+
+    final refused = await _createRoundCourses(
+      slotId: slotId,
+      courseNames: courseNames,
+      spotsPerRace: spotsPerRace,
+      site: site,
+      day: day,
+      beginMinutes: beginMinutes,
+    );
+
     if (!await reload()) {
       message.trigger(const UiMessageError('schedule_meeting_end_failed'));
       return;
     }
     await _pushMeetingEnd(day);
+
+    // Reported after the reload so the operator sees the round that did land
+    // alongside the warning, rather than a bare failure over an empty day.
+    if (refused != null) {
+      message.trigger(
+          UiMessageError('schedule_courses_failed', details: refused));
+    }
+  }
+
+  /// Creates the round's courses back to back inside its créneau, each opening
+  /// with [spotsPerRace] starting spots.
+  ///
+  /// Returns null when everything landed, or a description of what did not. A
+  /// refusal on one course does not stop the rest: half a round on the site is
+  /// bad, half a round the operator believes complete is worse.
+  Future<String?> _createRoundCourses({
+    required int slotId,
+    required List<String> courseNames,
+    required int spotsPerRace,
+    required String site,
+    required DateTime day,
+    required int beginMinutes,
+  }) async {
+    final failures = <String>[];
+    for (var i = 0; i < courseNames.length; i++) {
+      final begin = beginMinutes + i * defaultItemMinutes;
+      try {
+        final runId = await _meetings.submitRun(
+          slotId: slotId,
+          name: courseNames[i],
+          beginHour: _atMinutes(day, begin),
+          endHour: _atMinutes(day, begin + defaultItemMinutes),
+          site: site,
+        );
+        if (runId <= 0) {
+          failures.add(courseNames[i]);
+          continue;
+        }
+        if (spotsPerRace > 0) {
+          await _meetings.createDefaultLanes(
+              runId: runId, count: spotsPerRace);
+        }
+      } on AppException catch (e) {
+        failures.add('${courseNames[i]} (${e.detail})');
+      }
+    }
+    return failures.isEmpty ? null : failures.join(', ');
   }
 
   /// The réunion holding [slotId] and the créneau itself, among the loaded

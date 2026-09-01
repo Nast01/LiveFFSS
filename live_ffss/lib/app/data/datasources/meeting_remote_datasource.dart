@@ -48,6 +48,22 @@ abstract class MeetingRemoteDataSource {
 
   Future<bool> deleteSlot(int slotId);
 
+  /// Creates a course inside a créneau, or updates the one with the given
+  /// [id]. Returns the id FFSS assigned, or 0 when the call reported failure.
+  ///
+  /// [site] is free text — FFSS stores whatever it is given and the timeline
+  /// groups courses by it, so two spellings make two columns.
+  Future<int> submitRun({
+    required int slotId,
+    required String name,
+    required String beginTime, // 'HH:mm'
+    required String endTime, // 'HH:mm'
+    required String site,
+    int? id,
+  });
+
+  Future<bool> deleteRun(int runId);
+
   /// Creates a numbered spot on a course, or renumbers the one with the given
   /// [id]. Returns the id FFSS assigned, or 0 when the call reported failure.
   Future<int> submitLane({
@@ -199,6 +215,44 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
     final endpoint = ApiEndpoints.replacePath(
       ApiEndpoints.laneDelete,
       {'id': laneId.toString()},
+    );
+    final body = await _http.post(endpoint);
+    return body['success'] == true;
+  }
+
+  @override
+  Future<int> submitRun({
+    required int slotId,
+    required String name,
+    required String beginTime,
+    required String endTime,
+    required String site,
+    int? id,
+  }) async {
+    final endpoint = ApiEndpoints.replacePath(
+      ApiEndpoints.runSubmit,
+      {'creneau': slotId.toString()},
+    );
+    final body = await _http.post(endpoint, query: {
+      // Empty means "create"; a value means "update".
+      'id': id?.toString() ?? '',
+      'nom': name,
+      'debut': beginTime,
+      'fin': endTime,
+      'site': site,
+      // 0 = waiting. A course is born before it is run; the marshalling and
+      // result states are set from the slot screen, not here.
+      'statut': '0',
+    });
+    final assigned = body['id'];
+    return assigned is int ? assigned : 0;
+  }
+
+  @override
+  Future<bool> deleteRun(int runId) async {
+    final endpoint = ApiEndpoints.replacePath(
+      ApiEndpoints.runDelete,
+      {'id': runId.toString()},
     );
     final body = await _http.post(endpoint);
     return body['success'] == true;

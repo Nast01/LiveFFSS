@@ -292,4 +292,80 @@ void main() {
           query: any(named: 'query'))).called(1);
     });
   });
+
+  group('submitRun', () {
+    // Vérifié en production le 2026-09-01, après correction fédérale de la
+    // route : `nom`, `debut`, `fin`, `site` et `statut` font tous l'aller-
+    // retour. Sans `nom`, le serveur répond « Le nom de la course est
+    // obligatoire ».
+    test('une course part avec son nom, ses heures, son site et son statut',
+        () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 24});
+
+      final id = await ds.submitRun(
+        slotId: 75,
+        name: 'Demie 1 - Surfski - Messieurs - Junior',
+        beginTime: '08:00',
+        endTime: '08:10',
+        site: 'OCEAN 1',
+      );
+
+      expect(id, 24);
+      final query = verify(() => http.post(
+          'competition/reunion/creneau/75/course/submit',
+          query: captureAny(named: 'query'))).captured.single;
+      expect(query, {
+        'id': '',
+        'nom': 'Demie 1 - Surfski - Messieurs - Junior',
+        'debut': '08:00',
+        'fin': '08:10',
+        'site': 'OCEAN 1',
+        // 0 = en attente : une course naît avant d'être courue.
+        'statut': '0',
+      });
+    });
+
+    test('un id renseigné met à jour la course existante', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 24});
+
+      await ds.submitRun(
+        slotId: 75,
+        name: 'ZZ',
+        beginTime: '09:00',
+        endTime: '09:10',
+        site: '',
+        id: 24,
+      );
+
+      final query =
+          verify(() => http.post(any(), query: captureAny(named: 'query')))
+              .captured
+              .single as Map;
+      expect(query['id'], '24');
+    });
+
+    test('une réponse sans id vaut échec', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true});
+
+      expect(
+        await ds.submitRun(
+            slotId: 75, name: 'ZZ', beginTime: '', endTime: '', site: ''),
+        0,
+      );
+    });
+  });
+
+  group('deleteRun', () {
+    test('la suppression cible la course, pas le créneau', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true});
+
+      expect(await ds.deleteRun(24), isTrue);
+      verify(() => http.post('competition/reunion/creneau/course/24/delete',
+          query: any(named: 'query'))).called(1);
+    });
+  });
 }

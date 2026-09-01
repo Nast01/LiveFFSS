@@ -278,6 +278,12 @@ final Map<String, String> enUS = {
   'round_quart': 'Quarters',
   'round_demi': 'Semis',
   'round_finale': 'Final',
+  'round_serie_one': 'Heat',
+  'round_quart_one': 'Quarter',
+  'round_demi_one': 'Semi',
+  'round_finale_one': 'Final',
+  'round_unknown_one': 'Round',
+  'schedule_courses_failed': 'Courses refused by FFSS',
   'round_unknown': 'Round',
   'no_structures': 'No event to structure',
   'eligible_athletes': 'eligible',
@@ -357,8 +363,6 @@ final Map<String, String> enUS = {
   'manual_label': 'Label',
   'starts_at': 'Starts',
   'edit_item': 'Edit',
-  'schedule_races_unavailable':
-      'Scheduling races waits on the FFSS course/submit endpoint',
   'schedule_delete_item_title': 'Delete this item?',
   'schedule_delete_item_body':
       '"@item" will be removed from the FFSS server for everyone. '

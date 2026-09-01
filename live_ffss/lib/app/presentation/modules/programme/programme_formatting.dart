@@ -31,6 +31,11 @@ extension RoundTypeFormatting on RoundType {
         RoundType.finale => 'round_finale',
         RoundType.unknown => 'round_unknown',
       };
+
+  /// Names one course of the round rather than the round itself — « Demie »,
+  /// not « Demies ». FFSS names its own courses this way, so a course created
+  /// from here reads like one created on the federal site.
+  String get singularLabelKey => '${labelKey}_one';
 }
 
 extension EventStructureFormatting on EventStructure {

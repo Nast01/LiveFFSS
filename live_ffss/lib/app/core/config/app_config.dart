@@ -54,12 +54,10 @@ class ApiEndpoints {
   static const String slotSubmit =
       'competition/reunion/:reunion/creneau/submit';
   static const String slotDelete = 'competition/reunion/creneau/:id/delete';
-  // Cassé côté FFSS. Au 2026-08-29 tout POST répondait « Unknown named
-  // parameter $creneau » ; le correctif fédéral du 2026-08-31 a déplacé la
-  // panne sans la lever — la route résout désormais l'id de créneau en
-  // `Evenement` et casse sur `Course::setCreneau()`. Déclaré pour que la
-  // couche soit complète, mais rien ne doit l'appeler tant que la fédération
-  // n'a pas corrigé la route.
+  // Corrigé côté FFSS et vérifié en production le 2026-09-01, après deux
+  // pannes successives (« Unknown named parameter $creneau », puis un id de
+  // créneau résolu en `Evenement`). Attention : `runList` ci-dessus, lui,
+  // reste cassé — la correction n'a porté que sur l'écriture.
   static const String runSubmit =
       'competition/reunion/creneau/:creneau/course/submit';
   static const String runDelete =

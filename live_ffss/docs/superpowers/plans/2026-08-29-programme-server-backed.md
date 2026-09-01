@@ -1124,7 +1124,7 @@ git commit -m "feat(programme): manual items live on FFSS"
 
 ## Ce que ce plan ne couvre pas
 
-**La planification des courses** (étape 4 de la spec) et **les recalculs en cascade** (étape 5) reposent sur `course/submit`, cassé côté FFSS. Ils feront l'objet d'un second plan une fois la route corrigée.
+**Les recalculs en cascade** (étape 5 de la spec) : déplacer, redimensionner ou supprimer un créneau met à jour ses propres horaires et ceux de la réunion, mais pas les `debut`/`fin` des courses qu'il contient. L'étape 4, la planification des courses, a été livrée le 2026-09-01 avec la correction de `course/submit`.
 
 **`RunDto` reste non vérifié** faute d'avoir pu créer une course. Ses clés (`id`, `Nom`, `statut`, `site`, `debut`, `fin`) sont en minuscules alors que la documentation annonce des capitales. Le créneau renvoyant à la fois `id` et `Id`, la casse peut différer d'un niveau à l'autre : **première chose à vérifier** quand une course pourra enfin être créée.
 

@@ -321,4 +321,40 @@ void main() {
     expect(await repo.deleteLane(6), isTrue);
     verify(() => ds.deleteLane(6)).called(1);
   });
+
+  test('submitRun forwards every field and returns the assigned id', () async {
+    when(() => ds.submitRun(
+          slotId: any(named: 'slotId'),
+          name: any(named: 'name'),
+          beginTime: any(named: 'beginTime'),
+          endTime: any(named: 'endTime'),
+          site: any(named: 'site'),
+          id: any(named: 'id'),
+        )).thenAnswer((_) async => 24);
+
+    final id = await repo.submitRun(
+      slotId: 75,
+      name: 'Demie 1',
+      beginHour: DateTime(2026, 6, 13, 8),
+      endHour: DateTime(2026, 6, 13, 8, 10),
+      site: 'OCEAN 1',
+    );
+
+    expect(id, 24);
+    verify(() => ds.submitRun(
+          slotId: 75,
+          name: 'Demie 1',
+          beginTime: '08:00',
+          endTime: '08:10',
+          site: 'OCEAN 1',
+          id: null,
+        )).called(1);
+  });
+
+  test('deleteRun forwards the run id', () async {
+    when(() => ds.deleteRun(any())).thenAnswer((_) async => true);
+
+    expect(await repo.deleteRun(24), isTrue);
+    verify(() => ds.deleteRun(24)).called(1);
+  });
 }

@@ -1551,7 +1551,7 @@ void main() {
     });
   });
 
-  group('placer un tour sans ses courses', () {
+  group('placer un tour', () {
     String hm(DateTime t) =>
         '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
@@ -1621,6 +1621,18 @@ void main() {
             endHour: any(named: 'endHour'),
             id: any(named: 'id'),
           )).thenAnswer((_) async => 78);
+      when(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 24);
+      when(() => meetingRepo.createDefaultLanes(
+              runId: any(named: 'runId'), count: any(named: 'count')))
+          .thenAnswer((invocation) async =>
+              invocation.namedArguments[const Symbol('count')] as int);
     });
 
     test('propose un tour par niveau, avec son nombre de courses', () {
@@ -1676,8 +1688,10 @@ void main() {
       await controller.scheduleRound(
         partieId: 39,
         name: 'Séries - Surfski - Dames - Junior',
+        courseNames: const ['Série 1 - Surfski', 'Série 2 - Surfski'],
+        spotsPerRace: 8,
+        site: 'Plage',
         day: day,
-        courseCount: 2,
       );
 
       final captured = verify(() => meetingRepo.submitSlot(
@@ -1699,7 +1713,12 @@ void main() {
       userService.currentUser.value = null;
 
       await controller.scheduleRound(
-          partieId: 39, name: 'x', day: day, courseCount: 2);
+          partieId: 39,
+          name: 'x',
+          courseNames: const ['a', 'b'],
+          spotsPerRace: 8,
+          site: 'Plage',
+          day: day);
 
       verifyNever(() => meetingRepo.submitSlot(
             meetingId: any(named: 'meetingId'),
@@ -1716,7 +1735,12 @@ void main() {
       // Une durée nulle rendrait l'item invisible sur la frise et laisserait
       // le suivant démarrer à la même minute.
       await controller.scheduleRound(
-          partieId: 39, name: 'x', day: day, courseCount: 0);
+          partieId: 39,
+          name: 'x',
+          courseNames: const [],
+          spotsPerRace: 8,
+          site: 'Plage',
+          day: day);
 
       final captured = verify(() => meetingRepo.submitSlot(
             meetingId: any(named: 'meetingId'),
@@ -1741,11 +1765,121 @@ void main() {
           )).thenAnswer((_) async => 0);
 
       await controller.scheduleRound(
-          partieId: 39, name: 'x', day: day, courseCount: 2);
+          partieId: 39,
+          name: 'x',
+          courseNames: const ['a', 'b'],
+          spotsPerRace: 8,
+          site: 'Plage',
+          day: day);
 
       expect(controller.message.value!.translationKey, 'schedule_item_failed');
     });
+
+    // Le créneau n'est qu'un contenant : ce sont ses courses qui se courent.
+    // Elles s'enchaînent bout à bout, chacune pour la durée par défaut.
+    test('placer un tour crée ses courses, enchaînées dans le créneau',
+        () async {
+      await controller.scheduleRound(
+        partieId: 39,
+        name: 'Séries - Surfski - Dames - Junior',
+        courseNames: const [
+          'Série 1 - Surfski - Dames - Junior',
+          'Série 2 - Surfski - Dames - Junior',
+        ],
+        spotsPerRace: 8,
+        site: 'Plage',
+        day: day,
+      );
+
+      final captured = verify(() => meetingRepo.submitRun(
+            slotId: captureAny(named: 'slotId'),
+            name: captureAny(named: 'name'),
+            beginHour: captureAny(named: 'beginHour'),
+            endHour: captureAny(named: 'endHour'),
+            site: captureAny(named: 'site'),
+            id: any(named: 'id'),
+          )).captured;
+
+      expect(captured, hasLength(10));
+      expect(captured[0], 66);
+      expect(captured[1], 'Série 1 - Surfski - Dames - Junior');
+      expect(hm(captured[2] as DateTime), '08:00');
+      expect(hm(captured[3] as DateTime), '08:10');
+      expect(captured[4], 'Plage');
+      expect(captured[6], 'Série 2 - Surfski - Dames - Junior');
+      expect(hm(captured[7] as DateTime), '08:10');
+      expect(hm(captured[8] as DateTime), '08:20');
+    });
+
+    // Une course s'ouvre avec ses emplacements de départ, autant que le tour
+    // en déclare : sans eux, elle arrive vide sur la ligne de départ.
+    test('chaque course s ouvre avec les places de son tour', () async {
+      await controller.scheduleRound(
+        partieId: 39,
+        name: 'x',
+        courseNames: const ['a', 'b'],
+        spotsPerRace: 8,
+        site: 'Plage',
+        day: day,
+      );
+
+      verify(() => meetingRepo.createDefaultLanes(runId: 24, count: 8))
+          .called(2);
+    });
+
+    test('un tour sans place déclarée ne demande aucune place', () async {
+      await controller.scheduleRound(
+        partieId: 39,
+        name: 'x',
+        courseNames: const ['a'],
+        spotsPerRace: 0,
+        site: 'Plage',
+        day: day,
+      );
+
+      verifyNever(() => meetingRepo.createDefaultLanes(
+          runId: any(named: 'runId'), count: any(named: 'count')));
+    });
+
+    // Poser la moitié des courses sans le dire laisserait l'opérateur devant
+    // un tour incomplet qu'il croit complet.
+    test('une course refusée n arrête pas les suivantes mais est signalée',
+        () async {
+      when(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: 'a',
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 0);
+
+      await controller.scheduleRound(
+        partieId: 39,
+        name: 'x',
+        courseNames: const ['a', 'b'],
+        spotsPerRace: 8,
+        site: 'Plage',
+        day: day,
+      );
+
+      verify(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: 'b',
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          )).called(1);
+      expect(
+          controller.message.value!.translationKey, 'schedule_courses_failed');
+    });
+
+    test('le tour propose le nombre de places de son niveau', () {
+      expect(controller.unscheduledRounds.first.spotsPerRace, 8);
+    });
   });
+
 
   group('filtrage par site', () {
     DateTime time(String hhmm) => DateFormat('HH:mm').parse(hhmm);

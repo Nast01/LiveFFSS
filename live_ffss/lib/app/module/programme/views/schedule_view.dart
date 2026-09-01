@@ -451,8 +451,9 @@ class _DayEntry {
   final String label;
 
   /// The créneau backing this row, set only for a manual item — the only
-  /// kind this screen can resize or delete today. A course's duration and
-  /// removal go through `course/submit`, still broken on FFSS (see design).
+  /// kind this screen can resize or delete today. `course/submit` would now
+  /// take a course's own duration, but nothing here drives it yet: a course
+  /// moves with its créneau.
   final int? slotId;
 }
 
@@ -509,8 +510,8 @@ int _byBegin(_DayEntry a, _DayEntry b) => a.begin.compareTo(b.begin);
 
 /// The day's réunion, read straight from FFSS: courses grouped by
 /// [Run.site], manual créneaux under their own section. A manual item can be
-/// resized or removed straight from here; a course still can't — that goes
-/// through `course/submit`, still broken on FFSS (see design).
+/// resized or removed straight from here; a course cannot — it is created and
+/// timed with its round, from the palette below.
 class _Timeline extends StatelessWidget {
   const _Timeline({
     required this.controller,
@@ -721,17 +722,11 @@ double _paletteHeight(BuildContext context) =>
 /// Sections start collapsed so the whole programme is visible at a glance. A
 /// single épreuve opens on its own: there is nothing to choose.
 ///
-/// Read-only for now: scheduling a course means `course/submit`, which answers
-/// every POST with `500 Unknown named parameter $creneau` — verified in
-/// production. The add buttons are shown greyed out with the reason rather
-/// than removed, because the palette is what the timeline is drawn from once
-/// FFSS fixes the endpoint./// The rounds still to place on a day.
+/// The rounds still to place on a day.
 ///
 /// A line is a round, not a race: a créneau links to a `partie`, so placing is
-/// what a whole round does at once. Its courses are not created here —
-/// `course/submit` answers every POST with `500 Unknown named parameter
-/// $creneau` on the FFSS side, so the operator adds them on the federal site
-/// and pulls the timeline down to collect them onto the créneau this creates.
+/// what a whole round does at once — its créneau, its courses back to back,
+/// and each course's starting spots, all in one gesture.
 class _Palette extends StatelessWidget {
   const _Palette({
     required this.controller,
@@ -748,6 +743,33 @@ class _Palette extends StatelessWidget {
   String _nameFor(UnscheduledRound round, Gender gender) =>
       '${round.type.labelKey.tr} - ${round.raceLabel} - ${gender.label}'
       ' - ${round.categoryLabel}';
+
+  /// One name per course, in running order: « Demie 1 - Surfski - Messieurs -
+  /// Junior ». Built here rather than in the controller, which never
+  /// translates.
+  ///
+  /// The rank is dropped when the round runs a single course — « Finale 1 »
+  /// names nothing the plain « Finale » does not.
+  List<String> _courseNamesFor(UnscheduledRound round, Gender gender) {
+    final level = round.type.singularLabelKey.tr;
+    final tail =
+        '${round.raceLabel} - ${gender.label} - ${round.categoryLabel}';
+    return [
+      for (var i = 1; i <= round.courseCount; i++)
+        round.courseCount == 1 ? '$level - $tail' : '$level $i - $tail',
+    ];
+  }
+
+  /// Where the round's courses run. The selected chip when the operator picked
+  /// one; under « Tous » they have not said, so the day's first known site
+  /// stands in — a course with no site at all lands in an unnamed column of
+  /// the timeline.
+  String _siteFor(ScheduleController controller, DateTime day) {
+    final selected = controller.selectedSite.value;
+    if (selected != null) return selected;
+    final known = controller.siteNamesFor(day);
+    return known.isEmpty ? '' : known.first;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -792,8 +814,11 @@ class _Palette extends StatelessWidget {
                               : () => controller.scheduleRound(
                                     partieId: round.partieId,
                                     name: _nameFor(round, gender),
+                                    courseNames:
+                                        _courseNamesFor(round, gender),
+                                    spotsPerRace: round.spotsPerRace,
+                                    site: _siteFor(controller, day!),
                                     day: day!,
-                                    courseCount: round.courseCount,
                                   ),
                         );
                       },
