@@ -7,6 +7,7 @@ import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/module/competitions/controllers/rfid_writer_controller.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
+import 'package:live_ffss/app/presentation/shared/filter_chip_bar.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/home_wave.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
@@ -38,7 +39,8 @@ class _RfidWriterViewState extends State<RfidWriterView> {
     // `cancelWrite` via `whenComplete`, killing the write behind a sheet
     // that is still showing "Approchez le bracelet".
     _writeStateWorker = ever<RfidWriteState>(_controller.writeState, (state) {
-      if (state == RfidWriteState.waiting && ModalRoute.of(context)?.isCurrent == true) {
+      if (state == RfidWriteState.waiting &&
+          ModalRoute.of(context)?.isCurrent == true) {
         _openSheet();
       }
     });
@@ -75,6 +77,7 @@ class _RfidWriterViewState extends State<RfidWriterView> {
           children: [
             _Header(searchController: _searchController),
             const HomeWave(),
+            const _CategoryFilter(),
             const SizedBox(height: AppSpacing.sm),
             const Expanded(child: _AthleteList()),
           ],
@@ -146,7 +149,7 @@ class _Header extends GetView<RfidWriterController> {
               controller: searchController,
               onChanged: controller.setSearchQuery,
               decoration: InputDecoration(
-                hintText: 'search_athlete'.tr,
+                hintText: 'search_athlete_hint'.tr,
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
@@ -163,6 +166,37 @@ class _Header extends GetView<RfidWriterController> {
         ],
       ),
     );
+  }
+}
+
+/// The categories the loaded athletes are entered in, as the same chip bar the
+/// Structure and Events screens use — one criterion here, but a volunteer who
+/// has learnt it on one screen has learnt it on all three.
+class _CategoryFilter extends GetView<RfidWriterController> {
+  const _CategoryFilter();
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final options = controller.categoryOptions;
+      if (options.isEmpty) return const SizedBox.shrink();
+      return FilterChipBar(
+        visibleCount: controller.filteredAthletes.length,
+        totalCount: controller.allAthletes.length,
+        hasActiveFilters: controller.hasActiveFilters,
+        onClearAll: controller.clearCategories,
+        criteria: [
+          FilterCriterion(
+            labelKey: 'filter_category',
+            options: options,
+            selectedCount: controller.selectedCategories.length,
+            isSelected: (value) => controller.isCategorySelected(value as int),
+            onToggle: (value) => controller.toggleCategory(value as int),
+            onClear: controller.clearCategories,
+          ),
+        ],
+      );
+    });
   }
 }
 
@@ -219,10 +253,12 @@ class _AthleteRow extends GetView<RfidWriterController> {
   @override
   Widget build(BuildContext context) {
     final club = athlete.club?.name;
+    final categories = athlete.categories.map((c) => c.name).join(' · ');
     return Card(
       margin: EdgeInsets.zero,
       child: ListTile(
         onTap: () => controller.writeBracelet(athlete),
+        isThreeLine: categories.isNotEmpty,
         title: Text(
           '${athlete.lastName} ${athlete.firstName}',
           style: AppTypography.body,
@@ -234,11 +270,31 @@ class _AthleteRow extends GetView<RfidWriterController> {
         // in the subtitle rather than `trailing`: a variable-length Text in the
         // trailing slot overflows and leaves the whole ListTile unsized on a
         // narrow screen or with a long club name.
-        subtitle: Text(
-          club == null ? athlete.licenseeNumber : '${athlete.licenseeNumber} · $club',
-          style: AppTypography.caption,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        //
+        // The categories get their own line: most athletes race two or three,
+        // and appending them to the licence and club would push the line past
+        // its ellipsis on any phone.
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              club == null
+                  ? athlete.licenseeNumber
+                  : '${athlete.licenseeNumber} · $club',
+              style: AppTypography.caption,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (categories.isNotEmpty)
+              Text(
+                categories,
+                style: AppTypography.caption
+                    .copyWith(color: AppColors.primaryDark),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
         ),
         trailing: const Icon(Icons.chevron_right),
       ),
@@ -305,9 +361,7 @@ class _WriteSheet extends GetView<RfidWriterController> {
                 TextButton(
                   onPressed: Get.back<void>,
                   child: Text(
-                    state == RfidWriteState.success
-                        ? 'finish'.tr
-                        : 'cancel'.tr,
+                    state == RfidWriteState.success ? 'finish'.tr : 'cancel'.tr,
                   ),
                 ),
               ],

@@ -1,5 +1,6 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:live_ffss/app/data/dtos/athlete_entry_dto.dart';
 
 part 'athlete_dto.freezed.dart';
 part 'athlete_dto.g.dart';
@@ -29,6 +30,13 @@ class AthleteDto with _$AthleteDto {
     @JsonKey(name: 'idClub') @Default(0) int clubId,
     @JsonKey(name: 'clubLabel') @Default('') String clubLabel,
     @JsonKey(name: 'isRemplacant') @Default(false) bool isSubstitute,
+    // Present only on `evenement/:id/organismes`, which nests each athlete's
+    // entries. Carried for the categories they hold — an athlete's own
+    // `categories` map lists what they are *eligible* for, up to eleven
+    // brackets for a master, which names nothing they actually race.
+    @JsonKey(name: 'engagements')
+    @Default(<AthleteEntryDto>[])
+    List<AthleteEntryDto> entries,
   }) = _AthleteDto;
 
   factory AthleteDto.fromJson(Map<String, dynamic> json) =>

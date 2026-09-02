@@ -248,6 +248,7 @@ final Map<String, String> frFR = {
   // NFC Bracelets
   'bracelets': 'Bracelets',
   'write_bracelet': 'Écrire un bracelet',
+  'search_athlete_hint': 'Nom, licence ou club',
   'search_athlete': 'Rechercher un athlète',
   'approach_bracelet': 'Approchez le bracelet du téléphone',
   'bracelet_written': 'Bracelet écrit',

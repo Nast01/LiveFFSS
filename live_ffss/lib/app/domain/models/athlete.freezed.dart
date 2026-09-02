@@ -37,7 +37,12 @@ mixin _$Athlete {
   String get performanceLabel => throw _privateConstructorUsedError;
   int get clubId => throw _privateConstructorUsedError;
   String get clubLabel => throw _privateConstructorUsedError;
-  bool get isSubstitute =>
+  bool get isSubstitute => throw _privateConstructorUsedError;
+
+  /// The categories this athlete is entered in, distinct and in the order
+  /// the entries came. Most athletes race two or three: « Junior » and the
+  /// umbrella « Open » and « Youth » alongside it.
+  List<Category> get categories =>
       throw _privateConstructorUsedError; // Back-reference, populated by ClubMapper or by join logic.
 // Excluded from JSON to avoid Club <-> Athlete recursion.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -74,6 +79,7 @@ abstract class $AthleteCopyWith<$Res> {
       int clubId,
       String clubLabel,
       bool isSubstitute,
+      List<Category> categories,
       @JsonKey(includeFromJson: false, includeToJson: false) Club? club});
 
   $ClubCopyWith<$Res>? get club;
@@ -110,6 +116,7 @@ class _$AthleteCopyWithImpl<$Res, $Val extends Athlete>
     Object? clubId = null,
     Object? clubLabel = null,
     Object? isSubstitute = null,
+    Object? categories = null,
     Object? club = freezed,
   }) {
     return _then(_value.copyWith(
@@ -177,6 +184,10 @@ class _$AthleteCopyWithImpl<$Res, $Val extends Athlete>
           ? _value.isSubstitute
           : isSubstitute // ignore: cast_nullable_to_non_nullable
               as bool,
+      categories: null == categories
+          ? _value.categories
+          : categories // ignore: cast_nullable_to_non_nullable
+              as List<Category>,
       club: freezed == club
           ? _value.club
           : club // ignore: cast_nullable_to_non_nullable
@@ -223,6 +234,7 @@ abstract class _$$AthleteImplCopyWith<$Res> implements $AthleteCopyWith<$Res> {
       int clubId,
       String clubLabel,
       bool isSubstitute,
+      List<Category> categories,
       @JsonKey(includeFromJson: false, includeToJson: false) Club? club});
 
   @override
@@ -258,6 +270,7 @@ class __$$AthleteImplCopyWithImpl<$Res>
     Object? clubId = null,
     Object? clubLabel = null,
     Object? isSubstitute = null,
+    Object? categories = null,
     Object? club = freezed,
   }) {
     return _then(_$AthleteImpl(
@@ -325,6 +338,10 @@ class __$$AthleteImplCopyWithImpl<$Res>
           ? _value.isSubstitute
           : isSubstitute // ignore: cast_nullable_to_non_nullable
               as bool,
+      categories: null == categories
+          ? _value._categories
+          : categories // ignore: cast_nullable_to_non_nullable
+              as List<Category>,
       club: freezed == club
           ? _value.club
           : club // ignore: cast_nullable_to_non_nullable
@@ -353,7 +370,9 @@ class _$AthleteImpl implements _Athlete {
       this.clubId = 0,
       this.clubLabel = '',
       this.isSubstitute = false,
-      @JsonKey(includeFromJson: false, includeToJson: false) this.club});
+      final List<Category> categories = const <Category>[],
+      @JsonKey(includeFromJson: false, includeToJson: false) this.club})
+      : _categories = categories;
 
   factory _$AthleteImpl.fromJson(Map<String, dynamic> json) =>
       _$$AthleteImplFromJson(json);
@@ -399,6 +418,23 @@ class _$AthleteImpl implements _Athlete {
   @override
   @JsonKey()
   final bool isSubstitute;
+
+  /// The categories this athlete is entered in, distinct and in the order
+  /// the entries came. Most athletes race two or three: « Junior » and the
+  /// umbrella « Open » and « Youth » alongside it.
+  final List<Category> _categories;
+
+  /// The categories this athlete is entered in, distinct and in the order
+  /// the entries came. Most athletes race two or three: « Junior » and the
+  /// umbrella « Open » and « Youth » alongside it.
+  @override
+  @JsonKey()
+  List<Category> get categories {
+    if (_categories is EqualUnmodifiableListView) return _categories;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_categories);
+  }
+
 // Back-reference, populated by ClubMapper or by join logic.
 // Excluded from JSON to avoid Club <-> Athlete recursion.
   @override
@@ -407,7 +443,7 @@ class _$AthleteImpl implements _Athlete {
 
   @override
   String toString() {
-    return 'Athlete(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute, club: $club)';
+    return 'Athlete(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute, categories: $categories, club: $club)';
   }
 
   @override
@@ -441,6 +477,8 @@ class _$AthleteImpl implements _Athlete {
                 other.clubLabel == clubLabel) &&
             (identical(other.isSubstitute, isSubstitute) ||
                 other.isSubstitute == isSubstitute) &&
+            const DeepCollectionEquality()
+                .equals(other._categories, _categories) &&
             (identical(other.club, club) || other.club == club));
   }
 
@@ -464,6 +502,7 @@ class _$AthleteImpl implements _Athlete {
       clubId,
       clubLabel,
       isSubstitute,
+      const DeepCollectionEquality().hash(_categories),
       club);
 
   /// Create a copy of Athlete
@@ -500,6 +539,7 @@ abstract class _Athlete implements Athlete {
       final int clubId,
       final String clubLabel,
       final bool isSubstitute,
+      final List<Category> categories,
       @JsonKey(includeFromJson: false, includeToJson: false)
       final Club? club}) = _$AthleteImpl;
 
@@ -538,8 +578,14 @@ abstract class _Athlete implements Athlete {
   @override
   String get clubLabel;
   @override
-  bool
-      get isSubstitute; // Back-reference, populated by ClubMapper or by join logic.
+  bool get isSubstitute;
+
+  /// The categories this athlete is entered in, distinct and in the order
+  /// the entries came. Most athletes race two or three: « Junior » and the
+  /// umbrella « Open » and « Youth » alongside it.
+  @override
+  List<Category>
+      get categories; // Back-reference, populated by ClubMapper or by join logic.
 // Excluded from JSON to avoid Club <-> Athlete recursion.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)

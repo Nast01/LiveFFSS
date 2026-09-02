@@ -56,7 +56,13 @@ mixin _$AthleteDto {
   @JsonKey(name: 'clubLabel')
   String get clubLabel => throw _privateConstructorUsedError;
   @JsonKey(name: 'isRemplacant')
-  bool get isSubstitute => throw _privateConstructorUsedError;
+  bool get isSubstitute =>
+      throw _privateConstructorUsedError; // Present only on `evenement/:id/organismes`, which nests each athlete's
+// entries. Carried for the categories they hold — an athlete's own
+// `categories` map lists what they are *eligible* for, up to eleven
+// brackets for a master, which names nothing they actually race.
+  @JsonKey(name: 'engagements')
+  List<AthleteEntryDto> get entries => throw _privateConstructorUsedError;
 
   /// Serializes this AthleteDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -91,7 +97,8 @@ abstract class $AthleteDtoCopyWith<$Res> {
       @JsonKey(name: 'performanceLabel') String performanceLabel,
       @JsonKey(name: 'idClub') int clubId,
       @JsonKey(name: 'clubLabel') String clubLabel,
-      @JsonKey(name: 'isRemplacant') bool isSubstitute});
+      @JsonKey(name: 'isRemplacant') bool isSubstitute,
+      @JsonKey(name: 'engagements') List<AthleteEntryDto> entries});
 }
 
 /// @nodoc
@@ -126,6 +133,7 @@ class _$AthleteDtoCopyWithImpl<$Res, $Val extends AthleteDto>
     Object? clubId = null,
     Object? clubLabel = null,
     Object? isSubstitute = null,
+    Object? entries = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -196,6 +204,10 @@ class _$AthleteDtoCopyWithImpl<$Res, $Val extends AthleteDto>
           ? _value.isSubstitute
           : isSubstitute // ignore: cast_nullable_to_non_nullable
               as bool,
+      entries: null == entries
+          ? _value.entries
+          : entries // ignore: cast_nullable_to_non_nullable
+              as List<AthleteEntryDto>,
     ) as $Val);
   }
 }
@@ -225,7 +237,8 @@ abstract class _$$AthleteDtoImplCopyWith<$Res>
       @JsonKey(name: 'performanceLabel') String performanceLabel,
       @JsonKey(name: 'idClub') int clubId,
       @JsonKey(name: 'clubLabel') String clubLabel,
-      @JsonKey(name: 'isRemplacant') bool isSubstitute});
+      @JsonKey(name: 'isRemplacant') bool isSubstitute,
+      @JsonKey(name: 'engagements') List<AthleteEntryDto> entries});
 }
 
 /// @nodoc
@@ -258,6 +271,7 @@ class __$$AthleteDtoImplCopyWithImpl<$Res>
     Object? clubId = null,
     Object? clubLabel = null,
     Object? isSubstitute = null,
+    Object? entries = null,
   }) {
     return _then(_$AthleteDtoImpl(
       id: null == id
@@ -328,6 +342,10 @@ class __$$AthleteDtoImplCopyWithImpl<$Res>
           ? _value.isSubstitute
           : isSubstitute // ignore: cast_nullable_to_non_nullable
               as bool,
+      entries: null == entries
+          ? _value._entries
+          : entries // ignore: cast_nullable_to_non_nullable
+              as List<AthleteEntryDto>,
     ));
   }
 }
@@ -352,7 +370,10 @@ class _$AthleteDtoImpl implements _AthleteDto {
       @JsonKey(name: 'performanceLabel') this.performanceLabel = '',
       @JsonKey(name: 'idClub') this.clubId = 0,
       @JsonKey(name: 'clubLabel') this.clubLabel = '',
-      @JsonKey(name: 'isRemplacant') this.isSubstitute = false});
+      @JsonKey(name: 'isRemplacant') this.isSubstitute = false,
+      @JsonKey(name: 'engagements')
+      final List<AthleteEntryDto> entries = const <AthleteEntryDto>[]})
+      : _entries = entries;
 
   factory _$AthleteDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$AthleteDtoImplFromJson(json);
@@ -411,10 +432,26 @@ class _$AthleteDtoImpl implements _AthleteDto {
   @override
   @JsonKey(name: 'isRemplacant')
   final bool isSubstitute;
+// Present only on `evenement/:id/organismes`, which nests each athlete's
+// entries. Carried for the categories they hold — an athlete's own
+// `categories` map lists what they are *eligible* for, up to eleven
+// brackets for a master, which names nothing they actually race.
+  final List<AthleteEntryDto> _entries;
+// Present only on `evenement/:id/organismes`, which nests each athlete's
+// entries. Carried for the categories they hold — an athlete's own
+// `categories` map lists what they are *eligible* for, up to eleven
+// brackets for a master, which names nothing they actually race.
+  @override
+  @JsonKey(name: 'engagements')
+  List<AthleteEntryDto> get entries {
+    if (_entries is EqualUnmodifiableListView) return _entries;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_entries);
+  }
 
   @override
   String toString() {
-    return 'AthleteDto(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, guestId: $guestId, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute)';
+    return 'AthleteDto(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, guestId: $guestId, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute, entries: $entries)';
   }
 
   @override
@@ -448,7 +485,8 @@ class _$AthleteDtoImpl implements _AthleteDto {
             (identical(other.clubLabel, clubLabel) ||
                 other.clubLabel == clubLabel) &&
             (identical(other.isSubstitute, isSubstitute) ||
-                other.isSubstitute == isSubstitute));
+                other.isSubstitute == isSubstitute) &&
+            const DeepCollectionEquality().equals(other._entries, _entries));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -471,7 +509,8 @@ class _$AthleteDtoImpl implements _AthleteDto {
       performanceLabel,
       clubId,
       clubLabel,
-      isSubstitute);
+      isSubstitute,
+      const DeepCollectionEquality().hash(_entries));
 
   /// Create a copy of AthleteDto
   /// with the given fields replaced by the non-null parameter values.
@@ -507,8 +546,9 @@ abstract class _AthleteDto implements AthleteDto {
       @JsonKey(name: 'performanceLabel') final String performanceLabel,
       @JsonKey(name: 'idClub') final int clubId,
       @JsonKey(name: 'clubLabel') final String clubLabel,
-      @JsonKey(name: 'isRemplacant')
-      final bool isSubstitute}) = _$AthleteDtoImpl;
+      @JsonKey(name: 'isRemplacant') final bool isSubstitute,
+      @JsonKey(name: 'engagements')
+      final List<AthleteEntryDto> entries}) = _$AthleteDtoImpl;
 
   factory _AthleteDto.fromJson(Map<String, dynamic> json) =
       _$AthleteDtoImpl.fromJson;
@@ -566,7 +606,14 @@ abstract class _AthleteDto implements AthleteDto {
   String get clubLabel;
   @override
   @JsonKey(name: 'isRemplacant')
-  bool get isSubstitute;
+  bool
+      get isSubstitute; // Present only on `evenement/:id/organismes`, which nests each athlete's
+// entries. Carried for the categories they hold — an athlete's own
+// `categories` map lists what they are *eligible* for, up to eleven
+// brackets for a master, which names nothing they actually race.
+  @override
+  @JsonKey(name: 'engagements')
+  List<AthleteEntryDto> get entries;
 
   /// Create a copy of AthleteDto
   /// with the given fields replaced by the non-null parameter values.

@@ -201,4 +201,58 @@ void main() {
       expect(normalizeNationalityCode(''), '');
     });
   });
+
+  // Payload relevé le 2026-09-02 sur `evenement/:id/organismes` : chaque
+  // athlète porte ses engagements, dont la catégorie sous `{id, label}` —
+  // minuscules, contrairement au `CategoryDto` des autres routes.
+  test('les catégories viennent des engagements de l athlète', () {
+    final athlete = AthleteDto.fromJson(const {
+      'Id': 662152,
+      'Nom': 'BONNE',
+      'Prenom': 'Maelle',
+      'engagements': [
+        {'categorie': {'id': 13, 'label': 'Cadet'}},
+        {'categorie': {'id': 24, 'label': 'Open'}},
+      ],
+    }).toDomain();
+
+    expect(athlete.categories.map((c) => c.id), [13, 24]);
+    expect(athlete.categories.map((c) => c.name), ['Cadet', 'Open']);
+  });
+
+  // Un athlète engagé sur sept épreuves l est le plus souvent plusieurs fois
+  // dans la même catégorie : la répéter n apprendrait rien.
+  test('une catégorie répétée d un engagement à l autre ne compte qu une fois',
+      () {
+    final athlete = AthleteDto.fromJson(const {
+      'Id': 1,
+      'engagements': [
+        {'categorie': {'id': 13, 'label': 'Cadet'}},
+        {'categorie': {'id': 13, 'label': 'Cadet'}},
+        {'categorie': {'id': 24, 'label': 'Open'}},
+      ],
+    }).toDomain();
+
+    expect(athlete.categories.map((c) => c.id), [13, 24]);
+  });
+
+  // La route des engagements sert des athlètes sans clé `engagements` du tout.
+  test('un athlète sans engagement n a simplement aucune catégorie', () {
+    expect(
+      AthleteDto.fromJson(const {'Id': 1}).toDomain().categories,
+      isEmpty,
+    );
+  });
+
+  test('un engagement sans catégorie est ignoré', () {
+    final athlete = AthleteDto.fromJson(const {
+      'Id': 1,
+      'engagements': [
+        {'categorie': null},
+        {'categorie': {'id': 13, 'label': 'Cadet'}},
+      ],
+    }).toDomain();
+
+    expect(athlete.categories.map((c) => c.id), [13]);
+  });
 }

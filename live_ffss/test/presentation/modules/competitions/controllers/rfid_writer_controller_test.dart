@@ -5,6 +5,7 @@ import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/category.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/module/competitions/controllers/rfid_writer_controller.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
@@ -25,6 +26,7 @@ void main() {
     String last, {
     String licence = '',
     Club? club,
+    List<Category> categories = const [],
   }) =>
       Athlete(
         id: id,
@@ -37,6 +39,7 @@ void main() {
         nationality: 'France',
         isValid: true,
         club: club,
+        categories: categories,
       );
 
   const nantes = Club(id: 1, name: 'SC Nantes');
@@ -269,6 +272,104 @@ void main() {
       verifyNever(() => writer.write('999888;DURAND'));
 
       inFlight.complete();
+    });
+  });
+
+  group('filtre par catégorie', () {
+    const cadet = Category(id: 13, name: 'Cadet');
+    const junior = Category(id: 14, name: 'Junior');
+    const open = Category(id: 24, name: 'Open');
+
+    setUp(() async {
+      when(() => repo.getClubs(1)).thenAnswer((_) async => [
+            nantes.copyWith(athletes: [
+              athlete(1, 'Jean', 'DUPONT',
+                  licence: '123456',
+                  club: nantes,
+                  categories: const [cadet, open]),
+              athlete(3, 'Luc', 'MARTIN',
+                  licence: '555', club: nantes, categories: const [junior]),
+            ]),
+            rennes.copyWith(athletes: [
+              athlete(2, 'Marie', 'DURAND',
+                  licence: '999888',
+                  club: rennes,
+                  categories: const [junior, open]),
+            ]),
+          ]);
+      await controller.loadAthletes(1);
+    });
+
+    List<int> visible() => controller.filteredAthletes.map((a) => a.id).toList();
+
+    test('sans catégorie cochée, tout le monde est visible', () {
+      expect(visible(), [1, 2, 3]);
+      expect(controller.hasActiveFilters, isFalse);
+    });
+
+    // Un athlète court plusieurs catégories : le masquer parce que l'une
+    // d'elles n'est pas retenue cacherait quelqu'un qui prend bien le départ.
+    test('une seule catégorie cochée suffit à garder l athlète', () {
+      controller.toggleCategory(13);
+
+      expect(visible(), [1]);
+      expect(controller.hasActiveFilters, isTrue);
+    });
+
+    test('deux catégories cochées sont un OU', () {
+      controller.toggleCategory(13);
+      controller.toggleCategory(14);
+
+      expect(visible(), [1, 2, 3]);
+    });
+
+    test('la catégorie et la recherche se combinent', () {
+      controller.toggleCategory(24);
+      controller.setSearchQuery('Rennes');
+
+      expect(visible(), [2]);
+    });
+
+    test('les catégories proposées sont celles des athlètes chargés', () {
+      expect(controller.categoryOptions.map((o) => o.label),
+          ['Cadet', 'Junior', 'Open']);
+      expect(controller.categoryOptions.map((o) => o.value), [13, 14, 24]);
+    });
+
+    test('décocher rend les athlètes masqués', () {
+      controller.toggleCategory(13);
+      expect(visible(), [1]);
+
+      controller.toggleCategory(13);
+
+      expect(visible(), [1, 2, 3]);
+    });
+
+    test('clearCategories vide le filtre d un coup', () {
+      controller.toggleCategory(13);
+      controller.toggleCategory(14);
+
+      controller.clearCategories();
+
+      expect(controller.hasActiveFilters, isFalse);
+      expect(visible(), [1, 2, 3]);
+    });
+
+    // Sinon l'opérateur reste devant une liste vide sans rien à décocher.
+    test('une catégorie disparue au rechargement est décochée', () async {
+      controller.toggleCategory(13);
+      expect(visible(), [1]);
+
+      when(() => repo.getClubs(1)).thenAnswer((_) async => [
+            rennes.copyWith(athletes: [
+              athlete(2, 'Marie', 'DURAND',
+                  club: rennes, categories: const [junior]),
+            ]),
+          ]);
+      await controller.loadAthletes(1);
+
+      expect(controller.isCategorySelected(13), isFalse);
+      expect(visible(), [2]);
     });
   });
 }

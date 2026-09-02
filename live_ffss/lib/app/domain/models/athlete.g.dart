@@ -24,6 +24,10 @@ _$AthleteImpl _$$AthleteImplFromJson(Map<String, dynamic> json) =>
       clubId: (json['clubId'] as num?)?.toInt() ?? 0,
       clubLabel: json['clubLabel'] as String? ?? '',
       isSubstitute: json['isSubstitute'] as bool? ?? false,
+      categories: (json['categories'] as List<dynamic>?)
+              ?.map((e) => Category.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <Category>[],
     );
 
 Map<String, dynamic> _$$AthleteImplToJson(_$AthleteImpl instance) =>
@@ -44,6 +48,7 @@ Map<String, dynamic> _$$AthleteImplToJson(_$AthleteImpl instance) =>
       'clubId': instance.clubId,
       'clubLabel': instance.clubLabel,
       'isSubstitute': instance.isSubstitute,
+      'categories': instance.categories,
     };
 
 const _$GenderEnumMap = {

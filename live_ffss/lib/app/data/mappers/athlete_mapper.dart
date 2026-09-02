@@ -1,5 +1,6 @@
 import 'package:live_ffss/app/data/dtos/athlete_dto.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/category.dart';
 
 extension AthleteMapper on AthleteDto {
   Athlete toDomain() => Athlete(
@@ -23,7 +24,22 @@ extension AthleteMapper on AthleteDto {
         clubId: clubId,
         clubLabel: clubLabel,
         isSubstitute: isSubstitute,
+        categories: _distinctCategories(),
       );
+
+  /// One [Category] per distinct category across the athlete's entries. An
+  /// athlete entered in seven épreuves is usually in the same category several
+  /// times over, and repeating it would say nothing.
+  List<Category> _distinctCategories() {
+    final byId = <int, Category>{};
+    for (final entry in entries) {
+      final category = entry.category;
+      if (category == null || category.id == 0) continue;
+      byId.putIfAbsent(
+          category.id, () => Category(id: category.id, name: category.name));
+    }
+    return byId.values.toList();
+  }
 }
 
 /// FFSS sends the ISO 3166 alpha-3 country code, but Switzerland is known by

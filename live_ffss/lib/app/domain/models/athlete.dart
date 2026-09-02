@@ -1,5 +1,6 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:live_ffss/app/domain/models/category.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 
 part 'athlete.freezed.dart';
@@ -28,6 +29,11 @@ class Athlete with _$Athlete {
     @Default(0) int clubId,
     @Default('') String clubLabel,
     @Default(false) bool isSubstitute,
+
+    /// The categories this athlete is entered in, distinct and in the order
+    /// the entries came. Most athletes race two or three: « Junior » and the
+    /// umbrella « Open » and « Youth » alongside it.
+    @Default(<Category>[]) List<Category> categories,
     // Back-reference, populated by ClubMapper or by join logic.
     // Excluded from JSON to avoid Club <-> Athlete recursion.
     @JsonKey(includeFromJson: false, includeToJson: false) Club? club,
