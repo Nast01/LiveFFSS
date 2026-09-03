@@ -12,9 +12,9 @@ part 'lane_dto.g.dart';
 /// Clés relevées sur un vrai payload le 2026-09-01 (compétition 1451, course
 /// 20). La documentation fédérale est fausse sur quatre points : elle annonce
 /// `Id`, `Engagement` et `Resultat` capitalisés — ils arrivent en minuscules —
-/// et un `Numero` de type String, qui est un entier. Les paramètres de
-/// `place/submit` y sont eux aussi recopiés de ceux du créneau : le seul
-/// attendu est `numero`.
+/// et un `Numero` de type String, qui est un entier. Les paramètres
+/// documentés de `place/submit` (nom/debut/fin/partie) sont recopiés de ceux
+/// du créneau ; les vrais sont `numero` et `engagement`.
 ///
 /// Deux champs du payload ne sont volontairement pas portés. `fullLabel` vaut
 /// le libellé collé à lui-même (« Place 1 - Place 1 »), quirk serveur connu,
