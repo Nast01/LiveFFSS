@@ -417,6 +417,11 @@ final Map<String, String> enUS = {
   'heat_draw_presence': '@present present out of @engaged entered',
   'heat_draw_empty': 'Run the draw to compose the heats',
   'heat_draw_no_present': 'No athlete marked present',
+  'heat_draw_saved_pushed': 'Heats saved, spots pushed to FFSS',
+  'heat_draw_lanes_unplaced':
+      'Heats saved. With no course on the programme their spots cannot '
+      'leave — place the round, then save again.',
+  'heat_draw_lanes_failed': 'Heats saved, but pushing the spots failed',
   'heat_draw_saved': 'Heats saved',
   'heat_draw_move_to': 'Move to',
   'heat_draw_current': 'current heat',

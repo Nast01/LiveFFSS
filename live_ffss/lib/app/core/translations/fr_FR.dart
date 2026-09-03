@@ -421,6 +421,12 @@ final Map<String, String> frFR = {
   'heat_draw_presence': '@present présents sur @engaged engagés',
   'heat_draw_empty': 'Lance le tirage pour composer les séries',
   'heat_draw_no_present': 'Aucun athlète pointé présent',
+  'heat_draw_saved_pushed': 'Séries enregistrées, places envoyées sur FFSS',
+  'heat_draw_lanes_unplaced':
+      "Séries enregistrées. Sans course au programme, leurs places ne "
+      'peuvent pas partir — placez le tour, puis réenregistrez.',
+  'heat_draw_lanes_failed':
+      "Séries enregistrées, mais l'envoi des places a échoué",
   'heat_draw_saved': 'Séries enregistrées',
   'heat_draw_move_to': 'Déplacer vers',
   'heat_draw_current': 'série actuelle',

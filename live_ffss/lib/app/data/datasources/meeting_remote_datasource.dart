@@ -64,11 +64,16 @@ abstract class MeetingRemoteDataSource {
 
   Future<bool> deleteRun(int runId);
 
-  /// Creates a numbered spot on a course, or renumbers the one with the given
+  /// Creates a numbered spot on a course, or rewrites the one with the given
   /// [id]. Returns the id FFSS assigned, or 0 when the call reported failure.
+  ///
+  /// [entryId] seats an engagement in the spot — the whole team for a relay,
+  /// FFSS resolves the athletes itself. Null leaves the spot free, and
+  /// explicitly frees it again on an update: the parameter is always sent.
   Future<int> submitLane({
     required int runId,
     required int number,
+    int? entryId,
     int? id,
   });
 
@@ -195,6 +200,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
   Future<int> submitLane({
     required int runId,
     required int number,
+    int? entryId,
     int? id,
   }) async {
     final endpoint = ApiEndpoints.replacePath(
@@ -205,6 +211,9 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       // Empty means "create"; a value means "update".
       'id': id?.toString() ?? '',
       'numero': number.toString(),
+      // Empty clears the seat server-side (verified 2026-09-03), so a
+      // reconciliation can free a spot as well as fill one.
+      'engagement': entryId?.toString() ?? '',
     });
     final assigned = body['id'];
     return assigned is int ? assigned : 0;

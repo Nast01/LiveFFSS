@@ -5,6 +5,7 @@ import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
 import 'package:live_ffss/app/data/dtos/run_dto.dart';
 import 'package:live_ffss/app/data/dtos/slot_dto.dart';
 import 'package:live_ffss/app/data/mappers/meeting_mapper.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
 
 abstract class MeetingRepository {
@@ -51,7 +52,6 @@ abstract class MeetingRepository {
 
   Future<bool> deleteRun(int runId);
 
-
   /// Opens a freshly created course with [count] numbered spots, 1..count —
   /// as many as its round declares in `RaceFormatDetail.spotsPerRace`.
   ///
@@ -61,6 +61,17 @@ abstract class MeetingRepository {
   Future<int> createDefaultLanes({required int runId, required int count});
 
   Future<bool> deleteLane(int laneId);
+
+  /// Makes the course's spots mirror [entryIds]: one spot per entry, numbered
+  /// from 1 in lane order, [existing] spots rewritten before any is created,
+  /// the surplus deleted. Returns how many spots are confirmed afterwards —
+  /// a refusal on one does not stop the rest, and the caller compares the
+  /// count to what it asked for.
+  Future<int> syncLanes({
+    required int runId,
+    required List<int> entryIds,
+    required List<Lane> existing,
+  });
 }
 
 class MeetingRepositoryImpl implements MeetingRepository {
@@ -230,4 +241,32 @@ class MeetingRepositoryImpl implements MeetingRepository {
 
   @override
   Future<bool> deleteRun(int runId) => _dataSource.deleteRun(runId);
+
+  @override
+  Future<int> syncLanes({
+    required int runId,
+    required List<int> entryIds,
+    required List<Lane> existing,
+  }) async {
+    // By number, not payload order: FFSS guarantees none, and lane 2 must not
+    // become lane 1 at the whim of a listing.
+    final reusable = [...existing]
+      ..sort((a, b) => a.number.compareTo(b.number));
+    var synced = 0;
+    for (var i = 0; i < entryIds.length; i++) {
+      final id = await _dataSource.submitLane(
+        runId: runId,
+        number: i + 1,
+        entryId: entryIds[i],
+        id: i < reusable.length ? reusable[i].id : null,
+      );
+      if (id != 0) synced++;
+    }
+    // Default spots beyond the field would sit as ghost lanes on the result
+    // sheet.
+    for (var i = entryIds.length; i < reusable.length; i++) {
+      await _dataSource.deleteLane(reusable[i].id);
+    }
+    return synced;
+  }
 }

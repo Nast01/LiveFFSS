@@ -7,6 +7,7 @@ import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
 import 'package:live_ffss/app/data/dtos/run_dto.dart';
 import 'package:live_ffss/app/data/dtos/slot_dto.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockDataSource extends Mock implements MeetingRemoteDataSource {}
@@ -356,5 +357,88 @@ void main() {
 
     expect(await repo.deleteRun(24), isTrue);
     verify(() => ds.deleteRun(24)).called(1);
+  });
+
+  group('syncLanes', () {
+    Lane lane(int id, int number) => Lane(id: id, number: number);
+
+    setUp(() {
+      when(() => ds.submitLane(
+            runId: any(named: 'runId'),
+            number: any(named: 'number'),
+            entryId: any(named: 'entryId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 1);
+      when(() => ds.deleteLane(any())).thenAnswer((_) async => true);
+    });
+
+    // Le tour a déjà ouvert la course avec ses places par défaut : les
+    // réécrire plutôt qu'en créer d'autres, sinon la course cumule les vides
+    // et les affectées.
+    test('réutilise les places existantes avant d en créer', () async {
+      final synced = await repo.syncLanes(
+        runId: 24,
+        entryIds: const [101, 102, 103],
+        existing: [lane(7, 1), lane(8, 2)],
+      );
+
+      expect(synced, 3);
+      verify(() => ds.submitLane(runId: 24, number: 1, entryId: 101, id: 7))
+          .called(1);
+      verify(() => ds.submitLane(runId: 24, number: 2, entryId: 102, id: 8))
+          .called(1);
+      verify(() =>
+              ds.submitLane(runId: 24, number: 3, entryId: 103, id: null))
+          .called(1);
+      verifyNever(() => ds.deleteLane(any()));
+    });
+
+    // Huit places par défaut pour trois partants laisseraient cinq couloirs
+    // fantômes sur la feuille de résultats.
+    test('supprime les places en trop', () async {
+      await repo.syncLanes(
+        runId: 24,
+        entryIds: const [101],
+        existing: [lane(7, 1), lane(8, 2), lane(9, 3)],
+      );
+
+      verify(() => ds.submitLane(runId: 24, number: 1, entryId: 101, id: 7))
+          .called(1);
+      verify(() => ds.deleteLane(8)).called(1);
+      verify(() => ds.deleteLane(9)).called(1);
+    });
+
+    // FFSS ne garantit aucun ordre : reprendre les places par numéro évite
+    // que la place 2 devienne la 1 au gré du payload.
+    test('reprend les places par numéro croissant', () async {
+      await repo.syncLanes(
+        runId: 24,
+        entryIds: const [101, 102],
+        existing: [lane(9, 2), lane(7, 1)],
+      );
+
+      verify(() => ds.submitLane(runId: 24, number: 1, entryId: 101, id: 7))
+          .called(1);
+      verify(() => ds.submitLane(runId: 24, number: 2, entryId: 102, id: 9))
+          .called(1);
+    });
+
+    test('un refus n arrête pas les suivantes et le compte est honnête',
+        () async {
+      when(() => ds.submitLane(
+            runId: 24,
+            number: 2,
+            entryId: any(named: 'entryId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 0);
+
+      final synced = await repo.syncLanes(
+        runId: 24,
+        entryIds: const [101, 102, 103],
+        existing: const [],
+      );
+
+      expect(synced, 2);
+    });
   });
 }

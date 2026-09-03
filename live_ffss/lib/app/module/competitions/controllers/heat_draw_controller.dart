@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
+import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
@@ -14,6 +15,7 @@ import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/heat_draw.dart';
 import 'package:live_ffss/app/domain/models/heat_plan.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
@@ -30,7 +32,8 @@ class HeatDrawController extends GetxController {
     this._raceRepo,
     this._clubRepo,
     this._attendance,
-    this._programme, {
+    this._programme,
+    this._meetings, {
     Random? random,
   }) : _random = random ?? Random();
 
@@ -38,6 +41,10 @@ class HeatDrawController extends GetxController {
   final ClubRepository _clubRepo;
   final AttendanceService _attendance;
   final ProgrammeService _programme;
+
+  /// For the FFSS spots: the drawn line-up is pushed onto each heat's course
+  /// when the draw is saved — the spots are what results are entered against.
+  final MeetingRepository _meetings;
   final Random _random;
 
   final Rxn<Race> race = Rxn<Race>();
@@ -378,8 +385,87 @@ class HeatDrawController extends GetxController {
     await _programme.save(
       (_programme.current.value ?? programme).copyWith(structures: structures),
     );
-    message.trigger(const UiMessageSuccess('heat_draw_saved'));
+    // The local save stands whatever the push does: the operator chose to keep
+    // a draw on the device and be told what could not leave it.
     saved.value = true;
+
+    final drawn = _savedRaces(structures, level);
+    final report = await _pushLanes(drawn);
+    if (report.failed > 0) {
+      message.trigger(UiMessageError('heat_draw_lanes_failed',
+          details: '${report.failed}/${drawn.length}'));
+    } else if (report.unlinked > 0) {
+      message.trigger(UiMessageError('heat_draw_lanes_unplaced',
+          details: '${report.unlinked}/${drawn.length}'));
+    } else {
+      message.trigger(const UiMessageSuccess('heat_draw_saved_pushed'));
+    }
+  }
+
+  List<ProgrammeRace> _savedRaces(
+    List<EventStructure> structures,
+    RoundType type,
+  ) {
+    for (final s in structures) {
+      if (s.raceId != race.value?.id || s.categoryId != categoryId) continue;
+      for (final level in s.levels) {
+        if (level.type == type) return level.races;
+      }
+    }
+    return const [];
+  }
+
+  /// Pushes each drawn heat onto the FFSS spots of its course — the spots are
+  /// what results are entered against on the federal side.
+  ///
+  /// [unlinked] counts the heats whose round has no course on the programme
+  /// yet: nothing to push onto, the operator places the round and saves again.
+  /// [failed] counts the ones whose push did not fully land. Reading the
+  /// réunions first is not optional: pushing blind would create spots beside
+  /// the default ones instead of rewriting them.
+  Future<({int unlinked, int failed})> _pushLanes(
+    List<ProgrammeRace> drawn,
+  ) async {
+    final linked = <ProgrammeRace>[];
+    var unlinked = 0;
+    for (final race in drawn) {
+      if (race.entryIds.isEmpty) continue;
+      race.runId != 0 ? linked.add(race) : unlinked++;
+    }
+    if (linked.isEmpty) return (unlinked: unlinked, failed: 0);
+
+    final competitionId = competition.value?.id;
+    Map<int, List<Lane>>? existingByRun;
+    if (competitionId != null) {
+      try {
+        final meetings = await _meetings.getMeetings(competitionId);
+        existingByRun = {
+          for (final meeting in meetings)
+            for (final slot in meeting.slots)
+              for (final run in slot.runs) run.id: run.lanes,
+        };
+      } on AppException {
+        existingByRun = null;
+      }
+    }
+    if (existingByRun == null) {
+      return (unlinked: unlinked, failed: linked.length);
+    }
+
+    var failed = 0;
+    for (final race in linked) {
+      try {
+        final synced = await _meetings.syncLanes(
+          runId: race.runId,
+          entryIds: race.entryIds,
+          existing: existingByRun[race.runId] ?? const [],
+        );
+        if (synced < race.entryIds.length) failed++;
+      } on AppException {
+        failed++;
+      }
+    }
+    return (unlinked: unlinked, failed: failed);
   }
 
   List<RoundLevel> _levelsWithDraw(List<RoundLevel> levels, RoundType type) {

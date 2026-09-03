@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
+import 'package:intl/intl.dart';
+import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
@@ -17,7 +19,11 @@ import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
+import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
+import 'package:live_ffss/app/domain/models/run.dart';
+import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/heat_draw_controller.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
@@ -28,6 +34,8 @@ class _MockRaceRepo extends Mock implements RaceRepository {}
 class _MockAttendance extends Mock implements AttendanceService {}
 
 class _MockClubRepo extends Mock implements ClubRepository {}
+
+class _MockMeetingRepo extends Mock implements MeetingRepository {}
 
 /// Real store semantics without secure storage: `save` keeps the programme in
 /// memory so the controller's read-modify-write can be asserted end to end.
@@ -69,6 +77,7 @@ void main() {
   late _MockRaceRepo raceRepo;
   late _MockAttendance attendance;
   late _MockClubRepo clubRepo;
+  late _MockMeetingRepo meetingRepo;
   late _FakeProgrammeService programme;
 
   Athlete athlete(int id, {int clubId = 0}) => Athlete(
@@ -157,6 +166,7 @@ void main() {
       clubRepo,
       attendance,
       programme,
+      meetingRepo,
       random: Random(7),
     )
       ..race.value = makeRace()
@@ -175,6 +185,14 @@ void main() {
     when(() => clubRepo.getAthleteClubs(any(), any()))
         .thenAnswer((_) async => const <int, Club>{});
     programme = _FakeProgrammeService(programmeWith());
+    meetingRepo = _MockMeetingRepo();
+    when(() => meetingRepo.getMeetings(any())).thenAnswer((_) async => const []);
+    when(() => meetingRepo.syncLanes(
+          runId: any(named: 'runId'),
+          entryIds: any(named: 'entryIds'),
+          existing: any(named: 'existing'),
+        )).thenAnswer((i) async =>
+        (i.namedArguments[const Symbol('entryIds')] as List<int>).length);
     when(() => raceRepo.getEntries(any())).thenAnswer((_) async => const []);
     when(() => attendance.forRace(any()))
         .thenReturn(const <int, AttendanceStatus>{});
@@ -183,6 +201,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(const <int>[]);
     registerFallbackValue(const <Athlete>[]);
+    registerFallbackValue(const <Lane>[]);
   });
 
   tearDown(Get.reset);
@@ -505,7 +524,10 @@ void main() {
       expect(races.map((r) => r.athleteIds), expected);
       expect(races.map((r) => r.number), [1, 2, 3]);
       expect(controller.saved.value, isTrue);
-      expect(controller.message.value, isA<UiMessageSuccess>());
+      // Aucun tour placé dans cette fixture : le tirage est enregistré en
+      // local et le message dit que les places n'ont pas pu partir.
+      expect(controller.message.value!.translationKey,
+          'heat_draw_lanes_unplaced');
     });
 
     test('adjusts the race count upwards, allocating new local ids', () async {
@@ -574,6 +596,7 @@ void main() {
         clubRepo,
         attendance,
         programme,
+        meetingRepo,
         random: Random(7),
       )
         ..race.value = makeRace(speciality: 'Eau-plate')
@@ -799,6 +822,7 @@ void main() {
         clubRepo,
         attendance,
         programme,
+        meetingRepo,
         random: Random(7),
       )
         ..race.value = makeRace(speciality: speciality)
@@ -1026,6 +1050,7 @@ void main() {
         clubRepo,
         attendance,
         programme,
+        meetingRepo,
         random: Random(7),
       )
         ..race.value = makeRace(speciality: speciality)
@@ -1108,6 +1133,142 @@ void main() {
           await withDeclared(present: 10, raceCount: 3, speciality: 'Côtier');
 
       expect(controller.requiresStructureValidation, isTrue);
+    });
+  });
+
+  group('enregistrer pousse les places', () {
+    DateTime hhmm(String v) => DateFormat('HH:mm').parse(v);
+
+    Run course(int id, {List<Lane> lanes = const []}) => Run(
+          id: id,
+          name: 'Série 1',
+          label: '',
+          fullLabel: '',
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: 'OCEAN 1',
+          beginTime: hhmm('08:00'),
+          endTime: hhmm('08:10'),
+          lanes: lanes,
+        );
+
+    Meeting meetingWith(List<Run> runs) => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: DateTime(2026, 6, 13),
+          beginHour: DateTime(2026, 6, 13, 8),
+          endHour: DateTime(2026, 6, 13, 18),
+          slots: [
+            Slot(
+              id: 66,
+              name: 'Séries',
+              beginHour: hhmm('08:00'),
+              endHour: hhmm('08:10'),
+              runs: runs,
+            ),
+          ],
+        );
+
+    /// Un tour d'une série, tirée et liée (ou non) à sa course FFSS.
+    Future<HeatDrawController> drawnLinked({int runId = 25}) async {
+      programme = _FakeProgrammeService(programmeWith(levels: [
+        RoundLevel(type: RoundType.serie, serverId: 39, races: [
+          ProgrammeRace(id: 1, number: 1, runId: runId),
+        ]),
+      ]));
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(101, [athlete(11)]),
+            entry(102, [athlete(12)]),
+          ]);
+      when(() => attendance.forRace(raceId)).thenReturn({
+        11: AttendanceStatus.present,
+        12: AttendanceStatus.present,
+      });
+      final controller = build();
+      await controller.load();
+      controller.drawWithPlan((raceCount: 1, spotsPerRace: 4));
+      return controller;
+    }
+
+    test('chaque série pousse ses engagements sur les places de sa course',
+        () async {
+      final controller = await drawnLinked();
+      final existing = [const Lane(id: 7, number: 1)];
+      when(() => meetingRepo.getMeetings(competitionId))
+          .thenAnswer((_) async => [
+                meetingWith([course(25, lanes: existing)])
+              ]);
+
+      await controller.save();
+
+      final captured = verify(() => meetingRepo.syncLanes(
+            runId: 25,
+            entryIds: captureAny(named: 'entryIds'),
+            existing: captureAny(named: 'existing'),
+          )).captured;
+      expect((captured[0] as List<int>).toSet(), {101, 102});
+      expect(captured[1], existing);
+      expect(controller.message.value!.translationKey,
+          'heat_draw_saved_pushed');
+      expect(controller.message.value, isA<UiMessageSuccess>());
+    });
+
+    // Le choix retenu : le tirage reste sur l'appareil, et l'opérateur sait
+    // qu'il lui reste à placer le tour puis à réenregistrer.
+    test('une série sans course est signalée, le tirage reste enregistré',
+        () async {
+      final controller = await drawnLinked(runId: 0);
+
+      await controller.save();
+
+      verifyNever(() => meetingRepo.syncLanes(
+            runId: any(named: 'runId'),
+            entryIds: any(named: 'entryIds'),
+            existing: any(named: 'existing'),
+          ));
+      expect(controller.saved.value, isTrue);
+      expect(programme.saveCount, 1);
+      expect(controller.message.value!.translationKey,
+          'heat_draw_lanes_unplaced');
+    });
+
+    test('un envoi incomplet est signalé comme un échec', () async {
+      final controller = await drawnLinked();
+      when(() => meetingRepo.getMeetings(competitionId))
+          .thenAnswer((_) async => [
+                meetingWith([course(25)])
+              ]);
+      when(() => meetingRepo.syncLanes(
+            runId: any(named: 'runId'),
+            entryIds: any(named: 'entryIds'),
+            existing: any(named: 'existing'),
+          )).thenAnswer((_) async => 1); // 2 demandées, 1 passée
+
+      await controller.save();
+
+      expect(controller.saved.value, isTrue);
+      expect(controller.message.value!.translationKey,
+          'heat_draw_lanes_failed');
+    });
+
+    // Pousser sans avoir pu lire l'existant créerait des doublons à côté des
+    // places par défaut : mieux vaut ne rien envoyer et le dire.
+    test('réunions illisibles : rien ne part, et c est dit', () async {
+      final controller = await drawnLinked();
+      when(() => meetingRepo.getMeetings(competitionId))
+          .thenThrow(const NetworkException('coupé'));
+
+      await controller.save();
+
+      verifyNever(() => meetingRepo.syncLanes(
+            runId: any(named: 'runId'),
+            entryIds: any(named: 'entryIds'),
+            existing: any(named: 'existing'),
+          ));
+      expect(controller.saved.value, isTrue);
+      expect(controller.message.value!.translationKey,
+          'heat_draw_lanes_failed');
     });
   });
 }
