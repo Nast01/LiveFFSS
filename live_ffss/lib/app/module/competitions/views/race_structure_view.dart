@@ -456,7 +456,9 @@ class _CourseTile extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('${level.type.labelKey.tr} ${race.number}',
+                          Text(
+                              heatName(level.type, race.number - 1,
+                                  level.races.length),
                               style: AppTypography.body
                                   .copyWith(color: AppColors.textPrimary)),
                           if (race.athleteIds.isNotEmpty)

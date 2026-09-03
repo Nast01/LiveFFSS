@@ -110,4 +110,40 @@ void main() {
       expect(structure(const []).chainSummary, '');
     });
   });
+
+  group('heatName', () {
+    // Le niveau seul quand il n'y a rien à distinguer, le rang dès qu'il y a
+    // plusieurs courses : « Série 2 » ne veut rien dire s'il n'y en a qu'une.
+    test('un tour à une seule course porte le niveau nu', () {
+      expect(heatName(RoundType.serie, 0, 1), 'Série');
+      expect(heatName(RoundType.demi, 0, 1), 'Demie');
+      expect(heatName(RoundType.quart, 0, 1), 'Quart');
+    });
+
+    test('plusieurs courses sont numérotées à partir de 1', () {
+      expect(heatName(RoundType.serie, 0, 3), 'Série 1');
+      expect(heatName(RoundType.serie, 2, 3), 'Série 3');
+      expect(heatName(RoundType.demi, 1, 2), 'Demie 2');
+    });
+
+    // Les finales se lisent en lettres, et la lettre reste même seule : une
+    // « Finale A » annonce qu'une B peut exister, ce que « Finale » tait.
+    test('une finale porte une lettre, même unique', () {
+      expect(heatName(RoundType.finale, 0, 1), 'Finale A');
+      expect(heatName(RoundType.finale, 0, 2), 'Finale A');
+      expect(heatName(RoundType.finale, 1, 2), 'Finale B');
+      expect(heatName(RoundType.finale, 2, 3), 'Finale C');
+    });
+
+    // Au-delà de Z on repart sur un rang chiffré plutôt que d'inventer AA :
+    // aucune compétition ne court 27 finales, mais rien ne doit sortir vide.
+    test('au-delà de la vingt-sixième finale, le rang reprend la main', () {
+      expect(heatName(RoundType.finale, 25, 30), 'Finale Z');
+      expect(heatName(RoundType.finale, 26, 30), 'Finale 27');
+    });
+
+    test('un niveau inconnu reste nommable', () {
+      expect(heatName(RoundType.unknown, 0, 2), 'Tour 1');
+    });
+  });
 }

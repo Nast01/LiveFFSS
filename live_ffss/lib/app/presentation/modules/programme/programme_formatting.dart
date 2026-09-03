@@ -38,6 +38,27 @@ extension RoundTypeFormatting on RoundType {
   String get singularLabelKey => '${labelKey}_one';
 }
 
+/// Names one course of a round, wherever it is shown or sent: on screen in the
+/// draw and the Séries tab, and as the `nom` of the FFSS course itself.
+///
+/// The rank is dropped when the round runs a single course — « Série 2 » says
+/// nothing when there is no série 1 to tell it from.
+///
+/// Finals are lettered instead, and keep their letter even alone: « Finale A »
+/// announces that a B may exist, which « Finale » hides. Past the twenty-sixth
+/// the rank takes over rather than inventing « AA » — no competition runs that
+/// many, but nothing may come out blank.
+String heatName(RoundType type, int index, int total) {
+  final level = type.singularLabelKey.tr;
+  if (type == RoundType.finale) {
+    if (index < 26) {
+      return '$level ${String.fromCharCode(65 + index)}';
+    }
+    return '$level ${index + 1}';
+  }
+  return total <= 1 ? level : '$level ${index + 1}';
+}
+
 extension EventStructureFormatting on EventStructure {
   List<RoundType> get chain => levels.map((l) => l.type).toList();
   bool get isDefined => levels.isNotEmpty;

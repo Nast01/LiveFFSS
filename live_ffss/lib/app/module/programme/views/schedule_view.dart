@@ -792,12 +792,11 @@ class _Palette extends StatelessWidget {
   /// The rank is dropped when the round runs a single course — « Finale 1 »
   /// names nothing the plain « Finale » does not.
   List<String> _courseNamesFor(UnscheduledRound round, Gender gender) {
-    final level = round.type.singularLabelKey.tr;
     final tail =
         '${round.raceLabel} - ${gender.label} - ${round.categoryLabel}';
     return [
-      for (var i = 1; i <= round.courseCount; i++)
-        round.courseCount == 1 ? '$level - $tail' : '$level $i - $tail',
+      for (var i = 0; i < round.courseCount; i++)
+        '${heatName(round.type, i, round.courseCount)} - $tail',
     ];
   }
 

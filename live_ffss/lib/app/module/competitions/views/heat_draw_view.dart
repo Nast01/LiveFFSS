@@ -5,6 +5,7 @@ import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/heat_draw_controller.dart';
 import 'package:live_ffss/app/module/competitions/views/heat_structure_dialog.dart';
 import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
@@ -151,7 +152,8 @@ class _HeatDrawViewState extends State<HeatDrawView> {
             SimpleDialogOption(
               onPressed: () => Navigator.of(ctx).pop(i),
               child: Text(
-                '${'heat'.tr} ${i + 1}${i == current ? ' · ${'heat_draw_current'.tr}' : ''}',
+                '${heatName(_ctrl.selectedLevel.value ?? RoundType.serie, i, _ctrl.heats.length)}'
+                '${i == current ? ' · ${'heat_draw_current'.tr}' : ''}',
                 style: AppTypography.body.copyWith(
                   color: i == current
                       ? AppColors.textMuted
@@ -209,6 +211,10 @@ class _HeatDrawViewState extends State<HeatDrawView> {
                             index: i,
                             athletes: _ctrl.heats[i],
                             onTapAthlete: _pickTargetHeat,
+                            name: heatName(
+                                _ctrl.selectedLevel.value ?? RoundType.serie,
+                                i,
+                                _ctrl.heats.length),
                           ),
                       ],
                     ),
@@ -547,11 +553,16 @@ class _HeatCard extends StatelessWidget {
     required this.index,
     required this.athletes,
     required this.onTapAthlete,
+    required this.name,
   });
 
   final int index;
   final List<Athlete> athletes;
   final ValueChanged<Athlete> onTapAthlete;
+
+  /// Composed by the page, which knows the round and how many heats it runs —
+  /// « Série 2 », « Finale A ».
+  final String name;
 
   @override
   Widget build(BuildContext context) {
@@ -570,7 +581,7 @@ class _HeatCard extends StatelessWidget {
                 AppSpacing.sm, AppSpacing.sm, AppSpacing.sm, AppSpacing.xs),
             child: Row(
               children: [
-                Text('${'heat'.tr} ${index + 1}',
+                Text(name,
                     style: AppTypography.body
                         .copyWith(fontWeight: FontWeight.w800)),
                 const Spacer(),
