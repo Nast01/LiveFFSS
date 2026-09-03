@@ -25,9 +25,14 @@ mixin _$ProgrammeRace {
       throw _privateConstructorUsedError; // opt1/opt2 wiring: ids of the feeding races at the previous level.
 // Empty at the séries level and for opt2-with-no-selection.
   List<int> get sourceRaceIds =>
-      throw _privateConstructorUsedError; // Athletes drawn into this race, in lane order — the position in the list
-// IS the lane, since coastal lanes are sequential. Empty until the heats
-// are drawn from the athletes marked present.
+      throw _privateConstructorUsedError; // Entries drawn into this race, one per lane, in lane order — the FFSS
+// « place » model: a lane seats one engagement, a relay team included.
+// Empty for a draw made before this field existed; `athleteIds` then
+// remains the only record.
+  List<int> get entryIds =>
+      throw _privateConstructorUsedError; // The drawn athletes, flattened in lane order — a relay team contributes
+// all its members here while holding a single slot in `entryIds`. What
+// the result and display code reads.
   List<int> get athleteIds =>
       throw _privateConstructorUsedError; // The order this race was crossed in — one entry per finishing group, a
 // group of several being a declared tie. Places are computed from this
@@ -64,6 +69,7 @@ abstract class $ProgrammeRaceCopyWith<$Res> {
       {int id,
       int number,
       List<int> sourceRaceIds,
+      List<int> entryIds,
       List<int> athleteIds,
       List<List<int>> finishOrder,
       List<CoursePenalty> penalties,
@@ -88,6 +94,7 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
     Object? id = null,
     Object? number = null,
     Object? sourceRaceIds = null,
+    Object? entryIds = null,
     Object? athleteIds = null,
     Object? finishOrder = null,
     Object? penalties = null,
@@ -105,6 +112,10 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
       sourceRaceIds: null == sourceRaceIds
           ? _value.sourceRaceIds
           : sourceRaceIds // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+      entryIds: null == entryIds
+          ? _value.entryIds
+          : entryIds // ignore: cast_nullable_to_non_nullable
               as List<int>,
       athleteIds: null == athleteIds
           ? _value.athleteIds
@@ -138,6 +149,7 @@ abstract class _$$ProgrammeRaceImplCopyWith<$Res>
       {int id,
       int number,
       List<int> sourceRaceIds,
+      List<int> entryIds,
       List<int> athleteIds,
       List<List<int>> finishOrder,
       List<CoursePenalty> penalties,
@@ -160,6 +172,7 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
     Object? id = null,
     Object? number = null,
     Object? sourceRaceIds = null,
+    Object? entryIds = null,
     Object? athleteIds = null,
     Object? finishOrder = null,
     Object? penalties = null,
@@ -177,6 +190,10 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
       sourceRaceIds: null == sourceRaceIds
           ? _value._sourceRaceIds
           : sourceRaceIds // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+      entryIds: null == entryIds
+          ? _value._entryIds
+          : entryIds // ignore: cast_nullable_to_non_nullable
               as List<int>,
       athleteIds: null == athleteIds
           ? _value._athleteIds
@@ -206,11 +223,13 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
       {required this.id,
       required this.number,
       final List<int> sourceRaceIds = const <int>[],
+      final List<int> entryIds = const <int>[],
       final List<int> athleteIds = const <int>[],
       final List<List<int>> finishOrder = const <List<int>>[],
       final List<CoursePenalty> penalties = const <CoursePenalty>[],
       this.runId = 0})
       : _sourceRaceIds = sourceRaceIds,
+        _entryIds = entryIds,
         _athleteIds = athleteIds,
         _finishOrder = finishOrder,
         _penalties = penalties;
@@ -235,13 +254,30 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
     return EqualUnmodifiableListView(_sourceRaceIds);
   }
 
-// Athletes drawn into this race, in lane order — the position in the list
-// IS the lane, since coastal lanes are sequential. Empty until the heats
-// are drawn from the athletes marked present.
+// Entries drawn into this race, one per lane, in lane order — the FFSS
+// « place » model: a lane seats one engagement, a relay team included.
+// Empty for a draw made before this field existed; `athleteIds` then
+// remains the only record.
+  final List<int> _entryIds;
+// Entries drawn into this race, one per lane, in lane order — the FFSS
+// « place » model: a lane seats one engagement, a relay team included.
+// Empty for a draw made before this field existed; `athleteIds` then
+// remains the only record.
+  @override
+  @JsonKey()
+  List<int> get entryIds {
+    if (_entryIds is EqualUnmodifiableListView) return _entryIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_entryIds);
+  }
+
+// The drawn athletes, flattened in lane order — a relay team contributes
+// all its members here while holding a single slot in `entryIds`. What
+// the result and display code reads.
   final List<int> _athleteIds;
-// Athletes drawn into this race, in lane order — the position in the list
-// IS the lane, since coastal lanes are sequential. Empty until the heats
-// are drawn from the athletes marked present.
+// The drawn athletes, flattened in lane order — a relay team contributes
+// all its members here while holding a single slot in `entryIds`. What
+// the result and display code reads.
   @override
   @JsonKey()
   List<int> get athleteIds {
@@ -290,7 +326,7 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
 
   @override
   String toString() {
-    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds, athleteIds: $athleteIds, finishOrder: $finishOrder, penalties: $penalties, runId: $runId)';
+    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds, entryIds: $entryIds, athleteIds: $athleteIds, finishOrder: $finishOrder, penalties: $penalties, runId: $runId)';
   }
 
   @override
@@ -302,6 +338,7 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
             (identical(other.number, number) || other.number == number) &&
             const DeepCollectionEquality()
                 .equals(other._sourceRaceIds, _sourceRaceIds) &&
+            const DeepCollectionEquality().equals(other._entryIds, _entryIds) &&
             const DeepCollectionEquality()
                 .equals(other._athleteIds, _athleteIds) &&
             const DeepCollectionEquality()
@@ -318,6 +355,7 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
       id,
       number,
       const DeepCollectionEquality().hash(_sourceRaceIds),
+      const DeepCollectionEquality().hash(_entryIds),
       const DeepCollectionEquality().hash(_athleteIds),
       const DeepCollectionEquality().hash(_finishOrder),
       const DeepCollectionEquality().hash(_penalties),
@@ -344,6 +382,7 @@ abstract class _ProgrammeRace implements ProgrammeRace {
       {required final int id,
       required final int number,
       final List<int> sourceRaceIds,
+      final List<int> entryIds,
       final List<int> athleteIds,
       final List<List<int>> finishOrder,
       final List<CoursePenalty> penalties,
@@ -359,9 +398,15 @@ abstract class _ProgrammeRace implements ProgrammeRace {
 // Empty at the séries level and for opt2-with-no-selection.
   @override
   List<int>
-      get sourceRaceIds; // Athletes drawn into this race, in lane order — the position in the list
-// IS the lane, since coastal lanes are sequential. Empty until the heats
-// are drawn from the athletes marked present.
+      get sourceRaceIds; // Entries drawn into this race, one per lane, in lane order — the FFSS
+// « place » model: a lane seats one engagement, a relay team included.
+// Empty for a draw made before this field existed; `athleteIds` then
+// remains the only record.
+  @override
+  List<int>
+      get entryIds; // The drawn athletes, flattened in lane order — a relay team contributes
+// all its members here while holding a single slot in `entryIds`. What
+// the result and display code reads.
   @override
   List<int>
       get athleteIds; // The order this race was crossed in — one entry per finishing group, a

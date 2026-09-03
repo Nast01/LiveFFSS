@@ -206,9 +206,11 @@ void main() {
       expect(controller.selectedLevel.value, RoundType.serie);
     });
 
-    test('keeps only the athletes marked present', () async {
+    test('keeps only the entries marked present', () async {
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
-            entry(1, [athlete(1), athlete(2), athlete(3)]),
+            entry(1, [athlete(1)]),
+            entry(2, [athlete(2)]),
+            entry(3, [athlete(3)]),
           ]);
       when(() => attendance.forRace(raceId)).thenReturn({
         1: AttendanceStatus.present,
@@ -219,9 +221,50 @@ void main() {
       final controller = build();
       await controller.load();
 
-      expect(controller.presentAthletes.map((a) => a.id), [1]);
+      expect(controller.presentEntries.map((e) => e.id), [1]);
       expect(controller.engagedCount.value, 3);
       expect(controller.presentCount, 1);
+      expect(controller.presentPeopleCount.value, 1);
+    });
+
+    // Une place assoit un engagement : l'équipe entière, ou rien. Un relais
+    // auquel il manque un nageur n'est pas prêt à partir.
+    test('une équipe ne part que si tous ses athlètes sont présents',
+        () async {
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(1), athlete(2)]),
+            entry(2, [athlete(3), athlete(4)]),
+          ]);
+      when(() => attendance.forRace(raceId)).thenReturn({
+        1: AttendanceStatus.present,
+        2: AttendanceStatus.present,
+        3: AttendanceStatus.present,
+        // 4 manque : l'équipe 2 reste à quai.
+      });
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.presentEntries.map((e) => e.id), [1]);
+      // La bannière compte les têtes, pas les équipes.
+      expect(controller.presentPeopleCount.value, 3);
+      expect(controller.presentCount, 1);
+    });
+
+    test('un engagement forfait n est pas tiré, présent ou pas', () async {
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(1)]),
+            entry(2, [athlete(2)]).copyWith(isForfeit: true),
+          ]);
+      when(() => attendance.forRace(raceId)).thenReturn({
+        1: AttendanceStatus.present,
+        2: AttendanceStatus.present,
+      });
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.presentEntries.map((e) => e.id), [1]);
     });
 
     test('resolves each present athlete club so the avatar can show a logo',
@@ -239,9 +282,9 @@ void main() {
       final controller = build();
       await controller.load();
 
-      expect(controller.presentAthletes.single.club?.name, 'Nice');
-      expect(controller.presentAthletes.single.club?.logoUrl,
-          'https://logo/7.png');
+      final lead = controller.presentEntries.single.athletes.single;
+      expect(lead.club?.name, 'Nice');
+      expect(lead.club?.logoUrl, 'https://logo/7.png');
     });
 
     test('a club fetch failure still loads the athletes, without clubs',
@@ -258,7 +301,7 @@ void main() {
       await controller.load();
 
       expect(controller.error.value, isNull);
-      expect(controller.presentAthletes.single.club, isNull);
+      expect(controller.presentEntries.single.athletes.single.club, isNull);
     });
 
     test('ignores athletes of another category', () async {
@@ -274,7 +317,7 @@ void main() {
       final controller = build();
       await controller.load();
 
-      expect(controller.presentAthletes.map((a) => a.id), [1]);
+      expect(controller.presentEntries.map((e) => e.id), [1]);
       expect(controller.engagedCount.value, 1);
     });
 
@@ -302,7 +345,7 @@ void main() {
   group('HeatDrawController.drawFromDeclared', () {
     Future<HeatDrawController> withPresent(int count) async {
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
-            entry(1, [for (var i = 1; i <= count; i++) athlete(i)]),
+            for (var i = 1; i <= count; i++) entry(i, [athlete(i)]),
           ]);
       when(() => attendance.forRace(raceId)).thenReturn({
         for (var i = 1; i <= count; i++) i: AttendanceStatus.present,
@@ -372,7 +415,7 @@ void main() {
   group('HeatDrawController.moveAthlete', () {
     Future<HeatDrawController> drawn(int count) async {
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
-            entry(1, [for (var i = 1; i <= count; i++) athlete(i)]),
+            for (var i = 1; i <= count; i++) entry(i, [athlete(i)]),
           ]);
       when(() => attendance.forRace(raceId)).thenReturn({
         for (var i = 1; i <= count; i++) i: AttendanceStatus.present,
@@ -383,11 +426,11 @@ void main() {
       return controller;
     }
 
-    test('moves an athlete to the end of the target heat', () async {
+    test('moves an entry to the end of the target heat', () async {
       final controller = await drawn(8);
       final moved = controller.heats.first.first;
 
-      controller.moveAthlete(moved, 1);
+      controller.moveEntry(moved, 1);
 
       expect(controller.heats[1].last.id, moved.id);
       expect(controller.heats.first.any((a) => a.id == moved.id), isFalse);
@@ -398,7 +441,7 @@ void main() {
       final controller = await drawn(8);
       final moved = controller.heats.first.first;
 
-      controller.moveAthlete(moved, 1);
+      controller.moveEntry(moved, 1);
 
       final ids = controller.heats.expand((h) => h).map((a) => a.id).toList();
       expect(ids.toSet(), hasLength(8));
@@ -410,7 +453,7 @@ void main() {
       final before = controller.heats.map((h) => h.map((a) => a.id).toList());
       final stayer = controller.heats[1].first;
 
-      controller.moveAthlete(stayer, 1);
+      controller.moveEntry(stayer, 1);
 
       expect(controller.heats.map((h) => h.map((a) => a.id).toList()), before);
     });
@@ -419,7 +462,7 @@ void main() {
       final controller = await drawn(8);
       final before = controller.heats.map((h) => h.map((a) => a.id).toList());
 
-      controller.moveAthlete(controller.heats.first.first, 99);
+      controller.moveEntry(controller.heats.first.first, 99);
 
       expect(controller.heats.map((h) => h.map((a) => a.id).toList()), before);
     });
@@ -434,7 +477,7 @@ void main() {
         programme = _FakeProgrammeService(programmeWith(levels: levels));
       }
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
-            entry(1, [for (var i = 1; i <= count; i++) athlete(i)]),
+            for (var i = 1; i <= count; i++) entry(i, [athlete(i)]),
           ]);
       when(() => attendance.forRace(raceId)).thenReturn({
         for (var i = 1; i <= count; i++) i: AttendanceStatus.present,
@@ -597,6 +640,30 @@ void main() {
       expect(reused.penalties, isEmpty);
     });
 
+    // C'est l'engagement que la place FFSS portera : sans lui, le tirage ne
+    // peut pas être poussé sur le site.
+    test('écrit l engagement de chaque ligne, l équipe entière comprise',
+        () async {
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(11), athlete(12)]),
+            entry(2, [athlete(21), athlete(22)]),
+          ]);
+      when(() => attendance.forRace(raceId)).thenReturn({
+        for (final id in [11, 12, 21, 22]) id: AttendanceStatus.present,
+      });
+      final controller = build();
+      await controller.load();
+      controller.drawWithPlan((raceCount: 1, spotsPerRace: 4));
+
+      await controller.save();
+
+      final race = savedRaces(RoundType.serie).single;
+      expect(race.entryIds.toSet(), {1, 2});
+      // Les athlètes restent à plat, dans l'ordre des lignes, pour tout ce
+      // qui affiche ou classe des personnes.
+      expect(race.athleteIds.toSet(), {11, 12, 21, 22});
+    });
+
     test('saving without a draw writes nothing', () async {
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => const []);
       final controller = build();
@@ -610,9 +677,10 @@ void main() {
   });
 
   group('HeatDrawController.clubDistribution', () {
-    Athlete withClub(int id, int clubId, String name) =>
-        athlete(id, clubId: clubId)
-            .copyWith(club: clubId > 0 ? Club(id: clubId, name: name) : null);
+    Entry withClub(int id, int clubId, String name) => entry(id, [
+          athlete(id, clubId: clubId)
+              .copyWith(club: clubId > 0 ? Club(id: clubId, name: name) : null),
+        ]);
 
     test('is empty before a draw', () {
       expect(build().clubDistribution, isEmpty);
@@ -638,7 +706,7 @@ void main() {
       final controller = build();
       controller.heats.value = [
         [withClub(1, 7, 'Nice')],
-        <Athlete>[],
+        <Entry>[],
         [withClub(2, 8, 'Antibes')],
       ];
 
@@ -666,10 +734,14 @@ void main() {
       final controller = build();
       controller.heats.value = [
         [
-          athlete(1, clubId: 245)
-              .copyWith(club: const Club(id: 7, name: 'Nice')),
-          athlete(2, clubId: 245)
-              .copyWith(club: const Club(id: 8, name: 'Antibes')),
+          entry(1, [
+            athlete(1, clubId: 245)
+                .copyWith(club: const Club(id: 7, name: 'Nice')),
+          ]),
+          entry(2, [
+            athlete(2, clubId: 245)
+                .copyWith(club: const Club(id: 8, name: 'Antibes')),
+          ]),
         ],
       ];
 
@@ -717,8 +789,8 @@ void main() {
     }) async {
       programme = _FakeProgrammeService(programmeWith(levels: levels));
       final all = [for (var i = 1; i <= present; i++) athlete(i)];
-      when(() => raceRepo.getEntries(raceId))
-          .thenAnswer((_) async => [entry(1, all)]);
+      when(() => raceRepo.getEntries(raceId)).thenAnswer(
+          (_) async => [for (final a in all) entry(a.id, [a])]);
       when(() => attendance.forRace(raceId)).thenReturn({
         for (final a in all) a.id: AttendanceStatus.present,
       });
@@ -944,8 +1016,8 @@ void main() {
         const RoundLevel(type: RoundType.finale, spotsPerRace: 8),
       ]));
       final all = [for (var i = 1; i <= present; i++) athlete(i)];
-      when(() => raceRepo.getEntries(raceId))
-          .thenAnswer((_) async => [entry(1, all)]);
+      when(() => raceRepo.getEntries(raceId)).thenAnswer(
+          (_) async => [for (final a in all) entry(a.id, [a])]);
       when(() => attendance.forRace(raceId)).thenReturn({
         for (final a in all) a.id: AttendanceStatus.present,
       });

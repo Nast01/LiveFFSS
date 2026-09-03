@@ -10,6 +10,7 @@ import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/heat_draw.dart';
 import 'package:live_ffss/app/domain/models/heat_plan.dart';
@@ -52,8 +53,10 @@ class HeatDrawController extends GetxController {
   final RxList<RoundType> availableLevels = <RoundType>[].obs;
   final Rxn<RoundType> selectedLevel = Rxn<RoundType>();
 
-  /// The current draw: one list of athletes per heat, in lane order.
-  final RxList<List<Athlete>> heats = <List<Athlete>>[].obs;
+  /// The current draw: one list of entries per heat, in lane order. Entries,
+  /// not athletes — a lane seats one engagement whatever its size, so a relay
+  /// team of four takes one lane exactly as it does on the federal site.
+  final RxList<List<Entry>> heats = <List<Entry>>[].obs;
 
   /// The plan the heats on screen were drawn with. Null until a draw has run;
   /// [save] writes it back into the structure.
@@ -68,14 +71,22 @@ class HeatDrawController extends GetxController {
   final RxInt entryCount = 0.obs;
   final RxInt eligibleCount = 0.obs;
 
-  /// Athletes eligible for the draw — those marked present in Engagés.
-  final RxList<Athlete> presentAthletes = <Athlete>[].obs;
+  /// Entries eligible for the draw: not forfeited, and with every one of
+  /// their athletes marked present in Engagés — a team missing a member is
+  /// not ready to race. For individual épreuves this is exactly "the athlete
+  /// is present", as before.
+  final RxList<Entry> presentEntries = <Entry>[].obs;
+
+  /// People checked in, for the presence banner — which counts heads, not
+  /// engagements: [engagedCount] does too.
+  final RxInt presentPeopleCount = 0.obs;
 
   /// True once the draw has been written into the programme, so the view can
   /// leave the screen.
   final RxBool saved = false.obs;
 
-  int get presentCount => presentAthletes.length;
+  /// Competitors the draw will seat — entries, since a lane seats one.
+  int get presentCount => presentEntries.length;
 
   @override
   void onInit() {
@@ -192,22 +203,33 @@ class HeatDrawController extends GetxController {
       ];
       engagedCount.value = ofCategory.length;
       final entriesOfCategory =
-          entries.where((e) => e.category.id == categoryId);
+          entries.where((e) => e.category.id == categoryId).toList();
       entryCount.value = entriesOfCategory.length;
       eligibleCount.value = entriesOfCategory.where((e) => !e.isForfeit).length;
 
       final attendance = _attendance.forRace(raceId);
+      presentPeopleCount.value = ofCategory
+          .where((a) => attendance[a.id] == AttendanceStatus.present)
+          .length;
       final present = [
-        for (final athlete in ofCategory)
-          if (attendance[athlete.id] == AttendanceStatus.present) athlete,
+        for (final entry in entriesOfCategory)
+          if (!entry.isForfeit &&
+              entry.athletes.isNotEmpty &&
+              entry.athletes
+                  .every((a) => attendance[a.id] == AttendanceStatus.present))
+            entry,
       ];
 
-      final clubs = await _clubIndex(competitionId, present);
-      presentAthletes.value = clubs.isEmpty
+      final clubs = await _clubIndex(
+          competitionId, [for (final e in present) ...e.athletes]);
+      presentEntries.value = clubs.isEmpty
           ? present
           : [
-              for (final athlete in present)
-                athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
+              for (final entry in present)
+                entry.copyWith(athletes: [
+                  for (final athlete in entry.athletes)
+                    athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
+                ]),
             ];
     } on AppException catch (e) {
       error.value = e;
@@ -244,14 +266,16 @@ class HeatDrawController extends GetxController {
     final labels = <int, String>{};
     final counts = <int, List<int>>{};
     for (var heat = 0; heat < heats.length; heat++) {
-      for (final athlete in heats[heat]) {
+      for (final entry in heats[heat]) {
         // The resolved club wins over the raw id: the FFSS bucket organisme is
         // split into real clubs on the way in, so an athlete's own clubId can
-        // name the bucket while their club names the club.
-        final resolved = athlete.club?.id ?? athlete.clubId;
+        // name the bucket while their club names the club. A team counts once
+        // — the matrix reads competitors, and a relay team is one.
+        final lead = entry.athletes.isNotEmpty ? entry.athletes.first : null;
+        final resolved = lead?.club?.id ?? entryClubId(entry);
         final id = resolved > 0 ? resolved : 0;
-        final name = athlete.club?.name ?? '';
-        labels[id] ??= name.isNotEmpty ? name : athlete.clubLabel;
+        final name = lead?.club?.name ?? '';
+        labels[id] ??= name.isNotEmpty ? name : (lead?.clubLabel ?? '');
         (counts[id] ??= List.filled(heats.length, 0))[heat]++;
       }
     }
@@ -307,36 +331,37 @@ class HeatDrawController extends GetxController {
       drawWithPlan(declaredPlanSeatsPresent ? declaredPlan : proposedPlan);
 
   void drawWithPlan(HeatPlan plan) {
-    if (presentAthletes.isEmpty) {
+    if (presentEntries.isEmpty) {
       message.trigger(const UiMessageError('heat_draw_no_present'));
       return;
     }
     pendingPlan.value = plan;
     heats.value = drawHeats(
-      present: presentAthletes.toList(),
+      present: presentEntries.toList(),
       raceCount: plan.raceCount,
       random: _random,
     );
   }
 
-  /// Moves [athlete] to the end of [targetHeat], removing them from wherever
-  /// they currently sit. A no-op when the athlete is already in that heat.
-  void moveAthlete(Athlete athlete, int targetHeat) {
+  /// Moves [entry] to the end of [targetHeat], removing it from wherever it
+  /// currently sits. A no-op when the entry is already in that heat. A relay
+  /// team moves as one — its athletes have no lane of their own.
+  void moveEntry(Entry entry, int targetHeat) {
     if (targetHeat < 0 || targetHeat >= heats.length) return;
     final updated = [
       for (final heat in heats)
         [
-          for (final a in heat)
-            if (a.id != athlete.id) a,
+          for (final e in heat)
+            if (e.id != entry.id) e,
         ],
     ];
-    if (updated[targetHeat].any((a) => a.id == athlete.id)) return;
-    updated[targetHeat].add(athlete);
+    if (updated[targetHeat].any((e) => e.id == entry.id)) return;
+    updated[targetHeat].add(entry);
     heats.value = updated;
   }
 
-  int heatIndexOf(Athlete athlete) =>
-      heats.indexWhere((heat) => heat.any((a) => a.id == athlete.id));
+  int heatIndexOf(Entry entry) =>
+      heats.indexWhere((heat) => heat.any((e) => e.id == entry.id));
 
   Future<void> save() async {
     final level = selectedLevel.value;
@@ -410,7 +435,10 @@ class HeatDrawController extends GetxController {
           if (i < existing.length)
             existing[i].copyWith(
               number: i + 1,
-              athleteIds: [for (final a in heats[i]) a.id],
+              entryIds: [for (final e in heats[i]) e.id],
+              athleteIds: [
+                for (final e in heats[i]) ...e.athletes.map((a) => a.id),
+              ],
               // A redraw invalidates any recorded result outright: the
               // athletes who crossed the line no longer match who is seated
               // here. The confirmation dialog above this call is what makes
@@ -422,7 +450,10 @@ class HeatDrawController extends GetxController {
             ProgrammeRace(
               id: _programme.allocateId(),
               number: i + 1,
-              athleteIds: [for (final a in heats[i]) a.id],
+              entryIds: [for (final e in heats[i]) e.id],
+              athleteIds: [
+                for (final e in heats[i]) ...e.athletes.map((a) => a.id),
+              ],
             ),
       ];
 

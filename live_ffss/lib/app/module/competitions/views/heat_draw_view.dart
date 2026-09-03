@@ -5,6 +5,7 @@ import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/heat_draw_controller.dart';
 import 'package:live_ffss/app/module/competitions/views/heat_structure_dialog.dart';
@@ -141,8 +142,8 @@ class _HeatDrawViewState extends State<HeatDrawView> {
     );
   }
 
-  Future<void> _pickTargetHeat(Athlete athlete) async {
-    final current = _ctrl.heatIndexOf(athlete);
+  Future<void> _pickTargetHeat(Entry entry) async {
+    final current = _ctrl.heatIndexOf(entry);
     final target = await showDialog<int>(
       context: context,
       builder: (ctx) => SimpleDialog(
@@ -164,7 +165,7 @@ class _HeatDrawViewState extends State<HeatDrawView> {
         ],
       ),
     );
-    if (target != null) _ctrl.moveAthlete(athlete, target);
+    if (target != null) _ctrl.moveEntry(entry, target);
   }
 
   @override
@@ -209,8 +210,8 @@ class _HeatDrawViewState extends State<HeatDrawView> {
                         for (var i = 0; i < _ctrl.heats.length; i++)
                           _HeatCard(
                             index: i,
-                            athletes: _ctrl.heats[i],
-                            onTapAthlete: _pickTargetHeat,
+                            entries: _ctrl.heats[i],
+                            onTapEntry: _pickTargetHeat,
                             name: heatName(
                                 _ctrl.selectedLevel.value ?? RoundType.serie,
                                 i,
@@ -551,14 +552,14 @@ class _SpreadRow extends StatelessWidget {
 class _HeatCard extends StatelessWidget {
   const _HeatCard({
     required this.index,
-    required this.athletes,
-    required this.onTapAthlete,
+    required this.entries,
+    required this.onTapEntry,
     required this.name,
   });
 
   final int index;
-  final List<Athlete> athletes;
-  final ValueChanged<Athlete> onTapAthlete;
+  final List<Entry> entries;
+  final ValueChanged<Entry> onTapEntry;
 
   /// Composed by the page, which knows the round and how many heats it runs —
   /// « Série 2 », « Finale A ».
@@ -585,16 +586,16 @@ class _HeatCard extends StatelessWidget {
                     style: AppTypography.body
                         .copyWith(fontWeight: FontWeight.w800)),
                 const Spacer(),
-                Text('${athletes.length} ${'athletes_lower'.tr}',
+                Text('${entries.length} ${'athletes_lower'.tr}',
                     style: AppTypography.caption),
               ],
             ),
           ),
-          for (var lane = 0; lane < athletes.length; lane++)
+          for (var lane = 0; lane < entries.length; lane++)
             _LaneRow(
               lane: lane + 1,
-              athlete: athletes[lane],
-              onTap: () => onTapAthlete(athletes[lane]),
+              entry: entries[lane],
+              onTap: () => onTapEntry(entries[lane]),
             ),
           const SizedBox(height: AppSpacing.xs),
         ],
@@ -606,19 +607,30 @@ class _HeatCard extends StatelessWidget {
 class _LaneRow extends StatelessWidget {
   const _LaneRow({
     required this.lane,
-    required this.athlete,
+    required this.entry,
     required this.onTap,
   });
 
   final int lane;
-  final Athlete athlete;
+  final Entry entry;
   final VoidCallback onTap;
+
+  /// A team's athletes share the entry's club, so the first one speaks for
+  /// the lane — the same athlete the avatar reads.
+  Athlete? get _lead => entry.athletes.isNotEmpty ? entry.athletes.first : null;
+
+  /// One athlete reads as a name; a team reads as all of them, in order —
+  /// « DUPONT Jean / MARTIN Luc / … » — because on a start line the lane is
+  /// the team, not its first swimmer.
+  String get _label => entry.athletes
+      .map((a) => '${a.lastName.toUpperCase()} ${a.firstName}'.trim())
+      .join(' / ');
 
   /// The resolved club when the index reached this athlete, otherwise whatever
   /// label the entry carried — the same source `ClubAvatar` falls back on.
-  String get _clubName => athlete.club?.name.isNotEmpty == true
-      ? athlete.club!.name
-      : athlete.clubLabel;
+  String get _clubName => _lead?.club?.name.isNotEmpty == true
+      ? _lead!.club!.name
+      : (_lead?.clubLabel ?? '');
 
   @override
   Widget build(BuildContext context) {
@@ -643,10 +655,10 @@ class _LaneRow extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.sm),
             ClubAvatar(
-              club: athlete.club,
+              club: _lead?.club,
               size: 28,
               shape: ClubAvatarShape.circle,
-              fallbackLabel: athlete.clubLabel,
+              fallbackLabel: _lead?.clubLabel ?? '',
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
@@ -655,10 +667,11 @@ class _LaneRow extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '${athlete.lastName.toUpperCase()} ${athlete.firstName}'
-                        .trim(),
+                    _label,
                     style: AppTypography.body.copyWith(fontSize: 13),
-                    maxLines: 1,
+                    // Two lines: a relay team of four does not fit on one, and
+                    // truncating its last members would hide who swims.
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (_clubName.isNotEmpty)

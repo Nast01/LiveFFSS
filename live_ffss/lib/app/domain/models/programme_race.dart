@@ -14,9 +14,14 @@ class ProgrammeRace with _$ProgrammeRace {
     // opt1/opt2 wiring: ids of the feeding races at the previous level.
     // Empty at the séries level and for opt2-with-no-selection.
     @Default(<int>[]) List<int> sourceRaceIds,
-    // Athletes drawn into this race, in lane order — the position in the list
-    // IS the lane, since coastal lanes are sequential. Empty until the heats
-    // are drawn from the athletes marked present.
+    // Entries drawn into this race, one per lane, in lane order — the FFSS
+    // « place » model: a lane seats one engagement, a relay team included.
+    // Empty for a draw made before this field existed; `athleteIds` then
+    // remains the only record.
+    @Default(<int>[]) List<int> entryIds,
+    // The drawn athletes, flattened in lane order — a relay team contributes
+    // all its members here while holding a single slot in `entryIds`. What
+    // the result and display code reads.
     @Default(<int>[]) List<int> athleteIds,
     // The order this race was crossed in — one entry per finishing group, a
     // group of several being a declared tie. Places are computed from this
