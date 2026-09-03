@@ -2340,4 +2340,161 @@ void main() {
           ));
     });
   });
+
+  group('lier chaque série à sa course', () {
+    /// Un déroulement local dont la partie 39 porte deux séries tirées.
+    CompetitionProgramme drawnStructure() => const CompetitionProgramme(
+          competitionId: 42,
+          nextLocalId: 100,
+          sites: [ProgrammeSite(id: 1, name: 'Plage', type: SiteType.cotier)],
+          structures: [
+            EventStructure(
+              raceId: 500,
+              categoryId: 7,
+              raceLabel: 'Surfski',
+              categoryLabel: 'Junior',
+              levels: [
+                RoundLevel(
+                  type: RoundType.serie,
+                  serverId: 39,
+                  races: [
+                    ProgrammeRace(id: 1, number: 1, athleteIds: [10, 11]),
+                    ProgrammeRace(id: 2, number: 2, athleteIds: [12]),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+    Meeting emptyDay() => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: day,
+          beginHour: timeOf(8, 0),
+          endHour: timeOf(8, 0),
+        );
+
+    setUp(() async {
+      controller.setCompetition(withDates);
+      await service.save(drawnStructure());
+      controller.meetings.value = [emptyDay()];
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [emptyDay()]);
+      when(() => meetingRepo.submitSlot(
+            meetingId: any(named: 'meetingId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            raceFormatDetailId: any(named: 'raceFormatDetailId'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 66);
+      when(() => meetingRepo.submitMeeting(
+            competitionId: any(named: 'competitionId'),
+            name: any(named: 'name'),
+            description: any(named: 'description'),
+            date: any(named: 'date'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 78);
+      when(() => meetingRepo.createDefaultLanes(
+          runId: any(named: 'runId'), count: any(named: 'count'))).thenAnswer(
+        (i) async => i.namedArguments[const Symbol('count')] as int,
+      );
+      // Une course, un id : c'est ce que le tour doit retenir.
+      var next = 24;
+      when(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: any(named: 'name'),
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => next++);
+    });
+
+    List<ProgrammeRace> racesOfSerie() => service
+        .current.value!.structures.single.levels
+        .firstWhere((l) => l.type == RoundType.serie)
+        .races;
+
+    Future<void> place() => controller.scheduleRound(
+          partieId: 39,
+          name: 'Séries - Surfski - Dames - Junior',
+          courseNames: const ['Série 1', 'Série 2'],
+          spotsPerRace: 8,
+          site: 'Plage',
+          day: day,
+        );
+
+    // Sans cet identifiant, rien ne dit que la série 2 est la course de 08:10 :
+    // le tirage vit sur l'appareil, l'horaire sur le serveur.
+    test('placer un tour retient l id de la course de chaque série', () async {
+      await place();
+
+      expect(racesOfSerie().map((r) => r.runId), [24, 25]);
+    });
+
+    test('le tirage déjà fait n est pas touché par l enregistrement du lien',
+        () async {
+      await place();
+
+      expect(racesOfSerie().map((r) => r.athleteIds), [
+        [10, 11],
+        [12],
+      ]);
+      expect(racesOfSerie().map((r) => r.id), [1, 2]);
+    });
+
+    // Une course refusée ne doit pas décaler les liens des suivantes sur des
+    // courses qui ne sont pas les leurs.
+    test('une course refusée laisse sa série sans lien, sans décaler l autre',
+        () async {
+      when(() => meetingRepo.submitRun(
+            slotId: any(named: 'slotId'),
+            name: 'Série 1',
+            beginHour: any(named: 'beginHour'),
+            endHour: any(named: 'endHour'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 0);
+
+      await place();
+
+      expect(racesOfSerie().map((r) => r.runId), [0, 24]);
+    });
+
+    test('un tour qui n est pas dans le déroulement local ne casse rien',
+        () async {
+      await controller.scheduleRound(
+        partieId: 999,
+        name: 'x',
+        courseNames: const ['a'],
+        spotsPerRace: 8,
+        site: 'Plage',
+        day: day,
+      );
+
+      expect(racesOfSerie().map((r) => r.runId), [0, 0]);
+    });
+
+    // Un tour peut déclarer plus de courses que le déroulement n'a de séries
+    // tirées : on ne lie que ce qui existe des deux côtés.
+    test('plus de courses que de séries ne crée pas de série fantôme',
+        () async {
+      await controller.scheduleRound(
+        partieId: 39,
+        name: 'x',
+        courseNames: const ['Série 1', 'Série 2', 'Série 3'],
+        spotsPerRace: 8,
+        site: 'Plage',
+        day: day,
+      );
+
+      expect(racesOfSerie(), hasLength(2));
+      expect(racesOfSerie().map((r) => r.runId), [24, 25]);
+    });
+  });
 }

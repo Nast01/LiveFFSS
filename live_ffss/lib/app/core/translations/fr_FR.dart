@@ -269,6 +269,8 @@ final Map<String, String> frFR = {
   'spots_per_race': 'places/course',
   'qualifiers_per_race': 'qualifiés/course',
   'qualified_short': 'qual.',
+  'heat_course_guessed':
+      'Course rapprochée par ordre : cette série ne retient pas la sienne',
   'no_races_in_round': 'Aucune course dans ce tour',
   'races_count': 'courses',
   'add_level': 'Ajouter un niveau',

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
+import 'package:live_ffss/app/core/const/format_const.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
@@ -118,6 +119,7 @@ class _RoundPane extends StatelessWidget {
           structure: structure,
           engaged: controller.entryCountFor(structure.categoryId),
         ),
+        _SlotRecap(level: level),
         // Only the round that opens the chain is drawn from the athletes
         // present; the later ones are seated by who qualifies out of it.
         if (tab.isFirstRound)
@@ -149,6 +151,56 @@ class _RoundPane extends StatelessWidget {
           }),
       ],
     );
+  }
+}
+
+/// The créneaux this round was scheduled into, one line each: where it runs
+/// and when.
+///
+/// Silent when the round has not been placed yet — an absent créneau is the
+/// ordinary state of a structure being authored, not something to warn about.
+class _SlotRecap extends StatelessWidget {
+  const _SlotRecap({required this.level});
+  final RoundLevel level;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<RaceStructureController>();
+    return Obx(() {
+      final slots = controller.slotsForLevel(level);
+      if (slots.isEmpty) return const SizedBox.shrink();
+      final sites = controller.sitesOfLevel(level);
+      return Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final slot in slots)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Row(
+                  children: [
+                    const Icon(Icons.schedule,
+                        size: 14, color: AppColors.primaryDark),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${FormatConst.timeFormat.format(slot.beginHour)}'
+                        ' → ${FormatConst.timeFormat.format(slot.endHour)}'
+                        '${sites.isEmpty ? '' : ' · ${sites.join(' · ')}'}',
+                        style: AppTypography.caption
+                            .copyWith(color: AppColors.primaryDark),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      );
+    });
   }
 }
 
@@ -411,6 +463,30 @@ class _CourseTile extends StatelessWidget {
                             Text(
                               '${race.athleteIds.length} ${'athletes_lower'.tr}',
                               style: AppTypography.caption,
+                            ),
+                          if (controller.scheduleFor(level, race)
+                              case final RaceSchedule schedule)
+                            Row(
+                              children: [
+                                Text(
+                                  '${FormatConst.timeFormat.format(schedule.run.beginTime)}'
+                                  '${schedule.run.site.isEmpty ? '' : ' · ${schedule.run.site}'}',
+                                  style: AppTypography.caption
+                                      .copyWith(color: AppColors.primaryDark),
+                                ),
+                                // A heat that recorded no course of its own was
+                                // matched by rank. Ordinarily right, but the
+                                // operator should know which of the two it is
+                                // before trusting it on a start line.
+                                if (schedule.isGuess) ...[
+                                  const SizedBox(width: 4),
+                                  Tooltip(
+                                    message: 'heat_course_guessed'.tr,
+                                    child: const Icon(Icons.help_outline,
+                                        size: 13, color: AppColors.textMuted),
+                                  ),
+                                ],
+                              ],
                             ),
                         ],
                       ),

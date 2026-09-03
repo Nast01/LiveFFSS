@@ -35,7 +35,14 @@ mixin _$ProgrammeRace {
   List<List<int>> get finishOrder =>
       throw _privateConstructorUsedError; // Athletes out of the ranking. They take no place, so the athletes after
 // them number as though they had not started.
-  List<CoursePenalty> get penalties => throw _privateConstructorUsedError;
+  List<CoursePenalty> get penalties =>
+      throw _privateConstructorUsedError; // The FFSS course this heat runs as, 0 while it has none. The draw lives
+// on the device and the timetable on the server: without this id nothing
+// says that heat 2 is the 08:10 start on OCEAN 1.
+//
+// Recorded rather than matched by position: deleting a course would shift
+// every later heat onto a start that is not its own, silently.
+  int get runId => throw _privateConstructorUsedError;
 
   /// Serializes this ProgrammeRace to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -59,7 +66,8 @@ abstract class $ProgrammeRaceCopyWith<$Res> {
       List<int> sourceRaceIds,
       List<int> athleteIds,
       List<List<int>> finishOrder,
-      List<CoursePenalty> penalties});
+      List<CoursePenalty> penalties,
+      int runId});
 }
 
 /// @nodoc
@@ -83,6 +91,7 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
     Object? athleteIds = null,
     Object? finishOrder = null,
     Object? penalties = null,
+    Object? runId = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -109,6 +118,10 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
           ? _value.penalties
           : penalties // ignore: cast_nullable_to_non_nullable
               as List<CoursePenalty>,
+      runId: null == runId
+          ? _value.runId
+          : runId // ignore: cast_nullable_to_non_nullable
+              as int,
     ) as $Val);
   }
 }
@@ -127,7 +140,8 @@ abstract class _$$ProgrammeRaceImplCopyWith<$Res>
       List<int> sourceRaceIds,
       List<int> athleteIds,
       List<List<int>> finishOrder,
-      List<CoursePenalty> penalties});
+      List<CoursePenalty> penalties,
+      int runId});
 }
 
 /// @nodoc
@@ -149,6 +163,7 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
     Object? athleteIds = null,
     Object? finishOrder = null,
     Object? penalties = null,
+    Object? runId = null,
   }) {
     return _then(_$ProgrammeRaceImpl(
       id: null == id
@@ -175,6 +190,10 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
           ? _value._penalties
           : penalties // ignore: cast_nullable_to_non_nullable
               as List<CoursePenalty>,
+      runId: null == runId
+          ? _value.runId
+          : runId // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -189,7 +208,8 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
       final List<int> sourceRaceIds = const <int>[],
       final List<int> athleteIds = const <int>[],
       final List<List<int>> finishOrder = const <List<int>>[],
-      final List<CoursePenalty> penalties = const <CoursePenalty>[]})
+      final List<CoursePenalty> penalties = const <CoursePenalty>[],
+      this.runId = 0})
       : _sourceRaceIds = sourceRaceIds,
         _athleteIds = athleteIds,
         _finishOrder = finishOrder,
@@ -258,9 +278,19 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
     return EqualUnmodifiableListView(_penalties);
   }
 
+// The FFSS course this heat runs as, 0 while it has none. The draw lives
+// on the device and the timetable on the server: without this id nothing
+// says that heat 2 is the 08:10 start on OCEAN 1.
+//
+// Recorded rather than matched by position: deleting a course would shift
+// every later heat onto a start that is not its own, silently.
+  @override
+  @JsonKey()
+  final int runId;
+
   @override
   String toString() {
-    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds, athleteIds: $athleteIds, finishOrder: $finishOrder, penalties: $penalties)';
+    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds, athleteIds: $athleteIds, finishOrder: $finishOrder, penalties: $penalties, runId: $runId)';
   }
 
   @override
@@ -277,7 +307,8 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
             const DeepCollectionEquality()
                 .equals(other._finishOrder, _finishOrder) &&
             const DeepCollectionEquality()
-                .equals(other._penalties, _penalties));
+                .equals(other._penalties, _penalties) &&
+            (identical(other.runId, runId) || other.runId == runId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -289,7 +320,8 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
       const DeepCollectionEquality().hash(_sourceRaceIds),
       const DeepCollectionEquality().hash(_athleteIds),
       const DeepCollectionEquality().hash(_finishOrder),
-      const DeepCollectionEquality().hash(_penalties));
+      const DeepCollectionEquality().hash(_penalties),
+      runId);
 
   /// Create a copy of ProgrammeRace
   /// with the given fields replaced by the non-null parameter values.
@@ -314,7 +346,8 @@ abstract class _ProgrammeRace implements ProgrammeRace {
       final List<int> sourceRaceIds,
       final List<int> athleteIds,
       final List<List<int>> finishOrder,
-      final List<CoursePenalty> penalties}) = _$ProgrammeRaceImpl;
+      final List<CoursePenalty> penalties,
+      final int runId}) = _$ProgrammeRaceImpl;
 
   factory _ProgrammeRace.fromJson(Map<String, dynamic> json) =
       _$ProgrammeRaceImpl.fromJson;
@@ -339,7 +372,15 @@ abstract class _ProgrammeRace implements ProgrammeRace {
       get finishOrder; // Athletes out of the ranking. They take no place, so the athletes after
 // them number as though they had not started.
   @override
-  List<CoursePenalty> get penalties;
+  List<CoursePenalty>
+      get penalties; // The FFSS course this heat runs as, 0 while it has none. The draw lives
+// on the device and the timetable on the server: without this id nothing
+// says that heat 2 is the 08:10 start on OCEAN 1.
+//
+// Recorded rather than matched by position: deleting a course would shift
+// every later heat onto a start that is not its own, silently.
+  @override
+  int get runId;
 
   /// Create a copy of ProgrammeRace
   /// with the given fields replaced by the non-null parameter values.

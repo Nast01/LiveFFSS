@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
+import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
@@ -11,6 +12,9 @@ import 'package:live_ffss/app/domain/models/course_ranking.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
+import 'package:live_ffss/app/domain/models/meeting.dart';
+import 'package:live_ffss/app/domain/models/run.dart';
+import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 
@@ -42,11 +46,17 @@ class RoundTab {
 /// Feeds the race-detail "Séries" tab with the locally-defined structure(s) for
 /// this race (one per category), plus per-category engaged counts. Read-only.
 class RaceStructureController extends GetxController {
-  RaceStructureController(this._programme, this._raceRepo, this._clubRepo);
+  RaceStructureController(
+    this._programme,
+    this._raceRepo,
+    this._clubRepo,
+    this._meetings,
+  );
 
   final ProgrammeService _programme;
   final RaceRepository _raceRepo;
   final ClubRepository _clubRepo;
+  final MeetingRepository _meetings;
 
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
@@ -54,6 +64,10 @@ class RaceStructureController extends GetxController {
   final RxList<EventStructure> structures = <EventStructure>[].obs;
 
   Map<int, int> _entryCountByCategory = const {};
+
+  /// The competition's réunions, for the créneaux and courses the rounds of
+  /// this race were scheduled into.
+  final RxList<Meeting> _meetingsOfCompetition = <Meeting>[].obs;
 
   /// Athlete id -> athlete, built from the entries this race already fetches,
   /// with clubs resolved. It is what turns a drawn race's `athleteIds` back
@@ -113,6 +127,16 @@ class RaceStructureController extends GetxController {
         // no athlete.
         _entryCountByCategory = const {};
         _athletesById = const {};
+      }
+      try {
+        _meetingsOfCompetition.value = await _meetings.getMeetings(
+          competition.id,
+        );
+      } on AppException {
+        // Same bargain as the entries: the schedule is a complement here, not
+        // the reason this screen exists. Without it the rounds still read,
+        // only their site and times go missing.
+        _meetingsOfCompetition.clear();
       }
     } finally {
       isLoading.value = false;
@@ -224,6 +248,56 @@ class RaceStructureController extends GetxController {
     };
   }
 
+  /// The créneaux FFSS holds for this round — those hung off its `partie`.
+  /// Normally one; nothing on the federal side forbids several.
+  List<Slot> slotsForLevel(RoundLevel level) {
+    if (level.serverId <= 0) return const [];
+    return [
+      for (final meeting in _meetingsOfCompetition)
+        for (final slot in meeting.slots)
+          if (slot.raceFormatDetail?.id == level.serverId) slot,
+    ];
+  }
+
+  /// The round's courses, in running order across its créneaux.
+  List<Run> coursesOfLevel(RoundLevel level) => [
+        for (final slot in slotsForLevel(level)) ...slot.runs,
+      ]..sort((a, b) => a.beginTime.compareTo(b.beginTime));
+
+  /// Where and when one drawn heat actually starts, or null while the round
+  /// has no course to run it in.
+  ///
+  /// Prefers the course the heat recorded when it was created. Falls back to
+  /// the course of the same rank — which is what a course created by hand on
+  /// the federal site leaves us with — and says so, because rank is a
+  /// reasonable guess and not a fact.
+  RaceSchedule? scheduleFor(RoundLevel level, ProgrammeRace race) {
+    final courses = coursesOfLevel(level);
+    if (courses.isEmpty) return null;
+    if (race.runId != 0) {
+      for (final course in courses) {
+        if (course.id == race.runId) {
+          return RaceSchedule(run: course, isGuess: false);
+        }
+      }
+    }
+    final rank = level.races.indexWhere((r) => r.id == race.id);
+    if (rank < 0 || rank >= courses.length) return null;
+    return RaceSchedule(run: courses[rank], isGuess: true);
+  }
+
+  /// The distinct sites this round runs on, in course order. Empty while it
+  /// has no course, or while its courses carry no site.
+  List<String> sitesOfLevel(RoundLevel level) {
+    final seen = <String>[];
+    for (final course in coursesOfLevel(level)) {
+      if (course.site.isNotEmpty && !seen.contains(course.site)) {
+        seen.add(course.site);
+      }
+    }
+    return seen;
+  }
+
   bool get hasStructure => structures.any((s) => s.levels.isNotEmpty);
 
   int entryCountFor(int categoryId) => _entryCountByCategory[categoryId] ?? 0;
@@ -250,4 +324,17 @@ class RaceStructureController extends GetxController {
     if (index < 0 || index >= tabs.length) return;
     selectedTabIndex.value = index;
   }
+}
+
+/// Where and when a drawn heat runs.
+class RaceSchedule {
+  const RaceSchedule({required this.run, required this.isGuess});
+
+  final Run run;
+
+  /// True when the heat recorded no course of its own — or recorded one that
+  /// no longer exists — and this course was matched by rank instead. Right in
+  /// the ordinary case, but the view says so rather than passing it off as
+  /// established.
+  final bool isGuess;
 }

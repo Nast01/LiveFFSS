@@ -267,6 +267,8 @@ final Map<String, String> enUS = {
   'spots_per_race': 'spots/race',
   'qualifiers_per_race': 'qualifiers/race',
   'qualified_short': 'qual.',
+  'heat_course_guessed':
+      'Course matched by rank: this heat records none of its own',
   'no_races_in_round': 'No race in this round',
   'races_count': 'races',
   'add_level': 'Add a level',

@@ -25,6 +25,13 @@ class ProgrammeRace with _$ProgrammeRace {
     // Athletes out of the ranking. They take no place, so the athletes after
     // them number as though they had not started.
     @Default(<CoursePenalty>[]) List<CoursePenalty> penalties,
+    // The FFSS course this heat runs as, 0 while it has none. The draw lives
+    // on the device and the timetable on the server: without this id nothing
+    // says that heat 2 is the 08:10 start on OCEAN 1.
+    //
+    // Recorded rather than matched by position: deleting a course would shift
+    // every later heat onto a start that is not its own, silently.
+    @Default(0) int runId,
   }) = _ProgrammeRace;
 
   factory ProgrammeRace.fromJson(Map<String, dynamic> json) =>

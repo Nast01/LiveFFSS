@@ -694,7 +694,7 @@ class ScheduleController extends GetxController {
       return;
     }
 
-    final refused = await _createRoundCourses(
+    final created = await _createRoundCourses(
       slotId: slotId,
       courseNames: courseNames,
       spotsPerRace: spotsPerRace,
@@ -702,6 +702,8 @@ class ScheduleController extends GetxController {
       day: day,
       beginMinutes: beginMinutes,
     );
+    await _linkRunsToRound(partieId, created.runIds);
+    final refused = created.refused;
 
     if (!await reload()) {
       message.trigger(const UiMessageError('schedule_meeting_end_failed'));
@@ -712,8 +714,8 @@ class ScheduleController extends GetxController {
     // Reported after the reload so the operator sees the round that did land
     // alongside the warning, rather than a bare failure over an empty day.
     if (refused != null) {
-      message.trigger(
-          UiMessageError('schedule_courses_failed', details: refused));
+      message
+          .trigger(UiMessageError('schedule_courses_failed', details: refused));
     }
   }
 
@@ -723,7 +725,42 @@ class ScheduleController extends GetxController {
   /// Returns null when everything landed, or a description of what did not. A
   /// refusal on one course does not stop the rest: half a round on the site is
   /// bad, half a round the operator believes complete is worse.
-  Future<String?> _createRoundCourses({
+  /// Records on each drawn heat the course it runs as, position by position:
+  /// the n-th course of the round was created from the n-th heat's name, so
+  /// they correspond by construction here — which is exactly why the id is
+  /// stored now rather than re-derived later, once deletions have moved things
+  /// around.
+  ///
+  /// A refused course leaves its heat's id at 0 rather than handing it the
+  /// next course along.
+  Future<void> _linkRunsToRound(int partieId, List<int> runIds) async {
+    final programme = _p;
+    if (programme == null) return;
+    var touched = false;
+    final structures = [
+      for (final structure in programme.structures)
+        structure.copyWith(levels: [
+          for (final level in structure.levels)
+            if (level.serverId == partieId && level.races.isNotEmpty)
+              () {
+                touched = true;
+                return level.copyWith(races: [
+                  for (var i = 0; i < level.races.length; i++)
+                    if (i < runIds.length && runIds[i] != 0)
+                      level.races[i].copyWith(runId: runIds[i])
+                    else
+                      level.races[i],
+                ]);
+              }()
+            else
+              level,
+        ]),
+    ];
+    if (!touched) return;
+    await _programme.save(programme.copyWith(structures: structures));
+  }
+
+  Future<({List<int> runIds, String? refused})> _createRoundCourses({
     required int slotId,
     required List<String> courseNames,
     required int spotsPerRace,
@@ -732,6 +769,9 @@ class ScheduleController extends GetxController {
     required int beginMinutes,
   }) async {
     final failures = <String>[];
+    // One slot per course name, holding 0 for the ones that never landed, so a
+    // refusal cannot slide the heats after it onto the wrong course.
+    final runIds = List<int>.filled(courseNames.length, 0);
     for (var i = 0; i < courseNames.length; i++) {
       final begin = beginMinutes + i * defaultItemMinutes;
       try {
@@ -746,15 +786,18 @@ class ScheduleController extends GetxController {
           failures.add(courseNames[i]);
           continue;
         }
+        runIds[i] = runId;
         if (spotsPerRace > 0) {
-          await _meetings.createDefaultLanes(
-              runId: runId, count: spotsPerRace);
+          await _meetings.createDefaultLanes(runId: runId, count: spotsPerRace);
         }
       } on AppException catch (e) {
         failures.add('${courseNames[i]} (${e.detail})');
       }
     }
-    return failures.isEmpty ? null : failures.join(', ');
+    return (
+      runIds: runIds,
+      refused: failures.isEmpty ? null : failures.join(', '),
+    );
   }
 
   /// The réunion holding [slotId] and the créneau itself, among the loaded

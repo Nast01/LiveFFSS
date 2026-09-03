@@ -4,6 +4,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
+import 'package:intl/intl.dart';
+import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
@@ -15,7 +17,11 @@ import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
+import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
+import 'package:live_ffss/app/domain/models/race_format_detail.dart';
+import 'package:live_ffss/app/domain/models/run.dart';
+import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_structure_controller.dart';
 import 'package:mocktail/mocktail.dart';
@@ -26,10 +32,13 @@ class _MockRaceRepo extends Mock implements RaceRepository {}
 
 class _MockClubRepo extends Mock implements ClubRepository {}
 
+class _MockMeetingRepo extends Mock implements MeetingRepository {}
+
 void main() {
   late _MockStorage storage;
   late _MockRaceRepo raceRepo;
   late _MockClubRepo clubRepo;
+  late _MockMeetingRepo meetingRepo;
   late ProgrammeService service;
   late RaceStructureController controller;
 
@@ -144,6 +153,8 @@ void main() {
     storage = _MockStorage();
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
+    meetingRepo = _MockMeetingRepo();
+    when(() => meetingRepo.getMeetings(any())).thenAnswer((_) async => const []);
     when(() => clubRepo.getAthleteClubs(any(), any()))
         .thenAnswer((_) async => const <int, Club>{});
     when(() => storage.read(key: any(named: 'key')))
@@ -152,7 +163,8 @@ void main() {
             storage.write(key: any(named: 'key'), value: any(named: 'value')))
         .thenAnswer((_) async {});
     service = ProgrammeService(storage);
-    controller = RaceStructureController(service, raceRepo, clubRepo);
+    controller =
+        RaceStructureController(service, raceRepo, clubRepo, meetingRepo);
   });
 
   test('load filters structures to the race and sorts by category label',
@@ -515,6 +527,184 @@ void main() {
 
       expect(penalty?.kind, CoursePenaltyKind.disqualified);
       expect(penalty?.code, '4.7');
+    });
+  });
+
+  group('les créneaux du tour', () {
+    /// Le même déroulement, mais dont les tours connaissent leur partie FFSS
+    /// et dont les séries retiennent la course qu'elles courent.
+    CompetitionProgramme linked({
+      int serieServerId = 39,
+      List<int> runIds = const [25, 26],
+    }) =>
+        CompetitionProgramme(
+          competitionId: 42,
+          structures: [
+            EventStructure(
+              raceId: 500,
+              categoryId: 7,
+              raceLabel: '100m',
+              categoryLabel: 'Cadets',
+              levels: [
+                RoundLevel(
+                  type: RoundType.serie,
+                  serverId: serieServerId,
+                  races: [
+                    ProgrammeRace(id: 10, number: 1, runId: runIds[0]),
+                    ProgrammeRace(id: 11, number: 2, runId: runIds[1]),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+    DateTime hhmm(String v) => DateFormat('HH:mm').parse(v);
+
+    Run course(int id, String name, String begin, String end,
+            {String site = 'OCEAN 1'}) =>
+        Run(
+          id: id,
+          name: name,
+          label: name,
+          fullLabel: name,
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: site,
+          beginTime: hhmm(begin),
+          endTime: hhmm(end),
+        );
+
+    /// Une réunion d'un créneau rattaché à la partie [partieId].
+    Meeting meeting({int partieId = 39, List<Run> runs = const []}) => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: DateTime(2026, 6, 13),
+          beginHour: DateTime(2026, 6, 13, 8),
+          endHour: DateTime(2026, 6, 13, 18),
+          slots: [
+            Slot(
+              id: 66,
+              name: 'Séries - 100m - Cadets',
+              beginHour: hhmm('08:00'),
+              endHour: hhmm('08:20'),
+              raceFormatDetail: RaceFormatDetail(
+                id: partieId,
+                order: 1,
+                label: '',
+                fullLabel: '',
+                levelLabel: '',
+                level: 'heat',
+                numberOfRun: 2,
+                qualificationMethod: 'none',
+                qualificationMethodLabel: '',
+                spotsPerRace: 8,
+                qualifyingSpots: 0,
+              ),
+              runs: runs,
+            ),
+          ],
+        );
+
+    final twoCourses = [
+      course(25, 'Série 1', '08:00', '08:10'),
+      course(26, 'Série 2', '08:10', '08:20'),
+    ];
+
+    Future<void> loadWith(
+      CompetitionProgramme programme,
+      List<Meeting> meetings,
+    ) async {
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(programme.toJson()));
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => meetings);
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      controller = RaceStructureController(
+          ProgrammeService(storage), raceRepo, clubRepo, meetingRepo);
+      await controller.load(race(500), competition);
+    }
+
+    RoundLevel serieLevel() => controller.structures.single.levels.single;
+
+    test('le créneau du tour est celui rattaché à sa partie', () async {
+      await loadWith(linked(), [meeting(runs: twoCourses)]);
+
+      expect(controller.slotsForLevel(serieLevel()).map((s) => s.id), [66]);
+    });
+
+    test('un tour absent de FFSS n a aucun créneau', () async {
+      await loadWith(linked(serieServerId: 0), [meeting(runs: twoCourses)]);
+
+      expect(controller.slotsForLevel(serieLevel()), isEmpty);
+    });
+
+    // L'id retenu au moment de la création : c'est lui qui dit où et quand la
+    // série part, sans rien deviner.
+    test('une série liée retrouve sa course exactement', () async {
+      await loadWith(linked(), [meeting(runs: twoCourses)]);
+
+      final schedule =
+          controller.scheduleFor(serieLevel(), serieLevel().races[1])!;
+
+      expect(schedule.run.id, 26);
+      expect(schedule.run.site, 'OCEAN 1');
+      expect(schedule.isGuess, isFalse);
+    });
+
+    // Les courses créées à la main sur le site FFSS n'ont pu être liées à
+    // rien : on rapproche par rang, mais on le dit.
+    test('une série sans lien retombe sur la course de même rang, signalée',
+        () async {
+      await loadWith(linked(runIds: const [0, 0]), [meeting(runs: twoCourses)]);
+
+      final schedule =
+          controller.scheduleFor(serieLevel(), serieLevel().races[1])!;
+
+      expect(schedule.run.id, 26);
+      expect(schedule.isGuess, isTrue);
+    });
+
+    test('une série dont la course a été supprimée retombe sur le rang aussi',
+        () async {
+      await loadWith(
+        linked(runIds: const [25, 999]),
+        [meeting(runs: twoCourses)],
+      );
+
+      final schedule =
+          controller.scheduleFor(serieLevel(), serieLevel().races[1])!;
+
+      expect(schedule.run.id, 26);
+      expect(schedule.isGuess, isTrue);
+    });
+
+    test('sans course, la série n a pas d horaire du tout', () async {
+      await loadWith(linked(), [meeting()]);
+
+      expect(controller.scheduleFor(serieLevel(), serieLevel().races.first),
+          isNull);
+    });
+
+    // Le déroulement doit rester lisible hors ligne : les horaires sont un
+    // complément, pas la raison d'être de cet écran.
+    test('des réunions indisponibles laissent le déroulement s afficher',
+        () async {
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(linked().toJson()));
+      when(() => meetingRepo.getMeetings(42))
+          .thenThrow(const NetworkException('coupé'));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      controller = RaceStructureController(
+          ProgrammeService(storage), raceRepo, clubRepo, meetingRepo);
+
+      await controller.load(race(500), competition);
+
+      expect(controller.hasStructure, isTrue);
+      expect(controller.slotsForLevel(serieLevel()), isEmpty);
+      expect(controller.scheduleFor(serieLevel(), serieLevel().races.first),
+          isNull);
     });
   });
 }
