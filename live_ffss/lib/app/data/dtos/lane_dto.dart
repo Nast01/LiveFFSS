@@ -18,8 +18,21 @@ part 'lane_dto.g.dart';
 ///
 /// Deux champs du payload ne sont volontairement pas portés. `fullLabel` vaut
 /// le libellé collé à lui-même (« Place 1 - Place 1 »), quirk serveur connu,
-/// et n'apporte rien. `remplacants` et `athletes` n'ont jamais été observés
-/// peuplés : les modéliser reviendrait à deviner leur forme.
+/// et n'apporte rien. `remplacants` n'a jamais été observé peuplé.
+///
+/// Attention à [entry] : dans l'arbre `reunion`, `engagement` arrive toujours
+/// à null — même quand la place en porte un. Seule la route de détail
+/// (`place/:id`) le renvoie peuplé, et sous une forme qui N'EST PAS celle
+/// d'`EntryDto` : clés minuscules (`id`, `statut`, `statutLabel`, `label`,
+/// `clubLabel`, `isForfait`, `athletes`…) là où `EntryDto` exige `Id` et
+/// `Statut`. Le jour où l'appli lit cette route — la saisie des résultats —
+/// il faudra un DTO dédié, pas celui-ci ; brancher `EntryDto` dessus
+/// planterait au parsing. Relevé en production le 2026-09-03.
+///
+/// Côté écriture, `place/submit` accepte `numero` ET `engagement` — la
+/// conclusion du 2026-09-01 (« numero seul ») venait de l'arbre `reunion`
+/// qui masque l'engagement, pas d'un refus du serveur. Une valeur vide
+/// libère la place.
 @freezed
 class LaneDto with _$LaneDto {
   const factory LaneDto({
