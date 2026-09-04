@@ -132,7 +132,17 @@ class _RaceCourseViewState extends State<RaceCourseView> {
             const _EntryBar(),
             Expanded(
               child: ListView.builder(
-                padding: AppSpacing.pageAll,
+                // The list runs to the bottom of the screen, so it clears the
+                // system navigation bar itself — otherwise the last
+                // competitors sit under it, out of reach however far the list
+                // is scrolled. The bar above never needs this: it is not the
+                // one touching the edge.
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.lg + MediaQuery.of(context).viewPadding.bottom,
+                ),
                 itemCount: rows.length,
                 itemBuilder: (_, i) => _CompetitorRow(
                   athlete: rows[i],
