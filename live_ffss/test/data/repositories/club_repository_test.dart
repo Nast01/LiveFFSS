@@ -166,7 +166,8 @@ void main() {
             ClubDto(id: 7, name: 'Nice', athletes: [_athlete(1, 7, 'Nice')]),
           ]);
       when(() => ds.getClubDetail(7)).thenAnswer(
-        (_) async => ClubDto(id: 7, name: 'Nice', logoUrl: 'https://logo/7'),
+        (_) async =>
+            const ClubDto(id: 7, name: 'Nice', logoUrl: 'https://logo/7'),
       );
 
       final byAthlete = await repo.getAthleteClubs(
@@ -182,7 +183,7 @@ void main() {
     test('fetches each club once however many athletes it fields', () async {
       when(() => ds.getClubs(any())).thenAnswer((_) async => const []);
       when(() => ds.getClubDetail(7))
-          .thenAnswer((_) async => ClubDto(id: 7, name: 'Nice'));
+          .thenAnswer((_) async => const ClubDto(id: 7, name: 'Nice'));
 
       await repo
           .getAthleteClubs(42, [domainAthlete(1, 7), domainAthlete(2, 7)]);
@@ -204,7 +205,8 @@ void main() {
         () async {
       when(() => ds.getClubs(any())).thenThrow(const NetworkException('boom'));
       when(() => ds.getClubDetail(7)).thenAnswer(
-        (_) async => ClubDto(id: 7, name: 'Nice', logoUrl: 'https://logo/7'),
+        (_) async =>
+            const ClubDto(id: 7, name: 'Nice', logoUrl: 'https://logo/7'),
       );
 
       final byAthlete = await repo.getAthleteClubs(42, [domainAthlete(1, 7)]);
