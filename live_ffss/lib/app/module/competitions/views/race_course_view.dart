@@ -233,6 +233,23 @@ class _EntryBar extends GetView<RaceCourseController> {
                   icon: const Icon(Icons.undo),
                   tooltip: 'course_undo'.tr,
                 ),
+                const Spacer(),
+                // Available whatever the state of the ranking: each press
+                // republishes and recomputes the next round whole, so an
+                // early one is corrected by the next rather than by an undo.
+                ElevatedButton.icon(
+                  onPressed: controller.isPublishing.value
+                      ? null
+                      : controller.validate,
+                  icon: controller.isPublishing.value
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.cloud_upload_outlined, size: 18),
+                  label: Text('course_validate'.tr),
+                ),
               ],
             ),
             if (controller.canScan && !complete)

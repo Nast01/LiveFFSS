@@ -4,14 +4,24 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/rfid/bracelet_payload.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
+import 'dart:math';
+
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
+import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/course_ranking.dart';
+import 'package:live_ffss/app/domain/models/entry.dart';
+import 'package:live_ffss/app/domain/models/heat_draw.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
+import 'package:live_ffss/app/domain/models/meeting.dart';
+import 'package:live_ffss/app/domain/models/qualification.dart';
+import 'package:live_ffss/app/domain/models/run.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
@@ -30,12 +40,23 @@ class RaceCourseController extends GetxController {
     this._raceRepo,
     this._clubRepo,
     this._rfid,
-  );
+    this._meetings, {
+    Random? random,
+  }) : _random = random ?? Random();
 
   final ProgrammeService _programme;
   final RaceRepository _raceRepo;
   final ClubRepository _clubRepo;
   final RfidWriter _rfid;
+  final MeetingRepository _meetings;
+  final Random _random;
+
+  /// The FFSS `serie` this course's results hang off, once created. Kept so a
+  /// second validation rewrites it rather than stacking a new one.
+  int _heatId = 0;
+
+  /// True while a validation is in flight, so the button can stand down.
+  final RxBool isPublishing = false.obs;
 
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
@@ -352,5 +373,258 @@ class RaceCourseController extends GetxController {
         .catchError((Object _) {
       message.trigger(const UiMessageError('course_save_failed'));
     });
+  }
+
+  /// Publishes this course on FFSS and reseeds the round that follows.
+  ///
+  /// Three steps, in order: one result per lane hung off the course's `serie`,
+  /// then the qualifiers computed from every course of the round already run,
+  /// then those qualifiers drawn into the next round and pushed onto its
+  /// places.
+  ///
+  /// Deliberately re-runnable: each press recomputes the next round whole,
+  /// from all the courses run so far, so validating Demie 2 after Demie 1 adds
+  /// its qualifiers instead of replacing them.
+  Future<void> validate() async {
+    if (isPublishing.value) return;
+    final race = this.race.value;
+    final competition = this.competition.value;
+    final stored = _storedRace();
+    if (race == null || competition == null || stored == null) return;
+
+    if (stored.runId == 0) {
+      message.trigger(const UiMessageError('course_publish_unplaced'));
+      return;
+    }
+
+    isPublishing.value = true;
+    try {
+      final meetings = await _meetings.getMeetings(competition.id);
+      final located = _locate(meetings, stored.runId);
+      if (located == null) {
+        message.trigger(const UiMessageError('course_publish_unplaced'));
+        return;
+      }
+      final (slotId, run) = located;
+
+      final seats = await _meetings.getLaneSeats(
+        [for (final lane in run.lanes) lane.id],
+      );
+      if (seats.isEmpty) {
+        message.trigger(const UiMessageError('course_publish_no_lane'));
+        return;
+      }
+
+      final heatId = await _meetings.publishCourseResults(
+        raceId: race.id,
+        heatName: run.name,
+        heatNumber: raceNumber,
+        outcomes: _outcomesFor(seats),
+        heatId: _heatId == 0 ? null : _heatId,
+        link: (
+          slotId: slotId,
+          runId: run.id,
+          runName: run.name,
+          beginHour: run.beginTime,
+          endHour: run.endTime,
+          site: run.site,
+        ),
+      );
+      if (heatId == 0) {
+        message.trigger(const UiMessageError('course_publish_failed'));
+        return;
+      }
+      _heatId = heatId;
+
+      await _seedNextRound(race, meetings);
+      message.trigger(const UiMessageSuccess('course_published'));
+    } on AppException catch (e) {
+      message
+          .trigger(UiMessageError('course_publish_failed', details: e.detail));
+    } finally {
+      isPublishing.value = false;
+    }
+  }
+
+  /// The course [runId] names, with the créneau holding it — `course/submit`
+  /// rewrites the whole course, so the link needs both.
+  (int, Run)? _locate(List<Meeting> meetings, int runId) {
+    for (final meeting in meetings) {
+      for (final slot in meeting.slots) {
+        for (final run in slot.runs) {
+          if (run.id == runId) return (slot.id, run);
+        }
+      }
+    }
+    return null;
+  }
+
+  /// One outcome per seated engagement: its rank when it finished, its status
+  /// otherwise. A team races as one, so any of its athletes speaks for it.
+  List<CourseOutcome> _outcomesFor(List<LaneSeat> seats) {
+    final places = placesOf(finishOrder);
+    final penaltyOf = <int, CoursePenalty>{
+      for (final penalty in penalties) penalty.athleteId: penalty,
+    };
+    return [
+      for (final seat in seats)
+        () {
+          CoursePenalty? penalty;
+          int? place;
+          for (final athleteId in seat.athleteIds) {
+            penalty ??= penaltyOf[athleteId];
+            place ??= places[athleteId];
+          }
+          final status = switch (penalty?.kind) {
+            CoursePenaltyKind.disqualified => 1,
+            CoursePenaltyKind.forfeit => 2,
+            // An unknown kind is still out of the ranking; calling it a
+            // disqualification would invent a decision the referee did not make,
+            // so it goes out as a plain forfeit.
+            CoursePenaltyKind.unknown => 2,
+            null => 0,
+          };
+          return (
+            entryId: seat.entryId,
+            laneId: seat.laneId,
+            // Out of the ranking takes no place: sending one would put them
+            // back in the classification.
+            rank: penalty == null ? place : null,
+            status: status,
+            complement: (penalty?.code.isEmpty ?? true) ? null : penalty!.code,
+          );
+        }(),
+    ];
+  }
+
+  /// Recomputes the next round from every course of this one already run, then
+  /// writes it locally and onto the FFSS places.
+  Future<void> _seedNextRound(Race race, List<Meeting> meetings) async {
+    final programme = _programme.current.value;
+    if (programme == null) return;
+    final structure = _structure(programme);
+    if (structure == null) return;
+
+    final at = structure.levels.indexWhere((l) => l.type == roundType);
+    if (at < 0 || at + 1 >= structure.levels.length) return;
+    final current = structure.levels[at];
+    final next = structure.levels[at + 1];
+
+    final qualified = qualifiedEntries(
+      rankedByRace: [
+        for (final stored in current.races) _rankedEntriesOf(stored),
+      ],
+      method: current.qualificationMethod,
+      spots: current.qualifiersPerRace,
+    );
+    if (qualified.isEmpty) return;
+
+    final entries = await _entriesById();
+    final drawn = drawHeats(
+      present: [
+        for (final id in qualified)
+          if (entries[id] case final Entry entry) entry,
+      ],
+      raceCount: next.races.length,
+      random: _random,
+    );
+    if (drawn.isEmpty) return;
+
+    // A course already run is never reseeded: losing a finish order to a
+    // requalification would be worse than any stale line-up.
+    final seeded = <ProgrammeRace>[];
+    for (var i = 0; i < next.races.length; i++) {
+      final target = next.races[i];
+      if (target.finishOrder.isNotEmpty || target.penalties.isNotEmpty) {
+        seeded.add(target);
+        continue;
+      }
+      final field = i < drawn.length ? drawn[i] : const <Entry>[];
+      seeded.add(target.copyWith(
+        entryIds: [for (final entry in field) entry.id],
+        athleteIds: [
+          for (final entry in field) ...entry.athletes.map((a) => a.id),
+        ],
+      ));
+    }
+
+    await _programme.save(_programme.current.value!.copyWith(structures: [
+      for (final s in _programme.current.value!.structures)
+        if (_isOtherStructure(s))
+          s
+        else
+          s.copyWith(levels: [
+            for (var i = 0; i < s.levels.length; i++)
+              if (i == at + 1)
+                s.levels[i].copyWith(races: seeded)
+              else
+                s.levels[i],
+          ]),
+    ]));
+
+    for (final target in seeded) {
+      if (target.runId == 0 || target.entryIds.isEmpty) continue;
+      final located = _locate(meetings, target.runId);
+      if (located == null) continue;
+      await _meetings.syncLanes(
+        runId: target.runId,
+        entryIds: target.entryIds,
+        existing: located.$2.lanes,
+      );
+    }
+  }
+
+  /// The entries of one course, best first, anyone out of the ranking dropped
+  /// — what a qualification is computed from.
+  ///
+  /// For the course being validated the screen wins over the store: `_persist`
+  /// is deliberately not awaited, so the order the operator just entered may
+  /// not have reached the programme yet, and qualifying without it would leave
+  /// this very course out of its own final.
+  List<int> _rankedEntriesOf(ProgrammeRace stored) {
+    final mine = stored.id == programmeRaceId;
+    final order = mine
+        ? [
+            for (final group in finishOrder) [...group],
+          ]
+        : stored.finishOrder;
+    final applied = mine ? penalties.toList() : stored.penalties;
+    if (order.isEmpty || stored.entryIds.isEmpty) return const [];
+    final penalised = {for (final p in applied) p.athleteId};
+    // The draw wrote both lists in lane order, so an entry's athletes are
+    // found by walking them together.
+    final entryOfAthlete = <int, int>{};
+    var cursor = 0;
+    for (final entryId in stored.entryIds) {
+      if (cursor >= stored.athleteIds.length) break;
+      entryOfAthlete[stored.athleteIds[cursor]] = entryId;
+      cursor++;
+    }
+    final ranked = <int>[];
+    for (final group in order) {
+      for (final athleteId in group) {
+        if (penalised.contains(athleteId)) continue;
+        final entryId = entryOfAthlete[athleteId];
+        if (entryId != null && !ranked.contains(entryId)) ranked.add(entryId);
+      }
+    }
+    return ranked;
+  }
+
+  Future<Map<int, Entry>> _entriesById() async {
+    final raceId = race.value?.id;
+    if (raceId == null) return const {};
+    final entries = await _raceRepo.getEntries(raceId);
+    return {
+      for (final entry in entries)
+        if (entry.category.id == categoryId) entry.id: entry,
+    };
+  }
+
+  EventStructure? _structure(CompetitionProgramme programme) {
+    for (final structure in programme.structures) {
+      if (!_isOtherStructure(structure)) return structure;
+    }
+    return null;
   }
 }

@@ -450,6 +450,15 @@ final Map<String, String> frFR = {
   'course_tie_locked': 'verrouillée',
   'course_scan': 'Scanner les bracelets',
   'course_scan_stop': 'Arrêter le scan',
+  'course_published': 'Résultats envoyés sur FFSS',
+  'course_publish_failed': "L'envoi des résultats a échoué",
+  'course_publish_unplaced':
+      "Cette course n'est pas au programme FFSS : placez le tour, puis "
+      'réessayez.',
+  'course_publish_no_lane':
+      "Aucune place affectée sur cette course : enregistrez le tirage "
+      'avant de valider.',
+  'course_validate': 'Valider',
   'course_undo': 'Annuler',
   'course_complete': 'Tous les athlètes sont classés',
   'course_forfeit': 'Forfait',

@@ -77,6 +77,11 @@ class RaceStructureController extends GetxController {
   /// this race were scheduled into.
   final RxList<Meeting> _meetingsOfCompetition = <Meeting>[].obs;
 
+  /// What FFSS holds for a drawn course, keyed by ProgrammeRace id then by
+  /// athlete. Filled only for the courses that carry a `serie`; everywhere
+  /// else the screen keeps reading the device's own finish order.
+  final Map<int, Map<int, HeatResult>> _serverResults = {};
+
   /// Athlete id -> athlete, built from the entries this race already fetches,
   /// with clubs resolved. It is what turns a drawn race's `athleteIds` back
   /// into rows the operator can read.
@@ -169,6 +174,7 @@ class RaceStructureController extends GetxController {
       // makes it visible on every other device.
       try {
         await _importCompositions(race);
+        await _importResults(race);
         structures.value = _structuresOf(race);
       } on AppException {
         // The local composition stands.
@@ -252,12 +258,41 @@ class RaceStructureController extends GetxController {
   /// result. Computed from the stored order by the same function the entry
   /// screen uses — the two therefore cannot disagree about a ranking.
   int? placeIn(ProgrammeRace race, Athlete athlete) =>
-      placesOf(race.finishOrder)[athlete.id];
+      placeInRace(race, athlete.id);
+
+  /// Same, by athlete id.
+  ///
+  /// FFSS wins when it holds a result for this course: a ranking corrected on
+  /// another device has to show here, not the local copy that has gone stale.
+  /// Without one, the device's own order stands.
+  int? placeInRace(ProgrammeRace race, int athleteId) {
+    final server = _serverResults[race.id];
+    if (server != null) return server[athleteId]?.rank;
+    return placesOf(race.finishOrder)[athleteId];
+  }
 
   /// The withdrawal this athlete carries in a scored race, if any.
-  CoursePenalty? penaltyIn(ProgrammeRace race, Athlete athlete) {
+  CoursePenalty? penaltyIn(ProgrammeRace race, Athlete athlete) =>
+      penaltyInRace(race, athlete.id);
+
+  /// Same, by athlete id — FFSS first, for the same reason as [placeInRace].
+  ///
+  /// The server reports a disqualification, not why: a code travels in
+  /// `complement` and lands in [CoursePenalty.code], which is exactly what the
+  /// referee typed on the device that validated.
+  CoursePenalty? penaltyInRace(ProgrammeRace race, int athleteId) {
+    final server = _serverResults[race.id];
+    if (server != null) {
+      final result = server[athleteId];
+      if (result == null || !result.isDisqualified) return null;
+      return CoursePenalty(
+        athleteId: athleteId,
+        kind: CoursePenaltyKind.disqualified,
+        code: result.complement ?? '',
+      );
+    }
     for (final penalty in race.penalties) {
-      if (penalty.athleteId == athlete.id) return penalty;
+      if (penalty.athleteId == athleteId) return penalty;
     }
     return null;
   }
@@ -358,6 +393,59 @@ class RaceStructureController extends GetxController {
     await _programme.save(
       (_programme.current.value ?? programme).copyWith(structures: updated),
     );
+  }
+
+  /// Reads back what FFSS holds for the courses that have been validated, so
+  /// this screen shows the ranking the federation records rather than the copy
+  /// the device happens to keep.
+  ///
+  /// A course with no `serie` has never been validated: nothing is read, and
+  /// the local order stays in charge. Best-effort per course — one unreadable
+  /// heat costs its own ranking, not the screen.
+  Future<void> _importResults(Race race) async {
+    _serverResults.clear();
+    final programme = _programme.current.value;
+    if (programme == null) return;
+
+    for (final structure in programme.structures) {
+      if (structure.raceId != race.id) continue;
+      for (final level in structure.levels) {
+        final courses = coursesOfLevel(level);
+        if (courses.isEmpty) continue;
+        for (final stored in level.races) {
+          final course = _courseOf(courses, stored);
+          final heatId = course?.heat?.id ?? 0;
+          if (course == null || heatId == 0) continue;
+          final seats = await _meetings
+              .getLaneSeats([for (final lane in course.lanes) lane.id]);
+          if (seats.isEmpty) continue;
+          List<HeatResult> results;
+          try {
+            results = await _meetings.getHeatResults(heatId);
+          } on AppException {
+            continue;
+          }
+          if (results.isEmpty) continue;
+          final byEntry = {for (final r in results) r.entryId: r};
+          final byAthlete = <int, HeatResult>{};
+          for (final seat in seats) {
+            final result = byEntry[seat.entryId];
+            if (result == null) continue;
+            for (final athleteId in seat.athleteIds) {
+              byAthlete[athleteId] = result;
+            }
+          }
+          if (byAthlete.isNotEmpty) _serverResults[stored.id] = byAthlete;
+        }
+      }
+    }
+  }
+
+  Run? _courseOf(List<Run> courses, ProgrammeRace stored) {
+    for (final course in courses) {
+      if (course.id == stored.runId) return course;
+    }
+    return null;
   }
 
   /// Adopts, into the local races, the compositions the FFSS places carry —

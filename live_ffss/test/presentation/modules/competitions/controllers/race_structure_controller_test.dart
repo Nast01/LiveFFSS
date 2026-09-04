@@ -18,6 +18,7 @@ import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
+import 'package:live_ffss/app/domain/models/heat.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
@@ -1189,6 +1190,158 @@ void main() {
       await controller.reload();
 
       verifyNever(() => raceRepo.getEntries(any()));
+    });
+  });
+
+  group('les résultats de l API priment sur la copie locale', () {
+    DateTime hhmm(String v) => DateFormat('HH:mm').parse(v);
+
+    Run course(int id, {Heat? heat, List<Lane> lanes = const []}) => Run(
+          id: id,
+          name: 'Série',
+          label: '',
+          fullLabel: '',
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: 'OCEAN 1',
+          beginTime: hhmm('08:00'),
+          endTime: hhmm('08:10'),
+          lanes: lanes,
+          heat: heat,
+        );
+
+    Meeting meetingWith(List<Run> runs) => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: DateTime(2026, 6, 13),
+          beginHour: DateTime(2026, 6, 13, 8),
+          endHour: DateTime(2026, 6, 13, 18),
+          slots: [
+            Slot(
+              id: 66,
+              name: 'Séries',
+              beginHour: hhmm('08:00'),
+              endHour: hhmm('08:20'),
+              raceFormatDetail: const RaceFormatDetail(
+                id: 39,
+                order: 1,
+                label: '',
+                fullLabel: '',
+                levelLabel: '',
+                level: 'heat',
+                numberOfRun: 1,
+                qualificationMethod: 'none',
+                qualificationMethodLabel: '',
+                spotsPerRace: 8,
+                qualifyingSpots: 0,
+              ),
+              runs: runs,
+            ),
+          ],
+        );
+
+    /// Un tour local dont la série porte déjà un ordre d'arrivée : 11 devant 12.
+    CompetitionProgramme localOrder() => const CompetitionProgramme(
+          competitionId: 42,
+          nextLocalId: 100,
+          structures: [
+            EventStructure(
+              raceId: 500,
+              categoryId: 7,
+              raceLabel: '100m',
+              categoryLabel: 'Cadets',
+              levels: [
+                RoundLevel(type: RoundType.serie, serverId: 39, races: [
+                  ProgrammeRace(
+                    id: 1,
+                    number: 1,
+                    runId: 25,
+                    entryIds: [101, 102],
+                    athleteIds: [11, 12],
+                    finishOrder: [
+                      [11],
+                      [12]
+                    ],
+                  ),
+                ]),
+              ],
+            ),
+          ],
+        );
+
+    Future<void> loadWithResults(List<HeatResult> results) async {
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(localOrder().toJson()));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([
+              course(25,
+                  heat: const Heat(id: 94369),
+                  lanes: const [Lane(id: 71, number: 1)]),
+            ]),
+          ]);
+      when(() => meetingRepo.getHeatResults(94369))
+          .thenAnswer((_) async => results);
+      when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
+            (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
+            (laneId: 71, number: 2, entryId: 102, athleteIds: [12]),
+          ]);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo);
+      await controller.load(race(500), competition);
+    }
+
+    ProgrammeRace serieRace() =>
+        controller.structures.single.levels.single.races.single;
+
+    // Le serveur a le dernier mot : un classement corrigé sur un autre
+    // appareil doit s'afficher ici, pas la copie locale devenue fausse.
+    test('le rang affiché vient du résultat FFSS', () async {
+      await loadWithResults(const [
+        (entryId: 101, rank: 2, isDisqualified: false, complement: null),
+        (entryId: 102, rank: 1, isDisqualified: false, complement: null),
+      ]);
+
+      expect(controller.placeInRace(serieRace(), 11), 2);
+      expect(controller.placeInRace(serieRace(), 12), 1);
+    });
+
+    test('une disqualification FFSS sort l athlète du classement', () async {
+      await loadWithResults(const [
+        (entryId: 101, rank: null, isDisqualified: true, complement: 'DSQ'),
+        (entryId: 102, rank: 1, isDisqualified: false, complement: null),
+      ]);
+
+      expect(controller.placeInRace(serieRace(), 11), isNull);
+      final penalty = controller.penaltyInRace(serieRace(), 11);
+      expect(penalty!.kind, CoursePenaltyKind.disqualified);
+      expect(penalty.code, 'DSQ');
+      expect(controller.penaltyInRace(serieRace(), 12), isNull);
+    });
+
+    // Sans résultat sur FFSS, l'écran continue de lire ce que l'appareil sait.
+    test('sans résultat FFSS, le classement local est conservé', () async {
+      await loadWithResults(const []);
+
+      expect(controller.placeInRace(serieRace(), 11), 1);
+      expect(controller.placeInRace(serieRace(), 12), 2);
+    });
+
+    test('une course sans série ne déclenche aucune lecture', () async {
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(localOrder().toJson()));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([course(25)])
+          ]);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo);
+
+      await controller.load(race(500), competition);
+
+      verifyNever(() => meetingRepo.getHeatResults(any()));
+      expect(controller.placeInRace(serieRace(), 11), 1);
     });
   });
 }

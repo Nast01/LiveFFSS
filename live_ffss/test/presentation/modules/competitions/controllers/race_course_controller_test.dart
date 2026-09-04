@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
+import 'package:intl/intl.dart';
+import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
@@ -15,7 +17,11 @@ import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
+import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
+import 'package:live_ffss/app/domain/models/run.dart';
+import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_course_controller.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
@@ -26,6 +32,8 @@ class _MockRaceRepo extends Mock implements RaceRepository {}
 class _MockClubRepo extends Mock implements ClubRepository {}
 
 class _MockRfidWriter extends Mock implements RfidWriter {}
+
+class _MockMeetingRepo extends Mock implements MeetingRepository {}
 
 /// Keeps the programme in memory so the controller's read-modify-write can be
 /// asserted end to end, without secure storage.
@@ -66,8 +74,14 @@ void main() {
   late _MockClubRepo clubRepo;
   late _FakeProgrammeService programme;
   late _MockRfidWriter rfid;
+  late _MockMeetingRepo meetingRepo;
 
-  setUpAll(() => registerFallbackValue(const <Athlete>[]));
+  setUpAll(() {
+    registerFallbackValue(const <Athlete>[]);
+    registerFallbackValue(const <int>[]);
+    registerFallbackValue(const <Lane>[]);
+    registerFallbackValue(const <CourseOutcome>[]);
+  });
 
   Athlete athlete(int id) => Athlete(
         id: id,
@@ -160,7 +174,7 @@ void main() {
             athletes: [for (final id in athleteIds) athlete(id)],
           ),
         ]);
-    final controller = RaceCourseController(programme, raceRepo, clubRepo, rfid)
+    final controller = RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
       ..applyArguments(arguments());
     await controller.load();
     return controller;
@@ -168,6 +182,7 @@ void main() {
 
   setUp(() {
     rfid = _MockRfidWriter();
+    meetingRepo = _MockMeetingRepo();
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
     when(() => clubRepo.getAthleteClubs(any(), any()))
@@ -184,6 +199,7 @@ void main() {
         raceRepo,
         clubRepo,
         rfid,
+        meetingRepo,
       );
       controller.applyArguments({
         'race': makeRace(),
@@ -211,6 +227,7 @@ void main() {
         raceRepo,
         clubRepo,
         rfid,
+        meetingRepo,
       );
       controller.applyArguments(null);
 
@@ -236,7 +253,7 @@ void main() {
       c.assign(c.athletes.first);
 
       // A second controller on the same programme sees the stored order.
-      final again = RaceCourseController(programme, raceRepo, clubRepo, rfid)
+      final again = RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
         ..applyArguments(arguments());
       await again.load();
 
@@ -394,7 +411,7 @@ void main() {
               athletes: [athlete(10), athlete(11)],
             ),
           ]);
-      final c = RaceCourseController(programme, raceRepo, clubRepo, rfid)
+      final c = RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
         ..applyArguments(arguments());
       await c.load();
 
@@ -586,6 +603,381 @@ void main() {
       final c = await loadWith([10]);
 
       expect(c.canScan, isFalse);
+    });
+  });
+
+  group('validate', () {
+    DateTime hhmm(String v) => DateFormat('HH:mm').parse(v);
+
+    Entry entryOf(int id, List<int> athleteIds) => Entry(
+          id: id,
+          category: const Category(id: categoryId, name: 'Senior'),
+          status: 1,
+          statusLabel: '',
+          athletes: [for (final a in athleteIds) athlete(a)],
+        );
+
+    Run course(int id, String name, List<Lane> lanes) => Run(
+          id: id,
+          name: name,
+          label: name,
+          fullLabel: name,
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: 'OCEAN 1',
+          beginTime: hhmm('08:00'),
+          endTime: hhmm('08:10'),
+          lanes: lanes,
+        );
+
+    Meeting meetingWith(List<Run> runs) => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: DateTime(2026, 6, 13),
+          beginHour: DateTime(2026, 6, 13, 8),
+          endHour: DateTime(2026, 6, 13, 18),
+          slots: [
+            Slot(
+              id: 66,
+              name: 'Demies',
+              beginHour: hhmm('08:00'),
+              endHour: hhmm('08:20'),
+              runs: runs,
+            ),
+          ],
+        );
+
+    /// Un déroulement de deux demies qualifiant 2 par course vers une finale.
+    CompetitionProgramme chain({
+      String method = 'course',
+      int spots = 2,
+      List<ProgrammeRace>? finals,
+    }) =>
+        CompetitionProgramme(
+          competitionId: competitionId,
+          nextLocalId: 200,
+          structures: [
+            EventStructure(
+              raceId: raceId,
+              categoryId: categoryId,
+              raceLabel: 'Race',
+              categoryLabel: 'Senior',
+              levels: [
+                RoundLevel(
+                  type: RoundType.demi,
+                  serverId: 39,
+                  qualifiersPerRace: spots,
+                  qualificationMethod: method,
+                  races: [
+                    const ProgrammeRace(
+                      id: programmeRaceId,
+                      number: 1,
+                      runId: 25,
+                      entryIds: [101, 102, 103],
+                      athleteIds: [1, 2, 3],
+                    ),
+                    const ProgrammeRace(
+                      id: 78,
+                      number: 2,
+                      runId: 26,
+                      entryIds: [201, 202],
+                      athleteIds: [4, 5],
+                      finishOrder: [
+                        [4],
+                        [5]
+                      ],
+                    ),
+                  ],
+                ),
+                RoundLevel(
+                  type: RoundType.finale,
+                  serverId: 40,
+                  races: finals ??
+                      const [ProgrammeRace(id: 90, number: 1, runId: 30)],
+                ),
+              ],
+            ),
+          ],
+        );
+
+    Future<RaceCourseController> ready({
+      CompetitionProgramme? seed,
+      List<Lane> lanes = const [
+        Lane(id: 71, number: 1),
+        Lane(id: 72, number: 2),
+        Lane(id: 73, number: 3),
+      ],
+    }) async {
+      programme = _FakeProgrammeService(seed ?? chain());
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entryOf(101, [1]),
+            entryOf(102, [2]),
+            entryOf(103, [3]),
+            entryOf(201, [4]),
+            entryOf(202, [5]),
+          ]);
+      when(() => clubRepo.getAthleteClubs(any(), any()))
+          .thenAnswer((_) async => const <int, Club>{});
+      when(() => meetingRepo.getMeetings(competitionId)).thenAnswer(
+        (_) async => [
+          meetingWith([
+            course(25, 'Demie 1', lanes),
+            course(30, 'Finale', const [
+              Lane(id: 81, number: 1),
+              Lane(id: 82, number: 2),
+            ]),
+          ])
+        ],
+      );
+      when(() => meetingRepo.getLaneSeats(any())).thenAnswer((_) async => [
+            (laneId: 71, number: 1, entryId: 101, athleteIds: [1]),
+            (laneId: 72, number: 2, entryId: 102, athleteIds: [2]),
+            (laneId: 73, number: 3, entryId: 103, athleteIds: [3]),
+          ]);
+      when(() => meetingRepo.publishCourseResults(
+            raceId: any(named: 'raceId'),
+            heatName: any(named: 'heatName'),
+            heatNumber: any(named: 'heatNumber'),
+            outcomes: any(named: 'outcomes'),
+            heatId: any(named: 'heatId'),
+            link: any(named: 'link'),
+          )).thenAnswer((_) async => 94369);
+      when(() => meetingRepo.syncLanes(
+            runId: any(named: 'runId'),
+            entryIds: any(named: 'entryIds'),
+            existing: any(named: 'existing'),
+          )).thenAnswer((i) async =>
+          (i.namedArguments[const Symbol('entryIds')] as List<int>).length);
+
+      Get.arguments;
+      final controller =
+          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
+            ..race.value = makeRace()
+            ..competition.value = makeCompetition()
+            ..categoryId = categoryId
+            ..categoryLabel = 'Senior'
+            ..roundType = RoundType.demi
+            ..raceNumber = 1
+            ..programmeRaceId = programmeRaceId;
+      await controller.load();
+      return controller;
+    }
+
+    List<CourseOutcome> capturedOutcomes() =>
+        verify(() => meetingRepo.publishCourseResults(
+              raceId: any(named: 'raceId'),
+              heatName: any(named: 'heatName'),
+              heatNumber: any(named: 'heatNumber'),
+              outcomes: captureAny(named: 'outcomes'),
+              heatId: any(named: 'heatId'),
+              link: any(named: 'link'),
+            )).captured.single as List<CourseOutcome>;
+
+    test('publie un résultat par couloir, rang compris', () async {
+      final controller = await ready();
+      controller.finishOrder.value = [
+        [2],
+        [1],
+        [3]
+      ];
+
+      await controller.validate();
+
+      final outcomes = capturedOutcomes();
+      expect(outcomes.map((o) => (o.entryId, o.laneId, o.rank, o.status)), [
+        (101, 71, 2, 0),
+        (102, 72, 1, 0),
+        (103, 73, 3, 0),
+      ]);
+    });
+
+    // Un ex-aequo consomme les places qu'il occupe : deux premiers ne
+    // laissent personne deuxième.
+    test('un ex-aequo partage son rang', () async {
+      final controller = await ready();
+      controller.finishOrder.value = [
+        [1, 2],
+        [3]
+      ];
+
+      await controller.validate();
+
+      expect(capturedOutcomes().map((o) => o.rank), [1, 1, 3]);
+    });
+
+    // statut : 0 classé, 1 disqualifié, 2 forfait. Un non-classé ne prend
+    // pas de rang, sinon il apparaîtrait au classement.
+    test('un forfait et un disqualifié partent sans rang', () async {
+      final controller = await ready();
+      controller.finishOrder.value = [
+        [1]
+      ];
+      controller.penalties.value = const [
+        CoursePenalty(athleteId: 2, kind: CoursePenaltyKind.forfeit),
+        CoursePenalty(
+            athleteId: 3, kind: CoursePenaltyKind.disqualified, code: 'DSQ'),
+      ];
+
+      await controller.validate();
+
+      expect(
+        capturedOutcomes().map((o) => (o.entryId, o.rank, o.status, o.complement)),
+        [
+          (101, 1, 0, null),
+          (102, null, 2, null),
+          (103, null, 1, 'DSQ'),
+        ],
+      );
+    });
+
+    test('la course est rattachée à sa série', () async {
+      final controller = await ready();
+      controller.finishOrder.value = [
+        [1]
+      ];
+
+      await controller.validate();
+
+      final link = verify(() => meetingRepo.publishCourseResults(
+            raceId: any(named: 'raceId'),
+            heatName: any(named: 'heatName'),
+            heatNumber: any(named: 'heatNumber'),
+            outcomes: any(named: 'outcomes'),
+            heatId: any(named: 'heatId'),
+            link: captureAny(named: 'link'),
+          )).captured.single as CourseHeatLink?;
+      expect(link!.runId, 25);
+      expect(link.slotId, 66);
+      expect(link.site, 'OCEAN 1');
+    });
+
+    // « Par course » : chaque demie envoie ses 2 premiers. La finale doit
+    // recevoir les qualifiés des DEUX demies — celle qu'on valide et celle
+    // déjà courue — sinon revalider effacerait le travail de l'autre.
+    test('la finale reçoit les qualifiés de toutes les demies courues',
+        () async {
+      final controller = await ready();
+      controller.finishOrder.value = [
+        [1],
+        [2],
+        [3]
+      ];
+
+      await controller.validate();
+
+      final finale = programme.current.value!.structures.single.levels.last
+          .races.single;
+      expect(finale.entryIds.toSet(), {101, 102, 201, 202});
+      expect(finale.athleteIds.toSet(), {1, 2, 4, 5});
+    });
+
+    test('les places de la finale sont poussées sur FFSS', () async {
+      final controller = await ready();
+      controller.finishOrder.value = [
+        [1],
+        [2],
+        [3]
+      ];
+
+      await controller.validate();
+
+      final pushed = verify(() => meetingRepo.syncLanes(
+            runId: 30,
+            entryIds: captureAny(named: 'entryIds'),
+            existing: any(named: 'existing'),
+          )).captured.single as List<int>;
+      expect(pushed.toSet(), {101, 102, 201, 202});
+    });
+
+    // Même garde-fou que la synchronisation entre appareils : un ordre
+    // d'arrivée déjà saisi ne se perd pas dans une requalification.
+    test('une course du tour suivant qui porte des résultats est intacte',
+        () async {
+      final controller = await ready(
+        seed: chain(finals: const [
+          ProgrammeRace(
+            id: 90,
+            number: 1,
+            runId: 30,
+            entryIds: [999],
+            athleteIds: [9],
+            finishOrder: [
+              [9]
+            ],
+          ),
+        ]),
+      );
+      controller.finishOrder.value = [
+        [1],
+        [2],
+        [3]
+      ];
+
+      await controller.validate();
+
+      final finale = programme.current.value!.structures.single.levels.last
+          .races.single;
+      expect(finale.entryIds, [999]);
+    });
+
+    test('sans course sur FFSS, rien ne part et c est dit', () async {
+      final controller = await ready(
+        seed: CompetitionProgramme(
+          competitionId: competitionId,
+          nextLocalId: 200,
+          structures: [
+            EventStructure(
+              raceId: raceId,
+              categoryId: categoryId,
+              raceLabel: 'Race',
+              categoryLabel: 'Senior',
+              levels: [
+                RoundLevel(type: RoundType.demi, serverId: 39, races: const [
+                  ProgrammeRace(id: programmeRaceId, number: 1, entryIds: [101]),
+                ]),
+              ],
+            ),
+          ],
+        ),
+      );
+      controller.finishOrder.value = [
+        [1]
+      ];
+
+      await controller.validate();
+
+      verifyNever(() => meetingRepo.publishCourseResults(
+            raceId: any(named: 'raceId'),
+            heatName: any(named: 'heatName'),
+            heatNumber: any(named: 'heatNumber'),
+            outcomes: any(named: 'outcomes'),
+            heatId: any(named: 'heatId'),
+            link: any(named: 'link'),
+          ));
+      expect(controller.message.value!.translationKey, 'course_publish_unplaced');
+    });
+
+    // Revalider ne doit pas empiler les séries côté FFSS.
+    test('la série créée est retenue et réutilisée à la revalidation',
+        () async {
+      final controller = await ready();
+      controller.finishOrder.value = [
+        [1]
+      ];
+
+      await controller.validate();
+      await controller.validate();
+
+      final ids = verify(() => meetingRepo.publishCourseResults(
+            raceId: any(named: 'raceId'),
+            heatName: any(named: 'heatName'),
+            heatNumber: any(named: 'heatNumber'),
+            outcomes: any(named: 'outcomes'),
+            heatId: captureAny(named: 'heatId'),
+            link: any(named: 'link'),
+          )).captured;
+      expect(ids, [null, 94369]);
     });
   });
 }

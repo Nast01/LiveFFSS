@@ -445,6 +445,14 @@ final Map<String, String> enUS = {
   'course_tie_locked': 'locked',
   'course_scan': 'Scan bracelets',
   'course_scan_stop': 'Stop scanning',
+  'course_published': 'Results pushed to FFSS',
+  'course_publish_failed': 'Pushing the results failed',
+  'course_publish_unplaced':
+      'This course is not on the FFSS programme: place the round, then '
+      'try again.',
+  'course_publish_no_lane':
+      'No spot assigned on this course: save the draw before validating.',
+  'course_validate': 'Validate',
   'course_undo': 'Undo',
   'course_complete': 'Every athlete is ranked',
   'course_forfeit': 'Forfeit',
