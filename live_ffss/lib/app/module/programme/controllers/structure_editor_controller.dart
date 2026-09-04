@@ -105,6 +105,16 @@ class StructureEditorController extends GetxController {
   /// follow hang off it rather than off nothing.
   int _raceFormatId = 0;
 
+  /// Parties FFSS is known to hold, so a stored `serverId` can be told from a
+  /// stale one. Seeded from what the overview handed over, and grown with every
+  /// id the server returns during this session.
+  ///
+  /// A déroulement deleted and recreated on the federal side leaves the device
+  /// pointing at parties that no longer exist; sending one back as an update
+  /// answers « Enregistrement impossible : partie non identifié ». Reproduced
+  /// in production on 2026-09-04.
+  final Set<int> _knownDetailIds = <int>{};
+
   Gender get gender => _args.gender;
   int get entryCount => _args.entryCount;
   int get eligibleCount => _args.eligibleCount;
@@ -137,6 +147,9 @@ class StructureEditorController extends GetxController {
   void start(StructureEditorArgs args) {
     _args = args;
     _raceFormatId = args.raceFormatId;
+    _knownDetailIds
+      ..clear()
+      ..addAll([for (final detail in args.serverDetails) detail.id]);
     structure.value = _stored() ??
         EventStructure(
           raceId: args.raceId,
@@ -255,6 +268,7 @@ class StructureEditorController extends GetxController {
     int serverId;
     try {
       serverId = await _submitLevel(rewired[at], at);
+      if (serverId > 0) _knownDetailIds.add(serverId);
     } on AppException catch (e) {
       message.trigger(UiMessageError('round_push_failed', details: e.detail));
       return;
@@ -304,6 +318,7 @@ class StructureEditorController extends GetxController {
       for (var i = 0; i < updated.length; i++) {
         final serverId = await _submitLevel(updated[i], i);
         if (serverId > 0) {
+          _knownDetailIds.add(serverId);
           updated[i] = updated[i].copyWith(serverId: serverId);
           sent++;
         }
@@ -351,7 +366,7 @@ class StructureEditorController extends GetxController {
     if (code.isEmpty) return Future.value(0);
     return _raceFormatRepo.submitRaceFormatDetail(
       raceFormatId: _raceFormatId,
-      id: level.serverId > 0 ? level.serverId : null,
+      id: _updatableId(level),
       order: index + 1,
       level: code,
       raceCount: level.races.length,
@@ -362,6 +377,18 @@ class StructureEditorController extends GetxController {
       qualifyingSpots: level.qualifiersPerRace,
       categoryIds: [_args.categoryId],
     );
+  }
+
+  /// The id to send so FFSS updates rather than creates, or null to create.
+  ///
+  /// A `serverId` is only trusted when the server is known to hold that partie.
+  /// When the overview handed over no parties at all we cannot tell, so the id
+  /// is sent as before — refusing it there would duplicate every round of a
+  /// déroulement we simply were not told about.
+  int? _updatableId(RoundLevel level) {
+    if (level.serverId <= 0) return null;
+    if (_knownDetailIds.isEmpty) return level.serverId;
+    return _knownDetailIds.contains(level.serverId) ? level.serverId : null;
   }
 
   /// Whether the round at [index] can move by [delta] (-1 up, +1 down) without

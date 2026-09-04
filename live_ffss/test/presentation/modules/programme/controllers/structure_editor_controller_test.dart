@@ -682,6 +682,50 @@ void main() {
   });
 
   group('pushing rounds to FFSS', () {
+    /// Comme [linked], mais en déclarant les parties que FFSS détient — ce que
+    /// l'aperçu transmet dès que le déroulement existe.
+    const pushSemi = RaceFormatDetail(
+      id: 32,
+      order: 1,
+      label: 'Demi-finale',
+      fullLabel: 'Demi-finale',
+      levelLabel: 'Demi-finale',
+      level: 'semi',
+      numberOfRun: 2,
+      qualificationMethod: 'course',
+      qualificationMethodLabel: 'Par course',
+      spotsPerRace: 16,
+      qualifyingSpots: 8,
+    );
+
+    const pushFinale = RaceFormatDetail(
+      id: 33,
+      order: 2,
+      label: 'Finale',
+      fullLabel: 'Finale',
+      levelLabel: 'Finale',
+      level: 'final',
+      numberOfRun: 1,
+      qualificationMethod: 'none',
+      qualificationMethodLabel: 'N/A',
+      spotsPerRace: 16,
+      qualifyingSpots: 0,
+    );
+
+    const withServerRoundsLinked = StructureEditorArgs(
+      competitionId: 42,
+      raceId: 100,
+      categoryId: 7,
+      raceLabel: '100m',
+      categoryLabel: 'Cadets',
+      entryCount: 20,
+      eligibleCount: 18,
+      disciplineId: 8,
+      gender: Gender.male,
+      raceFormatId: 428,
+      serverDetails: [pushSemi, pushFinale],
+    );
+
     const linked = StructureEditorArgs(
       competitionId: 42,
       raceId: 100,
@@ -853,6 +897,105 @@ void main() {
         expect(captured.sublist(0, 6), [1, 'heat', 3, 'course', 8, 31]);
         // Round two: a creation, defaulting to no qualification logic.
         expect(captured.sublist(6), [2, 'final', 1, 'none', 8, null]);
+      });
+
+      // Régression : un déroulement supprimé puis recréé côté FFSS laisse
+      // l'appareil avec des ids de parties qui n'existent plus. Les renvoyer
+      // en mise à jour fait répondre « Enregistrement impossible : partie non
+      // identifié » — reproduit en production le 2026-09-04.
+      test('un serverId absent du serveur repart en création', () async {
+        controller.start(withServerRoundsLinked);
+        answerSubmitWith(910);
+        controller.structure.value = controller.structure.value!.copyWith(
+          levels: const [
+            RoundLevel(
+              type: RoundType.serie,
+              serverId: 39, // supprimé côté FFSS : 32 et 33 seuls subsistent
+              spotsPerRace: 8,
+              races: [ProgrammeRace(id: 1, number: 1)],
+            ),
+          ],
+        );
+
+        await controller.pushAll();
+
+        final ids = verify(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: any(named: 'raceFormatId'),
+              order: any(named: 'order'),
+              level: any(named: 'level'),
+              raceCount: any(named: 'raceCount'),
+              qualificationMethod: any(named: 'qualificationMethod'),
+              spotsPerRace: any(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: any(named: 'categoryIds'),
+              id: captureAny(named: 'id'),
+            )).captured;
+        expect(ids, [null]);
+        expect(controller.structure.value!.levels.single.serverId, 910);
+      });
+
+      test('un serverId que le serveur déclare est bien mis à jour', () async {
+        controller.start(withServerRoundsLinked);
+        answerSubmitWith(32);
+        controller.structure.value = controller.structure.value!.copyWith(
+          levels: const [
+            RoundLevel(
+              type: RoundType.serie,
+              serverId: 32,
+              spotsPerRace: 8,
+              races: [ProgrammeRace(id: 1, number: 1)],
+            ),
+          ],
+        );
+
+        await controller.pushAll();
+
+        final ids = verify(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: any(named: 'raceFormatId'),
+              order: any(named: 'order'),
+              level: any(named: 'level'),
+              raceCount: any(named: 'raceCount'),
+              qualificationMethod: any(named: 'qualificationMethod'),
+              spotsPerRace: any(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: any(named: 'categoryIds'),
+              id: captureAny(named: 'id'),
+            )).captured;
+        expect(ids, [32]);
+      });
+
+      // Un second envoi dans la même session ne doit pas dupliquer : l'id que
+      // le serveur vient de rendre compte comme connu.
+      test('un id rendu par le serveur est réutilisé au second envoi',
+          () async {
+        controller.start(withServerRoundsLinked);
+        answerSubmitWith(910);
+        controller.structure.value = controller.structure.value!.copyWith(
+          levels: const [
+            RoundLevel(
+              type: RoundType.serie,
+              serverId: 39,
+              spotsPerRace: 8,
+              races: [ProgrammeRace(id: 1, number: 1)],
+            ),
+          ],
+        );
+
+        await controller.pushAll();
+        await controller.pushAll();
+
+        final ids = verify(() => raceFormatRepo.submitRaceFormatDetail(
+              raceFormatId: any(named: 'raceFormatId'),
+              order: any(named: 'order'),
+              level: any(named: 'level'),
+              raceCount: any(named: 'raceCount'),
+              qualificationMethod: any(named: 'qualificationMethod'),
+              spotsPerRace: any(named: 'spotsPerRace'),
+              qualifyingSpots: any(named: 'qualifyingSpots'),
+              categoryIds: any(named: 'categoryIds'),
+              id: captureAny(named: 'id'),
+            )).captured;
+        expect(ids, [null, 910]);
       });
 
       test('records the ids the server assigned', () async {
