@@ -112,3 +112,42 @@ List<RoundLevel> buildDefaultLevels({
   }
   return levels;
 }
+
+/// [levels] with each round pointing at the `partie` FFSS actually holds for
+/// its level, or null when nothing needed changing.
+///
+/// The `serverId` is the only join between a local round and everything the
+/// federation holds — its créneau, its courses, its places, its results. A
+/// déroulement deleted and recreated on the federal side leaves every stored
+/// id dangling, and the failure is silent: no créneau matches, so the screen
+/// simply shows nothing rather than reporting anything.
+///
+/// Rounds are matched by level, in order, so two rounds of the same level take
+/// distinct parties. A round the server declares no equivalent for loses its
+/// link rather than borrowing another level's — pointing a semi-final at a
+/// final's partie would corrupt far more than it repairs.
+List<RoundLevel>? realignServerIds({
+  required List<RoundLevel> levels,
+  required List<RaceFormatDetail> details,
+}) {
+  if (details.isEmpty) return null;
+  final available = <RoundType, List<int>>{};
+  for (final detail in [...details]
+    ..sort((a, b) => a.order.compareTo(b.order))) {
+    (available[roundTypeFromApi(detail.level)] ??= []).add(detail.id);
+  }
+
+  var changed = false;
+  final realigned = <RoundLevel>[];
+  for (final level in levels) {
+    final queue = available[level.type];
+    final id = (queue == null || queue.isEmpty) ? 0 : queue.removeAt(0);
+    if (id == level.serverId) {
+      realigned.add(level);
+      continue;
+    }
+    realigned.add(level.copyWith(serverId: id));
+    changed = true;
+  }
+  return changed ? realigned : null;
+}

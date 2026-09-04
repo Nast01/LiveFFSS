@@ -369,7 +369,23 @@ class RaceStructureController extends GetxController {
         if (runs.isNotEmpty && !runs.contains(category.id)) continue;
         final at = updated.indexWhere(
             (s) => s.raceId == race.id && s.categoryId == category.id);
-        if (at >= 0 && updated[at].levels.isNotEmpty) continue;
+        if (at >= 0 && updated[at].levels.isNotEmpty) {
+          // Authored rounds are never replaced — but their link to FFSS is
+          // repaired. `serverId` is the only join to the créneau, its courses
+          // and their places; a déroulement recreated on the federal side
+          // leaves every stored id dangling, and nothing downstream matches.
+          // The failure is silent, which is what made a second device show an
+          // empty Séries screen with no error at all.
+          final realigned = realignServerIds(
+            levels: updated[at].levels,
+            details: format.details,
+          );
+          if (realigned != null) {
+            updated[at] = updated[at].copyWith(levels: realigned);
+            changed = true;
+          }
+          continue;
+        }
         final levels = buildLevelsFromDetails(
           details: format.details,
           allocateId: _programme.allocateId,

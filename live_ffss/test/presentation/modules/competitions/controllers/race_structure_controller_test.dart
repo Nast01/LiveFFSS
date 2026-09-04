@@ -1344,4 +1344,97 @@ void main() {
       expect(controller.placeInRace(serieRace(), 11), 1);
     });
   });
+
+  group('la jointure avec le serveur se répare toute seule', () {
+    RaceFormatConfiguration formatWith(List<RaceFormatDetail> details) =>
+        RaceFormatConfiguration(
+          id: 900,
+          competitionId: 42,
+          disciplineId: 1,
+          label: '100m',
+          fullLabel: '100m',
+          gender: 'H',
+          genderLabel: 'Messieurs',
+          discipline: const Discipline(
+            id: '1',
+            name: '100m',
+            speciality: 1,
+            specialityLabel: 'Eau-plate',
+          ),
+          categories: const [Category(id: 7, name: 'Cadets')],
+          details: details,
+        );
+
+    const serverSerie = RaceFormatDetail(
+      id: 63,
+      order: 1,
+      label: '',
+      fullLabel: '',
+      levelLabel: '',
+      level: 'heat',
+      numberOfRun: 1,
+      qualificationMethod: 'none',
+      qualificationMethodLabel: '',
+      spotsPerRace: 8,
+      qualifyingSpots: 0,
+    );
+
+    /// Une structure locale accrochée à une partie que FFSS n'a plus.
+    CompetitionProgramme stale() => const CompetitionProgramme(
+          competitionId: 42,
+          nextLocalId: 100,
+          structures: [
+            EventStructure(
+              raceId: 500,
+              categoryId: 7,
+              raceLabel: '100m',
+              categoryLabel: 'Cadets',
+              levels: [
+                RoundLevel(type: RoundType.serie, serverId: 39, races: [
+                  ProgrammeRace(id: 1, number: 1, athleteIds: [11]),
+                ]),
+              ],
+            ),
+          ],
+        );
+
+    // Le second appareil ne voyait rien : ses tours pointaient des parties
+    // disparues, donc aucun créneau ne correspondait et l'import des
+    // compositions n'avait aucune course où aller chercher.
+    test('un serverId périmé adopte celui du serveur', () async {
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(stale().toJson()));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      when(() => raceFormatRepo.getRaceFormats(42))
+          .thenAnswer((_) async => [formatWith(const [serverSerie])]);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo);
+
+      await controller.load(race(500).copyWith(
+        categories: const [Category(id: 7, name: 'Cadets')],
+      ), competition);
+
+      expect(controller.structures.single.levels.single.serverId, 63);
+      // Le tirage déjà fait sur cet appareil n'est pas emporté par la réparation.
+      expect(controller.structures.single.levels.single.races.single.athleteIds,
+          [11]);
+    });
+
+    test('sans déroulement serveur, la structure locale est laissée intacte',
+        () async {
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(stale().toJson()));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      when(() => raceFormatRepo.getRaceFormats(42))
+          .thenAnswer((_) async => const []);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo);
+
+      await controller.load(race(500).copyWith(
+        categories: const [Category(id: 7, name: 'Cadets')],
+      ), competition);
+
+      expect(controller.structures.single.levels.single.serverId, 39);
+    });
+  });
 }

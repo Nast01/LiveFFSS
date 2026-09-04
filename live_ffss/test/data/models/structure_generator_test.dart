@@ -281,4 +281,93 @@ void main() {
       expect(levels.single.qualificationMethod, 'une-logique-inventee');
     });
   });
+
+  group('realignServerIds', () {
+    RaceFormatDetail detail(int id, String level, {int order = 1}) =>
+        RaceFormatDetail(
+          id: id,
+          order: order,
+          label: '',
+          fullLabel: '',
+          levelLabel: '',
+          level: level,
+          numberOfRun: 1,
+          qualificationMethod: 'none',
+          qualificationMethodLabel: '',
+          spotsPerRace: 8,
+          qualifyingSpots: 0,
+        );
+
+    // Un déroulement supprimé puis recréé côté FFSS laisse la structure locale
+    // pointant des parties disparues. Rien ne relie plus les tours aux
+    // créneaux : la vue Séries d'un second appareil reste muette, sans erreur.
+    test('adopte les ids du serveur pour les tours périmés', () {
+      final levels = realignServerIds(
+        levels: const [
+          RoundLevel(type: RoundType.serie, serverId: 39),
+          RoundLevel(type: RoundType.finale, serverId: 40),
+        ],
+        details: [detail(63, 'heat'), detail(64, 'final', order: 2)],
+      );
+
+      expect(levels!.map((l) => l.serverId), [63, 64]);
+    });
+
+    test('rien à faire quand les ids concordent déjà', () {
+      expect(
+        realignServerIds(
+          levels: const [RoundLevel(type: RoundType.serie, serverId: 63)],
+          details: [detail(63, 'heat')],
+        ),
+        isNull,
+      );
+    });
+
+    test('un tour jamais envoyé adopte la partie de son niveau', () {
+      final levels = realignServerIds(
+        levels: const [RoundLevel(type: RoundType.serie)],
+        details: [detail(63, 'heat')],
+      );
+
+      expect(levels!.single.serverId, 63);
+    });
+
+    // Deux tours du même niveau se répartissent dans l'ordre, pas tous sur la
+    // première partie trouvée.
+    test('deux tours de même niveau prennent des parties distinctes', () {
+      final levels = realignServerIds(
+        levels: const [
+          RoundLevel(type: RoundType.serie, serverId: 1),
+          RoundLevel(type: RoundType.serie, serverId: 2),
+        ],
+        details: [detail(63, 'heat'), detail(64, 'heat', order: 2)],
+      );
+
+      expect(levels!.map((l) => l.serverId), [63, 64]);
+    });
+
+    // Le serveur ne déclare pas ce tour : mieux vaut le laisser sans lien que
+    // de l'accrocher à la partie d'un autre niveau.
+    test('un tour sans équivalent serveur perd son lien', () {
+      final levels = realignServerIds(
+        levels: const [
+          RoundLevel(type: RoundType.serie, serverId: 39),
+          RoundLevel(type: RoundType.quart, serverId: 40),
+        ],
+        details: [detail(63, 'heat')],
+      );
+
+      expect(levels!.map((l) => l.serverId), [63, 0]);
+    });
+
+    test('sans partie déclarée, on ne touche à rien', () {
+      expect(
+        realignServerIds(
+          levels: const [RoundLevel(type: RoundType.serie, serverId: 39)],
+          details: const [],
+        ),
+        isNull,
+      );
+    });
+  });
 }
