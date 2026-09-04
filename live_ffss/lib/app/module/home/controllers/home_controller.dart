@@ -29,9 +29,16 @@ class HomeController extends GetxController {
   final RxList<Competition> competitions = <Competition>[].obs;
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
+
+  /// Why the last load failed, empty when it did not. The screen showed a
+  /// generic « une erreur est survenue » and threw the cause away, so a
+  /// network outage and a server refusal looked identical — and neither could
+  /// be told apart without plugging the phone into a debugger.
+  final RxString errorDetail = ''.obs;
   final RxList<Competition> thisWeekCompetitions = <Competition>[].obs;
   final RxBool isLoadingThisWeek = false.obs;
   final RxBool hasErrorThisWeek = false.obs;
+  final RxString errorDetailThisWeek = ''.obs;
   final Rx<HomeFilter> selectedDiscipline = HomeFilter.all.obs;
   final Rx<TemporalFilter> selectedTemporal = TemporalFilter.thisWeek.obs;
   final RxString searchQuery = ''.obs;
@@ -47,22 +54,28 @@ class HomeController extends GetxController {
     try {
       if (showSpinner) isLoading.value = true;
       hasError.value = false;
-      final loaded = await _competitionRepo.getAllCompetitions(
-        type: CompetitionType.mixte,
-        visibility: CompetitionVisibility.passed,
-      );
+      errorDetail.value = '';
+      // Copied before sorting: the repository owns what it hands back, and
+      // sorting it in place would fail outright on an unmodifiable list.
+      final loaded = [
+        ...await _competitionRepo.getAllCompetitions(
+          type: CompetitionType.mixte,
+          visibility: CompetitionVisibility.passed,
+        )
+      ];
       // DESC by beginDate: future competitions appear first (their dates
       // are larger than past ones), then most-recent past, then oldest.
       // Items without a date sink to the bottom (DateTime(0) is far past).
       loaded.sort((a, b) {
-        final dateComparison = (b.beginDate ?? DateTime(0))
-            .compareTo(a.beginDate ?? DateTime(0));
+        final dateComparison =
+            (b.beginDate ?? DateTime(0)).compareTo(a.beginDate ?? DateTime(0));
         if (dateComparison != 0) return dateComparison;
         return a.name.compareTo(b.name);
       });
       competitions.value = loaded;
-    } on AppException {
+    } on AppException catch (e) {
       hasError.value = true;
+      errorDetail.value = e.detail;
     } finally {
       if (showSpinner) isLoading.value = false;
     }
@@ -72,23 +85,27 @@ class HomeController extends GetxController {
     try {
       if (showSpinner) isLoadingThisWeek.value = true;
       hasErrorThisWeek.value = false;
+      errorDetailThisWeek.value = '';
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final monday = today.subtract(Duration(days: today.weekday - 1));
       final sunday = monday.add(const Duration(days: 6));
-      final loaded = await _competitionRepo.getCompetitionsForRange(
-        from: monday,
-        to: sunday,
-      );
+      final loaded = [
+        ...await _competitionRepo.getCompetitionsForRange(
+          from: monday,
+          to: sunday,
+        )
+      ];
       loaded.sort((a, b) {
-        final dateComparison = (a.beginDate ?? DateTime(0))
-            .compareTo(b.beginDate ?? DateTime(0));
+        final dateComparison =
+            (a.beginDate ?? DateTime(0)).compareTo(b.beginDate ?? DateTime(0));
         if (dateComparison != 0) return dateComparison;
         return a.name.compareTo(b.name);
       });
       thisWeekCompetitions.value = loaded;
-    } on AppException {
+    } on AppException catch (e) {
       hasErrorThisWeek.value = true;
+      errorDetailThisWeek.value = e.detail;
     } finally {
       if (showSpinner) isLoadingThisWeek.value = false;
     }
@@ -145,7 +162,7 @@ class HomeController extends GetxController {
         result = result.where((c) => c.isBeach);
       case HomeFilter.all:
       case HomeFilter.mixed:
-        // no-op
+      // no-op
     }
 
     final q = searchQuery.value.trim().toLowerCase();

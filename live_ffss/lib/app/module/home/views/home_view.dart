@@ -33,8 +33,8 @@ class HomeView extends GetView<HomeController> {
             const SizedBox(height: AppSpacing.md),
             Expanded(
               child: Obx(() {
-                final isWeek =
-                    controller.selectedTemporal.value == TemporalFilter.thisWeek;
+                final isWeek = controller.selectedTemporal.value ==
+                    TemporalFilter.thisWeek;
                 final loading = isWeek
                     ? controller.isLoadingThisWeek.value
                     : controller.isLoading.value;
@@ -45,8 +45,16 @@ class HomeView extends GetView<HomeController> {
                   return const LoadingIndicator();
                 }
                 if (hasErr) {
+                  final detail = isWeek
+                      ? controller.errorDetailThisWeek.value
+                      : controller.errorDetail.value;
                   return ErrorState(
-                    message: 'error_occured'.tr,
+                    // The cause, not just the fact: on a competition day the
+                    // operator has to know whether it is their network or the
+                    // federation before deciding what to do about it.
+                    message: detail.isEmpty
+                        ? 'error_occured'.tr
+                        : "${'error_occured'.tr}\n$detail",
                     onRetry: isWeek
                         ? controller.loadThisWeek
                         : controller.loadCompetitions,
@@ -319,7 +327,8 @@ class _HomeList extends GetView<HomeController> {
         const SizedBox(height: AppSpacing.xl),
         EmptyState(
           icon: Icons.event_busy,
-          title: isLastViewed ? 'no_last_viewed'.tr : 'no_competitions_found'.tr,
+          title:
+              isLastViewed ? 'no_last_viewed'.tr : 'no_competitions_found'.tr,
         ),
       ],
     );

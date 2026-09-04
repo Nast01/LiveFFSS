@@ -424,4 +424,51 @@ void main() {
       expect(controller.thisWeekCompetitions.map((x) => x.id), [2]);
     });
   });
+
+  group('la cause de l échec est conservée', () {
+    // L'écran n'affichait qu'un « Une erreur est survenue » générique, et la
+    // cause était jetée : impossible de distinguer un réseau coupé d'un refus
+    // du serveur sans rebrancher l'appareil sur un débogueur.
+    test('une erreur de chargement retient son détail', () async {
+      when(() => repo.getAllCompetitions(
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+          )).thenThrow(const ApiException('Boom', statusCode: 500));
+
+      await controller.loadCompetitions();
+
+      expect(controller.hasError.value, isTrue);
+      expect(controller.errorDetail.value, contains('Boom'));
+      expect(controller.errorDetail.value, contains('500'));
+    });
+
+    test('l onglet de la semaine retient le sien séparément', () async {
+      when(() => repo.getCompetitionsForRange(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          )).thenThrow(const NetworkException('Pas de réseau'));
+
+      await controller.loadThisWeek();
+
+      expect(controller.hasErrorThisWeek.value, isTrue);
+      expect(controller.errorDetailThisWeek.value, contains('Pas de réseau'));
+    });
+
+    test('un chargement réussi efface le détail précédent', () async {
+      when(() => repo.getAllCompetitions(
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+          )).thenThrow(const ApiException('Boom'));
+      await controller.loadCompetitions();
+      expect(controller.errorDetail.value, isNotEmpty);
+
+      when(() => repo.getAllCompetitions(
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+          )).thenAnswer((_) async => const []);
+      await controller.loadCompetitions();
+
+      expect(controller.errorDetail.value, isEmpty);
+    });
+  });
 }
