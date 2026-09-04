@@ -71,6 +71,12 @@ class ApiEndpoints {
       'competition/reunion/creneau/course/:course/place/submit';
   static const String laneDelete =
       'competition/reunion/creneau/course/place/:id/delete';
+  // La seule route qui montre QUI occupe une place : l'arbre `reunion` liste
+  // les mêmes places avec `engagement: null` même quand elles sont prises
+  // (vérifié le 2026-09-03). La synchronisation d'un tirage entre appareils
+  // passe donc par ici, une place à la fois.
+  static const String laneDetail =
+      'competition/reunion/creneau/course/place/:id';
   // "Déroulement": one entry per (discipline, gender), carrying its categories
   // and its rounds (`parties`). The FFSS doc publishes these under
   // api.ffss.fr, but that host 301s to a 404 page — they resolve on the base

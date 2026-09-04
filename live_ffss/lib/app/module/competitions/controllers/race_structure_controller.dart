@@ -2,11 +2,13 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
+import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/course_ranking.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
@@ -16,7 +18,11 @@ import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/run.dart';
 import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
+import 'package:live_ffss/app/domain/models/structure_generator.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
+import 'package:live_ffss/app/data/mappers/athlete_mapper.dart'
+    show parseGender;
+import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 
 /// One entry of the round menu bar: a round of one category's structure.
 /// Carries no label of its own — translating is the view's job.
@@ -51,12 +57,14 @@ class RaceStructureController extends GetxController {
     this._raceRepo,
     this._clubRepo,
     this._meetings,
+    this._raceFormatRepo,
   );
 
   final ProgrammeService _programme;
   final RaceRepository _raceRepo;
   final ClubRepository _clubRepo;
   final MeetingRepository _meetings;
+  final RaceFormatRepository _raceFormatRepo;
 
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
@@ -103,6 +111,14 @@ class RaceStructureController extends GetxController {
     isLoading.value = true;
     try {
       await _programme.load(competition.id);
+      // The déroulement lives on FFSS: a device that never authored it must
+      // still see the épreuve's rounds. Same bargain as the entries below —
+      // offline, whatever is stored locally still renders.
+      try {
+        await _seedStructuresFromServer(race, competition.id);
+      } on AppException {
+        // Local copy only.
+      }
       final all =
           _programme.current.value?.structures ?? const <EventStructure>[];
       structures.value = all.where((s) => s.raceId == race.id).toList()
@@ -137,6 +153,17 @@ class RaceStructureController extends GetxController {
         // the reason this screen exists. Without it the rounds still read,
         // only their site and times go missing.
         _meetingsOfCompetition.clear();
+      }
+      // The draw a first device pushed lives in the FFSS places: this is what
+      // makes it visible on every other device.
+      try {
+        await _importCompositions(race);
+        final refreshed =
+            _programme.current.value?.structures ?? const <EventStructure>[];
+        structures.value = refreshed.where((s) => s.raceId == race.id).toList()
+          ..sort((a, b) => a.categoryLabel.compareTo(b.categoryLabel));
+      } on AppException {
+        // The local composition stands.
       }
     } finally {
       isLoading.value = false;
@@ -246,6 +273,158 @@ class RaceStructureController extends GetxController {
       for (final athlete in athletes)
         athlete.id: athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
     };
+  }
+
+  /// Materialises the server déroulements of this race into the local
+  /// programme: a structure that does not exist locally is created, one whose
+  /// rounds were emptied is reseeded — the same rule the Structure overview
+  /// applies. A structure that holds rounds is authored work and stays.
+  Future<void> _seedStructuresFromServer(Race race, int competitionId) async {
+    final formats = await _raceFormatRepo.getRaceFormats(competitionId);
+    final mine = [
+      for (final format in formats)
+        if (format.disciplineId == race.disciplineId &&
+            parseGender(format.gender) == race.gender &&
+            format.details.isNotEmpty)
+          format,
+    ];
+    if (mine.isEmpty) return;
+
+    final programme = _programme.current.value ??
+        CompetitionProgramme(competitionId: competitionId);
+    final updated = [...programme.structures];
+    var changed = false;
+    for (final format in mine) {
+      for (final category in format.categories) {
+        final at = updated.indexWhere(
+            (s) => s.raceId == race.id && s.categoryId == category.id);
+        if (at >= 0 && updated[at].levels.isNotEmpty) continue;
+        final levels = buildLevelsFromDetails(
+          details: format.details,
+          allocateId: _programme.allocateId,
+        );
+        if (at >= 0) {
+          updated[at] = updated[at].copyWith(levels: levels);
+        } else {
+          updated.add(EventStructure(
+            raceId: race.id,
+            categoryId: category.id,
+            raceLabel: race.name,
+            categoryLabel: category.name,
+            spotsPerRace: race.defaultSpotsPerRace,
+            levels: levels,
+          ));
+        }
+        changed = true;
+      }
+    }
+    if (!changed) return;
+    await _programme.save(
+      (_programme.current.value ?? programme).copyWith(structures: updated),
+    );
+  }
+
+  /// Adopts, into the local races, the compositions the FFSS places carry —
+  /// what another device pushed when it saved its draw.
+  ///
+  /// The server is the shared truth, with one guard: a race holding recorded
+  /// results is never overwritten, whatever the server says — losing a finish
+  /// order to a sync would be worse than any stale seating. Empty seats adopt
+  /// nothing either: a freshly placed round says nothing about the draw.
+  Future<void> _importCompositions(Race race) async {
+    final programme = _programme.current.value;
+    if (programme == null) return;
+
+    var changed = false;
+    final updated = <EventStructure>[];
+    for (final structure in programme.structures) {
+      if (structure.raceId != race.id) {
+        updated.add(structure);
+        continue;
+      }
+      final levels = <RoundLevel>[];
+      for (final level in structure.levels) {
+        final imported = await _importLevel(level);
+        if (!identical(imported, level)) changed = true;
+        levels.add(imported);
+      }
+      updated.add(structure.copyWith(levels: levels));
+    }
+    if (!changed) return;
+    await _programme.save(
+      _programme.current.value!.copyWith(structures: updated),
+    );
+  }
+
+  Future<RoundLevel> _importLevel(RoundLevel level) async {
+    final courses = coursesOfLevel(level);
+    if (courses.isEmpty || level.races.isEmpty) return level;
+
+    // A course claims the race that recorded it; the leftovers pair by rank —
+    // the order both sides were created in.
+    final races = [...level.races];
+    final claimed = <int>{};
+    final pairs = <(int, Run)>[];
+    final unmatchedCourses = <Run>[];
+    for (final course in courses) {
+      final at = races.indexWhere((r) => r.runId == course.id);
+      at >= 0
+          ? _claim(pairs, claimed, at, course)
+          : unmatchedCourses.add(course);
+    }
+    var cursor = 0;
+    for (final course in unmatchedCourses) {
+      while (cursor < races.length &&
+          (claimed.contains(cursor) || races[cursor].runId != 0)) {
+        cursor++;
+      }
+      if (cursor >= races.length) break;
+      _claim(pairs, claimed, cursor, course);
+    }
+
+    var changed = false;
+    for (final (at, course) in pairs) {
+      final race = races[at];
+      if (race.finishOrder.isNotEmpty || race.penalties.isNotEmpty) continue;
+      if (course.lanes.isEmpty) continue;
+      final seats =
+          await _meetings.getLaneSeats([for (final l in course.lanes) l.id]);
+      if (seats.isEmpty) continue;
+      final entryIds = [for (final seat in seats) seat.entryId];
+      final athleteIds = [
+        for (final seat in seats) ...seat.athleteIds,
+      ];
+      if (race.runId == course.id &&
+          _sameIds(race.entryIds, entryIds) &&
+          _sameIds(race.athleteIds, athleteIds)) {
+        continue;
+      }
+      races[at] = race.copyWith(
+        runId: course.id,
+        entryIds: entryIds,
+        athleteIds: athleteIds,
+      );
+      changed = true;
+    }
+    return changed ? level.copyWith(races: races) : level;
+  }
+
+  static void _claim(
+    List<(int, Run)> pairs,
+    Set<int> claimed,
+    int at,
+    Run course,
+  ) {
+    pairs.add((at, course));
+    claimed.add(at);
+  }
+
+  static bool _sameIds(List<int> a, List<int> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   /// The créneaux FFSS holds for this round — those hung off its `partie`.

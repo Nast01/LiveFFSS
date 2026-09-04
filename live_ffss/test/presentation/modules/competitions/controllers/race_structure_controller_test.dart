@@ -6,6 +6,7 @@ import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
+import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
@@ -19,6 +20,9 @@ import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
+import 'package:live_ffss/app/domain/models/discipline.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
+import 'package:live_ffss/app/domain/models/race_format_configuration.dart';
 import 'package:live_ffss/app/domain/models/race_format_detail.dart';
 import 'package:live_ffss/app/domain/models/run.dart';
 import 'package:live_ffss/app/domain/models/slot.dart';
@@ -34,17 +38,21 @@ class _MockClubRepo extends Mock implements ClubRepository {}
 
 class _MockMeetingRepo extends Mock implements MeetingRepository {}
 
+class _MockRaceFormatRepo extends Mock implements RaceFormatRepository {}
+
 void main() {
   late _MockStorage storage;
   late _MockRaceRepo raceRepo;
   late _MockClubRepo clubRepo;
   late _MockMeetingRepo meetingRepo;
+  late _MockRaceFormatRepo raceFormatRepo;
   late ProgrammeService service;
   late RaceStructureController controller;
 
   setUpAll(() {
     registerFallbackValue('');
     registerFallbackValue(const <Athlete>[]);
+    registerFallbackValue(const <int>[]);
   });
 
   const competition = Competition(
@@ -155,6 +163,11 @@ void main() {
     clubRepo = _MockClubRepo();
     meetingRepo = _MockMeetingRepo();
     when(() => meetingRepo.getMeetings(any())).thenAnswer((_) async => const []);
+    when(() => meetingRepo.getLaneSeats(any()))
+        .thenAnswer((_) async => const []);
+    raceFormatRepo = _MockRaceFormatRepo();
+    when(() => raceFormatRepo.getRaceFormats(any()))
+        .thenAnswer((_) async => const []);
     when(() => clubRepo.getAthleteClubs(any(), any()))
         .thenAnswer((_) async => const <int, Club>{});
     when(() => storage.read(key: any(named: 'key')))
@@ -163,8 +176,8 @@ void main() {
             storage.write(key: any(named: 'key'), value: any(named: 'value')))
         .thenAnswer((_) async {});
     service = ProgrammeService(storage);
-    controller =
-        RaceStructureController(service, raceRepo, clubRepo, meetingRepo);
+    controller = RaceStructureController(
+        service, raceRepo, clubRepo, meetingRepo, raceFormatRepo);
   });
 
   test('load filters structures to the race and sorts by category label',
@@ -621,8 +634,8 @@ void main() {
       when(() => meetingRepo.getMeetings(42))
           .thenAnswer((_) async => meetings);
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
-      controller = RaceStructureController(
-          ProgrammeService(storage), raceRepo, clubRepo, meetingRepo);
+      controller = RaceStructureController(ProgrammeService(storage),
+          raceRepo, clubRepo, meetingRepo, raceFormatRepo);
       await controller.load(race(500), competition);
     }
 
@@ -696,8 +709,8 @@ void main() {
       when(() => meetingRepo.getMeetings(42))
           .thenThrow(const NetworkException('coupé'));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
-      controller = RaceStructureController(
-          ProgrammeService(storage), raceRepo, clubRepo, meetingRepo);
+      controller = RaceStructureController(ProgrammeService(storage),
+          raceRepo, clubRepo, meetingRepo, raceFormatRepo);
 
       await controller.load(race(500), competition);
 
@@ -705,6 +718,289 @@ void main() {
       expect(controller.slotsForLevel(serieLevel()), isEmpty);
       expect(controller.scheduleFor(serieLevel(), serieLevel().races.first),
           isNull);
+    });
+  });
+
+  group('la vue se reconstruit depuis l API', () {
+    DateTime hhmm(String v) => DateFormat('HH:mm').parse(v);
+
+    RaceFormatConfiguration format({
+      List<Category> categories = const [Category(id: 7, name: 'Cadets')],
+      List<RaceFormatDetail> details = const [],
+    }) =>
+        RaceFormatConfiguration(
+          id: 900,
+          competitionId: 42,
+          disciplineId: 1,
+          label: '100m',
+          fullLabel: '100m - Messieurs',
+          gender: 'H',
+          genderLabel: 'Messieurs',
+          discipline: const Discipline(
+            id: '1',
+            name: '100m',
+            speciality: 1,
+            specialityLabel: 'Eau-plate',
+          ),
+          categories: categories,
+          details: details,
+        );
+
+    const serverSerie = RaceFormatDetail(
+      id: 39,
+      order: 1,
+      label: 'Série',
+      fullLabel: '100m - Série',
+      levelLabel: 'Série',
+      level: 'heat',
+      numberOfRun: 2,
+      qualificationMethod: 'course',
+      qualificationMethodLabel: 'Par course',
+      spotsPerRace: 8,
+      qualifyingSpots: 4,
+    );
+
+    Run course(int id, {List<Lane> lanes = const []}) => Run(
+          id: id,
+          name: 'Série',
+          label: '',
+          fullLabel: '',
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: 'OCEAN 1',
+          beginTime: hhmm('08:00'),
+          endTime: hhmm('08:10'),
+          lanes: lanes,
+        );
+
+    Meeting meetingWith(List<Run> runs, {int partieId = 39}) => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: DateTime(2026, 6, 13),
+          beginHour: DateTime(2026, 6, 13, 8),
+          endHour: DateTime(2026, 6, 13, 18),
+          slots: [
+            Slot(
+              id: 66,
+              name: 'Séries',
+              beginHour: hhmm('08:00'),
+              endHour: hhmm('08:20'),
+              raceFormatDetail: RaceFormatDetail(
+                id: partieId,
+                order: 1,
+                label: '',
+                fullLabel: '',
+                levelLabel: '',
+                level: 'heat',
+                numberOfRun: runs.length,
+                qualificationMethod: 'none',
+                qualificationMethodLabel: '',
+                spotsPerRace: 8,
+                qualifyingSpots: 0,
+              ),
+              runs: runs,
+            ),
+          ],
+        );
+
+    Future<void> loadFresh({CompetitionProgramme? local}) async {
+      when(() => storage.read(key: any(named: 'key'))).thenAnswer((_) async =>
+          local == null ? null : jsonEncode(local.toJson()));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      controller = RaceStructureController(
+          ProgrammeService(storage), raceRepo, clubRepo, meetingRepo,
+          raceFormatRepo);
+      await controller.load(race(500), competition);
+    }
+
+    // Le déroulement vit sur FFSS : un appareil qui ne l'a jamais édité doit
+    // quand même voir les tours de l'épreuve.
+    test('sans structure locale, les tours viennent du déroulement serveur',
+        () async {
+      when(() => raceFormatRepo.getRaceFormats(42))
+          .thenAnswer((_) async => [format(details: const [serverSerie])]);
+
+      await loadFresh();
+
+      final level = controller.structures.single.levels.single;
+      expect(level.type, RoundType.serie);
+      expect(level.serverId, 39);
+      expect(level.races, hasLength(2));
+      expect(level.spotsPerRace, 8);
+      expect(controller.structures.single.categoryLabel, 'Cadets');
+    });
+
+    test('un déroulement d une autre épreuve ne sème rien ici', () async {
+      when(() => raceFormatRepo.getRaceFormats(42)).thenAnswer((_) async => [
+            format(details: const [serverSerie])
+                .copyWith(disciplineId: 999),
+          ]);
+
+      await loadFresh();
+
+      expect(controller.hasStructure, isFalse);
+    });
+
+    // Le tirage poussé par un premier appareil vit dans les places : un
+    // second appareil le lit de là, engagement par engagement.
+    test('la composition d un autre appareil arrive par les places',
+        () async {
+      when(() => raceFormatRepo.getRaceFormats(42))
+          .thenAnswer((_) async => [format(details: const [serverSerie])]);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([
+              course(25, lanes: const [
+                Lane(id: 71, number: 1),
+                Lane(id: 72, number: 2),
+              ]),
+              course(26, lanes: const [Lane(id: 73, number: 1)]),
+            ]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([71, 72])).thenAnswer((_) async => [
+            (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
+            (laneId: 72, number: 2, entryId: 102, athleteIds: [12]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([73])).thenAnswer((_) async => [
+            (laneId: 73, number: 1, entryId: 103, athleteIds: [13, 14]),
+          ]);
+
+      await loadFresh();
+
+      final races = controller.structures.single.levels.single.races;
+      expect(races[0].entryIds, [101, 102]);
+      expect(races[0].athleteIds, [11, 12]);
+      expect(races[0].runId, 25);
+      expect(races[1].entryIds, [103]);
+      expect(races[1].athleteIds, [13, 14]);
+      expect(races[1].runId, 26);
+    });
+
+    // Le serveur est la vérité partagée : un re-tirage poussé par l'autre
+    // appareil remplace la copie locale — tant qu'elle ne porte pas de
+    // résultats.
+    test('une composition locale sans résultat s efface devant le serveur',
+        () async {
+      final local = CompetitionProgramme(
+        competitionId: 42,
+        nextLocalId: 100,
+        structures: [
+          EventStructure(
+            raceId: 500,
+            categoryId: 7,
+            raceLabel: '100m',
+            categoryLabel: 'Cadets',
+            levels: [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+                ProgrammeRace(
+                    id: 1, number: 1, entryIds: [999], athleteIds: [99]),
+              ]),
+            ],
+          ),
+        ],
+      );
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([
+              course(25, lanes: const [Lane(id: 71, number: 1)]),
+            ]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
+            (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
+          ]);
+
+      await loadFresh(local: local);
+
+      final drawn = controller.structures.single.levels.single.races.single;
+      expect(drawn.entryIds, [101]);
+      expect(drawn.athleteIds, [11]);
+      expect(drawn.runId, 25);
+    });
+
+    test('une série qui porte des résultats n est jamais écrasée', () async {
+      final local = CompetitionProgramme(
+        competitionId: 42,
+        nextLocalId: 100,
+        structures: [
+          EventStructure(
+            raceId: 500,
+            categoryId: 7,
+            raceLabel: '100m',
+            categoryLabel: 'Cadets',
+            levels: [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+                ProgrammeRace(
+                  id: 1,
+                  number: 1,
+                  entryIds: [999],
+                  athleteIds: [99],
+                  finishOrder: [
+                    [99]
+                  ],
+                ),
+              ]),
+            ],
+          ),
+        ],
+      );
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([
+              course(25, lanes: const [Lane(id: 71, number: 1)]),
+            ]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
+            (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
+          ]);
+
+      await loadFresh(local: local);
+
+      final drawn = controller.structures.single.levels.single.races.single;
+      expect(drawn.entryIds, [999]);
+      expect(drawn.athleteIds, [99]);
+    });
+
+    // Des places encore vides (le tour vient d'être posé) ne disent rien du
+    // tirage : la copie locale reste.
+    test('des places vides n effacent pas un tirage local', () async {
+      final local = CompetitionProgramme(
+        competitionId: 42,
+        nextLocalId: 100,
+        structures: [
+          EventStructure(
+            raceId: 500,
+            categoryId: 7,
+            raceLabel: '100m',
+            categoryLabel: 'Cadets',
+            levels: [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+                ProgrammeRace(
+                    id: 1, number: 1, entryIds: [999], athleteIds: [99]),
+              ]),
+            ],
+          ),
+        ],
+      );
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([
+              course(25, lanes: const [Lane(id: 71, number: 1)]),
+            ]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([71]))
+          .thenAnswer((_) async => const []);
+
+      await loadFresh(local: local);
+
+      final drawn = controller.structures.single.levels.single.races.single;
+      expect(drawn.entryIds, [999]);
+    });
+
+    test('hors ligne, la vue s affiche quand même', () async {
+      when(() => raceFormatRepo.getRaceFormats(42))
+          .thenThrow(const NetworkException('coupé'));
+
+      await loadFresh();
+
+      expect(controller.isLoading.value, isFalse);
+      expect(controller.hasStructure, isFalse);
     });
   });
 }

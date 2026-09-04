@@ -1,5 +1,7 @@
 import 'package:live_ffss/app/core/config/app_config.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
+import 'package:live_ffss/app/data/dtos/lane_detail_dto.dart';
 import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
 import 'package:live_ffss/app/data/dtos/run_dto.dart';
 
@@ -78,6 +80,10 @@ abstract class MeetingRemoteDataSource {
   });
 
   Future<bool> deleteLane(int laneId);
+
+  /// One place, from the detail route — the only one that shows who sits in
+  /// it; the réunion tree masks every place's engagement.
+  Future<LaneDetailDto> getLaneDetail(int laneId);
 }
 
 class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
@@ -265,5 +271,19 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
     );
     final body = await _http.post(endpoint);
     return body['success'] == true;
+  }
+
+  @override
+  Future<LaneDetailDto> getLaneDetail(int laneId) async {
+    final endpoint = ApiEndpoints.replacePath(
+      ApiEndpoints.laneDetail,
+      {'id': laneId.toString()},
+    );
+    final body = await _http.get(endpoint);
+    final data = body['data'];
+    if (data is! Map<String, dynamic>) {
+      throw const ApiException('Unexpected place payload');
+    }
+    return LaneDetailDto.fromJson(data);
   }
 }

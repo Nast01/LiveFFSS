@@ -329,6 +329,34 @@ void main() {
     });
   });
 
+  group('getLaneDetail', () {
+    // Seule cette route montre qui occupe une place : l'arbre reunion sert
+    // `engagement: null` même quand elle est prise (vérifié le 2026-09-03).
+    test('lit une place sur la route de détail, pas dans l arbre', () async {
+      when(() => http.get(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {
+                'success': true,
+                'data': {
+                  'id': 287,
+                  'Numero': 1,
+                  'engagement': {
+                    'id': 590956,
+                    'athletes': [
+                      {'Id': 661534},
+                    ],
+                  },
+                },
+              });
+
+      final detail = await ds.getLaneDetail(287);
+
+      expect(detail.id, 287);
+      expect(detail.seat?.entryId, 590956);
+      verify(() => http.get('competition/reunion/creneau/course/place/287',
+          query: any(named: 'query'))).called(1);
+    });
+  });
+
   group('submitRun', () {
     // Vérifié en production le 2026-09-01, après correction fédérale de la
     // route : `nom`, `debut`, `fin`, `site` et `statut` font tous l'aller-

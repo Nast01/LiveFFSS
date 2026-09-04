@@ -35,3 +35,13 @@ extension LaneX on Lane {
   bool get hasValidResult => result?.isValid == true;
   bool get isDisqualified => result?.isDisqualified == true;
 }
+
+/// One occupied place of a course, as the sync between devices carries it:
+/// which engagement sits where, athletes resolved to ids. Labels are not
+/// carried — they resolve locally from the entries the screen already loads.
+typedef LaneSeat = ({
+  int laneId,
+  int number,
+  int entryId,
+  List<int> athleteIds,
+});

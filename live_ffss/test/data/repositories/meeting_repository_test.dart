@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
 import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
+import 'package:live_ffss/app/data/dtos/lane_detail_dto.dart';
 import 'package:live_ffss/app/data/dtos/run_dto.dart';
 import 'package:live_ffss/app/data/dtos/slot_dto.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
@@ -439,6 +440,56 @@ void main() {
       );
 
       expect(synced, 2);
+    });
+  });
+
+  group('getLaneSeats', () {
+    LaneDetailDto occupied(int laneId, int number, int entryId) =>
+        LaneDetailDto(
+          id: laneId,
+          number: number,
+          seat: LaneSeatDto(entryId: entryId, athletes: const []),
+        );
+
+    test('rassemble les sièges, triés par numéro de place', () async {
+      when(() => ds.getLaneDetail(7))
+          .thenAnswer((_) async => occupied(7, 2, 102));
+      when(() => ds.getLaneDetail(8))
+          .thenAnswer((_) async => occupied(8, 1, 101));
+
+      final seats = await repo.getLaneSeats([7, 8]);
+
+      expect(seats.map((s) => s.entryId), [101, 102]);
+      expect(seats.map((s) => s.number), [1, 2]);
+    });
+
+    test('une place libre ne fait pas un siège', () async {
+      when(() => ds.getLaneDetail(7))
+          .thenAnswer((_) async => const LaneDetailDto(id: 7, number: 1));
+      when(() => ds.getLaneDetail(8))
+          .thenAnswer((_) async => occupied(8, 2, 102));
+
+      final seats = await repo.getLaneSeats([7, 8]);
+
+      expect(seats.map((s) => s.entryId), [102]);
+    });
+
+    // Une place illisible ne vaut pas une composition perdue : on lit ce
+    // qu'on peut, l'appelant voit un siège de moins, pas un écran d'erreur.
+    test('une place illisible est passée, les autres arrivent', () async {
+      when(() => ds.getLaneDetail(7))
+          .thenThrow(const NetworkException('coupé'));
+      when(() => ds.getLaneDetail(8))
+          .thenAnswer((_) async => occupied(8, 1, 101));
+
+      final seats = await repo.getLaneSeats([7, 8]);
+
+      expect(seats.map((s) => s.entryId), [101]);
+    });
+
+    test('aucune place, aucun appel', () async {
+      expect(await repo.getLaneSeats(const []), isEmpty);
+      verifyNever(() => ds.getLaneDetail(any()));
     });
   });
 }

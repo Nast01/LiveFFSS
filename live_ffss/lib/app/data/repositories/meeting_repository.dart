@@ -4,6 +4,7 @@ import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
 import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
 import 'package:live_ffss/app/data/dtos/run_dto.dart';
 import 'package:live_ffss/app/data/dtos/slot_dto.dart';
+import 'package:live_ffss/app/data/mappers/lane_detail_mapper.dart';
 import 'package:live_ffss/app/data/mappers/meeting_mapper.dart';
 import 'package:live_ffss/app/domain/models/lane.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
@@ -72,6 +73,12 @@ abstract class MeetingRepository {
     required List<int> entryIds,
     required List<Lane> existing,
   });
+
+  /// The occupied seats among [laneIds], sorted by place number. Read one
+  /// place at a time on the detail route — the réunion tree masks who sits
+  /// where. Best-effort: an unreadable place costs one seat, not the screen;
+  /// a free place is simply not a seat.
+  Future<List<LaneSeat>> getLaneSeats(Iterable<int> laneIds);
 }
 
 class MeetingRepositoryImpl implements MeetingRepository {
@@ -268,5 +275,26 @@ class MeetingRepositoryImpl implements MeetingRepository {
       await _dataSource.deleteLane(reusable[i].id);
     }
     return synced;
+  }
+
+  @override
+  Future<List<LaneSeat>> getLaneSeats(Iterable<int> laneIds) async {
+    final ids = laneIds.toList();
+    final seats = <LaneSeat>[];
+    // Same chunking bargain as the courses: parallel enough to not pay one
+    // latency per place, bounded enough to not hammer the server.
+    for (var i = 0; i < ids.length; i += _runsBatchSize) {
+      final batch = ids.skip(i).take(_runsBatchSize);
+      final fetched = await Future.wait(batch.map((laneId) async {
+        try {
+          return (await _dataSource.getLaneDetail(laneId)).toSeat();
+        } on AppException {
+          return null;
+        }
+      }));
+      seats.addAll(fetched.whereType<LaneSeat>());
+    }
+    seats.sort((a, b) => a.number.compareTo(b.number));
+    return seats;
   }
 }
