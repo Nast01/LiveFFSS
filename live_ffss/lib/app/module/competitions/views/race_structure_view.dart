@@ -133,13 +133,22 @@ class _RoundPane extends StatelessWidget {
     final controller = Get.find<RaceStructureController>();
     final structure = tab.structure;
     final level = tab.level;
+    // The page above uses SafeArea(bottom: false) for an edge-to-edge list, so
+    // the scroll content clears the system navigation bar itself — otherwise
+    // the last card sits under it, unreachable however far the list is pulled.
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
     return RefreshIndicator(
       onRefresh: controller.reload,
       child: ListView(
         // Always scrollable: a round of one série does not fill the screen,
         // and the gesture has to work there too.
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: AppSpacing.pageAll,
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.lg + bottomInset,
+        ),
         children: [
           _ChainRecap(
             structure: structure,

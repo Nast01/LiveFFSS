@@ -193,23 +193,35 @@ class _EntryBar extends GetView<RaceCourseController> {
         padding: const EdgeInsets.fromLTRB(
             AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // The state line keeps a row to itself: « Tous les athlètes sont
+            // classés » is long enough to push the actions off-screen when
+            // they share it. Expanded rather than Spacer, so it ellipses
+            // instead of overflowing on a narrow phone.
             Row(
               children: [
                 Text('course_next_place'.tr, style: AppTypography.caption),
                 const SizedBox(width: AppSpacing.xs),
-                Text(
-                  complete
-                      ? 'course_complete'.tr
-                      : '${controller.nextPlaceValue}'
-                          '${locked ? ' · ${'course_tie_locked'.tr}' : ''}',
-                  style: AppTypography.body.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: complete
-                          ? AppColors.statusFinished
-                          : AppColors.textPrimary),
+                Expanded(
+                  child: Text(
+                    complete
+                        ? 'course_complete'.tr
+                        : '${controller.nextPlaceValue}'
+                            '${locked ? ' · ${'course_tie_locked'.tr}' : ''}',
+                    style: AppTypography.body.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: complete
+                            ? AppColors.statusFinished
+                            : AppColors.textPrimary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const Spacer(),
+              ],
+            ),
+            Row(
+              children: [
                 FilterChip(
                   label: Text('course_tie'.tr),
                   selected: locked,
