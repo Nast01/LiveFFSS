@@ -11,6 +11,11 @@ final Map<String, String> frFR = {
   // User menu
   'profile': 'Profil',
   'settings': 'Paramètres',
+  'clear_local_data': 'Effacer les données locales',
+  'clear_local_data_body':
+      'Supprime de cet appareil les structures, tirages, pointages et '
+      "favoris, et vous déconnecte. Ce qui a été envoyé sur FFSS n'est pas "
+      "touché et redescendra ; ce qui ne l'a pas été sera perdu.",
   'logout': 'Déconnexion',
 
   // Auth

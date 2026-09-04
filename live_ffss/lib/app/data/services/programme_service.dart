@@ -53,6 +53,19 @@ class ProgrammeService extends GetxService {
     return future;
   }
 
+  /// Wipes every key this device holds — programmes of every competition,
+  /// attendance, favourites, and the session token with them.
+  ///
+  /// The escape hatch for a device whose stored programme has drifted from
+  /// what FFSS holds: everything here is either re-fetched from the
+  /// federation or re-entered, so losing it costs a reload, not work — with
+  /// one exception the caller must warn about, a draw or a ranking not yet
+  /// pushed, which exists nowhere else.
+  Future<void> clearEverything() async {
+    await _storage.deleteAll();
+    current.value = null;
+  }
+
   static String _key(int competitionId) => 'programme_$competitionId';
 
   Future<void> load(int competitionId) => _enqueue(() async {

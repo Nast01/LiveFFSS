@@ -12,6 +12,11 @@ final Map<String, String> enUS = {
   // User menu
   'profile': 'Profile',
   'settings': 'Settings',
+  'clear_local_data': 'Clear local data',
+  'clear_local_data_body':
+      "Removes this device's structures, draws, attendance and "
+      'favourites, and signs you out. What was pushed to FFSS is '
+      'untouched and comes back; what was not is lost.',
   'logout': 'Logout',
 
   // Auth

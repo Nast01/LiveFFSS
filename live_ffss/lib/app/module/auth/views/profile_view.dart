@@ -37,7 +37,7 @@ class ProfileView extends GetView<ProfileController> {
                 if (controller.isLicensee) const SizedBox(height: 16),
                 _buildAccountInfoCard(),
                 const SizedBox(height: 24),
-                _buildActionButtons(),
+                _buildActionButtons(context),
               ],
             ),
           ),
@@ -263,7 +263,7 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
     return Column(
       children: [
         SizedBox(
@@ -293,7 +293,52 @@ class ProfileView extends GetView<ProfileController> {
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        // The escape hatch when this device's stored programme has drifted
+        // from what FFSS holds. Deliberately last, and behind a confirmation:
+        // what has not been pushed exists nowhere else.
+        Obx(() => SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                onPressed: controller.isClearing.value
+                    ? null
+                    : () => _confirmClear(context, controller),
+                icon: const Icon(Icons.delete_sweep_outlined, size: 20),
+                label: Text('clear_local_data'.tr),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  foregroundColor: Colors.red,
+                ),
+              ),
+            )),
       ],
     );
   }
+}
+
+/// Confirms the wipe. Opened from the view — controllers here never reach for
+/// `Get.dialog`.
+Future<void> _confirmClear(
+  BuildContext context,
+  ProfileController controller,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text('clear_local_data'.tr),
+      content: Text('clear_local_data_body'.tr),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text('cancel'.tr),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          child: Text('delete'.tr),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) await controller.clearLocalData();
 }

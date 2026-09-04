@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/domain/models/user.dart';
@@ -8,6 +9,23 @@ import 'package:live_ffss/app/module/home/controllers/home_controller.dart';
 class ProfileController extends GetxController {
   final UserService _userService = Get.find<UserService>();
   final UserController _userController = Get.find<UserController>();
+  final ProgrammeService _programme = Get.find<ProgrammeService>();
+
+  /// True while the local wipe runs, so the button can stand down.
+  final RxBool isClearing = false.obs;
+
+  /// Empties this device's storage and ends the session with it. The view
+  /// confirms first — what has not been pushed to FFSS is lost here.
+  Future<void> clearLocalData() async {
+    if (isClearing.value) return;
+    isClearing.value = true;
+    try {
+      await _programme.clearEverything();
+    } finally {
+      isClearing.value = false;
+    }
+    await logout();
+  }
 
   bool get isLoggedIn => _userService.isLoggedIn;
   User? get currentUser => _userService.currentUser.value;
@@ -24,7 +42,8 @@ class ProfileController extends GetxController {
   String get userInitials {
     final u = currentUser;
     if (u == null) return '?';
-    if (hasFirstName && hasLastName) return '${u.firstName![0]}${u.lastName![0]}';
+    if (hasFirstName && hasLastName)
+      return '${u.firstName![0]}${u.lastName![0]}';
     if (hasFirstName) return u.firstName![0];
     if (hasLastName) return u.lastName![0];
     return u.label.isNotEmpty ? u.label[0] : '?';
@@ -72,8 +91,10 @@ class ProfileController extends GetxController {
     final now = DateTime.now();
     if (exp.isBefore(now)) return 'session_expired'.tr;
     final d = exp.difference(now);
-    if (d.inDays > 0) return 'expires_in_days'.trParams({'days': d.inDays.toString()});
-    if (d.inHours > 0) return 'expires_in_hours'.trParams({'hours': d.inHours.toString()});
+    if (d.inDays > 0)
+      return 'expires_in_days'.trParams({'days': d.inDays.toString()});
+    if (d.inHours > 0)
+      return 'expires_in_hours'.trParams({'hours': d.inHours.toString()});
     return 'expires_soon'.tr;
   }
 
