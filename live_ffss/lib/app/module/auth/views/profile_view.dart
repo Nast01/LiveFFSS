@@ -19,7 +19,7 @@ class ProfileView extends GetView<ProfileController> {
       ),
       body: Obx(() {
         if (!controller.isLoggedIn) {
-          return _buildNotLoggedInView();
+          return _buildNotLoggedInView(context);
         }
 
         return RefreshIndicator(
@@ -46,7 +46,7 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
-  Widget _buildNotLoggedInView() {
+  Widget _buildNotLoggedInView(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -81,6 +81,19 @@ class ProfileView extends GetView<ProfileController> {
             ),
             child: Text('login'.tr),
           ),
+          const SizedBox(height: 24),
+          // Offered signed out too: a session that expired, or one this
+          // device lost on a 403, is exactly when the stored programme needs
+          // clearing — gating the escape hatch behind a login had it missing
+          // whenever it mattered.
+          Obx(() => TextButton.icon(
+                onPressed: controller.isClearing.value
+                    ? null
+                    : () => _confirmClear(context, controller),
+                icon: const Icon(Icons.delete_sweep_outlined, size: 20),
+                label: Text('clear_local_data'.tr),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+              )),
         ],
       ),
     );

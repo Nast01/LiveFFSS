@@ -111,4 +111,23 @@ void main() {
       expect(service.current.value!.nextLocalId, 3);
     });
   });
+
+  group('clearEverything', () {
+    // La porte de sortie quand le stockage d'un appareil a dérivé de FFSS :
+    // tout part, y compris les programmes des autres compétitions et le jeton.
+    test('vide le stockage et oublie le programme chargé', () async {
+      when(() => storage.deleteAll()).thenAnswer((_) async {});
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => null);
+      final service = ProgrammeService(storage);
+      await service.load(42);
+      service.current.value =
+          const CompetitionProgramme(competitionId: 42);
+
+      await service.clearEverything();
+
+      verify(() => storage.deleteAll()).called(1);
+      expect(service.current.value, isNull);
+    });
+  });
 }
