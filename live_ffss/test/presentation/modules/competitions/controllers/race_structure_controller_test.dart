@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:intl/intl.dart';
@@ -1150,6 +1151,44 @@ void main() {
       await loadRace(race(500), local: stored, formatCategories: const []);
 
       expect(controller.structures.map((s) => s.categoryId), [7]);
+    });
+  });
+
+  group('reload', () {
+    // Le geste de rafraîchir montre déjà son propre indicateur : basculer
+    // isLoading remplacerait la liste par un spinner sous le doigt.
+    test('ne rebascule pas la vue en chargement', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      await controller.load(race(500), competition);
+
+      var sawLoading = false;
+      final worker = ever<bool>(controller.isLoading, (v) {
+        if (v) sawLoading = true;
+      });
+      await controller.reload();
+      worker.dispose();
+
+      expect(sawLoading, isFalse);
+      expect(controller.isLoading.value, isFalse);
+    });
+
+    // C'est tout l'intérêt du geste : reprendre au serveur ce qu'un autre
+    // appareil y a mis depuis l'ouverture de l'écran.
+    test('reprend les épreuves, les réunions et les déroulements', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      await controller.load(race(500), competition);
+
+      await controller.reload();
+
+      verify(() => raceRepo.getEntries(500)).called(2);
+      verify(() => meetingRepo.getMeetings(42)).called(2);
+      verify(() => raceFormatRepo.getRaceFormats(42)).called(2);
+    });
+
+    test('sans épreuve chargée, il ne se passe rien', () async {
+      await controller.reload();
+
+      verifyNever(() => raceRepo.getEntries(any()));
     });
   });
 }

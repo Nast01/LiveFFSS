@@ -105,10 +105,24 @@ class RaceStructureController extends GetxController {
     }
   }
 
-  Future<void> load(Race race, Competition competition) async {
+  /// Re-reads everything this screen shows, without blanking it: the pull
+  /// gesture already shows its own indicator, and flipping [isLoading] would
+  /// swap the list for a spinner under the operator's finger.
+  Future<void> reload() async {
+    final r = race.value;
+    final comp = competition.value;
+    if (r == null || comp == null) return;
+    await load(r, comp, silent: true);
+  }
+
+  Future<void> load(
+    Race race,
+    Competition competition, {
+    bool silent = false,
+  }) async {
     this.race.value = race;
     this.competition.value = competition;
-    isLoading.value = true;
+    if (!silent) isLoading.value = true;
     try {
       await _programme.load(competition.id);
       // The déroulement lives on FFSS: a device that never authored it must
@@ -160,7 +174,7 @@ class RaceStructureController extends GetxController {
         // The local composition stands.
       }
     } finally {
-      isLoading.value = false;
+      if (!silent) isLoading.value = false;
     }
   }
 

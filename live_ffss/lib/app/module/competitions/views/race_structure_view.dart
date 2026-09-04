@@ -27,17 +27,10 @@ class RaceStructureView extends GetView<RaceStructureController> {
       if (controller.isLoading.value) {
         return const LoadingIndicator();
       }
-      if (!controller.hasStructure) {
-        return EmptyState(
-            icon: Icons.account_tree_outlined,
-            title: 'no_structure_defined'.tr);
-      }
-      final tab = controller.selectedTab;
-      if (tab == null) {
-        return EmptyState(
-            icon: Icons.account_tree_outlined,
-            title: 'no_structure_defined'.tr);
-      }
+      final tab = controller.hasStructure ? controller.selectedTab : null;
+      // The empty state is refreshable too, and that is the case that matters
+      // most: a second device lands here until the déroulement reaches it.
+      if (tab == null) return const _RefreshableEmpty();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -46,6 +39,34 @@ class RaceStructureView extends GetView<RaceStructureController> {
         ],
       );
     });
+  }
+}
+
+/// « Nothing here yet », pullable — a `RefreshIndicator` needs a scrollable
+/// child, and an `EmptyState` is not one, hence the single-item list.
+class _RefreshableEmpty extends StatelessWidget {
+  const _RefreshableEmpty();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<RaceStructureController>();
+    return RefreshIndicator(
+      onRefresh: controller.reload,
+      child: LayoutBuilder(
+        builder: (context, constraints) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: EmptyState(
+                icon: Icons.account_tree_outlined,
+                title: 'no_structure_defined'.tr,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -112,44 +133,51 @@ class _RoundPane extends StatelessWidget {
     final controller = Get.find<RaceStructureController>();
     final structure = tab.structure;
     final level = tab.level;
-    return ListView(
-      padding: AppSpacing.pageAll,
-      children: [
-        _ChainRecap(
-          structure: structure,
-          engaged: controller.entryCountFor(structure.categoryId),
-        ),
-        _SlotRecap(level: level),
-        // Only the round that opens the chain is drawn from the athletes
-        // present; the later ones are seated by who qualifies out of it.
-        if (tab.isFirstRound)
-          _DrawHeatsButton(structure: structure, roundType: level.type),
-        if (level.races.isNotEmpty) const _FilterBar(),
-        if (level.races.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-            child: Text('no_races_in_round'.tr,
-                style: AppTypography.caption, textAlign: TextAlign.center),
-          )
-        else
-          Obx(() {
-            final visible = controller.matchingRaces(level.races);
-            if (visible.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                child: Text('no_athletes_found'.tr,
-                    style: AppTypography.caption, textAlign: TextAlign.center),
+    return RefreshIndicator(
+      onRefresh: controller.reload,
+      child: ListView(
+        // Always scrollable: a round of one série does not fill the screen,
+        // and the gesture has to work there too.
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: AppSpacing.pageAll,
+        children: [
+          _ChainRecap(
+            structure: structure,
+            engaged: controller.entryCountFor(structure.categoryId),
+          ),
+          _SlotRecap(level: level),
+          // Only the round that opens the chain is drawn from the athletes
+          // present; the later ones are seated by who qualifies out of it.
+          if (tab.isFirstRound)
+            _DrawHeatsButton(structure: structure, roundType: level.type),
+          if (level.races.isNotEmpty) const _FilterBar(),
+          if (level.races.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+              child: Text('no_races_in_round'.tr,
+                  style: AppTypography.caption, textAlign: TextAlign.center),
+            )
+          else
+            Obx(() {
+              final visible = controller.matchingRaces(level.races);
+              if (visible.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  child: Text('no_athletes_found'.tr,
+                      style: AppTypography.caption,
+                      textAlign: TextAlign.center),
+                );
+              }
+              return Column(
+                children: [
+                  _RaceListHeader(visible: visible, total: level.races.length),
+                  for (final r in visible)
+                    _CourseTile(structure: structure, level: level, race: r),
+                ],
               );
-            }
-            return Column(
-              children: [
-                _RaceListHeader(visible: visible, total: level.races.length),
-                for (final r in visible)
-                  _CourseTile(structure: structure, level: level, race: r),
-              ],
-            );
-          }),
-      ],
+            }),
+        ],
+      ),
     );
   }
 }
