@@ -119,10 +119,7 @@ class RaceStructureController extends GetxController {
       } on AppException {
         // Local copy only.
       }
-      final all =
-          _programme.current.value?.structures ?? const <EventStructure>[];
-      structures.value = all.where((s) => s.raceId == race.id).toList()
-        ..sort((a, b) => a.categoryLabel.compareTo(b.categoryLabel));
+      structures.value = _structuresOf(race);
       // Clamped rather than reset: reloading after a draw must leave the
       // operator on the round they were looking at, while opening a race with
       // fewer rounds must not leave the selection past the end.
@@ -158,10 +155,7 @@ class RaceStructureController extends GetxController {
       // makes it visible on every other device.
       try {
         await _importCompositions(race);
-        final refreshed =
-            _programme.current.value?.structures ?? const <EventStructure>[];
-        structures.value = refreshed.where((s) => s.raceId == race.id).toList()
-          ..sort((a, b) => a.categoryLabel.compareTo(b.categoryLabel));
+        structures.value = _structuresOf(race);
       } on AppException {
         // The local composition stands.
       }
@@ -275,6 +269,25 @@ class RaceStructureController extends GetxController {
     };
   }
 
+  /// The stored structures this race owns, by category label.
+  ///
+  /// Scoped to the categories the race declares: a device that ran the version
+  /// which seeded a whole déroulement carries structures for categories this
+  /// épreuve never runs, and they would show as extra pills. Filtering here
+  /// repairs those without asking anyone to clear their storage. A race that
+  /// declares no category cannot filter — nothing is hidden then.
+  List<EventStructure> _structuresOf(Race race) {
+    final all =
+        _programme.current.value?.structures ?? const <EventStructure>[];
+    final runs = {for (final c in race.categories) c.id};
+    return all
+        .where((s) =>
+            s.raceId == race.id &&
+            (runs.isEmpty || runs.contains(s.categoryId)))
+        .toList()
+      ..sort((a, b) => a.categoryLabel.compareTo(b.categoryLabel));
+  }
+
   /// Materialises the server déroulements of this race into the local
   /// programme: a structure that does not exist locally is created, one whose
   /// rounds were emptied is reseeded — the same rule the Structure overview
@@ -290,12 +303,21 @@ class RaceStructureController extends GetxController {
     ];
     if (mine.isEmpty) return;
 
+    // A déroulement covers (discipline, gender) and lists ITS categories,
+    // which is wider than one épreuve: FFSS splits « 90m Sprint Cadet » and
+    // « 90m Sprint Junior » into two races sharing both. Seeding the
+    // déroulement's categories as-is hung the Junior rounds off the Cadet
+    // race. Only what this race actually runs is seeded.
+    final runs = {for (final c in race.categories) c.id};
     final programme = _programme.current.value ??
         CompetitionProgramme(competitionId: competitionId);
     final updated = [...programme.structures];
     var changed = false;
     for (final format in mine) {
       for (final category in format.categories) {
+        // Même règle que `_structuresOf` : une épreuve qui ne déclare aucune
+        // catégorie ne peut rien filtrer, et on ne la prive pas de ses tours.
+        if (runs.isNotEmpty && !runs.contains(category.id)) continue;
         final at = updated.indexWhere(
             (s) => s.raceId == race.id && s.categoryId == category.id);
         if (at >= 0 && updated[at].levels.isNotEmpty) continue;

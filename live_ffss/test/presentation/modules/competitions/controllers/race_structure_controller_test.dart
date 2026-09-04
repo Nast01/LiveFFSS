@@ -1003,4 +1003,153 @@ void main() {
       expect(controller.hasStructure, isFalse);
     });
   });
+
+  group('les pilules ne montrent que l épreuve ouverte', () {
+    const cadet = Category(id: 7, name: 'Cadets');
+    const junior = Category(id: 8, name: 'Juniors');
+
+    RaceFormatConfiguration formatFor(List<Category> categories) =>
+        RaceFormatConfiguration(
+          id: 900,
+          competitionId: 42,
+          disciplineId: 1,
+          label: '100m',
+          fullLabel: '100m - Messieurs',
+          gender: 'H',
+          genderLabel: 'Messieurs',
+          discipline: const Discipline(
+            id: '1',
+            name: '100m',
+            speciality: 1,
+            specialityLabel: 'Eau-plate',
+          ),
+          categories: categories,
+          details: const [
+            RaceFormatDetail(
+              id: 39,
+              order: 1,
+              label: 'Série',
+              fullLabel: '',
+              levelLabel: 'Série',
+              level: 'heat',
+              numberOfRun: 1,
+              qualificationMethod: 'none',
+              qualificationMethodLabel: '',
+              spotsPerRace: 8,
+              qualifyingSpots: 0,
+            ),
+          ],
+        );
+
+    Future<void> loadRace(
+      Race r, {
+      CompetitionProgramme? local,
+      List<Category> formatCategories = const [cadet],
+    }) async {
+      when(() => storage.read(key: any(named: 'key'))).thenAnswer(
+          (_) async => local == null ? null : jsonEncode(local.toJson()));
+      when(() => raceRepo.getEntries(r.id)).thenAnswer((_) async => const []);
+      when(() => raceFormatRepo.getRaceFormats(42))
+          .thenAnswer((_) async => [formatFor(formatCategories)]);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo);
+      await controller.load(r, competition);
+    }
+
+    // Sur FFSS, « 90m Sprint Cadet » et « 90m Sprint Junior » sont deux
+    // épreuves qui partagent discipline et genre. Un déroulement les couvre
+    // toutes : semer ses catégories telles quelles collait les tours du
+    // Junior sur l'épreuve Cadet.
+    test('une catégorie que l épreuve ne court pas n est pas semée', () async {
+      await loadRace(
+        race(500).copyWith(categories: const [cadet]),
+        formatCategories: const [junior],
+      );
+
+      expect(controller.structures, isEmpty);
+      expect(controller.tabs, isEmpty);
+    });
+
+    test('seule l intersection avec les catégories de l épreuve est semée',
+        () async {
+      await loadRace(
+        race(500).copyWith(categories: const [cadet]),
+        formatCategories: const [cadet, junior],
+      );
+
+      expect(controller.structures.map((s) => s.categoryId), [7]);
+      expect(controller.tabs, hasLength(1));
+      expect(controller.tabs.single.categoryId, 7);
+    });
+
+    // Les appareils qui ont tourné avec la version fautive portent déjà des
+    // structures parasites : la vue ne doit plus les montrer, sans exiger de
+    // purge du stockage.
+    test('une structure stockée hors des catégories de l épreuve est ignorée',
+        () async {
+      final polluted = CompetitionProgramme(
+        competitionId: 42,
+        nextLocalId: 100,
+        structures: [
+          EventStructure(
+            raceId: 500,
+            categoryId: 7,
+            raceLabel: '100m',
+            categoryLabel: 'Cadets',
+            levels: [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+                ProgrammeRace(id: 1, number: 1),
+              ]),
+            ],
+          ),
+          EventStructure(
+            raceId: 500,
+            categoryId: 8,
+            raceLabel: '100m',
+            categoryLabel: 'Juniors',
+            levels: [
+              RoundLevel(type: RoundType.finale, serverId: 40, races: const [
+                ProgrammeRace(id: 2, number: 1),
+              ]),
+            ],
+          ),
+        ],
+      );
+
+      await loadRace(
+        race(500).copyWith(categories: const [cadet]),
+        local: polluted,
+      );
+
+      expect(controller.structures.map((s) => s.categoryId), [7]);
+      expect(controller.tabs.map((t) => t.type), [RoundType.serie]);
+    });
+
+    // Une épreuve qui ne déclare aucune catégorie ne peut rien filtrer : on
+    // n'invente pas une restriction qui masquerait un travail existant.
+    test('une épreuve sans catégorie déclarée garde ce qui est stocké',
+        () async {
+      final stored = CompetitionProgramme(
+        competitionId: 42,
+        nextLocalId: 100,
+        structures: [
+          EventStructure(
+            raceId: 500,
+            categoryId: 7,
+            raceLabel: '100m',
+            categoryLabel: 'Cadets',
+            levels: [
+              RoundLevel(type: RoundType.serie, races: const [
+                ProgrammeRace(id: 1, number: 1),
+              ]),
+            ],
+          ),
+        ],
+      );
+
+      await loadRace(race(500), local: stored, formatCategories: const []);
+
+      expect(controller.structures.map((s) => s.categoryId), [7]);
+    });
+  });
 }
