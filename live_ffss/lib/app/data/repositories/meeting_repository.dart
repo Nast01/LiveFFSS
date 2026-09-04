@@ -79,6 +79,24 @@ abstract class MeetingRepository {
   /// where. Best-effort: an unreadable place costs one seat, not the screen;
   /// a free place is simply not a seat.
   Future<List<LaneSeat>> getLaneSeats(Iterable<int> laneIds);
+
+  /// Publishes one course's results: creates (or updates) the FFSS `serie`,
+  /// ties the course to it when [link] says which course, then records one
+  /// result per competitor, seated in the place they raced from.
+  ///
+  /// Returns the heat id, or 0 when the heat itself was refused — no result is
+  /// sent then, since every one of them hangs off it.
+  Future<int> publishCourseResults({
+    required int raceId,
+    required String heatName,
+    required int heatNumber,
+    required List<CourseOutcome> outcomes,
+    int? heatId,
+    CourseHeatLink? link,
+  });
+
+  /// The results FFSS holds for a heat, by engagement.
+  Future<List<HeatResult>> getHeatResults(int heatId);
 }
 
 class MeetingRepositoryImpl implements MeetingRepository {
@@ -297,4 +315,96 @@ class MeetingRepositoryImpl implements MeetingRepository {
     seats.sort((a, b) => a.number.compareTo(b.number));
     return seats;
   }
+
+  @override
+  Future<int> publishCourseResults({
+    required int raceId,
+    required String heatName,
+    required int heatNumber,
+    required List<CourseOutcome> outcomes,
+    int? heatId,
+    CourseHeatLink? link,
+  }) async {
+    final heat = await _dataSource.submitHeat(
+      raceId: raceId,
+      name: heatName,
+      number: heatNumber,
+      id: heatId,
+    );
+    if (heat == 0) return 0;
+
+    // Before the results, not after: a course that carries no `serie` shows
+    // none of them on the federal site, and a failure here is worth knowing
+    // before a dozen results have gone out.
+    if (link != null) {
+      await _dataSource.submitRun(
+        slotId: link.slotId,
+        name: link.runName,
+        beginTime: DateFormat('HH:mm').format(link.beginHour),
+        endTime: DateFormat('HH:mm').format(link.endHour),
+        site: link.site,
+        id: link.runId,
+        heatId: heat,
+      );
+    }
+
+    for (final outcome in outcomes) {
+      await _dataSource.submitResult(
+        heatId: heat,
+        entryId: outcome.entryId,
+        laneId: outcome.laneId,
+        rank: outcome.rank,
+        status: outcome.status,
+        complement: outcome.complement,
+      );
+    }
+    return heat;
+  }
+
+  @override
+  Future<List<HeatResult>> getHeatResults(int heatId) async {
+    final dtos = await _dataSource.getHeatResults(heatId);
+    return [
+      for (final dto in dtos)
+        if ((dto.entry?.id ?? 0) != 0)
+          (
+            entryId: dto.entry!.id,
+            rank: dto.rank,
+            isDisqualified: dto.isDisqualified,
+            complement: dto.complement,
+          ),
+    ];
+  }
 }
+
+/// One competitor's outcome in a course, ready to be sent.
+///
+/// [rank] is null for anyone out of the ranking; [status] is 0 ranked,
+/// 1 disqualified, 2 forfeit.
+typedef CourseOutcome = ({
+  int entryId,
+  int laneId,
+  int? rank,
+  int status,
+  String? complement,
+});
+
+/// What a course needs to be tied to its heat — everything `course/submit`
+/// insists on, since it rewrites the whole course.
+typedef CourseHeatLink = ({
+  int slotId,
+  int runId,
+  String runName,
+  DateTime beginHour,
+  DateTime endHour,
+  String site,
+});
+
+/// What FFSS holds for one competitor of a heat, as the Séries screen
+/// redisplays it.
+typedef HeatResult = ({
+  int entryId,
+  int? rank,
+  bool isDisqualified,
+  String? complement,
+});

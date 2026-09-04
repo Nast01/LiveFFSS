@@ -492,4 +492,137 @@ void main() {
       verifyNever(() => ds.getLaneDetail(any()));
     });
   });
+
+  group('publishCourseResults', () {
+    setUp(() {
+      when(() => ds.submitHeat(
+            raceId: any(named: 'raceId'),
+            name: any(named: 'name'),
+            number: any(named: 'number'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 94369);
+      when(() => ds.submitRun(
+            slotId: any(named: 'slotId'),
+            name: any(named: 'name'),
+            beginTime: any(named: 'beginTime'),
+            endTime: any(named: 'endTime'),
+            site: any(named: 'site'),
+            id: any(named: 'id'),
+            heatId: any(named: 'heatId'),
+          )).thenAnswer((_) async => 24);
+      when(() => ds.submitResult(
+            heatId: any(named: 'heatId'),
+            entryId: any(named: 'entryId'),
+            laneId: any(named: 'laneId'),
+            rank: any(named: 'rank'),
+            status: any(named: 'status'),
+            complement: any(named: 'complement'),
+          )).thenAnswer((_) async => 1);
+    });
+
+    const outcomes = [
+      (entryId: 101, laneId: 71, rank: 1, status: 0, complement: null),
+      (entryId: 102, laneId: 72, rank: 2, status: 0, complement: null),
+      (entryId: 103, laneId: 73, rank: null, status: 1, complement: 'DSQ'),
+    ];
+
+    test('crée la série, l accroche à la course, puis pose les résultats',
+        () async {
+      final heatId = await repo.publishCourseResults(
+        raceId: 37962,
+        heatName: 'Demie 1',
+        heatNumber: 1,
+        outcomes: outcomes,
+      );
+
+      expect(heatId, 94369);
+      verify(() => ds.submitHeat(
+          raceId: 37962, name: 'Demie 1', number: 1, id: null)).called(1);
+      verify(() => ds.submitResult(
+          heatId: 94369,
+          entryId: 101,
+          laneId: 71,
+          rank: 1,
+          status: 0,
+          complement: null)).called(1);
+      verify(() => ds.submitResult(
+          heatId: 94369,
+          entryId: 103,
+          laneId: 73,
+          rank: null,
+          status: 1,
+          complement: 'DSQ')).called(1);
+    });
+
+    // Revalider ne doit pas empiler les séries : la course garde la sienne.
+    test('une série déjà créée est mise à jour, pas doublée', () async {
+      await repo.publishCourseResults(
+        raceId: 37962,
+        heatName: 'Demie 1',
+        heatNumber: 1,
+        outcomes: outcomes,
+        heatId: 94369,
+      );
+
+      verify(() => ds.submitHeat(
+          raceId: 37962, name: 'Demie 1', number: 1, id: 94369)).called(1);
+    });
+
+    // Le lien course -> série passe par course/submit : sans lui, la course
+    // n'affiche aucun résultat sur le site.
+    test('la course est rattachée à sa série quand on la lui donne', () async {
+      await repo.publishCourseResults(
+        raceId: 37962,
+        heatName: 'Demie 1',
+        heatNumber: 1,
+        outcomes: outcomes,
+        link: (
+          slotId: 66,
+          runId: 24,
+          runName: 'Demie 1',
+          beginHour: DateTime(2026, 6, 13, 8),
+          endHour: DateTime(2026, 6, 13, 8, 10),
+          site: 'OCEAN 1',
+        ),
+      );
+
+      final query = verify(() => ds.submitRun(
+            slotId: 66,
+            name: 'Demie 1',
+            beginTime: '08:00',
+            endTime: '08:10',
+            site: 'OCEAN 1',
+            id: 24,
+            heatId: captureAny(named: 'heatId'),
+          )).captured;
+      expect(query.single, 94369);
+    });
+
+    test('une série refusée n envoie aucun résultat', () async {
+      when(() => ds.submitHeat(
+            raceId: any(named: 'raceId'),
+            name: any(named: 'name'),
+            number: any(named: 'number'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 0);
+
+      expect(
+        await repo.publishCourseResults(
+          raceId: 37962,
+          heatName: 'x',
+          heatNumber: 1,
+          outcomes: outcomes,
+        ),
+        0,
+      );
+      verifyNever(() => ds.submitResult(
+            heatId: any(named: 'heatId'),
+            entryId: any(named: 'entryId'),
+            laneId: any(named: 'laneId'),
+            rank: any(named: 'rank'),
+            status: any(named: 'status'),
+            complement: any(named: 'complement'),
+          ));
+    });
+  });
 }

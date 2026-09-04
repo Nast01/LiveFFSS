@@ -422,6 +422,95 @@ void main() {
     });
   });
 
+  group('submitHeat et submitResult', () {
+    // Vérifié en production le 2026-09-04. Une `serie` s'accroche à l'épreuve,
+    // pas à la course ; c'est `course/submit` qui porte ensuite le lien.
+    test('une série part avec son épreuve, son nom et son numéro', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 94369});
+
+      final id = await ds.submitHeat(raceId: 37962, name: 'Demie 1', number: 1);
+
+      expect(id, 94369);
+      final query = verify(() =>
+              http.post('competition/serie/submit', query: captureAny(named: 'query')))
+          .captured
+          .single as Map;
+      expect(query['epreuve'], '37962');
+      expect(query['nom'], 'Demie 1');
+      expect(query['numero'], '1');
+    });
+
+    // `statut` : 0 = OK, 1 = DQ, 2 = forfait — relevé en sondant la route.
+    // `place` est ce qui rattache le résultat au couloir.
+    test('un résultat porte sa série, son engagement, sa place et son rang',
+        () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 566546});
+
+      final id = await ds.submitResult(
+        heatId: 94369,
+        entryId: 590956,
+        laneId: 379,
+        rank: 2,
+        status: 1,
+        complement: 'DSQ',
+      );
+
+      expect(id, 566546);
+      final query = verify(() => http.post('competition/resultat/submit',
+          query: captureAny(named: 'query'))).captured.single as Map;
+      expect(query['serie'], '94369');
+      expect(query['engagement'], '590956');
+      expect(query['place'], '379');
+      expect(query['rang'], '2');
+      expect(query['statut'], '1');
+      expect(query['complement'], 'DSQ');
+    });
+
+    // Un forfait ou un disqualifié ne prend pas de place : envoyer un rang
+    // le ferait apparaître au classement.
+    test('sans rang, le champ part vide', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 1});
+
+      await ds.submitResult(
+          heatId: 1, entryId: 2, laneId: 3, rank: null, status: 2);
+
+      final query =
+          verify(() => http.post(any(), query: captureAny(named: 'query')))
+              .captured
+              .single as Map;
+      expect(query['rang'], '');
+      expect(query['complement'], '');
+    });
+
+    test('les résultats d une série se relisent', () async {
+      when(() => http.get(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {
+                'success': true,
+                'data': [
+                  {
+                    'Id': 1,
+                    'Rang': 2,
+                    'isDisqualifie': true,
+                    'complement': 'DSQ',
+                    'engagement': {'Id': 590956},
+                  },
+                ],
+              });
+
+      final rows = await ds.getHeatResults(94369);
+
+      expect(rows.single.rank, 2);
+      expect(rows.single.isDisqualified, isTrue);
+      expect(rows.single.complement, 'DSQ');
+      expect(rows.single.entry?.id, 590956);
+      verify(() => http.get('competition/resultat',
+          query: {'serie': 94369, 'start': 0, 'length': 200})).called(1);
+    });
+  });
+
   group('deleteRun', () {
     test('la suppression cible la course, pas le créneau', () async {
       when(() => http.post(any(), query: any(named: 'query')))

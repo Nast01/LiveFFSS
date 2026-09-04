@@ -1,6 +1,7 @@
 import 'package:live_ffss/app/core/config/app_config.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
+import 'package:live_ffss/app/data/dtos/heat_result_dto.dart';
 import 'package:live_ffss/app/data/dtos/lane_detail_dto.dart';
 import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
 import 'package:live_ffss/app/data/dtos/run_dto.dart';
@@ -62,6 +63,7 @@ abstract class MeetingRemoteDataSource {
     required String endTime, // 'HH:mm'
     required String site,
     int? id,
+    int? heatId,
   });
 
   Future<bool> deleteRun(int runId);
@@ -84,6 +86,33 @@ abstract class MeetingRemoteDataSource {
   /// One place, from the detail route — the only one that shows who sits in
   /// it; the réunion tree masks every place's engagement.
   Future<LaneDetailDto> getLaneDetail(int laneId);
+
+  /// Creates the FFSS `serie` a course's results hang off, or updates the one
+  /// with [id]. A série belongs to the épreuve; `submitRun`'s `serie`
+  /// parameter is what ties it to the course.
+  Future<int> submitHeat({
+    required int raceId,
+    required String name,
+    required int number,
+    int? id,
+  });
+
+  /// Records one competitor's result in a heat, seated in [laneId].
+  ///
+  /// [rank] is null for anyone out of the ranking — sending a rank would show
+  /// them in the classification. [status]: 0 ranked, 1 disqualified,
+  /// 2 forfeit (3 is F/DQ server-side, unused here). [complement] is the
+  /// referee's free-text code (DNS, DNF, DSQ…).
+  Future<int> submitResult({
+    required int heatId,
+    required int entryId,
+    required int laneId,
+    required int? rank,
+    required int status,
+    String? complement,
+  });
+
+  Future<List<HeatResultDto>> getHeatResults(int heatId);
 }
 
 class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
@@ -243,6 +272,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
     required String endTime,
     required String site,
     int? id,
+    int? heatId,
   }) async {
     final endpoint = ApiEndpoints.replacePath(
       ApiEndpoints.runSubmit,
@@ -258,6 +288,10 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       // 0 = waiting. A course is born before it is run; the marshalling and
       // result states are set from the slot screen, not here.
       'statut': '0',
+      // Ties the course to the FFSS `serie` its results hang off. Omitted
+      // rather than emptied: a course that already has one must not lose it
+      // to a plain retiming.
+      if (heatId != null) 'serie': heatId.toString(),
     });
     final assigned = body['id'];
     return assigned is int ? assigned : 0;
@@ -285,5 +319,61 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       throw const ApiException('Unexpected place payload');
     }
     return LaneDetailDto.fromJson(data);
+  }
+
+  @override
+  Future<int> submitHeat({
+    required int raceId,
+    required String name,
+    required int number,
+    int? id,
+  }) async {
+    final body = await _http.post(ApiEndpoints.heatSubmit, query: {
+      'id': id?.toString() ?? '',
+      'epreuve': raceId.toString(),
+      'nom': name,
+      'numero': number.toString(),
+    });
+    final assigned = body['id'];
+    return assigned is int ? assigned : 0;
+  }
+
+  @override
+  Future<int> submitResult({
+    required int heatId,
+    required int entryId,
+    required int laneId,
+    required int? rank,
+    required int status,
+    String? complement,
+  }) async {
+    final body = await _http.post(ApiEndpoints.resultSubmit, query: {
+      'serie': heatId.toString(),
+      'engagement': entryId.toString(),
+      'place': laneId.toString(),
+      // Empty rather than absent: an out-of-ranking competitor must have any
+      // previous rank cleared, not kept from an earlier validation.
+      'rang': rank?.toString() ?? '',
+      'statut': status.toString(),
+      'complement': complement ?? '',
+    });
+    final assigned = body['id'];
+    return assigned is int ? assigned : 0;
+  }
+
+  @override
+  Future<List<HeatResultDto>> getHeatResults(int heatId) async {
+    final body = await _http.get(ApiEndpoints.resultList, query: {
+      'serie': heatId,
+      'start': 0,
+      // A heat never holds two hundred competitors; one window is the whole
+      // list, so this route needs no paging loop.
+      'length': 200,
+    });
+    final list = (body['data'] as List?) ?? const [];
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map(HeatResultDto.fromJson)
+        .toList();
   }
 }

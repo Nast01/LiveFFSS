@@ -77,6 +77,13 @@ class ApiEndpoints {
   // passe donc par ici, une place à la fois.
   static const String laneDetail =
       'competition/reunion/creneau/course/place/:id';
+  // Une « serie » s'accroche à l'épreuve, pas à la course : c'est
+  // `course/submit` qui porte ensuite le lien via son paramètre `serie`. Un
+  // « resultat » se rattache à la série, à l'engagement ET à la place — c'est
+  // `place` qui le pose dans le bon couloir. Vérifié le 2026-09-04.
+  static const String heatSubmit = 'competition/serie/submit';
+  static const String resultSubmit = 'competition/resultat/submit';
+  static const String resultList = 'competition/resultat';
   // "Déroulement": one entry per (discipline, gender), carrying its categories
   // and its rounds (`parties`). The FFSS doc publishes these under
   // api.ffss.fr, but that host 301s to a 404 page — they resolve on the base
