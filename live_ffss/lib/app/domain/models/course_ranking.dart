@@ -82,3 +82,38 @@ List<List<int>> withoutLastFinisher(List<List<int>> finishOrder) {
   if (groups.last.isEmpty) groups.removeLast();
   return groups;
 }
+
+/// [finishOrder] with [athleteId] claiming [place], leaving whatever rank it
+/// held before.
+///
+/// This is what manual entry writes. Sharing a number with someone else is a
+/// declared tie — the same rule the automatic lock produces — so the places
+/// after it renumber: two firsts leave nobody second.
+///
+/// The ranking stays dense from 1: you cannot be second with no first, so a
+/// number beyond the field simply lands at the end. A place below 1 is not a
+/// place and changes nothing.
+List<List<int>> withPlace(
+  List<List<int>> finishOrder,
+  int athleteId,
+  int place,
+) {
+  if (place < 1) {
+    return [
+      for (final group in finishOrder) [...group],
+    ];
+  }
+  final places = placesOf(finishOrder);
+  // Grouped on the places they hold now, so athletes already tied stay tied
+  // while the athlete being moved is pulled out of wherever they were.
+  final byPlace = <int, List<int>>{};
+  for (final group in finishOrder) {
+    for (final id in group) {
+      if (id == athleteId) continue;
+      (byPlace[places[id]!] ??= []).add(id);
+    }
+  }
+  (byPlace[place] ??= []).add(athleteId);
+  final ranks = byPlace.keys.toList()..sort();
+  return [for (final rank in ranks) byPlace[rank]!];
+}

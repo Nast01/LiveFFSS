@@ -980,4 +980,83 @@ void main() {
       expect(ids, [null, 94369]);
     });
   });
+
+  group('modes de saisie', () {
+    test('le mode automatique est celui par défaut', () async {
+      final controller = await loadWith([1, 2, 3]);
+
+      expect(controller.entryMode.value, CourseEntryMode.automatic);
+    });
+
+    test('basculer en manuel et revenir', () async {
+      final controller = await loadWith([1, 2, 3]);
+
+      controller.setEntryMode(CourseEntryMode.manual);
+      expect(controller.entryMode.value, CourseEntryMode.manual);
+
+      controller.setEntryMode(CourseEntryMode.automatic);
+      expect(controller.entryMode.value, CourseEntryMode.automatic);
+    });
+
+    // Changer de mode ne touche pas au classement déjà saisi : on bascule pour
+    // corriger, pas pour recommencer.
+    test('changer de mode conserve le classement', () async {
+      final controller = await loadWith([1, 2, 3]);
+      controller.assign(athlete(1));
+      controller.assign(athlete(2));
+
+      controller.setEntryMode(CourseEntryMode.manual);
+
+      expect(controller.placeOf(athlete(1)), 1);
+      expect(controller.placeOf(athlete(2)), 2);
+    });
+  });
+
+  group('setPlace', () {
+    test('affecte le rang saisi', () async {
+      final controller = await loadWith([1, 2, 3]);
+
+      controller.setPlace(athlete(2), 1);
+
+      expect(controller.placeOf(athlete(2)), 1);
+      expect(saved().finishOrder, [
+        [2]
+      ]);
+    });
+
+    test('un rang déjà pris crée un ex-aequo et décale la suite', () async {
+      final controller = await loadWith([1, 2, 3]);
+      controller.assign(athlete(1));
+      controller.assign(athlete(2));
+
+      controller.setPlace(athlete(3), 1);
+
+      expect(controller.placeOf(athlete(1)), 1);
+      expect(controller.placeOf(athlete(3)), 1);
+      expect(controller.placeOf(athlete(2)), 3);
+    });
+
+    test('un rang vidé sort l athlète du classement', () async {
+      final controller = await loadWith([1, 2, 3]);
+      controller.assign(athlete(1));
+      controller.assign(athlete(2));
+
+      controller.setPlace(athlete(1), 0);
+
+      expect(controller.placeOf(athlete(1)), isNull);
+      expect(controller.placeOf(athlete(2)), 1);
+    });
+
+    // Même invariant que `assign` : un forfait ne prend pas de place, sans
+    // quoi tous les rangs suivants seraient faux.
+    test('un athlète pénalisé ne peut pas être classé à la main', () async {
+      final controller = await loadWith([1, 2, 3]);
+      controller.setPenalty(athlete(2), CoursePenaltyKind.forfeit);
+
+      controller.setPlace(athlete(2), 1);
+
+      expect(controller.placeOf(athlete(2)), isNull);
+      expect(controller.message.value, isA<UiMessageError>());
+    });
+  });
 }

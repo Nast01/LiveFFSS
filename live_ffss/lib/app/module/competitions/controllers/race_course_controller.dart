@@ -28,6 +28,13 @@ import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
+/// How places are entered.
+///
+/// [automatic] hands out the next place on a press — the marshalling flow, and
+/// what a bracelet scan drives. [manual] lets the operator type a rank
+/// straight onto a row, to correct rather than to record.
+enum CourseEntryMode { automatic, manual }
+
 /// Records the finishing order of one drawn course. The order is the state;
 /// places are computed from it (see `course_ranking.dart`), which is what makes
 /// a removal renumber and a tie an ordinary group.
@@ -87,6 +94,12 @@ class RaceCourseController extends GetxController {
   /// opening one. A lock rather than a gesture on a ranked athlete, because a
   /// bracelet cannot be long-pressed and one procedure has to serve both.
   final RxBool tieLock = false.obs;
+
+  /// Which way places are entered. Switching does not touch the ranking
+  /// already entered: one switches to correct, not to start over.
+  final Rx<CourseEntryMode> entryMode = CourseEntryMode.automatic.obs;
+
+  void setEntryMode(CourseEntryMode mode) => entryMode.value = mode;
 
   @override
   void onInit() {
@@ -203,6 +216,24 @@ class RaceCourseController extends GetxController {
     }
     finishOrder.value =
         withFinisher(finishOrder, athlete.id, tied: tieLock.value);
+    _persist();
+  }
+
+  /// Puts [athlete] at [place], or takes them out of the ranking when [place]
+  /// is not a place — an emptied field.
+  ///
+  /// Sharing a rank with someone declares a tie, and the places after it shift
+  /// accordingly; see [withPlace].
+  void setPlace(Athlete athlete, int place) {
+    // Same invariant `assign` protects: a withdrawal takes no place, and
+    // ranking one here would falsify every place behind it.
+    if (penaltyOf(athlete) != null) {
+      message.trigger(const UiMessageError('course_athlete_withdrawn'));
+      return;
+    }
+    finishOrder.value = place < 1
+        ? withoutAthlete(finishOrder, athlete.id)
+        : withPlace(finishOrder, athlete.id, place);
     _persist();
   }
 

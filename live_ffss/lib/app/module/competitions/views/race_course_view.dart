@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_radius.dart';
@@ -129,6 +130,7 @@ class _RaceCourseViewState extends State<RaceCourseView> {
         return Column(
           children: [
             const _CourseContext(),
+            const _ModeBar(),
             const _EntryBar(),
             Expanded(
               child: ListView.builder(
@@ -160,6 +162,79 @@ class _RaceCourseViewState extends State<RaceCourseView> {
   }
 }
 
+/// The place, typed. Digits only — a rank is a whole number — and committed
+/// when the field loses focus or the keyboard is validated, never on each
+/// keystroke: typing « 12 » would otherwise rank the athlete first in passing.
+///
+/// Its own widget because the text controller belongs to one row and must
+/// follow the model back: sharing a number declares a tie, so the place that
+/// comes back can differ from the one typed.
+class _PlaceField extends StatefulWidget {
+  const _PlaceField({required this.athlete, required this.place});
+
+  final Athlete athlete;
+  final int? place;
+
+  @override
+  State<_PlaceField> createState() => _PlaceFieldState();
+}
+
+class _PlaceFieldState extends State<_PlaceField> {
+  late final TextEditingController _text =
+      TextEditingController(text: widget.place?.toString() ?? '');
+  final FocusNode _focus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() {
+      if (!_focus.hasFocus) _commit();
+    });
+  }
+
+  @override
+  void didUpdateWidget(_PlaceField old) {
+    super.didUpdateWidget(old);
+    // The ranking moved under us — a tie renumbered the rest, or another row
+    // was edited. Never while typing: that would fight the operator.
+    if (!_focus.hasFocus && widget.place != old.place) {
+      _text.text = widget.place?.toString() ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    _text.dispose();
+    super.dispose();
+  }
+
+  void _commit() {
+    final typed = int.tryParse(_text.text.trim()) ?? 0;
+    Get.find<RaceCourseController>().setPlace(widget.athlete, typed);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _text,
+      focusNode: _focus,
+      textAlign: TextAlign.center,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      textInputAction: TextInputAction.done,
+      onSubmitted: (_) => _commit(),
+      style: AppTypography.body
+          .copyWith(fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+      decoration: const InputDecoration(
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(vertical: 6),
+        border: OutlineInputBorder(),
+      ),
+    );
+  }
+}
+
 /// What is being scored: épreuve, gender, category, round.
 class _CourseContext extends GetView<RaceCourseController> {
   const _CourseContext();
@@ -186,6 +261,40 @@ class _CourseContext extends GetView<RaceCourseController> {
         ),
       ),
     );
+  }
+}
+
+/// How places are entered. Sits above everything else because it changes what
+/// every row below does.
+class _ModeBar extends GetView<RaceCourseController> {
+  const _ModeBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final mode = controller.entryMode.value;
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
+        child: SegmentedButton<CourseEntryMode>(
+          segments: [
+            ButtonSegment(
+              value: CourseEntryMode.automatic,
+              icon: const Icon(Icons.playlist_add_check, size: 18),
+              label: Text('course_mode_automatic'.tr),
+            ),
+            ButtonSegment(
+              value: CourseEntryMode.manual,
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: Text('course_mode_manual'.tr),
+            ),
+          ],
+          selected: {mode},
+          showSelectedIcon: false,
+          onSelectionChanged: (s) => controller.setEntryMode(s.first),
+        ),
+      );
+    });
   }
 }
 
@@ -300,6 +409,7 @@ class _CompetitorRow extends GetView<RaceCourseController> {
     return Obx(() {
       final place = controller.placeOf(athlete);
       final penalty = controller.penaltyOf(athlete);
+      final manual = controller.entryMode.value == CourseEntryMode.manual;
       final club = athlete.club?.name.isNotEmpty == true
           ? athlete.club!.name
           : athlete.clubLabel;
@@ -314,25 +424,28 @@ class _CompetitorRow extends GetView<RaceCourseController> {
           border: Border.all(color: AppColors.border),
         ),
         child: GestureDetector(
-          // InkWell has no onLongPressStart in this Flutter version; a
-          // GestureDetector layered over it supplies the position without
-          // taking over the tap the InkWell needs for its ripple.
+          // The row no longer assigns on tap: brushing one while scrolling
+          // ranked whoever it was, which is the handling problem this mode bar
+          // exists to fix. Only the trailing control assigns now; the long
+          // press still opens the menu.
           onLongPressStart: (d) => onMenu(d.globalPosition),
-          child: InkWell(
+          child: Material(
+            type: MaterialType.transparency,
             borderRadius: AppRadius.mdRadius,
-            // A withdrawn athlete has no place to take; the menu reinstates them.
-            onTap: penalty == null ? onTap : null,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               child: Row(
                 children: [
                   SizedBox(
-                    width: 34,
-                    child: Text(badge,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.body.copyWith(
-                            fontWeight: FontWeight.w800, color: badgeColor)),
+                    width: 40,
+                    child: manual && penalty == null
+                        ? _PlaceField(athlete: athlete, place: place)
+                        : Text(badge,
+                            textAlign: TextAlign.center,
+                            style: AppTypography.body.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: badgeColor)),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   ClubAvatar(
@@ -369,6 +482,23 @@ class _CompetitorRow extends GetView<RaceCourseController> {
                             .copyWith(color: AppColors.statusError)),
                     const SizedBox(width: AppSpacing.xs),
                   ],
+                  // Automatic mode's one way to rank: an explicit target,
+                  // not the whole row. Ranked already, it takes the place back.
+                  if (!manual && penalty == null)
+                    IconButton(
+                      onPressed: onTap,
+                      icon: Icon(place == null
+                          ? Icons.add_circle_outline
+                          : Icons.remove_circle_outline),
+                      iconSize: 22,
+                      visualDensity: VisualDensity.compact,
+                      color: place == null
+                          ? AppColors.primary
+                          : AppColors.textMuted,
+                      tooltip: place == null
+                          ? 'course_assign'.tr
+                          : 'course_unassign'.tr,
+                    ),
                   Builder(
                     builder: (btnContext) => IconButton(
                       onPressed: () {

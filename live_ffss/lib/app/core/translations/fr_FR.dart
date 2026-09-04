@@ -459,6 +459,10 @@ final Map<String, String> frFR = {
       "Aucune place affectée sur cette course : enregistrez le tirage "
       'avant de valider.',
   'course_validate': 'Valider',
+  'course_mode_automatic': 'Automatique',
+  'course_mode_manual': 'Manuel',
+  'course_assign': 'Affecter la place',
+  'course_unassign': 'Retirer la place',
   'course_undo': 'Annuler',
   'course_complete': 'Tous les athlètes sont classés',
   'course_forfeit': 'Forfait',

@@ -453,6 +453,10 @@ final Map<String, String> enUS = {
   'course_publish_no_lane':
       'No spot assigned on this course: save the draw before validating.',
   'course_validate': 'Validate',
+  'course_mode_automatic': 'Automatic',
+  'course_mode_manual': 'Manual',
+  'course_assign': 'Assign the place',
+  'course_unassign': 'Take the place back',
   'course_undo': 'Undo',
   'course_complete': 'Every athlete is ranked',
   'course_forfeit': 'Forfeit',

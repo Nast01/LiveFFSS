@@ -178,4 +178,82 @@ void main() {
       expect(identical(after, before), isFalse);
     });
   });
+
+  group('withPlace', () {
+    // La saisie manuelle : on tape un rang, l'athlète le prend.
+    test('place un athlète non classé au rang demandé', () {
+      expect(
+        withPlace([
+          [1],
+          [2]
+        ], 3, 3),
+        [
+          [1],
+          [2],
+          [3]
+        ],
+      );
+    });
+
+    // Partager un numéro, c'est déclarer un ex-aequo — la règle retenue avec
+    // l'opérateur, et celle que le mode automatique applique déjà.
+    test('un numéro déjà pris forme un ex-aequo', () {
+      final order = withPlace([
+        [1],
+        [2],
+        [3]
+      ], 3, 2);
+
+      expect(order, [
+        [1],
+        [2, 3]
+      ]);
+      expect(placesOf(order), {1: 1, 2: 2, 3: 2});
+    });
+
+    test('un athlète déjà classé quitte son ancien rang', () {
+      final order = withPlace([
+        [1],
+        [2],
+        [3]
+      ], 1, 3);
+
+      expect(order, [
+        [2],
+        [3, 1]
+      ]);
+    });
+
+    // Le classement reste dense : on ne peut pas être deuxième sans premier.
+    test('un rang au-delà du plateau se referme sur la suite', () {
+      final order = withPlace([
+        [1],
+        [2]
+      ], 3, 99);
+
+      expect(order, [
+        [1],
+        [2],
+        [3]
+      ]);
+    });
+
+    test('un rang inférieur à 1 ne change rien', () {
+      const order = [
+        [1],
+        [2]
+      ];
+
+      expect(withPlace(order, 3, 0), order);
+    });
+
+    // Même garantie que les autres fonctions du fichier : jamais l'argument.
+    test('rend toujours une liste neuve, même sans effet', () {
+      const order = [
+        [1]
+      ];
+
+      expect(identical(withPlace(order, 2, 0), order), isFalse);
+    });
+  });
 }
