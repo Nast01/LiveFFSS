@@ -9,11 +9,11 @@ import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
-import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
 import 'package:live_ffss/app/module/programme/controllers/schedule_controller.dart';
 import 'package:live_ffss/app/module/programme/views/sites_view.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
+import 'package:live_ffss/app/presentation/modules/programme/day_sections.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
@@ -139,7 +139,7 @@ class _ScheduleViewState extends State<ScheduleView> {
   /// used.
   /// A manual item is a créneau, a course is a course — but the operator is
   /// setting the same thing, so they get the same dialog.
-  Future<void> _editDuration(_DayEntry entry) async {
+  Future<void> _editDuration(DayEntry entry) async {
     final current = entry.end.difference(entry.begin).inMinutes;
     final minutes = await _askDuration(current);
     if (minutes == null || minutes == current) return;
@@ -152,7 +152,7 @@ class _ScheduleViewState extends State<ScheduleView> {
     if (runId != null) _controller.setRunDuration(runId, minutes);
   }
 
-  Future<void> _confirmRemove(_DayEntry entry) async {
+  Future<void> _confirmRemove(DayEntry entry) async {
     final slotId = entry.slotId;
     if (slotId != null) {
       if (await _confirmRemoval(entry.label)) _controller.removeSlot(slotId);
@@ -468,85 +468,6 @@ class _DayRangeHeader extends StatelessWidget {
   }
 }
 
-/// A single item on the day's réunion: either a course (a [Slot]'s [Run]) or,
-/// when a créneau carries no course, the créneau itself — a manual item shown
-/// at its own `beginHour`/`endHour`.
-class _DayEntry {
-  const _DayEntry(
-      {required this.begin,
-      required this.end,
-      required this.label,
-      this.slotId,
-      this.runId});
-  final DateTime begin;
-  final DateTime end;
-  final String label;
-
-  /// The créneau backing this row, set only for a manual item — the only
-  /// kind this screen can resize. A course's duration comes from its round.
-  final int? slotId;
-
-  /// The course backing this row, set only for a course entry. Deleting one
-  /// takes its créneau with it when it was the last, so both kinds of row
-  /// offer the same gesture.
-  final int? runId;
-}
-
-/// A group of [_DayEntry]s sharing a site — [Run.site] for course entries, or
-/// the générique bucket for manual (course-less) créneaux, which carry no
-/// site of their own.
-class _DaySection {
-  const _DaySection(
-      {required this.title, required this.items, this.isManual = false});
-  final String title;
-  final List<_DayEntry> items;
-
-  /// The créneaux with no course. They belong to no site — a lunch break or a
-  /// prize-giving concerns the whole day — so a site filter never hides them.
-  final bool isManual;
-}
-
-/// Splits the réunion's créneaux into per-[Run.site] sections, plus one
-/// générique section for the créneaux with no course. Sections are ordered by
-/// their earliest item so the day reads top to bottom.
-List<_DaySection> _sectionsFor(Meeting? meeting) {
-  if (meeting == null) return const [];
-  final bySite = <String, List<_DayEntry>>{};
-  final manual = <_DayEntry>[];
-  for (final slot in meeting.slots) {
-    if (slot.runs.isEmpty) {
-      manual.add(_DayEntry(
-        begin: slot.beginHour,
-        end: slot.endHour,
-        label: slot.name,
-        slotId: slot.id,
-      ));
-      continue;
-    }
-    for (final run in slot.runs) {
-      (bySite[run.site] ??= []).add(_DayEntry(
-        begin: run.beginTime,
-        end: run.endTime,
-        label: run.fullLabel,
-        runId: run.id,
-      ));
-    }
-  }
-  final sections = [
-    for (final entry in bySite.entries)
-      _DaySection(title: entry.key, items: entry.value..sort(_byBegin)),
-    if (manual.isNotEmpty)
-      _DaySection(
-          title: 'schedule_manual_items'.tr,
-          items: manual..sort(_byBegin),
-          isManual: true),
-  ];
-  sections.sort((a, b) => a.items.first.begin.compareTo(b.items.first.begin));
-  return sections;
-}
-
-int _byBegin(_DayEntry a, _DayEntry b) => a.begin.compareTo(b.begin);
-
 /// The day's réunion, read straight from FFSS: courses grouped by
 /// [Run.site], manual créneaux under their own section. A manual item can be
 /// resized or removed straight from here; a course cannot — it is created and
@@ -560,8 +481,8 @@ class _Timeline extends StatelessWidget {
   });
   final ScheduleController controller;
   final DateTime day;
-  final void Function(_DayEntry entry) onEditDuration;
-  final void Function(_DayEntry entry) onDelete;
+  final void Function(DayEntry entry) onEditDuration;
+  final void Function(DayEntry entry) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -573,7 +494,7 @@ class _Timeline extends StatelessWidget {
           onRetry: controller.reload,
         );
       }
-      final sections = _sectionsFor(controller.meetingFor(day))
+      final sections = daySections(controller.meetingFor(day))
           .where((s) => s.isManual || controller.showsSite(s.title))
           .toList();
 
@@ -662,9 +583,9 @@ class _DaySectionView extends StatelessWidget {
     required this.onEditDuration,
     required this.onDelete,
   });
-  final _DaySection section;
-  final void Function(_DayEntry entry) onEditDuration;
-  final void Function(_DayEntry entry) onDelete;
+  final DaySection section;
+  final void Function(DayEntry entry) onEditDuration;
+  final void Function(DayEntry entry) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -673,7 +594,9 @@ class _DaySectionView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(section.title,
+          // The manual bucket carries no title of its own — naming it is a
+          // display concern, kept out of the shared [daySections] helper.
+          Text(section.isManual ? 'schedule_manual_items'.tr : section.title,
               style: AppTypography.body.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: AppSpacing.xs),
           for (final entry in section.items)
@@ -697,9 +620,9 @@ class _DayEntryCard extends StatelessWidget {
     required this.onEditDuration,
     required this.onDelete,
   });
-  final _DayEntry entry;
-  final void Function(_DayEntry entry) onEditDuration;
-  final void Function(_DayEntry entry) onDelete;
+  final DayEntry entry;
+  final void Function(DayEntry entry) onEditDuration;
+  final void Function(DayEntry entry) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -854,8 +777,7 @@ class _Palette extends StatelessWidget {
                               : () => controller.scheduleRound(
                                     partieId: round.partieId,
                                     name: _nameFor(round, gender),
-                                    courseNames:
-                                        _courseNamesFor(round, gender),
+                                    courseNames: _courseNamesFor(round, gender),
                                     spotsPerRace: round.spotsPerRace,
                                     site: _siteFor(controller, day!),
                                     day: day!,

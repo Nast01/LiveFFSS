@@ -379,6 +379,7 @@ final Map<String, String> enUS = {
       '"@item" will be removed from the FFSS server for everyone. '
           'This cannot be undone.',
   'no_programme': 'No programme defined',
+  'error_loading_programme': 'Could not load the programme',
   'no_structure_defined': 'No structure defined',
   'approach_bracelets': 'Hold each bracelet near the phone',
   'present_count': 'present',

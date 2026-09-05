@@ -5,12 +5,10 @@ import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
-import 'package:live_ffss/app/domain/models/athlete.dart';
-import 'package:live_ffss/app/domain/models/round_level.dart';
-import 'package:live_ffss/app/domain/models/schedule_planner.dart';
 import 'package:live_ffss/app/module/competitions/controllers/competition_detail_programme_controller.dart';
-import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
+import 'package:live_ffss/app/presentation/modules/programme/day_sections.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
+import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/gender_badge.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
@@ -19,14 +17,20 @@ class CompetitionDetailProgrammeView
     extends GetView<CompetitionDetailProgrammeController> {
   const CompetitionDetailProgrammeView({super.key});
 
-  String _hhmm(int minutes) =>
-      '${(minutes ~/ 60).toString().padLeft(2, '0')}:${(minutes % 60).toString().padLeft(2, '0')}';
-
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       if (controller.isLoading.value) {
         return const LoadingIndicator();
+      }
+      if (controller.hasError.value) {
+        return ErrorState(
+          message: 'error_loading_programme'.tr,
+          onRetry: () {
+            final comp = controller.competition.value;
+            if (comp != null) controller.load(comp);
+          },
+        );
       }
       if (controller.days.isEmpty || !controller.hasProgramme) {
         return EmptyState(icon: Icons.event_busy, title: 'no_programme'.tr);
@@ -34,7 +38,7 @@ class CompetitionDetailProgrammeView
       return Column(
         children: [
           _DayChips(controller: controller),
-          _SiteChips(controller: controller, hhmm: _hhmm),
+          _SiteChips(controller: controller),
           const SizedBox(height: AppSpacing.xs),
           Expanded(child: _ReadonlyTimeline(controller: controller)),
         ],
@@ -86,9 +90,8 @@ class _DayChips extends StatelessWidget {
 }
 
 class _SiteChips extends StatelessWidget {
-  const _SiteChips({required this.controller, required this.hhmm});
+  const _SiteChips({required this.controller});
   final CompetitionDetailProgrammeController controller;
-  final String Function(int minutes) hhmm;
 
   @override
   Widget build(BuildContext context) {
@@ -96,61 +99,41 @@ class _SiteChips extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(
           AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
       child: Obx(() {
-        final sites = controller.sites;
-        final selectedId = controller.selectedSiteId.value;
         final day = controller.selectedDay;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Same reason as the editable schedule: the start time on the same
-            // line left room for barely one site chip.
-            SizedBox(
-              height: 36,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: sites.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(width: AppSpacing.sm),
-                itemBuilder: (_, i) {
-                  final s = sites[i];
-                  final active = selectedId == s.id;
-                  return GestureDetector(
-                    onTap: () => controller.selectedSiteId.value = s.id,
-                    child: Container(
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: active ? AppColors.primary : AppColors.surface,
-                        borderRadius: AppRadius.pillRadius,
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Text(
-                        s.name,
-                        style: AppTypography.caption.copyWith(
-                            color:
-                                active ? Colors.white : AppColors.textPrimary),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            if (selectedId != null && day != null)
-              Container(
-                margin: const EdgeInsets.only(top: AppSpacing.xs),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
-                  borderRadius: AppRadius.pillRadius,
+        if (day == null) return const SizedBox.shrink();
+        final names = controller.siteNamesFor(day);
+        // A day running on a single site needs no picker — the chip would be
+        // the only choice on offer.
+        if (names.length < 2) return const SizedBox.shrink();
+        final active = controller.activeSiteFor(day);
+        return SizedBox(
+          height: 36,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: names.length,
+            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+            itemBuilder: (_, i) {
+              final name = names[i];
+              final isActive = active == name;
+              return GestureDetector(
+                onTap: () => controller.selectedSite.value = name,
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: isActive ? AppColors.primary : AppColors.surface,
+                    borderRadius: AppRadius.pillRadius,
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Text(
+                    name,
+                    style: AppTypography.caption.copyWith(
+                        color: isActive ? Colors.white : AppColors.textPrimary),
+                  ),
                 ),
-                child: Text(
-                  '${'starts_at'.tr} ${hhmm(controller.startMinutesFor(selectedId, day))}',
-                  style: AppTypography.caption
-                      .copyWith(color: AppColors.primaryDark),
-                ),
-              ),
-          ],
+              );
+            },
+          ),
         );
       }),
     );
@@ -164,59 +147,76 @@ class _ReadonlyTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final siteId = controller.selectedSiteId.value;
       final day = controller.selectedDay;
-      if (siteId == null || day == null) {
+      if (day == null) {
         return EmptyState(icon: Icons.schedule, title: 'no_placement_here'.tr);
       }
-      final rows = controller.rowsFor(siteId, day);
-      if (rows.isEmpty) {
+      final sections = controller.visibleSectionsFor(day);
+      if (sections.isEmpty) {
         return EmptyState(icon: Icons.schedule, title: 'no_placement_here'.tr);
       }
-      return ListView.separated(
+      return ListView(
         padding: AppSpacing.pageAll,
-        itemCount: rows.length,
-        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.xs),
-        itemBuilder: (_, i) =>
-            _ReadonlyCard(row: rows[i], controller: controller),
+        children: [
+          for (final section in sections)
+            _SectionView(section: section, controller: controller),
+        ],
       );
     });
   }
 }
 
-class _ReadonlyCard extends StatelessWidget {
-  const _ReadonlyCard({required this.row, required this.controller});
-  final ScheduleRow row;
+class _SectionView extends StatelessWidget {
+  const _SectionView({required this.section, required this.controller});
+  final DaySection section;
   final CompetitionDetailProgrammeController controller;
 
   @override
   Widget build(BuildContext context) {
-    final b = row.block;
-    final isManual = b.raceId == null;
-    final accent = isManual
-        ? AppColors.statusWaiting
-        : (controller.roundOf(b.raceId!) == RoundType.finale
-            ? AppColors.statusFinished
-            : AppColors.primary);
-    final label =
-        isManual ? b.manualLabel : (controller.itemFor(b.raceId!)?.label ?? '');
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // The manual bucket carries no title of its own — naming it is a
+          // display concern, kept out of the shared [daySections] helper.
+          Text(section.isManual ? 'schedule_manual_items'.tr : section.title,
+              style: AppTypography.body.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: AppSpacing.xs),
+          for (final entry in section.items)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: _ReadonlyCard(entry: entry, controller: controller),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReadonlyCard extends StatelessWidget {
+  const _ReadonlyCard({required this.entry, required this.controller});
+  final DayEntry entry;
+  final CompetitionDetailProgrammeController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final runId = entry.runId;
+    final race = runId == null ? null : controller.raceForRun(runId);
+    final accent = runId == null ? AppColors.statusWaiting : AppColors.primary;
+    final minutes = entry.end.difference(entry.begin).inMinutes;
     return Material(
       color: AppColors.surface,
       borderRadius: AppRadius.mdRadius,
       elevation: 1,
       child: InkWell(
         borderRadius: AppRadius.mdRadius,
-        onTap: isManual
+        onTap: race == null
             ? null
-            : () {
-                final race = controller.raceForBlock(b.raceId!);
-                if (race != null) {
-                  Get.toNamed<void>(Routes.raceDetail, arguments: {
-                    'race': race,
-                    'competition': controller.competition.value,
-                  });
-                }
-              },
+            : () => Get.toNamed<void>(Routes.raceDetail, arguments: {
+                  'race': race,
+                  'competition': controller.competition.value,
+                }),
         // The label wraps, so the card has no height of its own to know up
         // front: IntrinsicHeight is what lets the accent strip run the full
         // height whatever the label costs.
@@ -243,31 +243,26 @@ class _ReadonlyCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Row(children: [
-                        Text(FormatConst.timeFormat.format(row.begin),
+                        Text(FormatConst.timeFormat.format(entry.begin),
                             style: AppTypography.body.copyWith(
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.primaryDark)),
                         const SizedBox(width: 6),
                         Text(
-                            '→ ${FormatConst.timeFormat.format(row.end)} · ${b.durationMinutes} ${'min_short'.tr}',
+                            '→ ${FormatConst.timeFormat.format(entry.end)} · $minutes ${'min_short'.tr}',
                             style: AppTypography.caption),
                       ]),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (!isManual) ...[
-                            GenderBadge(
-                                gender: controller
-                                        .raceForBlock(b.raceId!)
-                                        ?.gender ??
-                                    Gender.unknown,
-                                size: 18),
+                          if (race != null) ...[
+                            GenderBadge(gender: race.gender, size: 18),
                             const SizedBox(width: 6),
                           ],
                           // Wraps rather than ellipsing: the tail of the label
                           // is what tells two races of an épreuve apart.
                           Expanded(
-                            child: Text(label, style: AppTypography.body),
+                            child: Text(entry.label, style: AppTypography.body),
                           ),
                         ],
                       ),
@@ -275,7 +270,7 @@ class _ReadonlyCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (!isManual)
+              if (race != null)
                 const Padding(
                   padding: EdgeInsets.only(right: AppSpacing.sm),
                   child: Center(

@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
+import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/repositories/ranking_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
@@ -27,6 +28,7 @@ class CompetitionDetailBinding extends Bindings {
       () => CompetitionDetailProgrammeController(
         Get.find<ProgrammeService>(),
         Get.find<RaceRepository>(),
+        Get.find<MeetingRepository>(),
       ),
     );
     Get.lazyPut<CompetitionDetailClubsController>(

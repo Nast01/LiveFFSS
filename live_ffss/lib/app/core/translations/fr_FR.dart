@@ -383,6 +383,7 @@ final Map<String, String> frFR = {
       '« @item » sera supprimé du serveur FFSS pour tout le monde. '
           'Cette action est irréversible.',
   'no_programme': 'Programme non défini',
+  'error_loading_programme': 'Erreur lors du chargement du programme',
   'no_structure_defined': 'Structure non définie',
   'approach_bracelets': 'Approchez les bracelets à scanner',
   'present_count': 'présents',
