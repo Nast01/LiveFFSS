@@ -498,7 +498,10 @@ class RaceStructureController extends GetxController {
 
   Future<RoundLevel> _importLevel(RoundLevel level) async {
     final courses = coursesOfLevel(level);
-    if (courses.isEmpty || level.races.isEmpty) return level;
+    // A round with no local heat is NOT an early exit: its courses may all
+    // have been created on the federal site, and they are exactly the ones
+    // this import has to bring in.
+    if (courses.isEmpty) return level;
 
     // A course claims the race that recorded it; the leftovers pair by rank —
     // the order both sides were created in.
@@ -506,6 +509,7 @@ class RaceStructureController extends GetxController {
     final claimed = <int>{};
     final pairs = <(int, Run)>[];
     final unmatchedCourses = <Run>[];
+    final orphanCourses = <Run>[];
     for (final course in courses) {
       final at = races.indexWhere((r) => r.runId == course.id);
       at >= 0
@@ -518,7 +522,13 @@ class RaceStructureController extends GetxController {
           (claimed.contains(cursor) || races[cursor].runId != 0)) {
         cursor++;
       }
-      if (cursor >= races.length) break;
+      if (cursor >= races.length) {
+        // More courses than heats: the surplus was created on the federal
+        // site. Collected rather than dropped — [_adoptOrphanCourses] gives
+        // each one a heat of its own.
+        orphanCourses.add(course);
+        continue;
+      }
       _claim(pairs, claimed, cursor, course);
     }
 
@@ -546,7 +556,39 @@ class RaceStructureController extends GetxController {
       );
       changed = true;
     }
+    if (await _adoptOrphanCourses(races, orphanCourses)) changed = true;
     return changed ? level.copyWith(races: races) : level;
+  }
+
+  /// Appends a heat for every course of [orphans] that holds a composition,
+  /// so a course created on the federal site arrives with its places rather
+  /// than as a row nothing fills.
+  ///
+  /// A course whose places are all free adopts nothing: it has no draw to
+  /// show, and minting a heat for it would add an empty line to the round for
+  /// every course merely on the timetable.
+  ///
+  /// Returns whether [races] gained anything.
+  Future<bool> _adoptOrphanCourses(
+      List<ProgrammeRace> races, List<Run> orphans) async {
+    var added = false;
+    for (final course in orphans) {
+      if (course.lanes.isEmpty) continue;
+      final seats =
+          await _meetings.getLaneSeats([for (final l in course.lanes) l.id]);
+      if (seats.isEmpty) continue;
+      races.add(ProgrammeRace(
+        // Allocating bumps `nextLocalId` on the live programme; the caller
+        // saves from a re-read, so the bump is not lost.
+        id: _programme.allocateId(),
+        number: races.length + 1,
+        runId: course.id,
+        entryIds: [for (final seat in seats) seat.entryId],
+        athleteIds: [for (final seat in seats) ...seat.athleteIds],
+      ));
+      added = true;
+    }
+    return added;
   }
 
   static void _claim(

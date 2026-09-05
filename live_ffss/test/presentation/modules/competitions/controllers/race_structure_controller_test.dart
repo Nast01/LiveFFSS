@@ -164,7 +164,8 @@ void main() {
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
     meetingRepo = _MockMeetingRepo();
-    when(() => meetingRepo.getMeetings(any())).thenAnswer((_) async => const []);
+    when(() => meetingRepo.getMeetings(any()))
+        .thenAnswer((_) async => const []);
     when(() => meetingRepo.getLaneSeats(any()))
         .thenAnswer((_) async => const []);
     raceFormatRepo = _MockRaceFormatRepo();
@@ -633,11 +634,10 @@ void main() {
     ) async {
       when(() => storage.read(key: any(named: 'key')))
           .thenAnswer((_) async => jsonEncode(programme.toJson()));
-      when(() => meetingRepo.getMeetings(42))
-          .thenAnswer((_) async => meetings);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => meetings);
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
-      controller = RaceStructureController(ProgrammeService(storage),
-          raceRepo, clubRepo, meetingRepo, raceFormatRepo);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo);
       await controller.load(race(500), competition);
     }
 
@@ -711,8 +711,8 @@ void main() {
       when(() => meetingRepo.getMeetings(42))
           .thenThrow(const NetworkException('coupé'));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
-      controller = RaceStructureController(ProgrammeService(storage),
-          raceRepo, clubRepo, meetingRepo, raceFormatRepo);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo);
 
       await controller.load(race(500), competition);
 
@@ -807,12 +807,11 @@ void main() {
         );
 
     Future<void> loadFresh({CompetitionProgramme? local}) async {
-      when(() => storage.read(key: any(named: 'key'))).thenAnswer((_) async =>
-          local == null ? null : jsonEncode(local.toJson()));
+      when(() => storage.read(key: any(named: 'key'))).thenAnswer(
+          (_) async => local == null ? null : jsonEncode(local.toJson()));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
-      controller = RaceStructureController(
-          ProgrammeService(storage), raceRepo, clubRepo, meetingRepo,
-          raceFormatRepo);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo);
       await controller.load(race(500), competition);
     }
 
@@ -820,8 +819,9 @@ void main() {
     // quand même voir les tours de l'épreuve.
     test('sans structure locale, les tours viennent du déroulement serveur',
         () async {
-      when(() => raceFormatRepo.getRaceFormats(42))
-          .thenAnswer((_) async => [format(details: const [serverSerie])]);
+      when(() => raceFormatRepo.getRaceFormats(42)).thenAnswer((_) async => [
+            format(details: const [serverSerie])
+          ]);
 
       await loadFresh();
 
@@ -835,8 +835,7 @@ void main() {
 
     test('un déroulement d une autre épreuve ne sème rien ici', () async {
       when(() => raceFormatRepo.getRaceFormats(42)).thenAnswer((_) async => [
-            format(details: const [serverSerie])
-                .copyWith(disciplineId: 999),
+            format(details: const [serverSerie]).copyWith(disciplineId: 999),
           ]);
 
       await loadFresh();
@@ -846,10 +845,10 @@ void main() {
 
     // Le tirage poussé par un premier appareil vit dans les places : un
     // second appareil le lit de là, engagement par engagement.
-    test('la composition d un autre appareil arrive par les places',
-        () async {
-      when(() => raceFormatRepo.getRaceFormats(42))
-          .thenAnswer((_) async => [format(details: const [serverSerie])]);
+    test('la composition d un autre appareil arrive par les places', () async {
+      when(() => raceFormatRepo.getRaceFormats(42)).thenAnswer((_) async => [
+            format(details: const [serverSerie])
+          ]);
       when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
             meetingWith([
               course(25, lanes: const [
@@ -993,6 +992,70 @@ void main() {
 
       final drawn = controller.structures.single.levels.single.races.single;
       expect(drawn.entryIds, [999]);
+    });
+
+    // Une course ajoutée sur le site fédéral n'a aucune série locale où se
+    // loger : sans création, sa composition reste invisible sur la tablette
+    // alors que la course, elle, s'affiche.
+    test('une course créée sur le site apporte sa composition avec elle',
+        () async {
+      when(() => raceFormatRepo.getRaceFormats(42)).thenAnswer((_) async => [
+            format(details: const [serverSerie])
+          ]);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([
+              course(25, lanes: const [Lane(id: 71, number: 1)]),
+              course(26, lanes: const [Lane(id: 72, number: 1)]),
+              course(27, lanes: const [Lane(id: 73, number: 1)]),
+            ]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
+            (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([72])).thenAnswer((_) async => [
+            (laneId: 72, number: 1, entryId: 102, athleteIds: [12]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([73])).thenAnswer((_) async => [
+            (laneId: 73, number: 1, entryId: 103, athleteIds: [13]),
+          ]);
+
+      // Le déroulement n'en déclare que deux : la troisième course est celle
+      // que l'opérateur a ajoutée depuis le site.
+      await loadFresh();
+
+      final races = controller.structures.single.levels.single.races;
+      expect(races, hasLength(3));
+      expect(races[2].runId, 27);
+      expect(races[2].entryIds, [103]);
+      expect(races[2].athleteIds, [13]);
+    });
+
+    test('une course sans engagement ne crée pas de série fantôme', () async {
+      when(() => raceFormatRepo.getRaceFormats(42)).thenAnswer((_) async => [
+            format(details: const [serverSerie])
+          ]);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([
+              course(25, lanes: const [Lane(id: 71, number: 1)]),
+              course(26, lanes: const [Lane(id: 72, number: 1)]),
+              // Programmée mais jamais composée : rien à montrer, donc rien
+              // à créer — sinon chaque course au programme ajouterait une
+              // série vide au tour.
+              course(27, lanes: const [Lane(id: 73, number: 1)]),
+            ]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
+            (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([72])).thenAnswer((_) async => [
+            (laneId: 72, number: 1, entryId: 102, athleteIds: [12]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([73]))
+          .thenAnswer((_) async => const []);
+
+      await loadFresh();
+
+      expect(controller.structures.single.levels.single.races, hasLength(2));
     });
 
     test('hors ligne, la vue s affiche quand même', () async {
@@ -1405,14 +1468,17 @@ void main() {
       when(() => storage.read(key: any(named: 'key')))
           .thenAnswer((_) async => jsonEncode(stale().toJson()));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
-      when(() => raceFormatRepo.getRaceFormats(42))
-          .thenAnswer((_) async => [formatWith(const [serverSerie])]);
+      when(() => raceFormatRepo.getRaceFormats(42)).thenAnswer((_) async => [
+            formatWith(const [serverSerie])
+          ]);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
           clubRepo, meetingRepo, raceFormatRepo);
 
-      await controller.load(race(500).copyWith(
-        categories: const [Category(id: 7, name: 'Cadets')],
-      ), competition);
+      await controller.load(
+          race(500).copyWith(
+            categories: const [Category(id: 7, name: 'Cadets')],
+          ),
+          competition);
 
       expect(controller.structures.single.levels.single.serverId, 63);
       // Le tirage déjà fait sur cet appareil n'est pas emporté par la réparation.
@@ -1430,9 +1496,11 @@ void main() {
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
           clubRepo, meetingRepo, raceFormatRepo);
 
-      await controller.load(race(500).copyWith(
-        categories: const [Category(id: 7, name: 'Cadets')],
-      ), competition);
+      await controller.load(
+          race(500).copyWith(
+            categories: const [Category(id: 7, name: 'Cadets')],
+          ),
+          competition);
 
       expect(controller.structures.single.levels.single.serverId, 39);
     });
