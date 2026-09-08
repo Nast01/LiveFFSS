@@ -1,12 +1,12 @@
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/core/utils/competition_days.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
-import 'package:live_ffss/app/domain/models/schedule_planner.dart' as planner;
 import 'package:live_ffss/app/presentation/modules/programme/day_sections.dart';
 
 /// Read-only view of a competition's programme for the "Programme" tab.
@@ -56,7 +56,7 @@ class CompetitionDetailProgrammeController extends GetxController {
 
   Future<void> load(Competition comp) async {
     competition.value = comp;
-    days.value = planner.competitionDays(comp.beginDate, comp.endDate);
+    days.value = competitionDays(comp.beginDate, comp.endDate);
     isLoading.value = true;
     hasError.value = false;
     try {
@@ -86,7 +86,7 @@ class CompetitionDetailProgrammeController extends GetxController {
   /// 1970-01-01.
   Meeting? meetingFor(DateTime day) {
     for (final meeting in meetings) {
-      if (planner.sameDay(meeting.date, day)) return meeting;
+      if (sameDay(meeting.date, day)) return meeting;
     }
     return null;
   }

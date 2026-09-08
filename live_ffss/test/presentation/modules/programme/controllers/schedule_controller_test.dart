@@ -140,95 +140,6 @@ void main() {
     expect(controller.selectedSite.value, isNull);
   });
 
-  test('unscheduled lists races with no block', () {
-    expect(controller.unscheduled.map((i) => i.raceId), [10, 11]);
-  });
-
-  test('addRace appends a race block; the next appends after it', () async {
-    await controller.addRace(10, 1, day);
-    await controller.addRace(11, 1, day);
-    final rows = controller.rowsFor(1, day);
-    expect(rows.map((r) => r.block.raceId), [10, 11]);
-    expect(rows[0].begin, DateTime(2026, 6, 13, 9));
-    expect(rows[1].begin, DateTime(2026, 6, 13, 9, 10));
-    expect(controller.unscheduled, isEmpty);
-  });
-
-  group('addRaces', () {
-    test('schedules every race of the group in one go', () async {
-      await controller.addRaces([10, 11], 1, day);
-
-      final rows = controller.rowsFor(1, day);
-      expect(rows.map((r) => r.block.raceId), [10, 11]);
-      expect(rows.map((r) => r.block.order), [0, 1]);
-      expect(controller.unscheduled, isEmpty);
-    });
-
-    test('gives each new block an id of its own', () async {
-      await controller.addRaces([10, 11], 1, day);
-
-      final ids = controller.rowsFor(1, day).map((r) => r.block.id).toList();
-      expect(ids.toSet().length, 2);
-      // The allocation must survive the save, or the next block reuses an id.
-      expect(service.current.value!.nextLocalId,
-          greaterThan(ids.reduce((a, b) => a > b ? a : b)));
-    });
-
-    test('appends after what is already scheduled', () async {
-      await controller.addRace(10, 1, day);
-
-      await controller.addRaces([11], 1, day);
-
-      expect(controller.rowsFor(1, day).map((r) => r.block.raceId), [10, 11]);
-    });
-
-    test('an empty selection changes nothing', () async {
-      await controller.addRaces(const [], 1, day);
-
-      expect(controller.rowsFor(1, day), isEmpty);
-    });
-  });
-
-  test('addManual inserts a manual block into the sequence', () async {
-    await controller.addRace(10, 1, day);
-    await controller.addManual('Pause', 30, 1, day);
-    final rows = controller.rowsFor(1, day);
-    expect(rows[1].block.manualLabel, 'Pause');
-    expect(rows[1].begin, DateTime(2026, 6, 13, 9, 10));
-  });
-
-  test('reorder moves a block and reflows times', () async {
-    await controller.addRace(10, 1, day);
-    await controller.addRace(11, 1, day);
-    await controller.reorder(1, day, 1, 0);
-    final rows = controller.rowsFor(1, day);
-    expect(rows.map((r) => r.block.raceId), [11, 10]);
-    expect(rows[0].begin, DateTime(2026, 6, 13, 9));
-  });
-
-  test('setDuration reflows following blocks', () async {
-    await controller.addRace(10, 1, day);
-    await controller.addRace(11, 1, day);
-    final firstBlockId = controller.rowsFor(1, day).first.block.id;
-    await controller.setDuration(firstBlockId, 20);
-    expect(controller.rowsFor(1, day)[1].begin, DateTime(2026, 6, 13, 9, 20));
-  });
-
-  test('removeBlock on a race returns it to the palette', () async {
-    await controller.addRace(10, 1, day);
-    final blockId = controller.rowsFor(1, day).single.block.id;
-    await controller.removeBlock(blockId);
-    expect(controller.rowsFor(1, day), isEmpty);
-    expect(controller.unscheduled.map((i) => i.raceId), contains(10));
-  });
-
-  test('setDayStart shifts all derived times', () async {
-    await controller.addRace(10, 1, day);
-    await controller.setDayStart(1, day, 8 * 60 + 30);
-    expect(
-        controller.rowsFor(1, day).single.begin, DateTime(2026, 6, 13, 8, 30));
-  });
-
   group('site deletion reconciliation', () {
     CompetitionProgramme seedTwoSites() => const CompetitionProgramme(
           competitionId: 42,
@@ -1880,7 +1791,6 @@ void main() {
     });
   });
 
-
   group('filtrage par site', () {
     DateTime time(String hhmm) => DateFormat('HH:mm').parse(hhmm);
 
@@ -2087,8 +1997,8 @@ void main() {
     // là où l'opérateur ne le cherchera jamais.
     test('supprimer la dernière course emporte son créneau', () async {
       controller.meetings.value = [oneCourseLeft()];
-      when(() => meetingRepo.getMeetings(42)).thenAnswer(
-          (_) async => [oneCourseLeft().copyWith(slots: const [])]);
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [oneCourseLeft().copyWith(slots: const [])]);
 
       await controller.removeRun(26);
 
@@ -2415,10 +2325,10 @@ void main() {
           )).thenAnswer((_) async => next++);
     });
 
-    List<ProgrammeRace> racesOfSerie() => service
-        .current.value!.structures.single.levels
-        .firstWhere((l) => l.type == RoundType.serie)
-        .races;
+    List<ProgrammeRace> racesOfSerie() =>
+        service.current.value!.structures.single.levels
+            .firstWhere((l) => l.type == RoundType.serie)
+            .races;
 
     Future<void> place() => controller.scheduleRound(
           partieId: 39,

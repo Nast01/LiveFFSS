@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/programme_site.dart';
-import 'package:live_ffss/app/domain/models/schedule_planner.dart';
 
 class SitesController extends GetxController {
   SitesController(this._programme);
@@ -20,7 +19,10 @@ class SitesController extends GetxController {
     // Re-read current: allocateId bumped nextLocalId in it.
     final withBump = _programme.current.value!;
     await _programme.save(withBump.copyWith(
-      sites: [...withBump.sites, ProgrammeSite(id: id, name: trimmed, type: type)],
+      sites: [
+        ...withBump.sites,
+        ProgrammeSite(id: id, name: trimmed, type: type)
+      ],
     ));
   }
 
@@ -38,9 +40,7 @@ class SitesController extends GetxController {
   Future<void> deleteSite(int id) async {
     final p = _programme.current.value;
     if (p == null) return;
-    // Drop the site AND clear any race placed on it, so nothing dangles.
-    final withoutSite =
-        p.copyWith(sites: p.sites.where((s) => s.id != id).toList());
-    await _programme.save(clearBlocksForSite(withoutSite, id));
+    await _programme
+        .save(p.copyWith(sites: p.sites.where((s) => s.id != id).toList()));
   }
 }

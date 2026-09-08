@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
-import 'package:live_ffss/app/domain/models/schedule_planner.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 
 /// How an épreuve × category is named wherever it appears — the overview list
@@ -17,11 +16,6 @@ String structureTitle({
       if (gender != Gender.unknown) gender.label,
       categoryLabel,
     ].where((part) => part.isNotEmpty).join(' · ');
-
-extension ScheduleItemFormatting on ScheduleItem {
-  String get label =>
-      '$raceLabel · $categoryLabel · ${roundType.labelKey.tr} $number';
-}
 
 extension RoundTypeFormatting on RoundType {
   String get labelKey => switch (this) {

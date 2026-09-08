@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/core/utils/competition_days.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
@@ -10,19 +11,14 @@ import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/programme_site.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
-import 'package:live_ffss/app/domain/models/schedule_planner.dart' as planner;
 import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
 /// A réunion with no item yet defaults to 08:00 — the FFSS réunion's own
-/// default (see the design spec). This is deliberately its own constant
-/// rather than [planner.defaultStartMinutes] (09:00): that one is the *local*
-/// schedule planner's fallback for a site with no [planner.dayStartMinutes]
-/// override, a different question the two planners simply answer differently.
+/// default (see the design spec).
 const int defaultMeetingStartMinutes = 8 * 60;
 
-/// Duration of a newly added manual item — the value the local planner
-/// already used, kept so the rhythm doesn't change for anyone who knows it.
+/// Duration of a newly added manual item.
 const int defaultItemMinutes = 10;
 
 /// A round of a structure that FFSS holds a `partie` for, and that no créneau
@@ -153,132 +149,21 @@ class ScheduleController extends GetxController {
   void setCompetition(Competition? comp) {
     if (comp == competition.value) return;
     competition.value = comp;
-    days.value = planner.competitionDays(comp?.beginDate, comp?.endDate);
+    days.value = competitionDays(comp?.beginDate, comp?.endDate);
     selectedDayIndex.value = 0;
     _ensureValidSite();
   }
-
-  List<planner.ScheduleRow> rowsFor(int siteId, DateTime day) {
-    final p = _p;
-    return p == null ? const [] : planner.scheduleRows(p, siteId, day);
-  }
-
-  List<planner.ScheduleItem> get unscheduled {
-    final p = _p;
-    return p == null ? const [] : planner.unscheduledRaces(p);
-  }
-
-  int startMinutesFor(int siteId, DateTime day) {
-    final p = _p;
-    return p == null
-        ? planner.defaultStartMinutes
-        : planner.dayStartMinutes(p, siteId, day);
-  }
-
-  // ---------------------------------------------------------------------
-  // Local ScheduleBlock planner. Dormant: the timeline is drawn from the FFSS
-  // réunion tree, and no view calls into this group any more — `scheduleRound`
-  // writes rounds, courses and spots straight to the federation. Kept whole,
-  // with its tests, as the only device-local schedule this app still knows how
-  // to compute; delete it the day nothing wants an offline programme.
-  // ---------------------------------------------------------------------
-
-  Future<void> addRace(int raceId, int siteId, DateTime day) async {
-    if (_p == null) return;
-    final id = _programme.allocateId();
-    await _programme.save(planner.addRaceBlock(
-        _programme.current.value!, id, raceId, siteId, day));
-  }
-
-  /// Schedules a whole épreuve at once, in the order given, as one write.
-  ///
-  /// The ids are allocated first and the programme re-read afterwards:
-  /// [ProgrammeService.allocateId] bumps `nextLocalId` on the live programme,
-  /// so folding blocks onto a copy captured beforehand would save the old
-  /// counter and hand the same ids out twice.
-  Future<void> addRaces(List<int> raceIds, int siteId, DateTime day) async {
-    if (_p == null || raceIds.isEmpty) return;
-    final blockIds = [
-      for (var i = 0; i < raceIds.length; i++) _programme.allocateId()
-    ];
-    var next = _programme.current.value!;
-    for (var i = 0; i < raceIds.length; i++) {
-      next = planner.addRaceBlock(next, blockIds[i], raceIds[i], siteId, day);
-    }
-    await _programme.save(next);
-  }
-
-  List<planner.ScheduleGroup> get unscheduledGroups =>
-      planner.groupUnscheduled(unscheduled);
-
-  Future<void> addManual(
-      String label, int minutes, int siteId, DateTime day) async {
-    final trimmed = label.trim();
-    if (trimmed.isEmpty || minutes < 1 || _p == null) return;
-    final id = _programme.allocateId();
-    await _programme.save(planner.addManualBlock(
-        _programme.current.value!, id, trimmed, minutes, siteId, day));
-  }
-
-  Future<void> reorder(
-      int siteId, DateTime day, int oldIndex, int newIndex) async {
-    final p = _p;
-    if (p == null) return;
-    await _programme
-        .save(planner.reorderBlocks(p, siteId, day, oldIndex, newIndex));
-  }
-
-  Future<void> setDuration(int blockId, int minutes) async {
-    if (minutes < 1) return;
-    final p = _p;
-    if (p == null) return;
-    await _programme.save(planner.setBlockDuration(p, blockId, minutes));
-  }
-
-  Future<void> setManualLabel(int blockId, String label) async {
-    final trimmed = label.trim();
-    if (trimmed.isEmpty) return;
-    final p = _p;
-    if (p == null) return;
-    await _programme.save(planner.setManualLabel(p, blockId, trimmed));
-  }
-
-  Future<void> removeBlock(int blockId) async {
-    final p = _p;
-    if (p == null) return;
-    await _programme.save(planner.removeBlock(p, blockId));
-  }
-
-  Future<void> setDayStart(int siteId, DateTime day, int minutes) async {
-    final p = _p;
-    if (p == null) return;
-    await _programme.save(planner.setDayStart(p, siteId, day, minutes));
-  }
-
-  planner.ScheduleItem? scheduleItemFor(int raceId) {
-    final p = _p;
-    return p == null ? null : planner.raceItemFor(p, raceId);
-  }
-
-  RoundType roundOf(int raceId) {
-    final p = _p;
-    return p == null
-        ? RoundType.unknown
-        : (planner.raceItemFor(p, raceId)?.roundType ?? RoundType.unknown);
-  }
-
-  // ------------------------- end of the dormant planner ------------------
 
   /// Everything this screen reads is public, so a signed-out operator gets in
   /// without friction — only a write comes back refused.
   bool get canWriteToFfss => _user.currentUser.value != null;
 
   /// The réunion covering [day], if FFSS has one. Compared by calendar date,
-  /// like [planner.sameDay]: [Meeting.date] carries the réunion's real day,
+  /// like [sameDay]: [Meeting.date] carries the réunion's real day,
   /// while its slots'/runs' `DateTime`s do not (see [endMinutesOfDay]).
   Meeting? meetingFor(DateTime day) {
     for (final meeting in meetings) {
-      if (planner.sameDay(meeting.date, day)) return meeting;
+      if (sameDay(meeting.date, day)) return meeting;
     }
     return null;
   }
