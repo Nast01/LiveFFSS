@@ -1,0 +1,1296 @@
+<title>Anatomie d'un déroulement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+
+<style>
+  :root {
+    color-scheme: light;
+    --ground: #EEF2F5;
+    --paper: #FFFFFF;
+    --paper-sunk: #F5F8FA;
+    --ink: #0B2436;
+    --ink-2: #46606F;
+    --ink-3: #7A909C;
+    --rule: #D7E0E6;
+    --rule-soft: #E6ECF0;
+
+    --ffss: #1668BE;
+    --ffss-wash: #E4EFFA;
+    --local: #C26A00;
+    --local-wash: #FBEEDC;
+    --broken: #BE3227;
+    --broken-wash: #FBE7E4;
+    --dead: #7A909C;
+
+    --shadow: 0 1px 2px rgba(11, 36, 54, .06), 0 8px 24px -16px rgba(11, 36, 54, .28);
+
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+    --cond: "IBM Plex Sans Condensed", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #0A1620;
+      --paper: #12222E;
+      --paper-sunk: #0E1C27;
+      --ink: #E6EEF3;
+      --ink-2: #A6BCC9;
+      --ink-3: #74909F;
+      --rule: #263E4E;
+      --rule-soft: #1D3140;
+
+      --ffss: #6DB4F2;
+      --ffss-wash: #142F47;
+      --local: #F0A648;
+      --local-wash: #3A2A12;
+      --broken: #F08579;
+      --broken-wash: #3D1D19;
+      --dead: #74909F;
+
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -18px rgba(0, 0, 0, .8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #0A1620;
+    --paper: #12222E;
+    --paper-sunk: #0E1C27;
+    --ink: #E6EEF3;
+    --ink-2: #A6BCC9;
+    --ink-3: #74909F;
+    --rule: #263E4E;
+    --rule-soft: #1D3140;
+
+    --ffss: #6DB4F2;
+    --ffss-wash: #142F47;
+    --local: #F0A648;
+    --local-wash: #3A2A12;
+    --broken: #F08579;
+    --broken-wash: #3D1D19;
+    --dead: #74909F;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -18px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--ffss-wash); }
+
+  /* ---------- shell ---------- */
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+  }
+
+  .col { max-width: 68ch; }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    padding: 56px 0 28px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .kicker {
+    font-family: var(--cond);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ffss);
+    margin: 0 0 12px;
+  }
+
+  h1 {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: clamp(38px, 6.4vw, 62px);
+    line-height: 1.02;
+    letter-spacing: -.015em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    margin: 18px 0 0;
+    max-width: 62ch;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    margin-top: 26px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+  .meta b { color: var(--ink-2); font-weight: 500; }
+
+  /* ---------- nav ---------- */
+
+  nav.toc {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+    margin: 0 -24px 0;
+    padding: 0 24px;
+  }
+  nav.toc ol {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  nav.toc a {
+    display: block;
+    white-space: nowrap;
+    padding: 11px 12px;
+    font-family: var(--cond);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+  }
+  nav.toc a:hover { color: var(--ink); border-bottom-color: var(--rule); }
+  nav.toc a .n {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-right: 6px;
+  }
+
+  a:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--ffss);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* ---------- sections ---------- */
+
+  section { padding-top: 56px; scroll-margin-top: 56px; }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-top: 1px solid var(--rule);
+    padding-top: 14px;
+    margin-bottom: 20px;
+  }
+  .sec-head .num {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ffss);
+    padding-top: 4px;
+  }
+  h2 {
+    font-family: var(--cond);
+    font-size: clamp(26px, 3.4vw, 34px);
+    font-weight: 700;
+    letter-spacing: -.01em;
+    line-height: 1.1;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--cond);
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -.005em;
+    margin: 34px 0 10px;
+  }
+  h4 {
+    font-family: var(--cond);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 26px 0 10px;
+  }
+
+  p { margin: 0 0 14px; }
+  p.lead { font-size: 17.5px; color: var(--ink-2); max-width: 66ch; }
+
+  code, .m {
+    font-family: var(--mono);
+    font-size: .875em;
+    background: var(--paper-sunk);
+    border: 1px solid var(--rule-soft);
+    border-radius: 3px;
+    padding: .1em .34em;
+    color: var(--ink);
+    word-break: break-word;
+  }
+
+  ul.plain { margin: 0 0 14px; padding-left: 20px; }
+  ul.plain li { margin-bottom: 7px; }
+
+  /* ---------- badges ---------- */
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .02em;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .tag::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .tag.ffss   { color: var(--ffss);   border-color: color-mix(in srgb, var(--ffss) 40%, transparent);   background: var(--ffss-wash); }
+  .tag.local  { color: var(--local);  border-color: color-mix(in srgb, var(--local) 40%, transparent);  background: var(--local-wash); }
+  .tag.broken { color: var(--broken); border-color: color-mix(in srgb, var(--broken) 40%, transparent); background: var(--broken-wash); }
+  .tag.dead   { color: var(--dead);   border-color: color-mix(in srgb, var(--dead) 40%, transparent);   background: transparent; }
+
+  /* ---------- fiche ---------- */
+
+  .fiche {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 22px 24px 26px;
+    margin: 22px 0;
+  }
+
+  .fiche-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .fiche-top h3 { margin: 0; flex: 1 1 240px; }
+
+  dl.spec {
+    display: grid;
+    grid-template-columns: minmax(120px, 168px) 1fr;
+    gap: 0;
+    margin: 0;
+    font-size: 14.5px;
+  }
+  dl.spec dt {
+    font-family: var(--cond);
+    font-weight: 600;
+    color: var(--ink-3);
+    padding: 9px 14px 9px 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+  dl.spec dd {
+    margin: 0;
+    padding: 9px 0;
+    border-top: 1px solid var(--rule-soft);
+    color: var(--ink-2);
+  }
+  dl.spec dt:first-of-type, dl.spec dd:first-of-type { border-top: 0; }
+  dl.spec dd .m, dl.spec dd code { background: transparent; border: 0; padding: 0; color: var(--ink); }
+
+  @media (max-width: 620px) {
+    dl.spec { grid-template-columns: 1fr; }
+    dl.spec dd { padding-top: 0; border-top: 0; }
+  }
+
+  /* ---------- flow steps ---------- */
+
+  .flow { display: grid; gap: 0; margin: 14px 0 6px; counter-reset: st; }
+  .flow .st {
+    position: relative;
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    gap: 14px;
+    padding: 0 0 16px;
+  }
+  .flow .st::before {
+    counter-increment: st;
+    content: counter(st);
+    grid-column: 1;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--paper);
+    background: var(--ink-2);
+  }
+  .flow .st.s-ffss::before  { background: var(--ffss); }
+  .flow .st.s-local::before { background: var(--local); }
+  .flow .st.s-broken::before{ background: var(--broken); }
+  .flow .st:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 13px; top: 30px; bottom: 2px;
+    width: 2px;
+    background: var(--rule);
+  }
+  .flow .st .b { font-size: 14.5px; color: var(--ink-2); }
+  .flow .st .b strong { color: var(--ink); font-weight: 600; }
+  .flow .st .b .m { font-size: 12.5px; }
+
+  /* ---------- tables ---------- */
+
+  .scroll { overflow-x: auto; margin: 18px 0; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 660px; }
+  thead th {
+    text-align: left;
+    font-family: var(--cond);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper-sunk);
+    white-space: nowrap;
+  }
+  tbody td { padding: 11px 14px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; color: var(--ink-2); }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { color: var(--ink); }
+  td .m { font-size: 12.5px; }
+
+  /* ---------- figures ---------- */
+
+  figure { margin: 26px 0; }
+  figure svg { display: block; width: 100%; max-width: 100%; height: auto; color: var(--ink-2); }
+  .fig-frame {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 18px;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .fig-frame > svg { min-width: 640px; }
+  figcaption {
+    margin-top: 12px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-3);
+    max-width: 74ch;
+  }
+  figcaption b { color: var(--ink-2); font-weight: 600; }
+
+  svg .bx  { fill: var(--paper-sunk); stroke: var(--rule); stroke-width: 1.5; }
+  svg .bx-f{ fill: var(--ffss-wash);  stroke: var(--ffss); stroke-width: 1.5; }
+  svg .bx-l{ fill: var(--local-wash); stroke: var(--local); stroke-width: 1.5; }
+  svg .bx-x{ fill: var(--broken-wash);stroke: var(--broken); stroke-width: 1.5; }
+  svg .t   { font-family: var(--cond); font-size: 14px; font-weight: 600; fill: var(--ink); }
+  svg .t-s { font-family: var(--mono); font-size: 11px; fill: var(--ink-3); }
+  svg .t-l { font-family: var(--mono); font-size: 11.5px; fill: var(--ink-2); }
+  svg .lane{ font-family: var(--cond); font-size: 12px; font-weight: 700; letter-spacing: .12em; }
+  svg .ln  { stroke: var(--ink-3); stroke-width: 1.6; fill: none; }
+  svg .ln-f{ stroke: var(--ffss); stroke-width: 1.8; fill: none; }
+  svg .ln-l{ stroke: var(--local); stroke-width: 1.8; fill: none; }
+  svg .ln-d{ stroke: var(--ink-3); stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; }
+  svg .ln-x{ stroke: var(--broken); stroke-width: 1.8; fill: none; stroke-dasharray: 5 4; }
+
+  /* ---------- callouts ---------- */
+
+  .note {
+    border-left: 3px solid var(--ffss);
+    background: var(--paper);
+    padding: 14px 18px;
+    margin: 20px 0;
+    font-size: 14.5px;
+    color: var(--ink-2);
+    border-radius: 0 6px 6px 0;
+  }
+  .note.warn { border-left-color: var(--broken); }
+  .note.local { border-left-color: var(--local); }
+  .note b { color: var(--ink); }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    padding: 14px 18px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    margin: 20px 0 6px;
+    font-size: 13.5px;
+    color: var(--ink-2);
+  }
+  .legend > div { display: flex; align-items: center; gap: 8px; }
+
+  /* ---------- decision list ---------- */
+
+  .deck { display: grid; gap: 14px; margin: 20px 0; }
+  @media (min-width: 760px) { .deck.two { grid-template-columns: 1fr 1fr; } }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .card h5 {
+    font-family: var(--cond);
+    font-size: 17px;
+    font-weight: 700;
+    margin: 8px 0 8px;
+    color: var(--ink);
+  }
+  .card p { font-size: 14.5px; color: var(--ink-2); margin: 0 0 8px; }
+  .card p:last-child { margin-bottom: 0; }
+  .card .q {
+    font-family: var(--cond);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ffss);
+    margin-top: 10px;
+  }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 20px;
+    border-top: 2px solid var(--ink);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="kicker">Live FFSS · branche generate_heats · état du code</p>
+    <h1>Anatomie d'un déroulement</h1>
+    <p class="standfirst">
+      Quatre écrans — Structure, Programme, Engagés, Séries — tiennent aujourd'hui tout le cycle
+      d'une épreuve, de la définition des tours jusqu'aux résultats publiés. Ce document dit ce que
+      chacun manipule, ce qu'il appelle, et où passe la frontière entre ce que FFSS détient et ce
+      que l'appareil garde pour lui.
+    </p>
+    <div class="meta">
+      <span><b>Branche</b> generate_heats · 121 commits d'avance sur main</span>
+      <span><b>Relevé</b> 8 septembre 2026</span>
+      <span><b>Base API</b> https://ffss.fr/api/v1.0</span>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="Sommaire">
+    <ol>
+      <li><a href="#reperes"><span class="n">00</span>Repères</a></li>
+      <li><a href="#carte"><span class="n">01</span>Carte globale</a></li>
+      <li><a href="#structure"><span class="n">02</span>Structure</a></li>
+      <li><a href="#programme"><span class="n">03</span>Programme</a></li>
+      <li><a href="#engages"><span class="n">04</span>Engagés</a></li>
+      <li><a href="#series"><span class="n">05</span>Séries</a></li>
+      <li><a href="#satellites"><span class="n">06</span>Tirage &amp; Saisie</a></li>
+      <li><a href="#modeles"><span class="n">07</span>Modèles</a></li>
+      <li><a href="#api"><span class="n">08</span>API</a></li>
+      <li><a href="#decisions"><span class="n">09</span>Ce qui coince</a></li>
+    </ol>
+  </nav>
+
+  <!-- ================= 00 ================= -->
+  <section id="reperes">
+    <div class="sec-head"><span class="num">00</span><h2>Deux sources de vérité, quatre clés</h2></div>
+
+    <div class="col">
+      <p class="lead">
+        Tout le reste découle de ceci : une partie des données vit sur <b>ffss.fr</b>, l'autre dans
+        le <b>stockage sécurisé de l'appareil</b>, et les deux moitiés ne se rejoignent que par
+        quatre identifiants recopiés à la main.
+      </p>
+      <p>
+        Côté fédération : les épreuves, les engagements, les <em>déroulements</em> et leurs
+        <em>parties</em> (les tours), les <em>réunions</em> → <em>créneaux</em> → <em>courses</em> →
+        <em>places</em>, et les <em>séries</em> avec leurs <em>résultats</em>.
+      </p>
+      <p>
+        Côté appareil : un unique blob JSON par compétition
+        (<code>programme_&lt;competitionId&gt;</code>) porté par <code>ProgrammeService</code>, qui
+        contient la structure authorée (tours, séries tirées, ordres d'arrivée, pénalités), plus la
+        présence au marshalling (<code>AttendanceService</code>, clé <code>race_attendance</code>).
+      </p>
+    </div>
+
+    <div class="legend">
+      <div><span class="tag ffss">FFSS</span> lu ou écrit sur le serveur fédéral</div>
+      <div><span class="tag local">Appareil</span> stockage sécurisé local, jamais envoyé</div>
+      <div><span class="tag broken">Cassé</span> route FFSS en échec, contournée</div>
+      <div><span class="tag dead">Mort</span> code présent, plus appelé</div>
+    </div>
+
+    <figure>
+      <div class="fig-frame">
+        <svg viewBox="0 0 900 450" role="img" aria-label="Les entités FFSS à gauche, les entités locales à droite, reliées par quatre clés de jointure : serverId, runId, entryIds, et le résultat serveur qui prime sur l'ordre local. La présence locale ne remonte jamais.">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"></path>
+            </marker>
+          </defs>
+
+          <text class="lane" x="20" y="28" fill="var(--ffss)">FFSS · ffss.fr</text>
+          <text class="lane" x="560" y="28" fill="var(--local)">APPAREIL · secure storage</text>
+          <line x1="20" y1="38" x2="340" y2="38" stroke="var(--ffss)" stroke-width="2"></line>
+          <line x1="560" y1="38" x2="880" y2="38" stroke="var(--local)" stroke-width="2"></line>
+
+          <!-- rangée 1 : engagements / présence -->
+          <rect class="bx-f" x="20" y="62" width="320" height="46" rx="5"></rect>
+          <text class="t" x="36" y="82">Engagement</text>
+          <text class="t-s" x="36" y="99">competition/engagement?epreuve=</text>
+
+          <rect class="bx-l" x="560" y="62" width="320" height="46" rx="5"></rect>
+          <text class="t" x="576" y="82">AttendanceService</text>
+          <text class="t-s" x="576" y="99">présence : attente / présent / absent</text>
+
+          <g color="var(--ink-3)">
+            <line class="ln" x1="344" y1="78" x2="552" y2="78" marker-end="url(#ar)"></line>
+          </g>
+          <text class="t-l" x="448" y="72" text-anchor="middle">la liste à pointer</text>
+          <g color="var(--broken)">
+            <line class="ln-x" x1="552" y1="98" x2="344" y2="98" marker-end="url(#ar)"></line>
+          </g>
+          <text class="t-l" x="448" y="115" text-anchor="middle" fill="var(--broken)">aucune route : rien ne remonte</text>
+
+          <!-- rangée 2 : partie / RoundLevel -->
+          <rect class="bx-f" x="20" y="140" width="320" height="46" rx="5"></rect>
+          <text class="t" x="36" y="160">Déroulement › Partie</text>
+          <text class="t-s" x="36" y="177">competition/:id/deroulement</text>
+
+          <rect class="bx-l" x="560" y="140" width="320" height="46" rx="5"></rect>
+          <text class="t" x="576" y="160">RoundLevel</text>
+          <text class="t-s" x="576" y="177">type, spotsPerRace, qualifiersPerRace</text>
+
+          <g color="var(--ffss)">
+            <line class="ln-f" x1="344" y1="163" x2="552" y2="163" marker-end="url(#ar)"></line>
+          </g>
+          <text class="t-l" x="448" y="156" text-anchor="middle" fill="var(--ffss)">partie.id → serverId</text>
+
+          <!-- rangée 3-4 : course + place / ProgrammeRace -->
+          <rect class="bx-f" x="20" y="212" width="320" height="46" rx="5"></rect>
+          <text class="t" x="36" y="232">Réunion › Créneau › Course</text>
+          <text class="t-s" x="36" y="249">competition/:id/reunion</text>
+
+          <rect class="bx-f" x="20" y="282" width="320" height="46" rx="5"></rect>
+          <text class="t" x="36" y="302">Place (couloir)</text>
+          <text class="t-s" x="36" y="319">…/course/place/:id</text>
+
+          <rect class="bx-l" x="560" y="212" width="320" height="116" rx="5"></rect>
+          <text class="t" x="576" y="234">ProgrammeRace — une série tirée</text>
+          <text class="t-s" x="576" y="254">runId · entryIds · athleteIds</text>
+          <text class="t-s" x="576" y="272">finishOrder · penalties</text>
+          <text class="t-s" x="576" y="290">sourceRaceIds (arbre des tours)</text>
+          <text class="t-s" x="576" y="313">id local, alloué par nextLocalId</text>
+
+          <g color="var(--ffss)">
+            <line class="ln-f" x1="344" y1="235" x2="552" y2="235" marker-end="url(#ar)"></line>
+            <line class="ln-f" x1="344" y1="305" x2="552" y2="305" marker-end="url(#ar)"></line>
+          </g>
+          <text class="t-l" x="448" y="228" text-anchor="middle" fill="var(--ffss)">course.id → runId</text>
+          <text class="t-l" x="448" y="298" text-anchor="middle" fill="var(--ffss)">place.engagement ⇄ entryIds</text>
+
+          <!-- rangée 5 : série / résultat -->
+          <rect class="bx-f" x="20" y="356" width="320" height="46" rx="5"></rect>
+          <text class="t" x="36" y="376">Série › Résultat</text>
+          <text class="t-s" x="36" y="393">competition/resultat?serie=</text>
+
+          <rect class="bx-l" x="560" y="356" width="320" height="46" rx="5"></rect>
+          <text class="t" x="576" y="376">finishOrder + penalties</text>
+          <text class="t-s" x="576" y="393">l'ordre saisi sur l'appareil</text>
+
+          <g color="var(--ffss)">
+            <line class="ln-f" x1="344" y1="379" x2="552" y2="379" marker-end="url(#ar)"></line>
+          </g>
+          <text class="t-l" x="448" y="372" text-anchor="middle" fill="var(--ffss)">le rang serveur prime à l'affichage</text>
+        </svg>
+      </div>
+      <figcaption>
+        <b>Fig. 1 — Les quatre jointures.</b> Chaque flèche bleue est un entier recopié d'un côté à
+        l'autre. Si l'un d'eux devient périmé — un déroulement recréé sur le site fédéral, une course
+        supprimée — l'écran ne montre plus rien et n'affiche aucune erreur : c'est la panne
+        caractéristique de cette architecture, et <code>realignServerIds()</code> ainsi que
+        l'appariement par rang de <code>_importLevel()</code> existent pour la réparer.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= 01 ================= -->
+  <section id="carte">
+    <div class="sec-head"><span class="num">01</span><h2>Où vivent les quatre écrans</h2></div>
+
+    <div class="col">
+      <p>
+        Les quatre vues ne sont pas au même endroit de l'arbre de navigation : <b>Structure</b> et
+        <b>Programme</b> sont deux onglets d'une même route (<code>Routes.programme</code>, ouverte
+        par l'icône agenda du détail compétition), tandis que <b>Engagés</b> et <b>Séries</b> sont
+        deux onglets du détail d'une épreuve (<code>Routes.raceDetail</code>).
+      </p>
+    </div>
+
+    <figure>
+      <div class="fig-frame">
+        <svg viewBox="0 0 900 400" role="img" aria-label="Carte de navigation : Accueil mène au détail compétition, qui mène d'un côté à la route Programme avec ses onglets Structure et Planning puis l'éditeur de structure, de l'autre au détail épreuve avec ses onglets Engagés, Séries et Résumé, puis aux écrans Tirage et Saisie.">
+          <defs>
+            <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"></path>
+            </marker>
+          </defs>
+
+          <rect class="bx" x="16" y="178" width="122" height="44" rx="5"></rect>
+          <text class="t" x="77" y="199" text-anchor="middle">Accueil</text>
+          <text class="t-s" x="77" y="215" text-anchor="middle">MainShell</text>
+
+          <rect class="bx" x="176" y="178" width="150" height="44" rx="5"></rect>
+          <text class="t" x="251" y="199" text-anchor="middle">Compétition</text>
+          <text class="t-s" x="251" y="215" text-anchor="middle">4 onglets</text>
+
+          <g color="var(--ink-3)">
+            <line class="ln" x1="142" y1="200" x2="170" y2="200" marker-end="url(#ar2)"></line>
+            <path class="ln" d="M 330 190 L 356 190 L 356 92 L 380 92" marker-end="url(#ar2)"></path>
+            <path class="ln" d="M 330 210 L 356 210 L 356 300 L 380 300" marker-end="url(#ar2)"></path>
+          </g>
+          <text class="t-l" x="360" y="80" >icône agenda</text>
+          <text class="t-l" x="360" y="326" >tap sur une épreuve</text>
+
+          <!-- branche programme -->
+          <rect class="bx-l" x="384" y="70" width="150" height="44" rx="5"></rect>
+          <text class="t" x="459" y="91" text-anchor="middle">Programme</text>
+          <text class="t-s" x="459" y="107" text-anchor="middle">Routes.programme</text>
+
+          <rect class="bx-l" x="580" y="26" width="140" height="40" rx="5"></rect>
+          <text class="t" x="650" y="51" text-anchor="middle">Structure</text>
+          <rect class="bx-f" x="580" y="90" width="140" height="40" rx="5"></rect>
+          <text class="t" x="650" y="115" text-anchor="middle">Planning</text>
+
+          <g color="var(--ink-3)">
+            <path class="ln" d="M 538 84 L 558 84 L 558 46 L 574 46" marker-end="url(#ar2)"></path>
+            <path class="ln" d="M 538 100 L 558 100 L 558 110 L 574 110" marker-end="url(#ar2)"></path>
+            <line class="ln" x1="724" y1="46" x2="754" y2="46" marker-end="url(#ar2)"></line>
+          </g>
+
+          <rect class="bx-l" x="758" y="26" width="126" height="40" rx="5"></rect>
+          <text class="t" x="821" y="45" text-anchor="middle">Éditeur</text>
+          <text class="t-s" x="821" y="59" text-anchor="middle">des tours</text>
+
+          <!-- branche épreuve -->
+          <rect class="bx" x="384" y="278" width="150" height="44" rx="5"></rect>
+          <text class="t" x="459" y="299" text-anchor="middle">Épreuve</text>
+          <text class="t-s" x="459" y="315" text-anchor="middle">Routes.raceDetail</text>
+
+          <rect class="bx-l" x="580" y="212" width="140" height="40" rx="5"></rect>
+          <text class="t" x="650" y="237" text-anchor="middle">Engagés</text>
+          <rect class="bx-l" x="580" y="276" width="140" height="40" rx="5"></rect>
+          <text class="t" x="650" y="301" text-anchor="middle">Séries</text>
+          <rect class="bx" x="580" y="340" width="140" height="40" rx="5" opacity="0.55"></rect>
+          <text class="t" x="650" y="359" text-anchor="middle" opacity="0.6">Résumé</text>
+          <text class="t-s" x="650" y="373" text-anchor="middle" opacity="0.6">écran vide</text>
+
+          <g color="var(--ink-3)">
+            <path class="ln" d="M 538 292 L 558 292 L 558 232 L 574 232" marker-end="url(#ar2)"></path>
+            <path class="ln" d="M 538 300 L 558 300 L 558 296 L 574 296" marker-end="url(#ar2)"></path>
+            <path class="ln-d" d="M 538 312 L 558 312 L 558 360 L 574 360" marker-end="url(#ar2)"></path>
+            <path class="ln" d="M 724 288 L 742 288 L 742 232 L 754 232" marker-end="url(#ar2)"></path>
+            <path class="ln" d="M 724 304 L 742 304 L 742 340 L 754 340" marker-end="url(#ar2)"></path>
+          </g>
+
+          <rect class="bx-l" x="758" y="212" width="126" height="40" rx="5"></rect>
+          <text class="t" x="821" y="237" text-anchor="middle">Tirage</text>
+          <rect class="bx-l" x="758" y="320" width="126" height="40" rx="5"></rect>
+          <text class="t" x="821" y="345" text-anchor="middle">Saisie</text>
+        </svg>
+      </div>
+      <figcaption>
+        <b>Fig. 2 — Navigation.</b> Cadres orangés : l'écran travaille d'abord sur le programme local.
+        Cadres bleus : l'écran lit et écrit directement l'arbre réunion de FFSS. Le <b>Résumé</b>
+        (onglet&nbsp;2 du détail épreuve) est un <code>EmptyState</code> « à venir ».
+      </figcaption>
+    </figure>
+
+    <h3>Le cycle complet d'une épreuve</h3>
+    <div class="col">
+      <p>
+        Sept étapes, dont quatre traversent la frontière. Aucune n'est réversible automatiquement :
+        supprimer un tour côté fédéral n'efface rien localement, et inversement.
+      </p>
+    </div>
+
+    <figure>
+      <div class="fig-frame">
+        <svg viewBox="0 0 940 340" role="img" aria-label="Diagramme en couloirs : la voie du haut est FFSS, celle du bas l'appareil. La structure est authorée localement, poussée en déroulement puis parties, placée en créneau, courses et places, la présence et le tirage se font localement puis remplissent les places, la saisie du classement se fait localement puis publie série et résultats, ce qui réensemence le tour suivant.">
+          <defs>
+            <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"></path>
+            </marker>
+          </defs>
+
+          <rect x="0" y="52" width="940" height="92" rx="6" fill="var(--ffss-wash)" opacity="0.45"></rect>
+          <rect x="0" y="208" width="940" height="92" rx="6" fill="var(--local-wash)" opacity="0.45"></rect>
+          <text class="lane" x="12" y="44" fill="var(--ffss)">FFSS</text>
+          <text class="lane" x="12" y="324" fill="var(--local)">APPAREIL</text>
+
+          <!-- étape 1 bas -->
+          <rect class="bx-l" x="26" y="222" width="150" height="64" rx="5"></rect>
+          <text class="t" x="101" y="246" text-anchor="middle">1 · Structure</text>
+          <text class="t-s" x="101" y="264" text-anchor="middle">tours, nb de courses,</text>
+          <text class="t-s" x="101" y="278" text-anchor="middle">qualifiés</text>
+
+          <!-- étape 2 haut -->
+          <rect class="bx-f" x="212" y="66" width="150" height="64" rx="5"></rect>
+          <text class="t" x="287" y="90" text-anchor="middle">2 · Déroulement</text>
+          <text class="t-s" x="287" y="108" text-anchor="middle">+ une partie</text>
+          <text class="t-s" x="287" y="122" text-anchor="middle">par tour</text>
+
+          <!-- étape 3 haut -->
+          <rect class="bx-f" x="398" y="66" width="160" height="64" rx="5"></rect>
+          <text class="t" x="478" y="90" text-anchor="middle">3 · Créneau</text>
+          <text class="t-s" x="478" y="108" text-anchor="middle">+ courses</text>
+          <text class="t-s" x="478" y="122" text-anchor="middle">+ places vides</text>
+
+          <!-- étape 4 bas -->
+          <rect class="bx-l" x="398" y="222" width="160" height="64" rx="5"></rect>
+          <text class="t" x="478" y="246" text-anchor="middle">4 · Présence</text>
+          <text class="t-s" x="478" y="264" text-anchor="middle">puis tirage des</text>
+          <text class="t-s" x="478" y="278" text-anchor="middle">séries</text>
+
+          <!-- étape 5 haut -->
+          <rect class="bx-f" x="594" y="66" width="150" height="64" rx="5"></rect>
+          <text class="t" x="669" y="90" text-anchor="middle">5 · Places</text>
+          <text class="t-s" x="669" y="108" text-anchor="middle">remplies</text>
+          <text class="t-s" x="669" y="122" text-anchor="middle">(syncLanes)</text>
+
+          <!-- étape 6 bas -->
+          <rect class="bx-l" x="594" y="222" width="150" height="64" rx="5"></rect>
+          <text class="t" x="669" y="246" text-anchor="middle">6 · Classement</text>
+          <text class="t-s" x="669" y="264" text-anchor="middle">ordre d'arrivée,</text>
+          <text class="t-s" x="669" y="278" text-anchor="middle">pénalités</text>
+
+          <!-- étape 7 haut -->
+          <rect class="bx-f" x="780" y="66" width="146" height="64" rx="5"></rect>
+          <text class="t" x="853" y="90" text-anchor="middle">7 · Série</text>
+          <text class="t-s" x="853" y="108" text-anchor="middle">+ un résultat</text>
+          <text class="t-s" x="853" y="122" text-anchor="middle">par place</text>
+
+          <g color="var(--ffss)">
+            <path class="ln-f" d="M 180 240 L 196 240 L 196 98 L 206 98" marker-end="url(#ar3)"></path>
+            <line class="ln-f" x1="366" y1="98" x2="392" y2="98" marker-end="url(#ar3)"></line>
+            <path class="ln-f" d="M 478 134 L 478 216" marker-end="url(#ar3)"></path>
+            <path class="ln-f" d="M 562 240 L 578 240 L 578 98 L 588 98" marker-end="url(#ar3)"></path>
+            <path class="ln-f" d="M 748 240 L 764 240 L 764 98 L 774 98" marker-end="url(#ar3)"></path>
+          </g>
+          <text class="t-l" x="188" y="176" text-anchor="middle" fill="var(--ffss)">pushAll</text>
+          <text class="t-l" x="379" y="88" text-anchor="middle" fill="var(--ffss)">placer</text>
+          <text class="t-l" x="488" y="180" fill="var(--ffss)">runId enregistré</text>
+          <text class="t-l" x="570" y="176" text-anchor="middle" fill="var(--ffss)">syncLanes</text>
+          <text class="t-l" x="756" y="176" text-anchor="middle" fill="var(--ffss)">valider</text>
+
+          <g color="var(--local)">
+            <line class="ln-l" x1="562" y1="254" x2="588" y2="254" marker-end="url(#ar3)"></line>
+            <path class="ln-l" d="M 853 134 L 853 190 L 500 190 L 500 216" marker-end="url(#ar3)"></path>
+          </g>
+          <text class="t-l" x="575" y="246" text-anchor="middle" fill="var(--local)">courir</text>
+          <text class="t-l" x="676" y="184" fill="var(--local)">le tour suivant est réensemencé</text>
+        </svg>
+      </div>
+      <figcaption>
+        <b>Fig. 3 — Cycle de vie.</b> Les étapes 1, 4 et 6 sont authorées sur l'appareil ; 2, 3, 5 et 7
+        sont des écritures FFSS. La boucle de retour (étape&nbsp;7 → étape&nbsp;4) est
+        <code>RaceCourseController._seedNextRound()</code> : valider une course recalcule les
+        qualifiés de tout le tour et redessine le tour suivant, localement puis sur les places.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= 02 ================= -->
+  <section id="structure">
+    <div class="sec-head"><span class="num">02</span><h2>Structure</h2></div>
+
+    <div class="col">
+      <p class="lead">
+        La liste de toutes les <b>épreuve × catégorie</b> de la compétition, avec pour chacune le
+        nombre d'engagés et le déroulement qui la couvre — ou son absence. C'est l'écran de
+        cadrage : rien n'est encore placé dans le temps.
+      </p>
+    </div>
+
+    <div class="fiche">
+      <div class="fiche-top">
+        <h3>Fiche technique</h3>
+        <span class="tag local">Programme local</span>
+        <span class="tag ffss">Déroulements FFSS</span>
+      </div>
+      <dl class="spec">
+        <dt>Route</dt><dd><code>Routes.programme</code>, onglet&nbsp;0 · argument : un <code>Competition</code></dd>
+        <dt>Vue</dt><dd><code>structure_overview_view.dart</code> (481 l.) + <code>structure_filter_bar.dart</code> + <code>structure_server_state.dart</code></dd>
+        <dt>Contrôleur</dt><dd><code>ProgrammeController</code> (593 l.)</dd>
+        <dt>Injection</dt><dd><code>ProgrammeBinding</code> → RaceRepository, ProgrammeService, RaceFormatRepository, UserService</dd>
+        <dt>Modèles lus</dt><dd><code>Race</code>, <code>Category</code>, <code>Entry</code>, <code>RaceFormatConfiguration</code>, <code>RaceFormatDetail</code>, <code>EventStructure</code>, <code>RoundLevel</code>, <code>ProgrammeRace</code></dd>
+        <dt>Modèle de vue</dt><dd><code>OverviewRow</code> — une ligne = (raceId, categoryId) + compteurs + structure locale + déroulement serveur</dd>
+        <dt>Écrit</dt><dd>le blob local via <code>ProgrammeService.save()</code>, et <code>deroulement/submit</code> · <code>deroulement/:id/delete</code> sur FFSS</dd>
+      </dl>
+    </div>
+
+    <h4>Ce que fait <span class="m">load()</span></h4>
+    <div class="flow">
+      <div class="st s-local"><div class="b"><strong>Charge le blob local</strong> — <span class="m">ProgrammeService.load(competitionId)</span>. Un blob corrompu est traité comme absent.</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Récupère les épreuves</strong> — <span class="m">GET competition/epreuve?evenement=</span>.</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Engagements et déroulements en parallèle</strong> — un <span class="m">GET competition/engagement?epreuve=</span> par épreuve, lancés d'un coup via <span class="m">Future.wait</span>, pendant que les déroulements sont paginés par 100. C'est ce qui a rendu l'ouverture de l'onglet supportable.</div></div>
+      <div class="st"><div class="b"><strong>Compose les lignes</strong> — une par catégorie déclarée par l'épreuve. <span class="m">entryCount</span> = le listing, <span class="m">eligibleCount</span> = hors forfaits, et c'est le second qui doit dimensionner un tour.</div></div>
+      <div class="st"><div class="b"><strong>Apparie les déroulements</strong> par la clé <span class="m">(disciplineId, gender, categoryId)</span> — un déroulement ne porte aucun id d'épreuve, ces trois valeurs sont la seule chose que les deux côtés partagent.</div></div>
+      <div class="st s-local"><div class="b"><strong>Réadopte les tours du serveur</strong> — <span class="m">_adoptServerRoundsForEmptyStructures()</span> reconstruit les tours de toute structure locale vidée. Une structure qui porte encore des tours n'est jamais écrasée.</div></div>
+    </div>
+
+    <h4>Actions offertes</h4>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Action</th><th>Portée</th><th>Effet</th></tr></thead>
+        <tbody>
+          <tr><td>Filtres (spécialité, discipline, genre, catégorie)</td><td><span class="tag dead">UI</span></td><td>ET entre critères, OU dans un critère. Toutes les actions de masse travaillent sur <code>visibleRows</code> — le filtre n'est jamais décoratif.</td></tr>
+          <tr><td>Générer les structures par défaut</td><td><span class="tag local">Local</span></td><td><code>buildDefaultLevels()</code> : 1 finale si tout le monde tient dans une course, sinon séries + finale. Taille de course : 16 en côtier, 8 en eau plate.</td></tr>
+          <tr><td>Supprimer les structures</td><td><span class="tag local">Local</span></td><td>Détruit aussi les séries tirées. Sites, planning et heures de début ne sont pas touchés.</td></tr>
+          <tr><td>Créer les déroulements manquants</td><td><span class="tag ffss">FFSS</span></td><td>Un appel <code>deroulement/submit</code> <em>par ligne</em>, toujours en création, jamais en mise à jour — passer un id élargirait un déroulement existant à une seule catégorie.</td></tr>
+          <tr><td>Supprimer un déroulement orphelin</td><td><span class="tag ffss">FFSS</span></td><td>Un déroulement que plus aucune ligne ne réclame. Suivi d'un rechargement, la route ne renvoyant qu'un booléen.</td></tr>
+          <tr><td>Ouvrir l'éditeur d'une ligne</td><td>→</td><td>Route <code>structureEditor</code> avec <code>StructureEditorArgs</code>, qui embarque déjà les <code>serverDetails</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note local">
+      <b>À retenir.</b> Le contrôleur pose un <code>ever()</code> sur <code>ProgrammeService.current</code> :
+      revenir de l'éditeur rafraîchit les lignes sans refaire un seul appel réseau. Le worker est
+      disposé dans <code>onClose()</code> — le service étant permanent, l'oublier retiendrait le
+      contrôleur pour la vie de l'app.
+    </div>
+  </section>
+
+  <!-- ================= 03 ================= -->
+  <section id="programme">
+    <div class="sec-head"><span class="num">03</span><h2>Programme</h2></div>
+
+    <div class="col">
+      <p class="lead">
+        Deux écrans portent ce nom, et ils ne font pas le même métier. Le <b>Planning</b> (onglet&nbsp;1
+        de la route Programme) est l'éditeur : il écrit dans l'arbre réunion de FFSS. L'onglet
+        <b>Programme</b> du détail compétition est sa lecture seule, destinée au public.
+      </p>
+    </div>
+
+    <div class="fiche">
+      <div class="fiche-top">
+        <h3>Planning — l'éditeur</h3>
+        <span class="tag ffss">Écrit sur FFSS</span>
+      </div>
+      <dl class="spec">
+        <dt>Route</dt><dd><code>Routes.programme</code>, onglet&nbsp;1</dd>
+        <dt>Vue</dt><dd><code>schedule_view.dart</code> (850 l.) + <code>sites_view.dart</code> + <code>day_sections.dart</code></dd>
+        <dt>Contrôleur</dt><dd><code>ScheduleController</code> — <b>1027 lignes</b>, le plus gros du dépôt</dd>
+        <dt>Modèles</dt><dd><code>Meeting</code> › <code>Slot</code> › <code>Run</code> › <code>Lane</code> (l'arbre FFSS), <code>UnscheduledRound</code> (la palette), <code>ProgrammeSite</code></dd>
+        <dt>Lit</dt><dd><code>competition/:id/reunion</code> paginé par 100, puis les courses de chaque créneau par lots de 8</dd>
+        <dt>Écrit</dt><dd><code>reunion/submit</code>, <code>creneau/submit</code>, <code>course/submit</code>, <code>place/submit</code> et les <code>delete</code> correspondants</dd>
+      </dl>
+    </div>
+
+    <h4>Placer un tour — <span class="m">scheduleRound()</span></h4>
+    <div class="flow">
+      <div class="st s-ffss"><div class="b"><strong>Assure la réunion du jour</strong> — créée à 08:00 si FFSS n'en a pas, nommée dans la langue de l'app (« lundi 8 septembre 2026 »).</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Crée le créneau</strong> avec <span class="m">partie = partieId</span>. C'est ce paramètre, et lui seul, qui distingue un tour planifié d'un simple élément informatif.</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Crée une course par série déclarée</strong>, bout à bout, 10&nbsp;minutes chacune. Un refus sur une course n'arrête pas les autres.</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Ouvre les places</strong> — <span class="m">createDefaultLanes()</span>, numérotées 1..n selon le <span class="m">spotsPerRace</span> du tour, une requête par place.</div></div>
+      <div class="st s-local"><div class="b"><strong>Recopie les runId</strong> sur les <span class="m">ProgrammeRace</span> du tour, position par position (<span class="m">_linkRunsToRound</span>). Une course refusée laisse son <span class="m">runId</span> à 0 plutôt que de décaler les suivantes.</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Relit, puis repousse la fin de réunion</strong> — le <span class="m">fin</span> de la réunion est recalculé comme le maximum des fins de courses, tous sites confondus.</div></div>
+    </div>
+
+    <div class="note">
+      <b>Un créneau n'a pas de rang.</b> Sa place dans la journée <em>est</em> son heure de début.
+      Réordonner, supprimer ou raccourcir un élément déclenche donc le même
+      <code>_resequenceDay()</code> : tout est retassé depuis le début de la réunion, et seuls les
+      éléments dont les heures bougent réellement sont réécrits.
+    </div>
+
+    <div class="fiche">
+      <div class="fiche-top">
+        <h3>Programme — la lecture seule</h3>
+        <span class="tag ffss">Lecture FFSS</span>
+      </div>
+      <dl class="spec">
+        <dt>Route</dt><dd><code>Routes.competitionDetail</code>, onglet&nbsp;1</dd>
+        <dt>Contrôleur</dt><dd><code>CompetitionDetailProgrammeController</code> (142 l.)</dd>
+        <dt>Source</dt><dd>le même arbre réunion FFSS — une modification faite sur ffss.fr apparaît ici à la prochaine ouverture</dd>
+        <dt>Programme local</dt><dd>chargé pour <b>une seule chose</b> : retrouver l'épreuve d'une course tapée. La charge utile réunion ne porte aucun id d'épreuve, le saut passe donc par <code>ProgrammeRace.runId</code></dd>
+        <dt>Conséquence</dt><dd>un programme authoré sur un autre appareil rend les lignes non cliquables — sans erreur visible</dd>
+      </dl>
+    </div>
+
+    <h4>Le planificateur local, en sommeil</h4>
+    <div class="col">
+      <p>
+        <code>ScheduleController</code> conserve un bloc entier — <code>addRace</code>,
+        <code>addRaces</code>, <code>addManual</code>, <code>reorder</code>, <code>setDuration</code>,
+        <code>setDayStart</code>… — qui pilote les <code>ScheduleBlock</code> du programme local via
+        <code>schedule_planner.dart</code> (330 l.). <b>Aucune vue ne l'appelle plus.</b> Le commentaire
+        en tête du bloc l'assume : il est gardé, avec ses tests, comme le seul planning hors-ligne que
+        l'app sache encore calculer.
+      </p>
+    </div>
+    <div class="legend">
+      <div><span class="tag dead">Mort</span> <code>ScheduleBlock</code>, <code>SiteDayStart</code>, <code>schedule_planner.dart</code>, <code>SitesController</code> partiellement</div>
+    </div>
+  </section>
+
+  <!-- ================= 04 ================= -->
+  <section id="engages">
+    <div class="sec-head"><span class="num">04</span><h2>Engagés</h2></div>
+
+    <div class="col">
+      <p class="lead">
+        La liste à plat de tous les athlètes engagés dans l'épreuve, et le pointage du marshalling.
+        C'est le seul écran qui produit une donnée que FFSS ne saura jamais : <b>qui est présent</b>.
+      </p>
+    </div>
+
+    <div class="fiche">
+      <div class="fiche-top">
+        <h3>Fiche technique</h3>
+        <span class="tag ffss">Engagements</span>
+        <span class="tag local">Présence</span>
+      </div>
+      <dl class="spec">
+        <dt>Route</dt><dd><code>Routes.raceDetail</code>, onglet&nbsp;0 · arguments : <code>{race, competition}</code></dd>
+        <dt>Vue</dt><dd><code>race_detail_entries_view.dart</code> (509 l.)</dd>
+        <dt>Contrôleur</dt><dd><code>RaceDetailController</code> (391 l.) — partagé avec l'en-tête et les onglets</dd>
+        <dt>Modèles</dt><dd><code>Entry</code> › <code>Athlete</code> + <code>Category</code> + <code>Club</code>, <code>AttendanceStatus</code></dd>
+        <dt>Appels</dt><dd><code>GET competition/engagement?epreuve=</code> puis, en arrière-plan, la résolution des clubs (liste + un appel par club)</dd>
+        <dt>Persistance</dt><dd><code>AttendanceService</code> — clé <code>race_attendance</code>, 100 épreuves max, la plus récemment touchée en tête</dd>
+      </dl>
+    </div>
+
+    <h4>Le pointage</h4>
+    <div class="col">
+      <p>
+        Trois états — <b>en attente</b> → <b>présent</b> → <b>absent</b> — cyclés au tap, choisis
+        directement en appui long. Un athlète sans clé dans la map est « en attente » par défaut, et
+        la map <em>n'est jamais vidée</em> sur rechargement : un tirer-pour-rafraîchir ne doit pas
+        effacer le pointage déjà fait. La restauration depuis le stockage est verrouillée par
+        <code>_attendanceRestored</code> et n'a lieu qu'une fois par vie de contrôleur.
+      </p>
+      <p>
+        Un scan RFID continu (<code>RfidWriter.readBracelets()</code>) marque présent tout bracelet
+        dont le numéro de licence correspond à un engagé ; les autres tombent dans un journal de scan
+        avec leur cause (non engagé, illisible).
+      </p>
+    </div>
+
+    <div class="note warn">
+      <b>Dette identifiée.</b> <code>RaceDetailController.loadHeats()</code> appelle
+      <code>GET competition/serie?epreuve=</code> puis <b>relance ce même appel toutes les 10&nbsp;secondes</b>
+      via un <code>Timer.periodic</code>, injecte les clubs dans les résultats… et personne ne lit le
+      résultat : la seule vue qui consomme <code>controller.heats</code> est
+      <code>race_detail_heats_view.dart</code> (382 l.), qui n'est plus importée nulle part depuis que
+      l'onglet Séries a été remplacé par <code>RaceStructureView</code>. Un sondage réseau permanent
+      pour rien.
+    </div>
+  </section>
+
+  <!-- ================= 05 ================= -->
+  <section id="series">
+    <div class="sec-head"><span class="num">05</span><h2>Séries</h2></div>
+
+    <div class="col">
+      <p class="lead">
+        L'écran le plus chargé des quatre, et le plus récemment retravaillé. Il montre, tour par tour,
+        les séries tirées avec leur composition, leur créneau, leur site, leur horaire et leur
+        classement. C'est aussi le point d'entrée du tirage et de la saisie.
+      </p>
+    </div>
+
+    <div class="fiche">
+      <div class="fiche-top">
+        <h3>Fiche technique</h3>
+        <span class="tag local">Structure locale</span>
+        <span class="tag ffss">Composition &amp; résultats FFSS</span>
+      </div>
+      <dl class="spec">
+        <dt>Route</dt><dd><code>Routes.raceDetail</code>, onglet&nbsp;1</dd>
+        <dt>Vue</dt><dd><code>race_structure_view.dart</code> (659 l.)</dd>
+        <dt>Contrôleur</dt><dd><code>RaceStructureController</code> (701 l.)</dd>
+        <dt>Dépendances</dt><dd>ProgrammeService, RaceRepository, ClubRepository, MeetingRepository, RaceFormatRepository — cinq, contre quatre pour tout le reste de l'app</dd>
+        <dt>Modèles</dt><dd><code>EventStructure</code> › <code>RoundLevel</code> › <code>ProgrammeRace</code>, <code>Meeting</code> › <code>Slot</code> › <code>Run</code> › <code>Lane</code>, <code>LaneSeat</code>, <code>HeatResult</code>, <code>CoursePenalty</code></dd>
+        <dt>Modèle de vue</dt><dd><code>RoundTab</code> (une pilule = catégorie × tour), <code>RaceSchedule</code> (avec un drapeau <code>isGuess</code>)</dd>
+      </dl>
+    </div>
+
+    <h4>Ce que fait <span class="m">load()</span> — six temps, tous tolérants à la panne</h4>
+    <div class="flow">
+      <div class="st s-local"><div class="b"><strong>Charge le programme local</strong>.</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Ensemence depuis le serveur</strong> — <span class="m">_seedStructuresFromServer()</span> lit les déroulements, ne garde que ceux dont <span class="m">(disciplineId, genre)</span> correspondent à l'épreuve, et n'ensemence <em>que les catégories que l'épreuve court réellement</em>. Une structure déjà authorée n'est pas remplacée, mais son <span class="m">serverId</span> est réaligné (<span class="m">realignServerIds</span>).</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Engagements + clubs</strong> — construit l'index <span class="m">athleteId → Athlete</span> qui transforme les <span class="m">athleteIds</span> d'une série tirée en lignes lisibles.</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Arbre réunion</strong> — pour retrouver, via <span class="m">serverId</span>, les créneaux du tour, leurs courses, leurs horaires et leur site.</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Importe les compositions</strong> — <span class="m">_importCompositions()</span> lit chaque place une par une (<span class="m">getLaneSeats</span>) et recopie <span class="m">entryIds</span> / <span class="m">athleteIds</span> dans la structure locale. C'est <em>le</em> mécanisme qui fait apparaître sur un second appareil un tirage fait sur un premier. Une série portant déjà un résultat n'est jamais écrasée.</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Importe les résultats</strong> — <span class="m">_importResults()</span> ne lit que les courses attachées à une <span class="m">serie</span>. Le rang serveur prime alors sur l'ordre local (<span class="m">placeInRace</span>), disqualifications comprises.</div></div>
+    </div>
+
+    <div class="note">
+      <b>Le rattrapage par rang.</b> <code>_importLevel()</code> apparie d'abord les séries locales aux
+      courses par <code>runId</code>, puis les restantes dans l'ordre de création. Les courses en trop
+      — créées à la main sur le site fédéral — deviennent de nouvelles séries via
+      <code>_adoptOrphanCourses()</code>, mais <b>uniquement si elles portent une composition</b> :
+      une course seulement planifiée n'ajoute pas une ligne vide.
+    </div>
+
+    <h4>Interactions</h4>
+    <ul class="plain">
+      <li>Barre de pilules : une par <em>catégorie × tour</em> défini. L'index sélectionné est <em>clampé</em>, pas remis à zéro, sur rechargement.</li>
+      <li>Filtre texte sur nom, prénom ou club, insensible aux accents (<code>_fold()</code> mappe 29 caractères accentués). Un filtre actif ouvre d'office toutes les séries correspondantes.</li>
+      <li>Tap sur une série → <b>Saisie</b> (<code>Routes.raceCourse</code>). Bouton « tirer » → <b>Tirage</b> (<code>Routes.heatDraw</code>), pré-positionné sur le tour affiché.</li>
+      <li>Tirer-pour-rafraîchir → <code>reload()</code>, en mode silencieux : la liste ne se change jamais en spinner sous le doigt.</li>
+    </ul>
+  </section>
+
+  <!-- ================= 06 ================= -->
+  <section id="satellites">
+    <div class="sec-head"><span class="num">06</span><h2>Tirage et Saisie</h2></div>
+
+    <div class="col">
+      <p>
+        Ces deux écrans ne figurent pas dans la demande mais sont indissociables de Séries : ils sont
+        les seuls endroits où la composition et le classement sont <em>produits</em>.
+      </p>
+    </div>
+
+    <div class="deck two">
+      <div class="card">
+        <span class="tag local">Local puis FFSS</span>
+        <h5>Tirage — <code>HeatDrawController</code></h5>
+        <p>563 lignes. Tire les <em>engagements</em> présents (pas les athlètes : un relais occupe un couloir), en équilibrant les clubs entre séries — <code>drawHeats()</code> groupe par club, le plus gros club sert en premier, puis mélange.</p>
+        <p>Un engagement n'est éligible que si <b>tous</b> ses athlètes sont pointés présents et qu'il n'est pas forfait.</p>
+        <p>Le nombre de séries vient de la structure validée, jamais de la fréquentation — sauf en série côtière, où l'opérateur valide explicitement un plan (<code>proposeHeatPlan</code>) dans une boîte de dialogue.</p>
+        <p>Enregistrer écrit le blob local, <em>puis</em> pousse chaque série sur les places de sa course (<code>syncLanes</code>). L'échec du push ne défait pas la sauvegarde locale : il est rapporté.</p>
+      </div>
+      <div class="card">
+        <span class="tag local">Local puis FFSS</span>
+        <h5>Saisie — <code>RaceCourseController</code></h5>
+        <p>661 lignes. L'état n'est pas un classement mais un <b>ordre d'arrivée</b> : une liste de groupes, un groupe de plusieurs étant une égalité déclarée. Les places sont recalculées (<code>course_ranking.dart</code>), jamais stockées — c'est ce qui fait qu'un retrait renumérote tout seul.</p>
+        <p>Deux modes : automatique (chaque appui donne la place suivante, le scan RFID fait pareil) et manuel (on tape un rang pour corriger).</p>
+        <p>Les pénalités vivent à part de l'ordre, précisément pour ne prendre aucune place.</p>
+        <p><b>Valider</b> publie : <code>serie/submit</code>, puis <code>course/submit</code> pour lier la course à la série, puis un <code>resultat/submit</code> par place — enfin <code>_seedNextRound()</code> recalcule les qualifiés et redessine le tour suivant.</p>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>La qualification.</b> <code>qualifiedEntries()</code> ne connaît que deux codes FFSS :
+      <code>course</code> (chaque course envoie ses n meilleurs) et <code>partie</code> (les n
+      meilleurs du tour, ordonnés « tous les premiers, puis tous les deuxièmes… » faute de temps
+      comparables). Tout autre code — <code>none</code> compris — ne qualifie personne, ce qui est le
+      comportement voulu pour un tour terminal.
+    </div>
+  </section>
+
+  <!-- ================= 07 ================= -->
+  <section id="modeles">
+    <div class="sec-head"><span class="num">07</span><h2>Les modèles, par propriétaire</h2></div>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Modèle</th><th>Origine</th><th>Rôle</th><th>Clé de jointure</th></tr></thead>
+        <tbody>
+          <tr><td><code>Race</code></td><td><span class="tag ffss">FFSS</span></td><td>L'épreuve : distance, genre, discipline, spécialité, catégories</td><td><code>id</code>, <code>disciplineId</code>, <code>specialityId</code></td></tr>
+          <tr><td><code>Entry</code> · <code>Athlete</code></td><td><span class="tag ffss">FFSS</span></td><td>Un engagement et ses athlètes ; un relais = un <code>Entry</code>, plusieurs athlètes</td><td><code>Entry.id</code> → <code>entryIds</code></td></tr>
+          <tr><td><code>RaceFormatConfiguration</code></td><td><span class="tag ffss">FFSS</span></td><td>Le « déroulement » : (discipline, genre) + ses catégories</td><td>(disciplineId, gender, categoryId)</td></tr>
+          <tr><td><code>RaceFormatDetail</code></td><td><span class="tag ffss">FFSS</span></td><td>Une « partie » : niveau, nb de courses, places/course, qualifiés</td><td><code>id</code> → <code>RoundLevel.serverId</code></td></tr>
+          <tr><td><code>Meeting</code> › <code>Slot</code> › <code>Run</code></td><td><span class="tag ffss">FFSS</span></td><td>Réunion → créneau → course. Le créneau porte la partie qu'il planifie</td><td><code>Run.id</code> → <code>ProgrammeRace.runId</code></td></tr>
+          <tr><td><code>Lane</code> / <code>LaneSeat</code></td><td><span class="tag ffss">FFSS</span></td><td>Une place numérotée d'une course ; <code>LaneSeat</code> = la place occupée telle que la route détail la donne</td><td><code>Lane.id</code>, <code>entryId</code></td></tr>
+          <tr><td><code>Heat</code> / <code>Result</code> / <code>HeatResult</code></td><td><span class="tag ffss">FFSS</span></td><td>La série publiée et ses résultats</td><td><code>serie</code> ← <code>course.serie</code></td></tr>
+          <tr><td><code>CompetitionProgramme</code></td><td><span class="tag local">Appareil</span></td><td>Le blob racine : sites, structures, blocs, heures de début, <code>nextLocalId</code></td><td>—</td></tr>
+          <tr><td><code>EventStructure</code></td><td><span class="tag local">Appareil</span></td><td>Le déroulement authoré d'une épreuve × catégorie</td><td>(raceId, categoryId)</td></tr>
+          <tr><td><code>RoundLevel</code></td><td><span class="tag local">Appareil</span></td><td>Un tour : type, taille de course, qualifiés, méthode, <code>serverId</code></td><td><code>serverId</code></td></tr>
+          <tr><td><code>ProgrammeRace</code></td><td><span class="tag local">Appareil</span></td><td>Une série tirée : composition, ordre d'arrivée, pénalités, <code>runId</code></td><td><code>runId</code>, <code>entryIds</code></td></tr>
+          <tr><td><code>AttendanceStatus</code></td><td><span class="tag local">Appareil</span></td><td>La présence, par athlète et par épreuve</td><td>aucune — jamais envoyée</td></tr>
+          <tr><td><code>ScheduleBlock</code> · <code>SiteDayStart</code></td><td><span class="tag dead">Mort</span></td><td>Le planning local, remplacé par l'arbre réunion</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Fonctions pures, sans état</h4>
+    <div class="col">
+      <p>
+        Une part notable de la logique métier est sortie des contrôleurs et vit dans des fonctions
+        pures testables : <code>heat_draw.dart</code> (le tirage équilibré),
+        <code>heat_plan.dart</code> (le plan proposé), <code>course_ranking.dart</code> (places,
+        égalités, retraits), <code>qualification.dart</code> (qui passe au tour suivant),
+        <code>round_order.dart</code> (hiérarchie série &lt; quart &lt; demi &lt; finale, et le
+        recâblage), <code>structure_generator.dart</code> (structures par défaut et depuis le
+        serveur). C'est la partie la plus saine du domaine.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= 08 ================= -->
+  <section id="api">
+    <div class="sec-head"><span class="num">08</span><h2>Les routes FFSS effectivement utilisées</h2></div>
+
+    <div class="col">
+      <p>
+        Toutes passent par <code>HttpClient</code>, qui injecte le jeton en <b>paramètre de requête</b>
+        <code>token</code> — l'en-tête <code>Authorization</code> est ignoré par FFSS. Une lecture
+        avec un jeton mort est servie anonymement en 200 ; seule une écriture révèle la session
+        expirée, par un 403 « Invalid token ».
+      </p>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Route</th><th>Verbe</th><th>Appelée par</th><th>État</th></tr></thead>
+        <tbody>
+          <tr><td><code>competition/epreuve?evenement=</code></td><td>GET</td><td>Structure, Programme (lecture), Séries</td><td>OK</td></tr>
+          <tr><td><code>competition/engagement?epreuve=</code></td><td>GET</td><td>Engagés, Structure, Séries, Tirage, Saisie</td><td>OK</td></tr>
+          <tr><td><code>competition/serie?epreuve=</code></td><td>GET</td><td><code>RaceDetailController</code>, toutes les 10&nbsp;s</td><td><span class="tag dead">consommé par personne</span></td></tr>
+          <tr><td><code>competition/:id/deroulement</code></td><td>GET</td><td>Structure, Séries, Éditeur</td><td>OK · paginé par 100</td></tr>
+          <tr><td><code>competition/:c/deroulement/submit</code></td><td>POST</td><td>Structure, Éditeur</td><td>OK · toujours en création</td></tr>
+          <tr><td><code>competition/deroulement/:id/delete</code></td><td>POST</td><td>Structure (orphelins)</td><td>OK</td></tr>
+          <tr><td><code>…/deroulement/:d/partie/submit</code></td><td>POST</td><td>Éditeur</td><td>OK · <code>nbCourse</code>, <code>nbPlaceParCourse</code>, <code>nbPlaceQualificative</code></td></tr>
+          <tr><td><code>…/deroulement/partie/:id/delete</code></td><td>POST</td><td>Éditeur</td><td>OK · 404 = déjà supprimée côté serveur</td></tr>
+          <tr><td><code>competition/:id/reunion</code></td><td>GET</td><td>Planning, Programme (lecture), Séries, Tirage, Saisie</td><td>OK · paginé par 100</td></tr>
+          <tr><td><code>competition/reunion/creneau/:id/course</code></td><td>GET</td><td><code>MeetingRepository._getAllRuns</code></td><td><span class="tag broken">Cassé</span> depuis le 31/08 — repli sur les courses déjà portées par la réunion</td></tr>
+          <tr><td><code>…/reunion/submit</code> · <code>creneau/submit</code> · <code>course/submit</code></td><td>POST</td><td>Planning, Saisie (lien série)</td><td>OK</td></tr>
+          <tr><td><code>…/course/:c/place/submit</code></td><td>POST</td><td>Planning (places vides), Tirage, Saisie (tour suivant)</td><td>OK · <code>engagement</code> vide libère la place</td></tr>
+          <tr><td><code>…/course/place/:id</code></td><td>GET</td><td>Séries, Saisie</td><td>OK · <b>seule</b> route montrant qui occupe une place, une place à la fois</td></tr>
+          <tr><td><code>competition/serie/submit</code></td><td>POST</td><td>Saisie</td><td>OK</td></tr>
+          <tr><td><code>competition/resultat/submit</code></td><td>POST</td><td>Saisie</td><td>OK · <code>serie</code> + <code>engagement</code> + <code>place</code></td></tr>
+          <tr><td><code>competition/resultat?serie=</code></td><td>GET</td><td>Séries</td><td>OK · fenêtre unique de 200</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note warn">
+      <b>Le coût du modèle « une place à la fois ».</b> L'arbre réunion masque l'engagement de chaque
+      place, même occupée. Reconstruire la composition d'un tour de 3 courses × 16 places demande donc
+      <b>48 requêtes</b>, par lots de 8. L'écran Séries en émet autant à chaque ouverture, plus les
+      résultats. C'est le principal poste de latence de la branche.
+    </div>
+  </section>
+
+  <!-- ================= 09 ================= -->
+  <section id="decisions">
+    <div class="sec-head"><span class="num">09</span><h2>Ce qui coince, et ce qu'il faut trancher</h2></div>
+
+    <div class="col">
+      <p class="lead">
+        Rien ci-dessous n'est un bug ouvert : ce sont des choix arrivés par sédimentation, qui
+        méritent d'être confirmés ou défaits maintenant que les quatre écrans fonctionnent.
+      </p>
+    </div>
+
+    <div class="deck two">
+
+      <div class="card">
+        <span class="tag broken">Nettoyage franc</span>
+        <h5>Le sondage fantôme des séries</h5>
+        <p><code>RaceDetailController</code> interroge <code>competition/serie</code> toutes les 10&nbsp;secondes et personne ne lit la réponse. La vue consommatrice est orpheline.</p>
+        <p class="q">Supprimer le timer, <code>loadHeats</code>, <code>heats</code>, <code>_injectClubsIntoHeats</code> et <code>race_detail_heats_view.dart</code> — ou rebrancher un affichage « résultats officiels » dessus ?</p>
+      </div>
+
+      <div class="card">
+        <span class="tag broken">Nettoyage franc</span>
+        <h5>Le planificateur local endormi</h5>
+        <p>≈&nbsp;450 lignes (<code>schedule_planner.dart</code> + le bloc dormant de <code>ScheduleController</code> + <code>ScheduleBlock</code> + <code>SiteDayStart</code>) qu'aucune vue n'appelle, avec leurs tests.</p>
+        <p class="q">Le mode hors-ligne est-il encore un objectif ? Sinon, c'est le plus gros gain de lisibilité disponible d'un seul coup.</p>
+      </div>
+
+      <div class="card">
+        <span class="tag ffss">Performance</span>
+        <h5>48 requêtes pour lire un tour</h5>
+        <p>La lecture place-par-place est imposée par l'API, mais rien ne force à la refaire entièrement à chaque ouverture de l'écran Séries.</p>
+        <p class="q">Mettre en cache les <code>LaneSeat</code> par <code>runId</code> avec invalidation sur écriture ? Ou ne recharger que le tour affiché plutôt que toutes les structures de l'épreuve ?</p>
+      </div>
+
+      <div class="card">
+        <span class="tag local">Cohérence</span>
+        <h5>La présence ne quitte jamais l'appareil</h5>
+        <p>Deux téléphones qui marshallent la même épreuve ne se voient pas. Or la présence conditionne le tirage, donc deux appareils peuvent produire deux tirages différents du même tour.</p>
+        <p class="q">Accepter que le marshalling soit mono-appareil (et le dire dans l'UI), ou détourner un champ FFSS existant — un statut d'engagement, par exemple ?</p>
+      </div>
+
+      <div class="card">
+        <span class="tag local">Cohérence</span>
+        <h5>Deux vérités pour un classement</h5>
+        <p>Séries affiche le rang serveur quand il existe, l'ordre local sinon. Mais le <code>finishOrder</code> local n'est jamais effacé après publication : les deux coexistent indéfiniment, et rien ne signale à l'opérateur qu'ils divergent.</p>
+        <p class="q">Marquer une série comme « publiée » et rendre son ordre local en lecture seule ?</p>
+      </div>
+
+      <div class="card">
+        <span class="tag ffss">Robustesse</span>
+        <h5>Les places par défaut ne sont jamais réconciliées</h5>
+        <p><code>createDefaultLanes</code> ouvre 1..n places à la création de la course. Si le <code>spotsPerRace</code> du tour change ensuite, rien ne le détecte, et les créneaux créés avant l'arrivée de cette fonction n'ont aucune place.</p>
+        <p class="q">Ajouter une réconciliation au chargement du Planning, ou s'en remettre à <code>syncLanes</code> qui recrée ce qu'il faut au moment du tirage ?</p>
+      </div>
+
+      <div class="card">
+        <span class="tag dead">Dette de forme</span>
+        <h5>Des contrôleurs devenus trop gros</h5>
+        <p><code>ScheduleController</code> 1027&nbsp;l., <code>RaceStructureController</code> 701&nbsp;l., <code>RaceCourseController</code> 661&nbsp;l. Trois responsabilités s'y superposent : chargement, réconciliation locale/serveur, et actions.</p>
+        <p class="q">Extraire la couche de réconciliation (import compositions, import résultats, réalignement des ids) dans un service dédié, réutilisable par Séries et Saisie ?</p>
+      </div>
+
+      <div class="card">
+        <span class="tag dead">Dette de forme</span>
+        <h5>Écrans et routes résiduels</h5>
+        <p><code>Routes.program</code> / <code>ProgramView</code> (l'ancien programme), l'onglet <b>Résumé</b> du détail épreuve (<code>EmptyState</code>), <code>Routes.slot</code> et <code>SlotController</code> dont le dépôt de résultats est un stub <code>UnimplementedError</code>.</p>
+        <p class="q">Que garde-t-on ? L'onglet Résumé, en particulier, occupe un tiers de la barre de navigation de l'épreuve pour rien.</p>
+      </div>
+
+    </div>
+
+    <h3>Ordre de bataille suggéré</h3>
+    <div class="flow">
+      <div class="st s-broken"><div class="b"><strong>Supprimer le mort</strong> — sondage des séries, planificateur local, écrans résiduels. Aucun risque fonctionnel, gain immédiat de lisibilité et de trafic réseau.</div></div>
+      <div class="st s-ffss"><div class="b"><strong>Traiter la latence de Séries</strong> — c'est ce que l'opérateur ressent en premier le jour de la compétition.</div></div>
+      <div class="st s-local"><div class="b"><strong>Trancher la question du multi-appareil</strong> (présence, puis divergence des classements) — elle conditionne toutes les décisions d'architecture qui suivront.</div></div>
+      <div class="st"><div class="b"><strong>Refactoriser ensuite</strong>, une fois qu'on sait ce que le produit doit faire : découper les contrôleurs sur des frontières connues vaut mieux que sur des frontières supposées.</div></div>
+    </div>
+  </section>
+
+  <footer>
+    Relevé du 8 septembre 2026 · branche <b>generate_heats</b> · lib/app · 28&nbsp;144 lignes analysées
+    (contrôleurs, vues, dépôts, sources de données, modèles).
+    Conventions du dépôt : <code>CLAUDE.md</code> · Spécifications antérieures : <code>docs/superpowers/specs/</code>
+  </footer>
+
+</div>
