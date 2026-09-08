@@ -16,7 +16,7 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 
 **Feature modules (dual location — both are live):**
 - **`lib/app/module/<feature>/{bindings,controllers,views}/`** — actual feature code: GetX bindings, controllers, view widgets. Modules: `auth`, `competitions`, `favorites`, `home`, `main_shell`, `program`, `slot`. Auth module also holds `profile_*` and `user_*`. `main_shell` is the bottom-nav host mounted at `Routes.home`; `home` and `favorites` are tabs inside it, not standalone routes.
-- **`lib/app/presentation/modules/<feature>/`** — view-side `*_formatting.dart` extensions only (`CompetitionFormatting`, `HeatFormatting`, `RaceFormatting`, `MeetingFormatting`, `RunFormatting`) for date strings, status labels, colors. Currently covers `competitions`, `program`, `slot` (no `auth` or `home` extension).
+- **`lib/app/presentation/modules/<feature>/`** — view-side `*_formatting.dart` extensions only (`CompetitionFormatting`, `RaceFormatting`, `MeetingFormatting`, `RunFormatting`) for date strings, status labels, colors. Currently covers `competitions`, `program`, `slot` (no `auth` or `home` extension).
 - **`lib/app/presentation/shared/`** — `LoadingIndicator`, `EmptyState`, `ErrorState`, `StatusBadge`, `SectionHeader`, `UiMessage`, `LanguageSelector`, `CompetitionCard`, `HomeWave`, `ClubAvatar`.
 - **`lib/app/routes/`** — `app_pages.dart` (GetPage list, per-route bindings) + `app_routes.dart` (route name constants, `part of 'app_pages.dart'`). `AppPages.initial = Routes.home`. `Routes` still declares `userDashboard`, `adminDashboard`, and `settings`, but no `GetPage` is registered for them — they're dead constants, not routes.
 

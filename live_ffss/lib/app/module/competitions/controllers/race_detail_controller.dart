@@ -12,7 +12,6 @@ import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
-import 'package:live_ffss/app/domain/models/heat.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/result.dart';
 
@@ -29,17 +28,11 @@ class RaceDetailController extends GetxController {
   final RfidWriter _rfidWriter;
   final AttendanceService _attendance;
 
-  static const Duration _pollInterval = Duration(seconds: 10);
-
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
 
   /// 0 = Entries, 1 = Heats, 2 = Summary
   final RxInt currentTabIndex = 1.obs;
-
-  final RxBool isLoading = false.obs;
-  final Rxn<AppException> error = Rxn<AppException>();
-  final RxList<Heat> heats = <Heat>[].obs;
 
   final RxBool entriesLoading = false.obs;
   final Rxn<AppException> entriesError = Rxn<AppException>();
@@ -47,7 +40,7 @@ class RaceDetailController extends GetxController {
 
   /// Presence tracking, keyed by athlete id. Populated lazily via
   /// [attendanceOf] — a missing key means the default [AttendanceStatus.waiting]
-  /// (athletes start "en attente marshalling"). NOT cleared on reload/poll so a
+  /// (athletes start "en attente marshalling"). NOT cleared on reload, so a
   /// pull-to-refresh keeps the marshaller's validations.
   final RxMap<int, AttendanceStatus> attendance = <int, AttendanceStatus>{}.obs;
 
@@ -65,12 +58,10 @@ class RaceDetailController extends GetxController {
   StreamSubscription<String>? _scanSub;
 
   // Athlete id -> club, resolved once from the engaged athletes and reused by
-  // both heats (club labels) and entries (cap images) across every poll.
-  // [_clubsFuture] de-dupes concurrent resolutions.
+  // every entry row for its cap image. [_clubsFuture] de-dupes concurrent
+  // resolutions.
   Map<int, Club> _clubs = const {};
   Future<void>? _clubsFuture;
-
-  Timer? _pollTimer;
 
   @override
   void onInit() {
@@ -86,41 +77,18 @@ class RaceDetailController extends GetxController {
     }
 
     if (race.value != null) {
-      loadHeats(initial: true);
       loadEntries();
     }
   }
 
   @override
   void onClose() {
-    _pollTimer?.cancel();
     _scanSub?.cancel();
     super.onClose();
   }
 
   void changeTab(int index) {
     currentTabIndex.value = index;
-  }
-
-  Future<void> loadHeats({bool initial = false}) async {
-    final raceId = race.value?.id;
-    if (raceId == null) return;
-    if (initial) {
-      isLoading.value = true;
-      error.value = null;
-    }
-    try {
-      final loaded = await _raceRepo.getHeats(raceId);
-      // Club labels are decoration on a heat row; the heats themselves are the
-      // point. They render with whatever clubs are resolved so far and pick the
-      // rest up on the next poll, rather than being held hostage to a club call.
-      heats.value = _injectClubsIntoHeats(loaded, _clubs);
-      _ensurePolling();
-    } on AppException catch (e) {
-      if (initial) error.value = e;
-    } finally {
-      if (initial) isLoading.value = false;
-    }
   }
 
   Future<void> loadEntries() async {
@@ -162,9 +130,6 @@ class RaceDetailController extends GetxController {
   /// Resolves every engaged athlete's club once, then patches the rows already
   /// on screen. Concurrent callers share the in-flight resolution; on failure
   /// the future is cleared so a pull-to-refresh retries.
-  ///
-  /// Engaged athletes are the right input for both tabs: a heat can only seat
-  /// someone who is engaged, so this index covers the heat rows too.
   Future<void> _ensureClubs() {
     if (_clubs.isNotEmpty) return Future.value();
     return _clubsFuture ??= _resolveClubs();
@@ -180,7 +145,6 @@ class RaceDetailController extends GetxController {
       _clubs = await _clubRepo.getAthleteClubs(competitionId, athletes);
       if (_clubs.isEmpty) return;
       entries.value = _withClubs(entries);
-      if (heats.isNotEmpty) heats.value = _injectClubsIntoHeats(heats, _clubs);
     } on AppException {
       // Best-effort: every row keeps the club initial rather than an image.
     } finally {
@@ -333,28 +297,6 @@ class RaceDetailController extends GetxController {
     _scanSub = null;
     isScanning.value = false;
   }
-
-  /// Starts the poll timer if not already running. Called from [loadHeats]
-  /// after the first successful load, so a failed initial load doesn't keep
-  /// polling silently — the user must retry via pull-to-refresh.
-  void _ensurePolling() {
-    _pollTimer ??= Timer.periodic(_pollInterval, (_) => loadHeats());
-  }
-
-  List<Heat> _injectClubsIntoHeats(List<Heat> heats, Map<int, Club> index) {
-    if (index.isEmpty) return heats;
-    return heats
-        .map((h) => h.copyWith(
-              results: h.results
-                  .map((r) => r.copyWith(
-                        athletes: r.athletes
-                            .map((a) => a.copyWith(club: index[a.id] ?? a.club))
-                            .toList(),
-                      ))
-                  .toList(),
-            ))
-        .toList();
-  }
 }
 
 enum ScanOutcome { present, notEntered, unreadable }
@@ -370,16 +312,6 @@ class ScanResult {
 }
 
 enum AthleteSortMode { name, club, attendance }
-
-enum HeatLiveStatus { official, live, unofficial }
-
-extension HeatLiveStatusX on Heat {
-  HeatLiveStatus get liveStatus {
-    if (done) return HeatLiveStatus.official;
-    if (startDate != null) return HeatLiveStatus.live;
-    return HeatLiveStatus.unofficial;
-  }
-}
 
 extension ResultLaneX on List<Result> {
   /// Lane is not provided by the API — derive from list order.

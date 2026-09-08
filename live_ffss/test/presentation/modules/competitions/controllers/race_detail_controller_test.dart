@@ -13,9 +13,7 @@ import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/category.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
-import 'package:live_ffss/app/domain/models/heat.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
-import 'package:live_ffss/app/domain/models/result.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_detail_controller.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -74,48 +72,11 @@ void main() {
         organizerClub: const Club(id: 0, name: ''),
       );
 
-  Heat makeHeat({
-    int id = 1,
-    int number = 1,
-    List<Result> results = const [],
-  }) =>
-      Heat(
-          id: id,
-          name: 'S$number',
-          done: false,
-          number: number,
-          results: results);
-
-  Result resultWithAthlete(int athleteId) {
-    final athlete = Athlete(
-      id: athleteId,
-      licenseeNumber: '',
-      firstName: 'X',
-      lastName: 'Y',
-      gender: Gender.female,
-      year: 2010,
-      nationalityCode: '',
-      nationality: '',
-      isValid: true,
-    );
-    return Result(
-      id: 'r$athleteId',
-      isValid: true,
-      status: 1,
-      statusLabel: 'OK',
-      rank: 1,
-      time: 1000,
-      timeLabel: '10.00',
-      athletes: [athlete],
-    );
-  }
-
   setUp(() {
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
     rfidWriter = _MockRfidWriter();
     attendanceService = _MockAttendanceService();
-    when(() => raceRepo.getHeats(any())).thenAnswer((_) async => const []);
     when(() => raceRepo.getEntries(any())).thenAnswer((_) async => const []);
     when(() => clubRepo.getAthleteClubs(any(), any()))
         .thenAnswer((_) async => const <int, Club>{});
@@ -131,106 +92,6 @@ void main() {
   tearDown(() {
     controller.onClose();
     Get.reset();
-  });
-
-  group('RaceDetailController.loadHeats', () {
-    test('heats render before the clubs are resolved', () async {
-      // Club labels decorate a heat row; the heats are the point. A club call
-      // that is slow or broken must not keep them off screen.
-      when(() => raceRepo.getHeats(any())).thenAnswer((_) async => [
-            makeHeat(results: [resultWithAthlete(42)]),
-          ]);
-
-      await controller.loadHeats(initial: true);
-
-      expect(
-          controller.heats.single.results.single.athletes.single.club, isNull);
-      expect(controller.error.value, isNull);
-    });
-
-    test('a club failure leaves the heats on screen without labels', () async {
-      when(() => raceRepo.getHeats(any())).thenAnswer((_) async => [
-            makeHeat(results: [resultWithAthlete(42)]),
-          ]);
-      when(() => clubRepo.getAthleteClubs(any(), any()))
-          .thenThrow(const NetworkException('boom'));
-
-      await controller.loadHeats(initial: true);
-      await controller.loadEntries();
-      await pumpEventQueue();
-
-      expect(controller.heats, hasLength(1));
-      expect(controller.error.value, isNull);
-    });
-
-    test('resolving the clubs labels the heats already on screen', () async {
-      when(() => raceRepo.getHeats(any())).thenAnswer((_) async => [
-            makeHeat(results: [resultWithAthlete(42)]),
-          ]);
-      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
-            Entry(
-              id: 1,
-              category: const Category(id: 1, name: 'Senior'),
-              status: 1,
-              statusLabel: 'Engagé',
-              athletes: [resultWithAthlete(42).athletes.single],
-            ),
-          ]);
-      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
-        (_) async => const {42: Club(id: 1, name: 'ASCE 35')},
-      );
-
-      await controller.loadHeats(initial: true);
-      await controller.loadEntries();
-      await pumpEventQueue();
-
-      expect(controller.heats.single.results.single.athletes.single.club?.name,
-          'ASCE 35');
-    });
-
-    test('resolves the clubs once, however many polls run', () async {
-      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
-            Entry(
-              id: 1,
-              category: const Category(id: 1, name: 'Senior'),
-              status: 1,
-              statusLabel: 'Engagé',
-              athletes: [resultWithAthlete(42).athletes.single],
-            ),
-          ]);
-      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
-        (_) async => const {42: Club(id: 1, name: 'ASCE 35')},
-      );
-
-      await controller.loadEntries();
-      await pumpEventQueue();
-      await controller.loadHeats(initial: true);
-      await controller.loadHeats();
-      await controller.loadHeats();
-
-      verify(() => clubRepo.getAthleteClubs(any(), any())).called(1);
-      verify(() => raceRepo.getHeats(10)).called(3);
-    });
-
-    test('skips club resolution entirely when no competition is set', () async {
-      controller.competition.value = null;
-
-      await controller.loadHeats(initial: true);
-      await controller.loadEntries();
-      await pumpEventQueue();
-
-      verifyNever(() => clubRepo.getAthleteClubs(any(), any()));
-      verify(() => raceRepo.getHeats(10)).called(1);
-    });
-
-    test('no-ops when race is not set', () async {
-      controller.race.value = null;
-
-      await controller.loadHeats(initial: true);
-
-      verifyNever(() => clubRepo.getClubs(any()));
-      verifyNever(() => raceRepo.getHeats(any()));
-    });
   });
 
   group('RaceDetailController.loadEntries', () {
@@ -685,35 +546,6 @@ void main() {
       await pumpEventQueue();
 
       verifyNever(() => attendanceService.save(any(), any()));
-    });
-  });
-
-  group('HeatLiveStatusX', () {
-    test('done heat → official', () {
-      expect(
-        const Heat(id: 1, name: 'S1', done: true, number: 1).liveStatus,
-        HeatLiveStatus.official,
-      );
-    });
-
-    test('not done with startDate → live', () {
-      expect(
-        Heat(
-          id: 1,
-          name: 'S1',
-          done: false,
-          number: 1,
-          startDate: DateTime(2026, 5, 1, 10),
-        ).liveStatus,
-        HeatLiveStatus.live,
-      );
-    });
-
-    test('not done, no startDate → unofficial', () {
-      expect(
-        const Heat(id: 1, name: 'S1', done: false, number: 1).liveStatus,
-        HeatLiveStatus.unofficial,
-      );
     });
   });
 
