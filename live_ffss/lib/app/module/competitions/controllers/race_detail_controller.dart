@@ -13,7 +13,6 @@ import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
-import 'package:live_ffss/app/domain/models/result.dart';
 
 class RaceDetailController extends GetxController {
   RaceDetailController(
@@ -312,12 +311,3 @@ class ScanResult {
 }
 
 enum AthleteSortMode { name, club, attendance }
-
-extension ResultLaneX on List<Result> {
-  /// Lane is not provided by the API — derive from list order.
-  int laneOf(Result result) => indexOf(result) + 1;
-}
-
-extension AthleteClubLabelX on Athlete {
-  String get clubLabel => club?.name ?? '';
-}
