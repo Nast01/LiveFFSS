@@ -15,10 +15,10 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 - **`lib/app/domain/models/`** — freezed pure types, no `@JsonKey`. Enums for status/role/discipline. Includes `athlete`, `attendance_status`, `category`, `club`, `club_ranking`, `competition`, `discipline`, `entry`, `heat`, `individual_ranking`, `lane`, `meeting`, `race`, `race_format_configuration`, `race_format_detail`, `referee`, `relay_ranking`, `result`, `run`, `slot`, `user`.
 
 **Feature modules (dual location — both are live):**
-- **`lib/app/module/<feature>/{bindings,controllers,views}/`** — actual feature code: GetX bindings, controllers, view widgets. Modules: `auth`, `competitions`, `favorites`, `home`, `main_shell`, `program`, `slot`. Auth module also holds `profile_*` and `user_*`. `main_shell` is the bottom-nav host mounted at `Routes.home`; `home` and `favorites` are tabs inside it, not standalone routes.
-- **`lib/app/presentation/modules/<feature>/`** — view-side `*_formatting.dart` extensions only (`CompetitionFormatting`, `RaceFormatting`, `MeetingFormatting`, `RunFormatting`) for date strings, status labels, colors. Currently covers `competitions`, `program`, `slot` (no `auth` or `home` extension).
+- **`lib/app/module/<feature>/{bindings,controllers,views}/`** — actual feature code: GetX bindings, controllers, view widgets. Modules: `auth`, `competitions`, `favorites`, `home`, `main_shell`, `programme`. Auth module also holds `profile_*` and `user_*`. `main_shell` is the bottom-nav host mounted at `Routes.home`; `home` and `favorites` are tabs inside it, not standalone routes.
+- **`lib/app/presentation/modules/<feature>/`** — view-side formatting helpers — extensions (`CompetitionFormatting`, `RaceFormatting`, `GenderFormatting`, `RoundTypeFormatting`, `EventStructureFormatting`) and free functions (`courseBadgeLabel`, `structureTitle`, `heatName`) for date strings, status labels, colors. Covers `competitions` and `programme` only; `programme/day_sections.dart` also lives here as a view-side grouping type.
 - **`lib/app/presentation/shared/`** — `LoadingIndicator`, `EmptyState`, `ErrorState`, `StatusBadge`, `SectionHeader`, `UiMessage`, `LanguageSelector`, `CompetitionCard`, `HomeWave`, `ClubAvatar`.
-- **`lib/app/routes/`** — `app_pages.dart` (GetPage list, per-route bindings) + `app_routes.dart` (route name constants, `part of 'app_pages.dart'`). `AppPages.initial = Routes.home`. `Routes` still declares `userDashboard`, `adminDashboard`, and `settings`, but no `GetPage` is registered for them — they're dead constants, not routes.
+- **`lib/app/routes/`** — `app_pages.dart` (GetPage list, per-route bindings) + `app_routes.dart` (route name constants, `part of 'app_pages.dart'`). `AppPages.initial = Routes.home`. Every declared route has a `GetPage`, and every `GetPage` is reachable — keep it that way: a constant nothing navigates to is how the `program`/`slot` island went unnoticed.
 
 **Core (`lib/app/core/`):**
 - `config/` — `AppConfig.fromEnv()`.
@@ -45,7 +45,7 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 - **Constructor injection only.** `Get.lazyPut<X>(() => X(Get.find<Y>()))` in bindings. NEVER `Get.find()` inside controller body.
 - **Catch `AppException`** (the sealed type from `core/errors/`), not raw `Exception`. Let other throwables propagate.
 
-Known violations: `UserController` and `ProfileController` still have `Get.snackbar`/`.tr` calls, and `SlotController` has `Get.dialog` + `Get.snackbar` + `.tr` (athlete-withdrawal confirmation). All explicitly deferred. Don't propagate the pattern; clean them up if you touch the views.
+Known violations: `UserController` and `ProfileController` still have `Get.snackbar`/`.tr` calls. Explicitly deferred. Don't propagate the pattern; clean them up if you touch the views.
 
 One deliberate exception outside controllers: `InitialBinding._wireSessionExpirationHandler` uses `Get.snackbar` + `.tr` + `Get.offAllNamed`. It hangs off `HttpClient.onAuthFailure` and has no view to delegate to, so the rule doesn't apply there.
 
@@ -122,13 +122,11 @@ All `permanent: true`. Per-route bindings (under `lib/app/module/<feature>/bindi
 
 ## Known gaps (documented, not bugs)
 
-- **Live results / mutations:** `getRunResults`, `updateBeachRankings`, `updateSwimmingTimes`, `withdrawAthlete` throw `UnimplementedError`. The FFSS endpoints aren't documented. `ResultRepository` is the typed seam — wire when backend confirmed. Note that a course's `Lane`s (FFSS « places ») now arrive embedded in the réunion tree, so `SlotController` reading them from `Run.lanes` instead of the stub is a plausible next step.
+- **Live results / mutations:** `getRunResults`, `updateBeachRankings`, `updateSwimmingTimes`, `withdrawAthlete` throw `UnimplementedError`. The FFSS endpoints aren't documented. `ResultRepository` is the typed seam — registered in `InitialBinding` with no consumer since the `slot` module was deleted; wire when backend confirmed. Note that a course's `Lane`s (FFSS « places ») now arrive embedded in the réunion tree, so a future results screen can read them from `Run.lanes` rather than the stub.
 - **`Lane.entry` / `Lane.result` are never populated in the réunion tree** — FFSS masks them there even when set. Who sits in a place is served ONLY by the place detail route, with lower-case keys that are neither `EntryDto`'s nor `LaneDto`'s: that shape is modelled in `LaneDetailDto`, and `MeetingRepository.getLaneSeats` reads it one place at a time (this is what syncs a draw between devices). `Lane.result` and `remplacants` remain unseen populated — don't guess their shape.
 - **Default lanes are created, never reconciled.** `MeetingRepository.createDefaultLanes` opens a course with 1..n spots, and `scheduleRound` calls it for every course it creates. Nothing yet detects a course whose lane count later drifted from its round's `spotsPerRace`, nor fills in the courses of a créneau created before this landed.
 - **`GET competition/reunion/creneau/:id/course` is still broken** (`filterByCreneau() only accepts arguments of type Creneau`) even though the matching `course/submit` was fixed on 2026-09-01. `MeetingRepository._getAllRuns` falls back to the courses the réunion payload carries, which is why the Programme tab still fills. Don't remove that fallback.
 - **Rankings feature:** `RankingRemoteDataSourceImpl` is a stub returning empty lists for club/individual/relay rankings — the FFSS endpoints aren't documented. The Points tab in competition detail is built around the `EmptyState` path, so when the backend lands, swap the stub for an HTTP-backed impl and the repository, controller, view, and tests stay as-is.
-- **`slot_view.dart` is 634 LOC** — mechanical widget split deferred.
-- **`Discipline` string-matching** in `SlotController.isBeachDiscipline`/`isSwimmingDiscipline` — typed enum on `RaceFormatDetail` deferred.
 
 ## Where to look first
 

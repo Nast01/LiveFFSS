@@ -7,7 +7,6 @@ import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_detail_controller.dart';
 import 'package:live_ffss/app/module/competitions/views/race_detail_entries_view.dart';
 import 'package:live_ffss/app/module/competitions/views/race_structure_view.dart';
-import 'package:live_ffss/app/module/competitions/views/race_detail_summary_view.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/home_wave.dart';
 
@@ -38,7 +37,6 @@ class RaceDetailView extends GetView<RaceDetailController> {
                       children: const [
                         RaceDetailEntriesView(),
                         RaceStructureView(),
-                        RaceDetailSummaryView(),
                       ],
                     )),
               ),
@@ -113,11 +111,10 @@ class _RaceDetailHeader extends GetView<RaceDetailController> {
           Padding(
             padding: AppSpacing.pageHorizontal,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _HeaderTab(label: 'entries'.tr, index: 0),
                 _HeaderTab(label: 'heats'.tr, index: 1),
-                _HeaderTab(label: 'summary'.tr, index: 2),
               ],
             ),
           ),

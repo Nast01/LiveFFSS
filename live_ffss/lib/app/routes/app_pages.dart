@@ -18,14 +18,10 @@ import 'package:live_ffss/app/module/favorites/bindings/favorites_binding.dart';
 import 'package:live_ffss/app/module/home/bindings/home_binding.dart';
 import 'package:live_ffss/app/module/main_shell/bindings/main_shell_binding.dart';
 import 'package:live_ffss/app/module/main_shell/views/main_shell_view.dart';
-import 'package:live_ffss/app/module/program/bindings/program_binding.dart';
-import 'package:live_ffss/app/module/program/views/program_view.dart';
 import 'package:live_ffss/app/module/programme/bindings/programme_binding.dart';
 import 'package:live_ffss/app/module/programme/bindings/structure_editor_binding.dart';
 import 'package:live_ffss/app/module/programme/views/programme_view.dart';
 import 'package:live_ffss/app/module/programme/views/structure_editor_view.dart';
-import 'package:live_ffss/app/module/slot/bindings/slot_binding.dart';
-import 'package:live_ffss/app/module/slot/views/slot_view.dart';
 // Import other views and bindings as needed
 
 part 'app_routes.dart';
@@ -88,16 +84,6 @@ class AppPages {
       name: Routes.heatDraw,
       page: () => const HeatDrawView(),
       binding: HeatDrawBinding(),
-    ),
-    GetPage(
-      name: Routes.program,
-      page: () => const ProgramView(),
-      binding: ProgramBinding(),
-    ),
-    GetPage(
-      name: Routes.slot,
-      page: () => const SlotView(),
-      binding: SlotBinding(),
     ),
   ];
 }

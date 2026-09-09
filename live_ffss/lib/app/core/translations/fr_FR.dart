@@ -124,11 +124,9 @@ final Map<String, String> frFR = {
   'attendance_absent': 'Absent',
   'entries': 'Engagés',
   'heats': 'Séries',
-  'summary': 'Résumé',
   'lane': 'Couloir',
   'entries_coming_soon':
       'Les engagés apparaîtront ici lorsqu\'ils seront disponibles',
-  'summary_coming_soon': 'Le résumé apparaîtra ici lorsqu\'il sera disponible',
   'entry_time': 'Engagement',
   'in_progress_lower': 'En cours',
   'athlete_upper': 'Athlète',

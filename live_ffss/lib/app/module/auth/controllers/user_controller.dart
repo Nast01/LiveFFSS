@@ -34,18 +34,6 @@ class UserController extends GetxController {
     }
   }
 
-  void navigateToSettings() {
-    try {
-      if (!isLoggedIn) {
-        navigateToLogin();
-        return;
-      }
-      Get.toNamed(Routes.settings);
-    } catch (e) {
-      _showErrorSnackbar('navigation_error'.tr);
-    }
-  }
-
   Future<void> logout() async {
     try {
       _refreshDependentControllers();

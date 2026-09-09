@@ -30,7 +30,7 @@ class RaceDetailController extends GetxController {
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
 
-  /// 0 = Entries, 1 = Heats, 2 = Summary
+  /// 0 = Entries, 1 = Heats
   final RxInt currentTabIndex = 1.obs;
 
   final RxBool entriesLoading = false.obs;
