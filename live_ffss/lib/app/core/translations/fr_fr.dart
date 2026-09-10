@@ -1,4 +1,3 @@
-// ignore: file_names
 final Map<String, String> frFR = {
   // App general
   'app_title': 'Live FFSS',

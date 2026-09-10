@@ -1,5 +1,3 @@
-// ignore: file_names
-
 final Map<String, String> enUS = {
   // App general
   'app_title': 'Live FFSS',
