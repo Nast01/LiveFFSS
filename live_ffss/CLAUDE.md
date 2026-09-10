@@ -17,7 +17,7 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 **Feature modules (dual location — both are live):**
 - **`lib/app/module/<feature>/{bindings,controllers,views}/`** — actual feature code: GetX bindings, controllers, view widgets. Modules: `auth`, `competitions`, `favorites`, `home`, `main_shell`, `programme`. Auth module also holds `profile_*` and `user_*`. `main_shell` is the bottom-nav host mounted at `Routes.home`; `home` and `favorites` are tabs inside it, not standalone routes.
 - **`lib/app/presentation/modules/<feature>/`** — view-side formatting helpers — extensions (`CompetitionFormatting`, `RaceFormatting`, `GenderFormatting`, `RoundTypeFormatting`, `EventStructureFormatting`) and free functions (`courseBadgeLabel`, `structureTitle`, `heatName`) for date strings, status labels, colors. Covers `competitions` and `programme` only; `programme/day_sections.dart` also lives here as a view-side grouping type.
-- **`lib/app/presentation/shared/`** — `LoadingIndicator`, `EmptyState`, `ErrorState`, `StatusBadge`, `SectionHeader`, `UiMessage`, `LanguageSelector`, `CompetitionCard`, `HomeWave`, `ClubAvatar`.
+- **`lib/app/presentation/shared/`** — `LoadingIndicator`, `EmptyState`, `ErrorState`, `UiMessage`, `LanguageSelector`, `CompetitionCard`, `HomeWave`, `ClubAvatar`.
 - **`lib/app/routes/`** — `app_pages.dart` (GetPage list, per-route bindings) + `app_routes.dart` (route name constants, `part of 'app_pages.dart'`). `AppPages.initial = Routes.home`. Every declared route has a `GetPage`, and every `GetPage` is reachable — keep it that way: a constant nothing navigates to is how the `program`/`slot` island went unnoticed.
 
 **Core (`lib/app/core/`):**
@@ -30,7 +30,7 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 - `theme/` — `AppColors`, `AppRadius`, `AppSpacing`, `AppTypography` (design tokens).
 - `themes/` — `app_theme.dart` (assembles tokens into `ThemeData`).
 - `translations/` — `AppTranslations` + `en_us.dart`, `fr_fr.dart`.
-- `utils/` — `url_builder.dart`, `validators.dart`.
+- `utils/` — `competition_days.dart`, `validators.dart`.
 - `di/InitialBinding` — single registration point (see DI order section).
 - Empty scaffold dirs that survived the cleanup: `core/bindings/`, `core/controllers/`, `core/middleware/`. Don't add to them — register in `InitialBinding` or per-module bindings instead.
 
