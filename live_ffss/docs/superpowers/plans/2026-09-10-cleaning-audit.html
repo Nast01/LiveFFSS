@@ -511,6 +511,10 @@
     7 commits. <code>flutter analyze</code> affiche désormais <strong>No issues found</strong> — les
     29 infos du relevé initial sont toutes traitées. <code>flutter test</code> tient à 985.
     Il reste les 3 tâches discutables.</p>
+    <p><strong>Les 28 tâches retenues sont faites.</strong> CLN-27 close en deux commits — un mémo
+    de passe, puis deux lectures groupées — et son troisième volet est devenu sans objet.
+    <code>flutter analyze</code> : <strong>No issues found</strong> ; <code>flutter test</code> :
+    <strong>992</strong>, dont 10 ajoutés par ce dernier lot.</p>
     <p><strong>CLN-28 et CLN-29 tranchées et livrées.</strong> Il ne reste que
     <a href="#CLN-27">CLN-27</a>. <code>analyze</code> : <strong>No issues found</strong> ;
     <code>test</code> : <strong>982</strong> — la baisse de 985 vient des 3 tests de
@@ -694,9 +698,9 @@
 
       <tr class="group"><td colspan="6">Discutable — vrai constat, arbitrage à toi</td></tr>
 
-      <tr><td class="id"><a href="#CLN-27">CLN-27</a></td><td class="cat">PERF</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-27">CLN-27</a></td><td class="cat">PERF</td>
         <td>Un aller-retour <code>getLaneSeats</code> par course, en série (3 boucles)</td>
-        <td><span class="risk d">discutable</span></td><td class="eff">M</td>
+        <td><span class="done">faite</span></td><td class="eff">M</td>
         <td class="gain">Un tour de 8 courses paie 1 latence au lieu de 8</td></tr>
 
       <tr class="is-done"><td class="id"><a href="#CLN-28">CLN-28</a></td><td class="cat">TEST</td>
@@ -1253,8 +1257,8 @@ nfc_rfid_writer_impl.dart (frontière plugin).</pre></dd>
       </dl>
     </article>
 
-    <article class="fiche d" id="CLN-27">
-      <div class="fiche-head"><span class="fiche-id">CLN-27</span>
+    <article class="fiche d is-done" id="CLN-27">
+      <div class="fiche-head"><span class="fiche-id">CLN-27</span> <span class="done">faite</span>
         <h3 class="fiche-title">Un aller-retour <code>getLaneSeats</code> par course, en série</h3></div>
       <p>Trois boucles de <span class="path">module/competitions/controllers/race_structure_controller.dart</span>
       appellent <code>getLaneSeats</code> une course à la fois, chacune attendue avant la suivante.
@@ -1270,12 +1274,25 @@ race_structure_controller.dart:426-435  triple boucle imbriquée, un getLaneSeat
 Le motif à suivre existe déjà dans le dépôt :
   club_repository.dart:57      chunks de _detailBatchSize = 8
   meeting_repository.dart:304  chunks de _runsBatchSize</pre></dd>
-        <dt>Pourquoi « discutable »</dt><dd>Trois raisons de ne pas foncer. La boucle de la ligne 536 écrit
-          dans <code>races[at]</code> et lève un drapeau <code>changed</code> — l'ordre d'écriture doit être
-          préservé. <code>_adoptOrphanCourses</code> appelle <code>_programme.allocateId()</code>, qui
-          incrémente un compteur partagé : le paralléliser change l'ordre des ids alloués. Et la boucle 426
-          enchaîne <code>getLaneSeats</code> puis <code>getHeatResults</code> avec un <code>continue</code>
-          entre les deux. Le gain est réel, l'écriture demande du soin — d'où le classement.</dd>
+        <dt>Ce qui a été fait, en deux temps</dt><dd>
+          <ul class="tight">
+            <li><strong>Un mémo de passe d'abord.</strong> Les deux passes lisaient <em>les mêmes places
+              deux fois</em> — ce que le relevé initial avait manqué. Un mémo par id de course, vidé à
+              chaque <code>load()</code>. Prouvé par la mesure : le test ajouté échoue avec
+              <code>Expected: &lt;1&gt; Actual: &lt;2&gt;</code> quand on le neutralise.</li>
+            <li><strong>Puis deux lectures groupées</strong> dans <code>MeetingRepository</code> —
+              <code>getLaneSeatsByCourse</code> et <code>getHeatResultsByHeat</code> — qui aplatissent
+              avant de découper, pour que le fan-out reste borné par le nombre de places et non par le
+              nombre de courses.</li>
+          </ul>
+          Sur l'épreuve type à 3 tours et 7 courses, en comptant les allers-retours dans le code :
+          <strong>21 en file → 14 après le mémo → 2</strong>.</dd>
+        <dt>Les trois blocages, revus</dt><dd>Deux des trois que la fiche annonçait n'existaient pas.
+          La boucle 536 écrit à des index <strong>distincts</strong>, garantis par le set
+          <code>claimed</code> : aucune collision. La boucle 426 écrit sous des clés distinctes. Seul
+          <code>allocateId</code> était un vrai danger — et il a disparu sans être touché : le
+          préchargement sert ses places déjà résolues, donc <code>_adoptOrphanCourses</code> garde sa
+          boucle séquentielle intacte. <strong>Le troisième volet est devenu sans objet.</strong></dd>
         <dt>Vérifier</dt><dd><code class="cmd">flutter test  # race_structure_controller_test.dart couvre ces chemins
 flutter run  # Épreuve → Structure sur une compétition à plusieurs tours</code></dd>
       </dl>
