@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/config/app_environment.dart';
@@ -7,6 +9,7 @@ import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
 import 'package:live_ffss/app/data/dtos/auth_token_dto.dart';
 import 'package:live_ffss/app/data/dtos/user_dto.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
+import 'package:live_ffss/app/domain/models/session_probe.dart';
 import 'package:live_ffss/app/domain/models/user.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -31,6 +34,64 @@ void main() {
       tokenStorage: tokens,
       secureStorage: secure,
     );
+  });
+
+  group('AuthRepository.probeSession', () {
+    test('un compte licencie est une session vivante', () async {
+      when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
+            label: 'Doe John',
+            type: 'licencie',
+            data: UserDtoData(role: 'user', lastName: 'Doe', firstName: 'John'),
+          ));
+
+      final probe = await repo.probeSession();
+
+      expect(probe.outcome, SessionProbeOutcome.signedIn);
+      expect(probe.label, 'Doe John');
+    });
+
+    test('un organisme est une session vivante', () async {
+      when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
+            label: 'SNS 42',
+            type: 'organisme',
+            data: UserDtoData(role: 'admin'),
+          ));
+
+      final probe = await repo.probeSession();
+
+      expect(probe.outcome, SessionProbeOutcome.signedIn);
+    });
+
+    test('tout autre type est l\'identite anonyme', () async {
+      when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
+            label: 'Utilisateur Anonyme',
+            type: 'anonyme',
+            data: UserDtoData(role: 'user'),
+          ));
+
+      final probe = await repo.probeSession();
+
+      expect(probe.outcome, SessionProbeOutcome.anonymous);
+      expect(probe.label, 'Utilisateur Anonyme');
+    });
+
+    test('une erreur API laisse la session indeterminee, pas morte', () async {
+      when(() => ds.getCurrentUser())
+          .thenThrow(const NetworkException('hors ligne'));
+
+      final probe = await repo.probeSession();
+
+      expect(probe.outcome, SessionProbeOutcome.unreachable);
+      expect(probe.message, 'hors ligne');
+    });
+
+    test('un timeout laisse la session indeterminee, pas morte', () async {
+      when(() => ds.getCurrentUser()).thenThrow(TimeoutException('trop long'));
+
+      final probe = await repo.probeSession();
+
+      expect(probe.outcome, SessionProbeOutcome.unreachable);
+    });
   });
 
   group('AuthRepository.login', () {
