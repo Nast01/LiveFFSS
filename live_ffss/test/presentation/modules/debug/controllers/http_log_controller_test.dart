@@ -20,7 +20,8 @@ void main() {
 
   setUp(() {
     storage = _MockSecureStorage();
-    when(() => storage.write(key: any(named: 'key'), value: any(named: 'value')))
+    when(() =>
+            storage.write(key: any(named: 'key'), value: any(named: 'value')))
         .thenAnswer((_) async {});
     httpLog
       ..clear()

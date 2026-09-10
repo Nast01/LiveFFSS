@@ -46,8 +46,8 @@ class StorageInspectorView extends GetView<StorageInspectorController> {
               'Environnement courant — ${controller.environment.label}',
               controller.currentEnvironment,
             ),
-            ..._section(context, 'Autre environnement',
-                controller.otherEnvironment),
+            ..._section(
+                context, 'Autre environnement', controller.otherEnvironment),
             ..._section(context, 'Clés globales', controller.global),
           ],
         );
@@ -69,7 +69,8 @@ class StorageInspectorView extends GetView<StorageInspectorController> {
         if (entries.isEmpty)
           const Padding(
             padding: EdgeInsets.only(bottom: 16),
-            child: Text('aucune clé', style: TextStyle(color: AppColors.textMuted)),
+            child: Text('aucune clé',
+                style: TextStyle(color: AppColors.textMuted)),
           )
         else
           ...entries.map((entry) => Card(

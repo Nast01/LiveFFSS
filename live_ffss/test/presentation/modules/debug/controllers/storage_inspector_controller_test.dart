@@ -49,8 +49,7 @@ void main() {
 
       await controller.load();
 
-      expect(
-          controller.currentEnvironment.map((e) => e.key).toList(),
+      expect(controller.currentEnvironment.map((e) => e.key).toList(),
           ['dev_token']);
       expect(controller.otherEnvironment.length, 3);
     });

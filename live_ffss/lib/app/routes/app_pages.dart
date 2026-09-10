@@ -93,7 +93,7 @@ class AppPages {
       page: () => const HeatDrawView(),
       binding: HeatDrawBinding(),
     ),
-    // Les deux routes de debug ne sont pas seulement cachées en release :
+    // Les quatre routes de debug ne sont pas seulement cachées en release :
     // elles ne sont pas déclarées, donc `Get.toNamed('/debug')` n'y mène nulle
     // part.
     if (kDebugMode)

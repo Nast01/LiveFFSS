@@ -47,7 +47,8 @@ class DebugController extends GetxController {
     loadToken();
   }
 
-  Future<void> loadToken() async => token.value = await _tokenStorage.getToken();
+  Future<void> loadToken() async =>
+      token.value = await _tokenStorage.getToken();
 
   /// [AuthRepository.probeSession] ne lève pas : elle traduit ses échecs en
   /// `unreachable`.

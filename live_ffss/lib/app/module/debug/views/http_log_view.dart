@@ -70,9 +70,7 @@ class HttpLogView extends GetView<HttpLogController> {
   }
 
   Widget _tile(BuildContext context, HttpLogEntry entry) {
-    final status = entry.error != null
-        ? 'échec'
-        : '${entry.statusCode ?? '?'}';
+    final status = entry.error != null ? 'échec' : '${entry.statusCode ?? '?'}';
     final failed = entry.error != null || (entry.statusCode ?? 0) >= 400;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
