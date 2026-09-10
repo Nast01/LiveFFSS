@@ -18,8 +18,6 @@ abstract class CompetitionRepository {
     int pageSize = 10,
   });
 
-  Future<List<Competition>> getNext5();
-
   Future<List<Competition>> getCompetitionsForRange({
     required DateTime from,
     required DateTime to,
@@ -77,17 +75,6 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
       page++;
     }
     return all;
-  }
-
-  @override
-  Future<List<Competition>> getNext5() async {
-    final batch = await getCompetitions(
-      visibility: CompetitionVisibility.incoming,
-      type: CompetitionType.mixte,
-      pageSize: 5,
-      page: 1,
-    );
-    return batch.take(5).toList();
   }
 
   @override

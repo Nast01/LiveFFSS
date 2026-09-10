@@ -110,24 +110,6 @@ void main() {
     });
   });
 
-  group('CompetitionRepository.getNext5', () {
-    test('requests page 1, size 5, takes 5', () async {
-      when(() => ds.getCompetitions(
-            season: any(named: 'season'),
-            startDate: any(named: 'startDate'),
-            type: any(named: 'type'),
-            visibility: any(named: 'visibility'),
-            page: 1,
-            pageSize: 5,
-          )).thenAnswer(
-          (_) async => List.generate(7, (i) => makeDto(i + 1)));
-
-      final list = await repo.getNext5();
-      expect(list.length, 5);
-      expect(list.map((c) => c.id), [1, 2, 3, 4, 5]);
-    });
-  });
-
   group('CompetitionRepository.getCompetitionsForRange', () {
     test('forwards yyyy-MM-dd from/to dates to the data source', () async {
       when(() => ds.getCompetitions(
