@@ -6,6 +6,7 @@ import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/competition_formatting.dart';
+import 'package:live_ffss/app/presentation/shared/competition_thumbnail.dart';
 
 class CompetitionCard extends StatelessWidget {
   const CompetitionCard({
@@ -37,7 +38,7 @@ class CompetitionCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _CardThumbnail(competition: competition),
+              CompetitionThumbnail.card(competition: competition),
               const SizedBox(width: AppSpacing.md),
               Expanded(child: _CardBody(competition: competition)),
               const SizedBox(width: AppSpacing.sm),
@@ -49,69 +50,6 @@ class CompetitionCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _CardThumbnail extends StatelessWidget {
-  const _CardThumbnail({required this.competition});
-
-  final Competition competition;
-
-  @override
-  Widget build(BuildContext context) {
-    final logoUrl = competition.organizerClub.logoUrl;
-    if (logoUrl == null || logoUrl.isEmpty) {
-      return _DateBlock(competition: competition);
-    }
-    return ClipRRect(
-      borderRadius: AppRadius.smRadius,
-      child: Image.network(
-        logoUrl,
-        width: 56,
-        height: 56,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _DateBlock(competition: competition),
-        loadingBuilder: (_, child, progress) =>
-            progress == null ? child : _DateBlock(competition: competition),
-      ),
-    );
-  }
-}
-
-class _DateBlock extends StatelessWidget {
-  const _DateBlock({required this.competition});
-
-  final Competition competition;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceMuted,
-        borderRadius: AppRadius.smRadius,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            competition.formattedBeginDateMonth,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          Text(
-            competition.formattedDayBeginDate,
-            style: AppTypography.subtitle.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ],
       ),
     );
   }
