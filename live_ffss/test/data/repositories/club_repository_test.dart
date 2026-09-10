@@ -66,15 +66,18 @@ void main() {
     });
   });
 
-  group('ClubRepository.getClubDetail', () {
+  // La resolution d'un club unique est interne depuis CLN-29 : elle se verifie
+  // a travers getClubDetails, qui l'appelle pour chaque id demande. La cle de
+  // la map reste l'id demande, la valeur porte le club reellement resolu.
+  group('ClubRepository, resolution club par club', () {
     test('forwards clubId and maps DTO to domain', () async {
       when(() => ds.getClubDetail(any()))
           .thenAnswer((_) async => makeDto(7, 'Solo'));
 
-      final club = await repo.getClubDetail(7);
+      final byId = await repo.getClubDetails([7]);
 
-      expect(club.id, 7);
-      expect(club.name, 'Solo');
+      expect(byId[7]!.id, 7);
+      expect(byId[7]!.name, 'Solo');
       verify(() => ds.getClubDetail(7)).called(1);
     });
 
@@ -89,10 +92,10 @@ void main() {
             ],
           ));
 
-      final club = await repo.getClubDetail(900);
+      final byId = await repo.getClubDetails([900]);
 
-      expect(club.id, 900);
-      expect(club.name, 'Guest Bravo');
+      expect(byId[900]!.id, 900);
+      expect(byId[900]!.name, 'Guest Bravo');
     });
 
     test('falls back to the first split club when none matches', () async {
@@ -102,9 +105,9 @@ void main() {
             athletes: [_athlete(10, 800, 'Guest Alpha')],
           ));
 
-      final club = await repo.getClubDetail(ffssBucketOrganismeId);
+      final byId = await repo.getClubDetails([ffssBucketOrganismeId]);
 
-      expect(club.id, 800);
+      expect(byId[ffssBucketOrganismeId]!.id, 800);
     });
   });
 
