@@ -13,6 +13,7 @@ abstract class Routes {
   static const heatDraw = '/heat-draw';
   static const debug = '/debug';
   static const debugStorage = '/debug/storage';
+  static const debugHttp = '/debug/http';
   static const restarting = '/restarting';
   // Add other routes here
 }

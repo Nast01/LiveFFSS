@@ -121,6 +121,16 @@ class DebugView extends GetView<DebugController> {
               onTap: () => Get.toNamed<void>(Routes.debugStorage),
             ),
           ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.swap_vert),
+              title: const Text('Journal HTTP'),
+              subtitle: const Text('Les dernières requêtes et leurs réponses'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Get.toNamed<void>(Routes.debugHttp),
+            ),
+          ),
         ],
       ),
     );
