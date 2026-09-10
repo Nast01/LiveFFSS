@@ -882,7 +882,7 @@ void main() {
     // résultats.
     test('une composition locale sans résultat s efface devant le serveur',
         () async {
-      final local = CompetitionProgramme(
+      const local = CompetitionProgramme(
         competitionId: 42,
         nextLocalId: 100,
         structures: [
@@ -892,7 +892,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Cadets',
             levels: [
-              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: [
                 ProgrammeRace(
                     id: 1, number: 1, entryIds: [999], athleteIds: [99]),
               ]),
@@ -918,7 +918,7 @@ void main() {
     });
 
     test('une série qui porte des résultats n est jamais écrasée', () async {
-      final local = CompetitionProgramme(
+      const local = CompetitionProgramme(
         competitionId: 42,
         nextLocalId: 100,
         structures: [
@@ -928,7 +928,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Cadets',
             levels: [
-              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: [
                 ProgrammeRace(
                   id: 1,
                   number: 1,
@@ -962,7 +962,7 @@ void main() {
     // Des places encore vides (le tour vient d'être posé) ne disent rien du
     // tirage : la copie locale reste.
     test('des places vides n effacent pas un tirage local', () async {
-      final local = CompetitionProgramme(
+      const local = CompetitionProgramme(
         competitionId: 42,
         nextLocalId: 100,
         structures: [
@@ -972,7 +972,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Cadets',
             levels: [
-              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: [
                 ProgrammeRace(
                     id: 1, number: 1, entryIds: [999], athleteIds: [99]),
               ]),
@@ -1152,7 +1152,7 @@ void main() {
     // purge du stockage.
     test('une structure stockée hors des catégories de l épreuve est ignorée',
         () async {
-      final polluted = CompetitionProgramme(
+      const polluted = CompetitionProgramme(
         competitionId: 42,
         nextLocalId: 100,
         structures: [
@@ -1162,7 +1162,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Cadets',
             levels: [
-              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: [
                 ProgrammeRace(id: 1, number: 1),
               ]),
             ],
@@ -1173,7 +1173,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Juniors',
             levels: [
-              RoundLevel(type: RoundType.finale, serverId: 40, races: const [
+              RoundLevel(type: RoundType.finale, serverId: 40, races: [
                 ProgrammeRace(id: 2, number: 1),
               ]),
             ],
@@ -1194,7 +1194,7 @@ void main() {
     // n'invente pas une restriction qui masquerait un travail existant.
     test('une épreuve sans catégorie déclarée garde ce qui est stocké',
         () async {
-      final stored = CompetitionProgramme(
+      const stored = CompetitionProgramme(
         competitionId: 42,
         nextLocalId: 100,
         structures: [
@@ -1204,7 +1204,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Cadets',
             levels: [
-              RoundLevel(type: RoundType.serie, races: const [
+              RoundLevel(type: RoundType.serie, races: [
                 ProgrammeRace(id: 1, number: 1),
               ]),
             ],

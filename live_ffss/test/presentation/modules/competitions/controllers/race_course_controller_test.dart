@@ -923,7 +923,7 @@ void main() {
 
     test('sans course sur FFSS, rien ne part et c est dit', () async {
       final controller = await ready(
-        seed: CompetitionProgramme(
+        seed: const CompetitionProgramme(
           competitionId: competitionId,
           nextLocalId: 200,
           structures: [
@@ -933,7 +933,7 @@ void main() {
               raceLabel: 'Race',
               categoryLabel: 'Senior',
               levels: [
-                RoundLevel(type: RoundType.demi, serverId: 39, races: const [
+                RoundLevel(type: RoundType.demi, serverId: 39, races: [
                   ProgrammeRace(id: programmeRaceId, number: 1, entryIds: [101]),
                 ]),
               ],
