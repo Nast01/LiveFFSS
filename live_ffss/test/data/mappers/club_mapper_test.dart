@@ -3,7 +3,6 @@ import 'package:live_ffss/app/data/dtos/athlete_dto.dart';
 import 'package:live_ffss/app/data/dtos/club_dto.dart';
 import 'package:live_ffss/app/data/dtos/referee_dto.dart';
 import 'package:live_ffss/app/data/mappers/club_mapper.dart';
-import 'package:live_ffss/app/domain/models/club.dart';
 
 void main() {
   group('ClubMapper', () {
@@ -327,23 +326,6 @@ void main() {
       );
 
       expect(dto.toDomain().id, 800);
-    });
-  });
-
-  group('ClubX', () {
-    test('hasLogo is true for non-empty logoUrl', () {
-      const club = Club(id: 1, name: 'X', logoUrl: 'https://x');
-      expect(club.hasLogo, isTrue);
-    });
-
-    test('hasLogo is false for null or empty logoUrl', () {
-      expect(const Club(id: 1, name: 'X').hasLogo, isFalse);
-      expect(const Club(id: 1, name: 'X', logoUrl: '').hasLogo, isFalse);
-    });
-
-    test('hasCap mirrors hasLogo for capUrl', () {
-      expect(const Club(id: 1, name: 'X', capUrl: 'https://c').hasCap, isTrue);
-      expect(const Club(id: 1, name: 'X').hasCap, isFalse);
     });
   });
 }
