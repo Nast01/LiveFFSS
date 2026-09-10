@@ -3,9 +3,13 @@ import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LanguageService extends GetxService {
+  LanguageService(this._storage);
+
+  /// Localisateur conserve pour les extensions de presentation, qui n'ont pas
+  /// de constructeur ou injecter quoi que ce soit — voir `RaceFormatting`.
   static LanguageService get to => Get.find();
 
-  final FlutterSecureStorage _storage = Get.find<FlutterSecureStorage>();
+  final FlutterSecureStorage _storage;
   final RxString currentLanguage = 'fr_FR'.obs;
 
   bool get isEnglish => currentLanguage.value == 'en_US';
