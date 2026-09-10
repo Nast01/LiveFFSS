@@ -47,14 +47,13 @@ void main() {
     });
 
     test('replacePath substitutes :param tokens', () {
-      final result = ApiEndpoints.replacePath(
-          'organisme/:id/detail', {'id': '42'});
+      final result =
+          ApiEndpoints.replacePath('organisme/:id/detail', {'id': '42'});
       expect(result, 'organisme/42/detail');
     });
 
     test('replacePath supports multiple substitutions', () {
-      final result = ApiEndpoints.replacePath(
-          ':a/:b', {'a': 'x', 'b': 'y'});
+      final result = ApiEndpoints.replacePath(':a/:b', {'a': 'x', 'b': 'y'});
       expect(result, 'x/y');
     });
   });

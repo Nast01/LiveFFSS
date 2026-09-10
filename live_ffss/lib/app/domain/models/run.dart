@@ -20,6 +20,7 @@ class Run with _$Run {
     required DateTime beginTime,
     required DateTime endTime,
     Heat? heat,
+
     /// The course's numbered spots, as many as its round declares in
     /// `RaceFormatDetail.spotsPerRace`. Empty until they are created.
     @Default(<Lane>[]) List<Lane> lanes,

@@ -57,12 +57,11 @@ void main() {
   });
 
   group('UserPreferencesService.toggleFavorite', () {
-    test('adds id when absent, removes when present, persists JSON',
-        () async {
+    test('adds id when absent, removes when present, persists JSON', () async {
       when(() => storage.read(key: any(named: 'key')))
           .thenAnswer((_) async => null);
-      when(() => storage.write(
-              key: any(named: 'key'), value: any(named: 'value')))
+      when(() =>
+              storage.write(key: any(named: 'key'), value: any(named: 'value')))
           .thenAnswer((_) async {});
       await prefs.init();
 
@@ -74,8 +73,7 @@ void main() {
       await prefs.toggleFavorite(7);
       expect(prefs.favoriteIds, isEmpty);
       verify(() => storage.write(
-          key: 'favorite_competitions',
-          value: jsonEncode(<int>[]))).called(1);
+          key: 'favorite_competitions', value: jsonEncode(<int>[]))).called(1);
     });
 
     test('isFavorite reflects in-memory state', () async {
@@ -94,8 +92,8 @@ void main() {
           .thenAnswer((_) async => null);
       when(() => storage.read(key: 'last_viewed_competitions'))
           .thenAnswer((_) async => '[3,1,2]');
-      when(() => storage.write(
-              key: any(named: 'key'), value: any(named: 'value')))
+      when(() =>
+              storage.write(key: any(named: 'key'), value: any(named: 'value')))
           .thenAnswer((_) async {});
       await prefs.init();
 
@@ -114,8 +112,8 @@ void main() {
       final initial = List.generate(20, (i) => 20 - i);
       when(() => storage.read(key: 'last_viewed_competitions'))
           .thenAnswer((_) async => jsonEncode(initial));
-      when(() => storage.write(
-              key: any(named: 'key'), value: any(named: 'value')))
+      when(() =>
+              storage.write(key: any(named: 'key'), value: any(named: 'value')))
           .thenAnswer((_) async {});
       await prefs.init();
 

@@ -14,13 +14,11 @@ void main() {
   });
 
   test('updateBeachRankings throws UnimplementedError', () {
-    expect(repo.updateBeachRankings(1, {}),
-        throwsA(isA<UnimplementedError>()));
+    expect(repo.updateBeachRankings(1, {}), throwsA(isA<UnimplementedError>()));
   });
 
   test('updateSwimmingTimes throws UnimplementedError', () {
-    expect(repo.updateSwimmingTimes(1, {}),
-        throwsA(isA<UnimplementedError>()));
+    expect(repo.updateSwimmingTimes(1, {}), throwsA(isA<UnimplementedError>()));
   });
 
   test('withdrawAthlete throws UnimplementedError', () {

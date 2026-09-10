@@ -9,8 +9,7 @@ class UserPreferencesService extends GetxService {
     this._storage, {
     AppEnvironment environment = AppEnvironment.production,
   })  : _favoritesKey = '${environment.storagePrefix}favorite_competitions',
-        _lastViewedKey =
-            '${environment.storagePrefix}last_viewed_competitions';
+        _lastViewedKey = '${environment.storagePrefix}last_viewed_competitions';
 
   final String _favoritesKey;
   final String _lastViewedKey;

@@ -52,8 +52,8 @@ class FavoritesView extends GetView<FavoritesController> {
                     final competition = items[i];
                     return Obx(() => CompetitionCard(
                           competition: competition,
-                          isFavorite: controller.favoriteIds
-                              .contains(competition.id),
+                          isFavorite:
+                              controller.favoriteIds.contains(competition.id),
                           onTap: () => controller
                               .navigateToCompetitionDetails(competition),
                           onToggleFavorite: () =>

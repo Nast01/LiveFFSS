@@ -20,15 +20,22 @@ class ResultDto with _$ResultDto {
     @JsonKey(name: 'tempsLabel') @Default('') String timeLabel,
     @JsonKey(name: 'complement') String? complement,
     @JsonKey(name: 'complementLabel') String? complementLabel,
-    @JsonKey(name: 'CodeDisqualification') @Default('') String disqualificationCode,
-    @JsonKey(name: 'disqualificationReason', readValue: _readDisqualificationReason)
+    @JsonKey(name: 'CodeDisqualification')
+    @Default('')
+    String disqualificationCode,
+    @JsonKey(
+        name: 'disqualificationReason', readValue: _readDisqualificationReason)
     @Default('')
     String disqualificationReason,
     @JsonKey(name: 'serie') HeatDto? heat,
     @JsonKey(name: 'engagement') EntryDto? entry,
-    @JsonKey(name: 'athletes') @Default(<AthleteDto>[]) List<AthleteDto> athletes,
+    @JsonKey(name: 'athletes')
+    @Default(<AthleteDto>[])
+    List<AthleteDto> athletes,
     @JsonKey(name: 'isRecord') @Default(false) bool isRecord,
-    @JsonKey(name: 'isMeilleurPerformance') @Default(false) bool isBestPerformance,
+    @JsonKey(name: 'isMeilleurPerformance')
+    @Default(false)
+    bool isBestPerformance,
     @JsonKey(name: 'isRecordDeFrance') @Default(false) bool isFranceRecord,
     @JsonKey(name: 'points') @Default(0) int points,
     @JsonKey(name: 'TempsLive1') @Default(0) int liveTime1,

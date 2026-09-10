@@ -432,10 +432,8 @@ void main() {
       final id = await ds.submitHeat(raceId: 37962, name: 'Demie 1', number: 1);
 
       expect(id, 94369);
-      final query = verify(() =>
-              http.post('competition/serie/submit', query: captureAny(named: 'query')))
-          .captured
-          .single as Map;
+      final query = verify(() => http.post('competition/serie/submit',
+          query: captureAny(named: 'query'))).captured.single as Map;
       expect(query['epreuve'], '37962');
       expect(query['nom'], 'Demie 1');
       expect(query['numero'], '1');

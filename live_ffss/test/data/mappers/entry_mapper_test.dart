@@ -13,7 +13,8 @@ void main() {
         raceId: 88,
         category: CategoryDto(id: 2, name: 'Senior'),
         organismeId: 30,
-        organisme: ClubDto(id: 30, name: 'SC Marseille', logoUrl: 'http://x/l.png'),
+        organisme:
+            ClubDto(id: 30, name: 'SC Marseille', logoUrl: 'http://x/l.png'),
         status: 1,
         statusLabel: 'Engagé',
         isForfeit: true,

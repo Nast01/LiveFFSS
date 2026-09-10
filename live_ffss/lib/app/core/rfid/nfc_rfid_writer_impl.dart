@@ -143,7 +143,8 @@ class NfcRfidWriterImpl implements RfidWriter {
               try {
                 final text = _readBraceletText(tag);
                 if (text == null) {
-                  controller.addError(const RfidException('bracelet_unreadable'));
+                  controller
+                      .addError(const RfidException('bracelet_unreadable'));
                 } else {
                   controller.add(text);
                 }

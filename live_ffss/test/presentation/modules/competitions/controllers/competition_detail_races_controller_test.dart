@@ -96,7 +96,8 @@ void main() {
       await controller.loadRaces(99);
     }
 
-    List<int> visibleIds() => controller.filteredRaces.map((r) => r.id).toList();
+    List<int> visibleIds() =>
+        controller.filteredRaces.map((r) => r.id).toList();
 
     test('sans filtre, toutes les épreuves sont visibles', () async {
       await loadFour();

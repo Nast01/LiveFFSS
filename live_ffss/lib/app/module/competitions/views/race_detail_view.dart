@@ -136,8 +136,7 @@ class _LiveBadge extends StatelessWidget {
         color: AppColors.statusError,
         borderRadius: AppRadius.pillRadius,
       ),
-      child: Text('live'.tr,
-          style: AppTypography.badge.copyWith(fontSize: 11)),
+      child: Text('live'.tr, style: AppTypography.badge.copyWith(fontSize: 11)),
     );
   }
 }
@@ -156,8 +155,7 @@ class _HeaderTab extends GetView<RaceDetailController> {
         onTap: () => controller.changeTab(index),
         behavior: HitTestBehavior.opaque,
         child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
           decoration: BoxDecoration(
             color: active ? AppColors.statusWaiting : Colors.transparent,
             borderRadius: AppRadius.pillRadius,

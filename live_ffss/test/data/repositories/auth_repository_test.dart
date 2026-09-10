@@ -194,11 +194,10 @@ void main() {
 
     test('keeps the session rather than hanging on a silent network', () async {
       storedSession();
-      when(() => ds.getCurrentUser())
-          .thenAnswer((_) => Future<UserDto>.delayed(
-              const Duration(minutes: 1),
-              () => const UserDto(
-                  label: 'X', type: 'licencie', data: UserDtoData(role: 'user'))));
+      when(() => ds.getCurrentUser()).thenAnswer((_) => Future<UserDto>.delayed(
+          const Duration(minutes: 1),
+          () => const UserDto(
+              label: 'X', type: 'licencie', data: UserDtoData(role: 'user'))));
 
       // Startup must not wait on a socket that never answers.
       expect(await repo.restoreSession(), isNotNull);

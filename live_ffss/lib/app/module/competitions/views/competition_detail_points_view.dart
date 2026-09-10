@@ -110,8 +110,7 @@ class _PointsBottomItem extends GetView<CompetitionDetailPointsController> {
                   label,
                   style: AppTypography.caption.copyWith(
                     color: color,
-                    fontWeight:
-                        active ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
               ],
@@ -154,8 +153,7 @@ class _ClubsRankingTab extends GetView<CompetitionDetailPointsController> {
   }
 }
 
-class _IndividualRankingTab
-    extends GetView<CompetitionDetailPointsController> {
+class _IndividualRankingTab extends GetView<CompetitionDetailPointsController> {
   const _IndividualRankingTab();
 
   @override

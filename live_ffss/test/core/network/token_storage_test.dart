@@ -45,8 +45,7 @@ void main() {
     });
 
     test('clearToken deletes the "token" key', () async {
-      when(() => secureStorage.delete(key: 'token'))
-          .thenAnswer((_) async {});
+      when(() => secureStorage.delete(key: 'token')).thenAnswer((_) async {});
 
       await tokenStorage.clearToken();
 

@@ -18,8 +18,7 @@ void main() {
   });
 
   group('RankingRepository.getClubRankings', () {
-    test('forwards competitionId and returns the data source result',
-        () async {
+    test('forwards competitionId and returns the data source result', () async {
       const expected = [
         ClubRanking(position: 1, clubName: 'Alpha', points: 100),
         ClubRanking(position: 2, clubName: 'Bravo', points: 80),
@@ -43,8 +42,7 @@ void main() {
   });
 
   group('RankingRepository.getIndividualRankings', () {
-    test('forwards competitionId and returns the data source result',
-        () async {
+    test('forwards competitionId and returns the data source result', () async {
       const expected = [
         IndividualRanking(
           position: 1,
@@ -65,8 +63,7 @@ void main() {
   });
 
   group('RankingRepository.getRelayRankings', () {
-    test('forwards competitionId and returns the data source result',
-        () async {
+    test('forwards competitionId and returns the data source result', () async {
       const expected = [
         RelayRanking(
           position: 1,
@@ -75,8 +72,7 @@ void main() {
           points: 150,
         ),
       ];
-      when(() => ds.getRelayRankings(any()))
-          .thenAnswer((_) async => expected);
+      when(() => ds.getRelayRankings(any())).thenAnswer((_) async => expected);
 
       final result = await repo.getRelayRankings(42);
 

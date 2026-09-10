@@ -9,8 +9,7 @@ const braceletFieldSeparator = ';';
 /// This is the contract shared with the (not yet built) bracelet scanner —
 /// change it here and the reader changes with it.
 String braceletPayload(Athlete athlete) {
-  final lastName =
-      athlete.lastName.replaceAll(braceletFieldSeparator, ' ');
+  final lastName = athlete.lastName.replaceAll(braceletFieldSeparator, ' ');
   return '${athlete.licenseeNumber}$braceletFieldSeparator$lastName';
 }
 

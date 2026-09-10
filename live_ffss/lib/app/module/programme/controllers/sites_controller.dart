@@ -7,8 +7,7 @@ class SitesController extends GetxController {
 
   final ProgrammeService _programme;
 
-  List<ProgrammeSite> get sites =>
-      _programme.current.value?.sites ?? const [];
+  List<ProgrammeSite> get sites => _programme.current.value?.sites ?? const [];
 
   Future<void> addSite(String name, SiteType type) async {
     final trimmed = name.trim();

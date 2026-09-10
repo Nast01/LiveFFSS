@@ -186,13 +186,15 @@ void main() {
         .thenAnswer((_) async => const <int, Club>{});
     programme = _FakeProgrammeService(programmeWith());
     meetingRepo = _MockMeetingRepo();
-    when(() => meetingRepo.getMeetings(any())).thenAnswer((_) async => const []);
+    when(() => meetingRepo.getMeetings(any()))
+        .thenAnswer((_) async => const []);
     when(() => meetingRepo.syncLanes(
-          runId: any(named: 'runId'),
-          entryIds: any(named: 'entryIds'),
-          existing: any(named: 'existing'),
-        )).thenAnswer((i) async =>
-        (i.namedArguments[const Symbol('entryIds')] as List<int>).length);
+              runId: any(named: 'runId'),
+              entryIds: any(named: 'entryIds'),
+              existing: any(named: 'existing'),
+            ))
+        .thenAnswer((i) async =>
+            (i.namedArguments[const Symbol('entryIds')] as List<int>).length);
     when(() => raceRepo.getEntries(any())).thenAnswer((_) async => const []);
     when(() => attendance.forRace(any()))
         .thenReturn(const <int, AttendanceStatus>{});
@@ -248,8 +250,7 @@ void main() {
 
     // Une place assoit un engagement : l'équipe entière, ou rien. Un relais
     // auquel il manque un nageur n'est pas prêt à partir.
-    test('une équipe ne part que si tous ses athlètes sont présents',
-        () async {
+    test('une équipe ne part que si tous ses athlètes sont présents', () async {
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
             entry(1, [athlete(1), athlete(2)]),
             entry(2, [athlete(3), athlete(4)]),
@@ -526,8 +527,8 @@ void main() {
       expect(controller.saved.value, isTrue);
       // Aucun tour placé dans cette fixture : le tirage est enregistré en
       // local et le message dit que les places n'ont pas pu partir.
-      expect(controller.message.value!.translationKey,
-          'heat_draw_lanes_unplaced');
+      expect(
+          controller.message.value!.translationKey, 'heat_draw_lanes_unplaced');
     });
 
     test('adjusts the race count upwards, allocating new local ids', () async {
@@ -812,8 +813,9 @@ void main() {
     }) async {
       programme = _FakeProgrammeService(programmeWith(levels: levels));
       final all = [for (var i = 1; i <= present; i++) athlete(i)];
-      when(() => raceRepo.getEntries(raceId)).thenAnswer(
-          (_) async => [for (final a in all) entry(a.id, [a])]);
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            for (final a in all) entry(a.id, [a])
+          ]);
       when(() => attendance.forRace(raceId)).thenReturn({
         for (final a in all) a.id: AttendanceStatus.present,
       });
@@ -1040,8 +1042,9 @@ void main() {
         const RoundLevel(type: RoundType.finale, spotsPerRace: 8),
       ]));
       final all = [for (var i = 1; i <= present; i++) athlete(i)];
-      when(() => raceRepo.getEntries(raceId)).thenAnswer(
-          (_) async => [for (final a in all) entry(a.id, [a])]);
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            for (final a in all) entry(a.id, [a])
+          ]);
       when(() => attendance.forRace(raceId)).thenReturn({
         for (final a in all) a.id: AttendanceStatus.present,
       });
@@ -1209,8 +1212,8 @@ void main() {
           )).captured;
       expect((captured[0] as List<int>).toSet(), {101, 102});
       expect(captured[1], existing);
-      expect(controller.message.value!.translationKey,
-          'heat_draw_saved_pushed');
+      expect(
+          controller.message.value!.translationKey, 'heat_draw_saved_pushed');
       expect(controller.message.value, isA<UiMessageSuccess>());
     });
 
@@ -1229,8 +1232,8 @@ void main() {
           ));
       expect(controller.saved.value, isTrue);
       expect(programme.saveCount, 1);
-      expect(controller.message.value!.translationKey,
-          'heat_draw_lanes_unplaced');
+      expect(
+          controller.message.value!.translationKey, 'heat_draw_lanes_unplaced');
     });
 
     test('un envoi incomplet est signalé comme un échec', () async {
@@ -1248,8 +1251,8 @@ void main() {
       await controller.save();
 
       expect(controller.saved.value, isTrue);
-      expect(controller.message.value!.translationKey,
-          'heat_draw_lanes_failed');
+      expect(
+          controller.message.value!.translationKey, 'heat_draw_lanes_failed');
     });
 
     // Pousser sans avoir pu lire l'existant créerait des doublons à côté des
@@ -1267,8 +1270,8 @@ void main() {
             existing: any(named: 'existing'),
           ));
       expect(controller.saved.value, isTrue);
-      expect(controller.message.value!.translationKey,
-          'heat_draw_lanes_failed');
+      expect(
+          controller.message.value!.translationKey, 'heat_draw_lanes_failed');
     });
   });
 }

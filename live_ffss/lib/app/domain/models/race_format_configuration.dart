@@ -20,6 +20,7 @@ class RaceFormatConfiguration with _$RaceFormatConfiguration {
     required String genderLabel,
     required Discipline discipline,
     @Default(<Category>[]) List<Category> categories,
+
     /// Rounds already defined server-side, ordered. Used to seed the local
     /// structure instead of the flat 8/16 default.
     @Default(<RaceFormatDetail>[]) List<RaceFormatDetail> details,

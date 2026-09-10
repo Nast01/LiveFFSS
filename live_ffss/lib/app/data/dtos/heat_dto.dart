@@ -17,8 +17,7 @@ class HeatDto with _$HeatDto {
     @JsonKey(name: 'Debut') String? startDate,
     @JsonKey(name: 'Fin') String? endDate,
     @JsonKey(name: 'epreuve') RaceDto? race,
-    @JsonKey(name: 'resultats')
-    @Default(<ResultDto>[]) List<ResultDto> results,
+    @JsonKey(name: 'resultats') @Default(<ResultDto>[]) List<ResultDto> results,
   }) = _HeatDto;
 
   factory HeatDto.fromJson(Map<String, dynamic> json) =>

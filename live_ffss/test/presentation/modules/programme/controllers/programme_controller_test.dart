@@ -1534,7 +1534,8 @@ void main() {
             categoryIds: any(named: 'categoryIds'),
             id: any(named: 'id'),
           )).thenAnswer((_) async {
-        seen.add('${controller.submitDone.value}/${controller.submitTotal.value}');
+        seen.add(
+            '${controller.submitDone.value}/${controller.submitTotal.value}');
         return 366;
       });
 

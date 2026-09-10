@@ -59,10 +59,8 @@ void main() {
 
     test('balances the heats rather than filling them to the brim', () {
       // 17 over 3 heats gives 6/6/5, not 8/8/1.
-      final sizes = draw(entries(17), raceCount: 3)
-          .map((h) => h.length)
-          .toList()
-        ..sort();
+      final sizes =
+          draw(entries(17), raceCount: 3).map((h) => h.length).toList()..sort();
       expect(sizes, [5, 6, 6]);
     });
 

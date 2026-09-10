@@ -101,8 +101,7 @@ void main() {
     });
 
     test('sets hasError when the repository throws an AppException', () async {
-      when(() => repo.getClubs(1))
-          .thenThrow(const NetworkException('offline'));
+      when(() => repo.getClubs(1)).thenThrow(const NetworkException('offline'));
 
       await controller.loadAthletes(1);
 
@@ -300,7 +299,8 @@ void main() {
       await controller.loadAthletes(1);
     });
 
-    List<int> visible() => controller.filteredAthletes.map((a) => a.id).toList();
+    List<int> visible() =>
+        controller.filteredAthletes.map((a) => a.id).toList();
 
     test('sans catégorie cochée, tout le monde est visible', () {
       expect(visible(), [1, 2, 3]);

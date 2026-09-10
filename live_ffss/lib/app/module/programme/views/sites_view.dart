@@ -19,7 +19,8 @@ class SitesView extends StatelessWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         title: Text('sites'.tr,
-            style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16)),
+            style: AppTypography.title
+                .copyWith(color: Colors.white, fontSize: 16)),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openSiteDialog(context, controller),

@@ -101,8 +101,7 @@ class _CompetitionDetailHeader extends GetView<CompetitionDetailController> {
                 ),
               ),
               Obx(() {
-                final favored =
-                    controller.favoriteIds.contains(competition.id);
+                final favored = controller.favoriteIds.contains(competition.id);
                 return IconButton(
                   icon: Icon(
                     favored ? Icons.star : Icons.star_border,
@@ -192,8 +191,7 @@ class _DetailPill extends GetView<CompetitionDetailController> {
       return GestureDetector(
         onTap: () => controller.changeTab(index),
         child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
           decoration: BoxDecoration(
             color: active ? AppColors.statusWaiting : Colors.transparent,
             borderRadius: AppRadius.pillRadius,
