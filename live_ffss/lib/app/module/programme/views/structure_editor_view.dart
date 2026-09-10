@@ -8,6 +8,8 @@ import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
 import 'package:live_ffss/app/module/programme/views/structure_bracket.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
+import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
+import 'package:live_ffss/app/presentation/shared/progress_overlay.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
@@ -258,33 +260,17 @@ class _PushOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<StructureEditorController>();
-    return Positioned.fill(
-      child: ColoredBox(
-        color: Colors.black.withValues(alpha: 0.35),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: AppSpacing.md),
-                Text('round_pushing'.tr, style: AppTypography.body),
-                Obx(() {
-                  final total = controller.pushTotal.value;
-                  if (total == 0) return const SizedBox.shrink();
-                  return Text('${controller.pushDone.value} / $total',
-                      style: AppTypography.caption);
-                }),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return ProgressOverlay(
+      message: 'round_pushing'.tr,
+      progress: Obx(() {
+        final total = controller.pushTotal.value;
+        if (total == 0) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.xs),
+          child: Text('${controller.pushDone.value} / $total',
+              style: AppTypography.caption),
+        );
+      }),
     );
   }
 }
@@ -412,11 +398,7 @@ class _LevelCard extends StatelessWidget {
                 ),
                 Obx(() => IconButton(
                       icon: controller.isDeletingLevel.value
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
+                          ? const LoadingIndicator(compact: true, size: 18)
                           : const Icon(Icons.delete_outline),
                       color: AppColors.statusError,
                       // A round backed by FFSS is deleted server-side first,

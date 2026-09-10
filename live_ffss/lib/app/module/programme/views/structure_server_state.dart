@@ -6,6 +6,7 @@ import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/race_format_configuration.dart';
 import 'package:live_ffss/app/module/programme/controllers/programme_controller.dart';
+import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
 /// What FFSS holds against what the competition needs: the déroulements still
@@ -149,12 +150,8 @@ class _MissingBanner extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             ),
             child: controller.isSubmitting.value
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
-                  )
+                ? const LoadingIndicator(
+                    compact: true, size: 16, color: Colors.white)
                 : Text('create'.tr),
           ),
         ],

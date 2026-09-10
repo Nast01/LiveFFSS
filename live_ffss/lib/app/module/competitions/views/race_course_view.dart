@@ -362,11 +362,7 @@ class _EntryBar extends GetView<RaceCourseController> {
                       ? null
                       : controller.validate,
                   icon: controller.isPublishing.value
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                      ? const LoadingIndicator(compact: true, size: 16)
                       : const Icon(Icons.cloud_upload_outlined, size: 18),
                   label: Text('course_validate'.tr),
                 ),
