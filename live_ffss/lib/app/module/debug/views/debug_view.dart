@@ -6,6 +6,7 @@ import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/domain/models/session_probe.dart';
 import 'package:live_ffss/app/module/debug/controllers/debug_controller.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 
 /// Écran de debug. Ses textes sont en dur, non traduits : il ne part jamais en
 /// release, et les deux fichiers de traduction sont tenus symétriques et sans
@@ -110,6 +111,16 @@ class DebugView extends GetView<DebugController> {
                     : () => _confirmSwitch(context, environment),
               ),
             ),
+          const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.storage_outlined),
+              title: const Text('Stockage local'),
+              subtitle: const Text('Voir, copier et supprimer les clés'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Get.toNamed<void>(Routes.debugStorage),
+            ),
+          ),
         ],
       ),
     );

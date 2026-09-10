@@ -12,6 +12,7 @@ abstract class Routes {
   static const raceCourse = '/race-course';
   static const heatDraw = '/heat-draw';
   static const debug = '/debug';
+  static const debugStorage = '/debug/storage';
   static const restarting = '/restarting';
   // Add other routes here
 }
