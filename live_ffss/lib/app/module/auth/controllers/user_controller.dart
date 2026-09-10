@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/module/auth/controllers/auth_controller.dart';
@@ -14,24 +15,14 @@ class UserController extends GetxController {
 
   Rx<bool> get isUserLoggedIn => _userService.isLoggedIn.obs;
 
-  void navigateToLogin() {
-    try {
-      Get.toNamed(Routes.login);
-    } catch (e) {
-      _showErrorSnackbar('navigation_error'.tr);
-    }
-  }
+  void navigateToLogin() => Get.toNamed<void>(Routes.login);
 
   void navigateToProfile() {
-    try {
-      if (!isLoggedIn) {
-        navigateToLogin();
-        return;
-      }
-      Get.toNamed(Routes.profile);
-    } catch (e) {
-      _showErrorSnackbar('navigation_error'.tr);
+    if (!isLoggedIn) {
+      navigateToLogin();
+      return;
     }
+    Get.toNamed<void>(Routes.profile);
   }
 
   Future<void> logout() async {
@@ -45,32 +36,25 @@ class UserController extends GetxController {
       }
       _showSuccessSnackbar('logout_success'.tr);
       Get.offAllNamed(Routes.home);
-    } catch (e) {
+    } on AppException {
+      // La session doit tomber meme si le serveur refuse de la fermer :
+      // seconde tentative en local, puis retour a l'accueil quoi qu'il arrive.
       try {
         await _authRepository.logout();
-      } catch (_) {}
+      } on AppException {
+        // Rien de plus a tenter ; le token local est de toute facon efface.
+      }
       Get.offAllNamed(Routes.home);
     }
   }
 
   void _refreshDependentControllers() {
+    // refreshAfterLogout ne fait qu'ecrire des Rx et relancer un chargement :
+    // rien n'y leve, et isRegistered couvre deja le controleur absent.
     if (Get.isRegistered<HomeController>()) {
-      try {
-        Get.find<HomeController>().refreshAfterLogout();
-      } catch (_) {}
+      Get.find<HomeController>().refreshAfterLogout();
     }
     Get.forceAppUpdate();
-  }
-
-  void _showErrorSnackbar(String message) {
-    Get.snackbar(
-      'error'.tr,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Get.theme.colorScheme.error,
-      colorText: Get.theme.colorScheme.onError,
-      duration: const Duration(seconds: 3),
-    );
   }
 
   void _showSuccessSnackbar(String message) {

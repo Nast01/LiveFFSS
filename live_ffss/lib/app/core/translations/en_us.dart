@@ -1,7 +1,6 @@
 final Map<String, String> enUS = {
   // App general
   'app_title': 'Live FFSS',
-  'error': 'Erreur',
 
   // User menu
   'profile': 'Profile',
@@ -102,7 +101,6 @@ final Map<String, String> enUS = {
   'success': 'Succès',
 
   'logout_success': 'Déconnexion réussie',
-  'navigation_error': 'Erreur de navigation',
 
   'login_to_view_profile': 'Please login to view your profile',
   'not_logged_in': 'You are not logged in',
