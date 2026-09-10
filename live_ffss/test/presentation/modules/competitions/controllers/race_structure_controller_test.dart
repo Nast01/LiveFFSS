@@ -55,6 +55,7 @@ void main() {
     registerFallbackValue('');
     registerFallbackValue(const <Athlete>[]);
     registerFallbackValue(const <int>[]);
+    registerFallbackValue(const <Run>[]);
   });
 
   const competition = Competition(
@@ -168,6 +169,24 @@ void main() {
         .thenAnswer((_) async => const []);
     when(() => meetingRepo.getLaneSeats(any()))
         .thenAnswer((_) async => const []);
+    // Le controleur precharge les places d'un coup, et les classements de meme.
+    // Les tests continuent de decrire les donnees course par course et serie
+    // par serie ; ces deux relais les rassemblent exactement comme le vrai
+    // repository le fait — equivalence que ses propres tests verifient.
+    when(() => meetingRepo.getLaneSeatsByCourse(any())).thenAnswer((call) async {
+      final courses = call.positionalArguments.first as Iterable<Run>;
+      return {
+        for (final course in courses)
+          course.id: await meetingRepo
+              .getLaneSeats([for (final lane in course.lanes) lane.id]),
+      };
+    });
+    when(() => meetingRepo.getHeatResultsByHeat(any())).thenAnswer((call) async {
+      final heatIds = call.positionalArguments.first as Iterable<int>;
+      return {
+        for (final heatId in heatIds) heatId: await meetingRepo.getHeatResults(heatId),
+      };
+    });
     raceFormatRepo = _MockRaceFormatRepo();
     when(() => raceFormatRepo.getRaceFormats(any()))
         .thenAnswer((_) async => const []);
@@ -992,6 +1011,28 @@ void main() {
 
       final drawn = controller.structures.single.levels.single.races.single;
       expect(drawn.entryIds, [999]);
+    });
+
+    // Tout le tour tient en une lecture groupee, quel que soit le nombre de
+    // courses : c'est ce que CLN-27 visait. Auparavant les deux passes
+    // d'import lisaient course par course, en file, et l'adoption des courses
+    // orphelines ajoutait encore une latence chacune.
+    test('les places de tout le tour sont lues en une fois', () async {
+      when(() => raceFormatRepo.getRaceFormats(42)).thenAnswer((_) async => [
+            format(details: const [serverSerie])
+          ]);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([
+              course(25, lanes: const [Lane(id: 71, number: 1)]),
+              course(26, lanes: const [Lane(id: 72, number: 1)]),
+              course(27, lanes: const [Lane(id: 73, number: 1)]),
+            ]),
+          ]);
+
+      await loadFresh();
+
+      verify(() => meetingRepo.getLaneSeatsByCourse(any())).called(1);
+      verify(() => meetingRepo.getHeatResultsByHeat(any())).called(1);
     });
 
     // Une course ajoutée sur le site fédéral n'a aucune série locale où se

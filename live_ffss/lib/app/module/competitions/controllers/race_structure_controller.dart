@@ -186,6 +186,7 @@ class RaceStructureController extends GetxController {
       // The draw a first device pushed lives in the FFSS places: this is what
       // makes it visible on every other device.
       try {
+        await _prefetchSeats(race);
         await _importCompositions(race);
         await _importResults(race);
         structures.value = _structuresOf(race);
@@ -436,6 +437,16 @@ class RaceStructureController extends GetxController {
     final programme = _programme.current.value;
     if (programme == null) return;
 
+    // Une seule lecture groupee pour toute l'epreuve, avant la boucle : lire
+    // serie par serie faisait payer une latence a chaque course validee.
+    final resultsByHeat = await _meetings.getHeatResultsByHeat({
+      for (final structure in programme.structures)
+        if (structure.raceId == race.id)
+          for (final level in structure.levels)
+            for (final course in coursesOfLevel(level))
+              if ((course.heat?.id ?? 0) != 0) course.heat!.id,
+    });
+
     for (final structure in programme.structures) {
       if (structure.raceId != race.id) continue;
       for (final level in structure.levels) {
@@ -447,12 +458,9 @@ class RaceStructureController extends GetxController {
           if (course == null || heatId == 0) continue;
           final seats = await _seatsOf(course);
           if (seats.isEmpty) continue;
-          List<HeatResult> results;
-          try {
-            results = await _meetings.getHeatResults(heatId);
-          } on AppException {
-            continue;
-          }
+          // Le best-effort par serie est tenu par la lecture groupee : une
+          // serie illisible revient vide, elle ne coute que son classement.
+          final results = resultsByHeat[heatId] ?? const <HeatResult>[];
           if (results.isEmpty) continue;
           final byEntry = {for (final r in results) r.entryId: r};
           final byAthlete = <int, HeatResult>{};
@@ -467,6 +475,29 @@ class RaceStructureController extends GetxController {
         }
       }
     }
+  }
+
+  /// Remplit le memo pour toutes les courses de l'epreuve, en une lecture
+  /// groupee.
+  ///
+  /// Sans lui, les deux passes d'import lisaient course par course, en file :
+  /// un tour de huit courses payait huit latences bout a bout la ou il en paie
+  /// une. Ce qui n'est pas prechargé — rien, en pratique — retombe sur la
+  /// lecture unitaire de [_seatsOf].
+  Future<void> _prefetchSeats(Race race) async {
+    final programme = _programme.current.value;
+    if (programme == null) return;
+    final courses = <int, Run>{};
+    for (final structure in programme.structures) {
+      if (structure.raceId != race.id) continue;
+      for (final level in structure.levels) {
+        for (final course in coursesOfLevel(level)) {
+          if (course.lanes.isNotEmpty) courses[course.id] = course;
+        }
+      }
+    }
+    if (courses.isEmpty) return;
+    _seatsByCourse.addAll(await _meetings.getLaneSeatsByCourse(courses.values));
   }
 
   /// Les places d'une course, lues une seule fois par `load()`.
