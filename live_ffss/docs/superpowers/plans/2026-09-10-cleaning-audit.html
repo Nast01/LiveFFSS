@@ -511,6 +511,10 @@
     7 commits. <code>flutter analyze</code> affiche désormais <strong>No issues found</strong> — les
     29 infos du relevé initial sont toutes traitées. <code>flutter test</code> tient à 985.
     Il reste les 3 tâches discutables.</p>
+    <p><strong>CLN-28 et CLN-29 tranchées et livrées.</strong> Il ne reste que
+    <a href="#CLN-27">CLN-27</a>. <code>analyze</code> : <strong>No issues found</strong> ;
+    <code>test</code> : <strong>982</strong> — la baisse de 985 vient des 3 tests de
+    <code>ClubX</code> supprimés avec leur sujet, pas d'une perte de couverture ailleurs.</p>
     <p><strong>CLN-17 est retirée : le constat était faux.</strong> Les 16 clés que j'annonçais absentes
     de <code>fr_FR</code> y sont bien — avec des guillemets doubles, parce que le texte français porte une
     apostrophe (<code>"Échec de l'envoi des parties"</code>). Ma regex d'audit ne reconnaissait que les
@@ -695,14 +699,14 @@
         <td><span class="risk d">discutable</span></td><td class="eff">M</td>
         <td class="gain">Un tour de 8 courses paie 1 latence au lieu de 8</td></tr>
 
-      <tr><td class="id"><a href="#CLN-28">CLN-28</a></td><td class="cat">TEST</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-28">CLN-28</a></td><td class="cat">TEST</td>
         <td><code>ClubX.hasCap</code> / <code>hasLogo</code> : testés, jamais appelés</td>
-        <td><span class="risk d">discutable</span></td><td class="eff">S</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
         <td class="gain">Soit −2 getters + −13 lignes de test, soit un usage dans <code>ClubAvatar</code></td></tr>
 
-      <tr><td class="id"><a href="#CLN-29">CLN-29</a></td><td class="cat">ARCH</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-29">CLN-29</a></td><td class="cat">ARCH</td>
         <td>2 méthodes publiques d'interface à usage purement interne</td>
-        <td><span class="risk d">discutable</span></td><td class="eff">M</td>
+        <td><span class="done">faite</span></td><td class="eff">M</td>
         <td class="gain">Surface publique réduite, mais 34 lignes de test à réécrire</td></tr>
     </tbody>
   </table>
@@ -1277,8 +1281,8 @@ flutter run  # Épreuve → Structure sur une compétition à plusieurs tours</c
       </dl>
     </article>
 
-    <article class="fiche d" id="CLN-28">
-      <div class="fiche-head"><span class="fiche-id">CLN-28</span>
+    <article class="fiche d is-done" id="CLN-28">
+      <div class="fiche-head"><span class="fiche-id">CLN-28</span> <span class="done">faite</span>
         <h3 class="fiche-title"><code>ClubX.hasCap</code> / <code>hasLogo</code> : testés, jamais appelés</h3></div>
       <p><span class="path">data/mappers/club_mapper.dart:123-124</span>. Trois tests les couvrent
       (<span class="path">test/data/mappers/club_mapper_test.dart:334-347</span>) et aucune ligne de
@@ -1289,19 +1293,21 @@ lib/app/data/mappers/club_mapper.dart:123  bool get hasLogo =&gt; logoUrl?.isNot
 lib/app/data/mappers/club_mapper.dart:124  bool get hasCap  =&gt; capUrl?.isNotEmpty == true;
 test/... : 7 lignes, 3 tests.
 Aucune autre occurrence dans lib/.</pre></dd>
-        <dt>L'autre lecture</dt><dd><code>ClubAvatar</code> réimplémente exactement cette condition en
-          interne pour choisir logo → bonnet → initiale. Le bon geste est peut-être de les <em>utiliser</em>
-          là plutôt que de les supprimer. Deux issues, à toi de trancher :
-          <ul class="tight">
-            <li><strong>28a</strong> — supprimer les deux getters et leurs 3 tests (−2 lignes lib, −13 test).</li>
-            <li><strong>28b</strong> — les câbler dans <code>ClubAvatar</code>, les tests deviennent alors légitimes.</li>
-          </ul></dd>
+        <dt>Arbitrage rendu : 28a</dt><dd><code>ClubAvatar</code> réimplémente bien la même condition
+          (<span class="path">club_avatar.dart:37-38</span>), mais <code>ClubX</code> vit dans
+          <span class="path">data/mappers/</span> et <strong><span class="path">lib/app/presentation/</span>
+          n'importe aujourd'hui rien de <span class="path">lib/app/data/</span></strong> — vérifié, zéro
+          import. Câbler les getters (28b) aurait payé le premier franchissement de cette frontière pour
+          deux prédicats d'une ligne : mauvais échange, d'autant que <code>ClubAvatar</code> ne teste pas un
+          booléen mais construit une liste d'URLs, où la forme inline se lit aussi bien. Les getters et leurs
+          trois tests sont donc supprimés. Si la question revient, le bon geste sera de déplacer ces
+          prédicats vers le domaine ou la présentation d'abord, pas d'importer un mapper depuis un widget.</dd>
         <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
       </dl>
     </article>
 
-    <article class="fiche d" id="CLN-29">
-      <div class="fiche-head"><span class="fiche-id">CLN-29</span>
+    <article class="fiche d is-done" id="CLN-29">
+      <div class="fiche-head"><span class="fiche-id">CLN-29</span> <span class="done">faite</span>
         <h3 class="fiche-title">2 méthodes publiques d'interface à usage purement interne</h3></div>
       <p><code>CompetitionRepository.getCompetitions</code> n'est appelée que par
       <code>getAllCompetitions</code> et <code>getNext5</code>, dans la même classe.
@@ -1315,11 +1321,13 @@ Aucune autre occurrence dans lib/.</pre></dd>
 getClubDetail    → club_repository.dart:44 et :61 (interne)
                  → 21 occurrences dans club_repository_test.dart
                  → 0 dans un contrôleur</pre></dd>
-        <dt>Pourquoi « discutable »</dt><dd>Les rendre privées casse 34 lignes de test qui les appellent
-          directement — des tests utiles, qui vérifient la pagination et le repli sur bucket organisme. Il
-          faudrait les réécrire à travers <code>getAllCompetitions</code> / <code>getClubDetails</code>,
-          ce qui les rend moins directs. Le gain de surface publique vaut-il ce coût : à toi.
-          <a href="#CLN-08">CLN-08</a> retire déjà l'un des deux appelants de <code>getCompetitions</code>.</dd>
+        <dt>Le coût annoncé ne s'est pas matérialisé</dt><dd>La fiche craignait de perdre des tests utiles.
+          <strong>982 tests avant, 982 après</strong> : les quatre se reroutent proprement. Le forwarding de
+          <code>type</code> / <code>visibility</code> / <code>pageSize</code> se vérifie sur
+          <code>getAllCompetitions</code>, qui les porte jusqu'à la source et numérote les pages ; les trois
+          tests du bucket organisme passent par <code>getClubDetails</code>, dont la map garde l'id demandé
+          en clé et le club résolu en valeur — une assertion en fait <em>plus</em> proche de ce que les
+          appelants voient réellement. Les deux interfaces tombent à deux méthodes chacune.</dd>
         <dt>Dépend de</dt><dd>Après <a href="#CLN-08">CLN-08</a>.</dd>
         <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
       </dl>
