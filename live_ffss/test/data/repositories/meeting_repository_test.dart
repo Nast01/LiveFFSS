@@ -99,13 +99,6 @@ void main() {
         )).called(1);
   });
 
-  test('deleteMeeting forwards meetingId', () async {
-    when(() => ds.deleteMeeting(any())).thenAnswer((_) async => true);
-    final ok = await repo.deleteMeeting(7);
-    expect(ok, true);
-    verify(() => ds.deleteMeeting(7)).called(1);
-  });
-
   RunDto makeRunDto(int slotId) => RunDto(
         id: slotId * 100,
         name: 'run-of-slot-$slotId',
@@ -317,13 +310,6 @@ void main() {
 
       expect(await repo.createDefaultLanes(runId: 20, count: 3), 2);
     });
-  });
-
-  test('deleteLane forwards the lane id', () async {
-    when(() => ds.deleteLane(any())).thenAnswer((_) async => true);
-
-    expect(await repo.deleteLane(6), isTrue);
-    verify(() => ds.deleteLane(6)).called(1);
   });
 
   test('submitRun forwards every field and returns the assigned id', () async {

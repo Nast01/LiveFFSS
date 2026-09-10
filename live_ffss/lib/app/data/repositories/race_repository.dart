@@ -1,14 +1,11 @@
 import 'package:live_ffss/app/data/datasources/race_remote_datasource.dart';
 import 'package:live_ffss/app/data/mappers/entry_mapper.dart';
-import 'package:live_ffss/app/data/mappers/heat_mapper.dart';
 import 'package:live_ffss/app/data/mappers/race_mapper.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
-import 'package:live_ffss/app/domain/models/heat.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 
 abstract class RaceRepository {
   Future<List<Race>> getRaces(int competitionId);
-  Future<List<Heat>> getHeats(int raceId);
   Future<List<Entry>> getEntries(int raceId);
 }
 
@@ -20,12 +17,6 @@ class RaceRepositoryImpl implements RaceRepository {
   @override
   Future<List<Race>> getRaces(int competitionId) async {
     final dtos = await _dataSource.getRaces(competitionId);
-    return dtos.map((d) => d.toDomain()).toList();
-  }
-
-  @override
-  Future<List<Heat>> getHeats(int raceId) async {
-    final dtos = await _dataSource.getHeats(raceId);
     return dtos.map((d) => d.toDomain()).toList();
   }
 

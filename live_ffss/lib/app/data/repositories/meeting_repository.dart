@@ -24,8 +24,6 @@ abstract class MeetingRepository {
     required DateTime endHour,
     int? id,
   });
-  Future<bool> deleteMeeting(int meetingId);
-
   /// Creates a créneau of a réunion, or updates the one with the given [id].
   ///
   /// [raceFormatDetailId] is the round ("partie") this créneau schedules;
@@ -61,8 +59,6 @@ abstract class MeetingRepository {
   /// stop the others: leaving a course half-equipped is bad, leaving it
   /// half-equipped *and* silent is worse.
   Future<int> createDefaultLanes({required int runId, required int count});
-
-  Future<bool> deleteLane(int laneId);
 
   /// Makes the course's spots mirror [entryIds]: one spot per entry, numbered
   /// from 1 in lane order, [existing] spots rewritten before any is created,
@@ -106,8 +102,6 @@ abstract class MeetingRepository {
   });
 
   /// The results FFSS holds for a heat, by engagement.
-  Future<List<HeatResult>> getHeatResults(int heatId);
-
   /// The results of several heats at once, keyed by heat id. Same bargain as
   /// [getLaneSeatsByCourse], and the same best-effort: a heat whose read fails
   /// comes back empty, so one unreadable heat costs its own ranking rather
@@ -222,10 +216,6 @@ class MeetingRepositoryImpl implements MeetingRepository {
       );
 
   @override
-  Future<bool> deleteMeeting(int meetingId) =>
-      _dataSource.deleteMeeting(meetingId);
-
-  @override
   Future<int> submitSlot({
     required int meetingId,
     required String name,
@@ -260,9 +250,6 @@ class MeetingRepositoryImpl implements MeetingRepository {
     }
     return created;
   }
-
-  @override
-  Future<bool> deleteLane(int laneId) => _dataSource.deleteLane(laneId);
 
   @override
   Future<int> submitRun({
@@ -378,7 +365,7 @@ class MeetingRepositoryImpl implements MeetingRepository {
       final batch = ids.skip(i).take(_runsBatchSize);
       await Future.wait(batch.map((heatId) async {
         try {
-          byHeat[heatId] = await getHeatResults(heatId);
+          byHeat[heatId] = await _getHeatResults(heatId);
         } on AppException {
           // Best-effort : cette serie reste vide, les autres sont lues.
         }
@@ -432,8 +419,9 @@ class MeetingRepositoryImpl implements MeetingRepository {
     return heat;
   }
 
-  @override
-  Future<List<HeatResult>> getHeatResults(int heatId) async {
+  /// Les resultats d'une serie. Interne : les appelants passent par
+  /// [getHeatResultsByHeat], qui borne le fan-out.
+  Future<List<HeatResult>> _getHeatResults(int heatId) async {
     final dtos = await _dataSource.getHeatResults(heatId);
     return [
       for (final dto in dtos)

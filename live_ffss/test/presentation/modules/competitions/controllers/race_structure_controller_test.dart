@@ -181,12 +181,8 @@ void main() {
               .getLaneSeats([for (final lane in course.lanes) lane.id]),
       };
     });
-    when(() => meetingRepo.getHeatResultsByHeat(any())).thenAnswer((call) async {
-      final heatIds = call.positionalArguments.first as Iterable<int>;
-      return {
-        for (final heatId in heatIds) heatId: await meetingRepo.getHeatResults(heatId),
-      };
-    });
+    when(() => meetingRepo.getHeatResultsByHeat(any()))
+        .thenAnswer((_) async => const {});
     raceFormatRepo = _MockRaceFormatRepo();
     when(() => raceFormatRepo.getRaceFormats(any()))
         .thenAnswer((_) async => const []);
@@ -1385,8 +1381,8 @@ void main() {
                   lanes: const [Lane(id: 71, number: 1)]),
             ]),
           ]);
-      when(() => meetingRepo.getHeatResults(94369))
-          .thenAnswer((_) async => results);
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => {94369: results});
       when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
             (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
             (laneId: 71, number: 2, entryId: 102, athleteIds: [12]),
@@ -1471,8 +1467,12 @@ void main() {
       when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
             (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
           ]);
-      when(() => meetingRepo.getHeatResults(94369)).thenAnswer((_) async =>
-          const [(entryId: 101, rank: 1, isDisqualified: false, complement: null)]);
+      when(() => meetingRepo.getHeatResultsByHeat(any())).thenAnswer((_) async =>
+          const {
+            94369: [
+              (entryId: 101, rank: 1, isDisqualified: false, complement: null)
+            ]
+          });
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
           clubRepo, meetingRepo, raceFormatRepo);
 
@@ -1497,7 +1497,10 @@ void main() {
 
       await controller.load(race(500), competition);
 
-      verifyNever(() => meetingRepo.getHeatResults(any()));
+      final asked = verify(() => meetingRepo.getHeatResultsByHeat(captureAny()))
+          .captured
+          .single as Iterable<int>;
+      expect(asked, isEmpty);
       expect(controller.placeInRace(serieRace(), 11), 1);
     });
   });
