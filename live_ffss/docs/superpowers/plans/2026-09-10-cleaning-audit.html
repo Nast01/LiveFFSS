@@ -507,6 +507,10 @@
     <code>LoadingIndicator</code> gagne <code>size</code> et <code>color</code>. Un seul changement
     visible, assumé : le compteur du voile d'envoi de l'éditeur gagne les 4 px de padding que son jumeau
     avait déjà.</p>
+    <p><strong>Lot « à vérifier » soldé.</strong> CLN-11, 16, 18, 19, 21, 25, 26 : appliquées en
+    7 commits. <code>flutter analyze</code> affiche désormais <strong>No issues found</strong> — les
+    29 infos du relevé initial sont toutes traitées. <code>flutter test</code> tient à 985.
+    Il reste les 3 tâches discutables.</p>
     <p><strong>CLN-17 est retirée : le constat était faux.</strong> Les 16 clés que j'annonçais absentes
     de <code>fr_FR</code> y sont bien — avec des guillemets doubles, parce que le texte français porte une
     apostrophe (<code>"Échec de l'envoi des parties"</code>). Ma regex d'audit ne reconnaissait que les
@@ -624,9 +628,9 @@
 
       <tr class="group"><td colspan="6">À vérifier — le geste est clair, l'effet demande un contrôle</td></tr>
 
-      <tr><td class="id"><a href="#CLN-16">CLN-16</a></td><td class="cat">DEAD</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-16">CLN-16</a></td><td class="cat">DEAD</td>
         <td>Renommer <span class="path">en_US.dart</span> / <span class="path">fr_FR.dart</span> en minuscules</td>
-        <td><span class="risk v">à vérifier</span></td><td class="eff">S</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
         <td class="gain">Le build cesse de dépendre de la casse du système de fichiers</td></tr>
 
       <tr class="is-done"><td class="id"><a href="#CLN-20">CLN-20</a></td><td class="cat">PERF</td>
@@ -649,34 +653,34 @@
         <td><span class="done">faite</span></td><td class="eff">S</td>
         <td class="gain">Un helper de présentation au lieu de 4 interpolations jumelles</td></tr>
 
-      <tr><td class="id"><a href="#CLN-26">CLN-26</a></td><td class="cat">ARCH</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-26">CLN-26</a></td><td class="cat">ARCH</td>
         <td><code>UserController</code> attrape <code>catch (e)</code> nu (3 sites)</td>
-        <td><span class="risk v">à vérifier</span></td><td class="eff">S</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
         <td class="gain">Règle rétablie : seuls les <code>AppException</code> sont avalés</td></tr>
 
-      <tr><td class="id"><a href="#CLN-25">CLN-25</a></td><td class="cat">ARCH</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-25">CLN-25</a></td><td class="cat">ARCH</td>
         <td><code>LanguageService</code> fait <code>Get.find</code> dans son corps</td>
-        <td><span class="risk v">à vérifier</span></td><td class="eff">S</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
         <td class="gain">Règle rétablie : injection par constructeur, service testable</td></tr>
 
-      <tr><td class="id"><a href="#CLN-19">CLN-19</a></td><td class="cat">ARCH</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-19">CLN-19</a></td><td class="cat">ARCH</td>
         <td><code>Radio.groupValue</code> / <code>onChanged</code> dépréciés (4 infos)</td>
-        <td><span class="risk v">à vérifier</span></td><td class="eff">M</td>
+        <td><span class="done">faite</span></td><td class="eff">M</td>
         <td class="gain">6 → 2 infos analyze ; prêt pour la suppression Flutter</td></tr>
 
-      <tr><td class="id"><a href="#CLN-18">CLN-18</a></td><td class="cat">DEAD</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-18">CLN-18</a></td><td class="cat">DEAD</td>
         <td>4 getters morts de <code>LaneX</code>, adossés à <code>Lane.result</code></td>
-        <td><span class="risk v">à vérifier</span></td><td class="eff">S</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
         <td class="gain">−4 lignes ; touche une zone « known gap », d'où le contrôle</td></tr>
 
-      <tr><td class="id"><a href="#CLN-21">CLN-21</a></td><td class="cat">ARCH</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-21">CLN-21</a></td><td class="cat">ARCH</td>
         <td><code>FormatConst</code> expose deux <code>DateFormat</code> mutables</td>
-        <td><span class="risk v">à vérifier</span></td><td class="eff">S</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
         <td class="gain">Deux formats globaux qu'on ne peut plus réassigner par accident</td></tr>
 
-      <tr><td class="id"><a href="#CLN-11">CLN-11</a></td><td class="cat">DEAD</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-11">CLN-11</a></td><td class="cat">DEAD</td>
         <td><code>flutter_localizations</code> + <code>generate: true</code> sans l10n</td>
-        <td><span class="risk v">à vérifier</span></td><td class="eff">S</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
         <td class="gain">−1 dépendance ; l'étape gen-l10n disparaît du build</td></tr>
 
       <tr class="is-done"><td class="id"><a href="#CLN-17">CLN-17</a></td><td class="cat">—</td>
@@ -885,8 +889,8 @@ Elles restent.</pre></dd>
       </dl>
     </article>
 
-    <article class="fiche v" id="CLN-11">
-      <div class="fiche-head"><span class="fiche-id">CLN-11</span>
+    <article class="fiche v is-done" id="CLN-11">
+      <div class="fiche-head"><span class="fiche-id">CLN-11</span> <span class="done">faite</span>
         <h3 class="fiche-title"><code>flutter_localizations</code> et <code>generate: true</code> sans l10n</h3></div>
       <p><span class="path">pubspec.yaml:15</span> déclare <code>flutter_localizations</code> et la ligne 36
       active <code>generate: true</code>. Le dépôt n'a ni <span class="path">l10n.yaml</span> ni fichier
@@ -896,11 +900,16 @@ Elles restent.</pre></dd>
         <dt>Preuve</dt><dd><pre class="proof">grep -rn "package:flutter_localizations" lib test → 0
 grep -rn "localizationsDelegates|supportedLocales|GlobalMaterialLocalizations" lib → 0
 ls l10n.yaml → absent ; find . -name '*.arb' → aucun</pre></dd>
-        <dt>Pourquoi « à vérifier »</dt><dd>Les widgets Material datés (<code>showDatePicker</code>,
-          <code>showTimePicker</code>) tirent leurs libellés des <code>GlobalMaterialLocalizations</code>.
-          Sans elles ils tombent en anglais. Le programme utilise des sélecteurs de date — il faut ouvrir
-          l'écran Programme après coup pour confirmer que rien ne bascule en anglais, sinon la bonne
-          correction est l'inverse : câbler les delegates plutôt que retirer la dépendance.</dd>
+        <dt>Question tranchée</dt><dd>Le doute portait sur <code>showTimePicker</code>, bien utilisé
+          (<span class="path">schedule_view.dart:408</span>). Il tombe : <code>GetMaterialApp</code> ne
+          reçoit <strong>ni <code>localizationsDelegates</code> ni <code>supportedLocales</code></strong>,
+          donc Material retombe déjà sur <code>DefaultMaterialLocalizations</code> et sur le
+          <code>supportedLocales</code> par défaut, <code>[en_US]</code>. Retirer la dépendance ne change
+          rien au rendu. Vérifié par un <code>flutter build web</code> complet, pas seulement par analyze.
+          <strong>Défaut constaté, non corrigé</strong> : c'est aussi pourquoi ce sélecteur d'heure est en
+          anglais pour un utilisateur français — seul son <code>helpText</code> est traduit, parce qu'il est
+          passé explicitement. Le corriger demande le geste inverse (remettre la dépendance et câbler les
+          delegates) : c'est un ajout, pas un nettoyage.</dd>
         <dt>Vérifier</dt><dd><code class="cmd">flutter pub get &amp;&amp; flutter analyze &amp;&amp; flutter test
 flutter run  # ouvrir Programme → planifier un créneau → sélecteur d'heure</code></dd>
       </dl>
@@ -973,8 +982,8 @@ Toutes dans test/ ; lib/ n'en a aucune.</pre></dd>
       </dl>
     </article>
 
-    <article class="fiche v" id="CLN-16">
-      <div class="fiche-head"><span class="fiche-id">CLN-16</span>
+    <article class="fiche v is-done" id="CLN-16">
+      <div class="fiche-head"><span class="fiche-id">CLN-16</span> <span class="done">faite</span>
         <h3 class="fiche-title">Renommer les fichiers de traduction en minuscules</h3></div>
       <p>Les fichiers s'appellent <span class="path">en_US.dart</span> et <span class="path">fr_FR.dart</span>,
       mais <span class="path">app_translations.dart</span> les importe en <code>'en_us.dart'</code> et
@@ -1025,8 +1034,8 @@ Ces 4 asymétries étaient toutes des clés mortes, parties avec CLN-09.</pre></
       </dl>
     </article>
 
-    <article class="fiche v" id="CLN-18">
-      <div class="fiche-head"><span class="fiche-id">CLN-18</span>
+    <article class="fiche v is-done" id="CLN-18">
+      <div class="fiche-head"><span class="fiche-id">CLN-18</span> <span class="done">faite</span>
         <h3 class="fiche-title">4 getters morts de <code>LaneX</code></h3></div>
       <p><span class="path">domain/models/lane.dart:32-35</span> : <code>currentRank</code>,
       <code>currentTime</code>, <code>currentTimeLabel</code>, <code>hasValidResult</code>.
@@ -1042,8 +1051,8 @@ Ces 4 asymétries étaient toutes des clés mortes, parties avec CLN-09.</pre></
       </dl>
     </article>
 
-    <article class="fiche v" id="CLN-19">
-      <div class="fiche-head"><span class="fiche-id">CLN-19</span>
+    <article class="fiche v is-done" id="CLN-19">
+      <div class="fiche-head"><span class="fiche-id">CLN-19</span> <span class="done">faite</span>
         <h3 class="fiche-title"><code>Radio.groupValue</code> / <code>onChanged</code> dépréciés</h3></div>
       <p>Quatre occurrences dans <span class="path">module/competitions/views/heat_structure_dialog.dart</span>
       (lignes 80, 84, 88, 92). Flutter demande de passer par un ancêtre <code>RadioGroup</code>.</p>
@@ -1091,8 +1100,8 @@ flutter run  # home → changer FR/EN → le mois des cartes doit suivre</code><
       </dl>
     </article>
 
-    <article class="fiche v" id="CLN-21">
-      <div class="fiche-head"><span class="fiche-id">CLN-21</span>
+    <article class="fiche v is-done" id="CLN-21">
+      <div class="fiche-head"><span class="fiche-id">CLN-21</span> <span class="done">faite</span>
         <h3 class="fiche-title"><code>FormatConst</code> expose deux formats mutables</h3></div>
       <p><span class="path">core/const/format_const.dart:6-7</span> déclare
       <code>static DateFormat dateFormat</code> et <code>static DateFormat timeFormat</code> — sans
@@ -1190,8 +1199,8 @@ competition_detail_view.dart:209-244  _HeaderDateBlock
       </dl>
     </article>
 
-    <article class="fiche v" id="CLN-25">
-      <div class="fiche-head"><span class="fiche-id">CLN-25</span>
+    <article class="fiche v is-done" id="CLN-25">
+      <div class="fiche-head"><span class="fiche-id">CLN-25</span> <span class="done">faite</span>
         <h3 class="fiche-title"><code>LanguageService</code> fait <code>Get.find</code> dans son corps</h3></div>
       <p><span class="path">core/services/language_service.dart:8</span> :
       <code>final FlutterSecureStorage _storage = Get.find&lt;FlutterSecureStorage&gt;();</code>.
@@ -1214,8 +1223,8 @@ initial_binding.dart:170  await Get.putAsync&lt;LanguageService&gt;(
       </dl>
     </article>
 
-    <article class="fiche v" id="CLN-26">
-      <div class="fiche-head"><span class="fiche-id">CLN-26</span>
+    <article class="fiche v is-done" id="CLN-26">
+      <div class="fiche-head"><span class="fiche-id">CLN-26</span> <span class="done">faite</span>
         <h3 class="fiche-title"><code>UserController</code> attrape <code>catch (e)</code> nu</h3></div>
       <p>Lignes 20, 32 et 48 de <span class="path">module/auth/controllers/user_controller.dart</span>.
       La règle est d'attraper <code>AppException</code> et de laisser passer le reste ; ici un
@@ -1227,10 +1236,15 @@ initial_binding.dart:170  await Get.putAsync&lt;LanguageService&gt;(
 Reste du dépôt : 24 × "on AppException catch (e)" dans 9 contrôleurs.
 Seules autres exceptions : http_client.dart (mapping voulu) et
 nfc_rfid_writer_impl.dart (frontière plugin).</pre></dd>
-        <dt>Pourquoi « à vérifier »</dt><dd><code>UserController</code> fait partie des deux contrôleurs que
-          <span class="path">CLAUDE.md</span> déclare explicitement différés. Resserrer le <code>catch</code>
-          sans traiter le <code>Get.snackbar</code> / <code>.tr</code> du même fichier laisse le nettoyage à
-          moitié fait — mais c'est aussi le seul des trois défauts qui puisse masquer un vrai crash.</dd>
+        <dt>Ce qui a été fait</dt><dd>Les trois sites ne relevaient pas du même geste. Les deux
+          <code>catch</code> autour de <code>Get.toNamed</code> n'entouraient aucun appel capable de lever un
+          <code>AppException</code> : les resserrer aurait laissé un <code>catch</code> mort, ils ont donc été
+          <strong>retirés</strong>. Avec eux part <code>_showErrorSnackbar</code>, soit un des deux
+          <code>Get.snackbar</code> que <span class="path">CLAUDE.md</span> porte en dette différée sur ce
+          fichier. Celui de <code>logout</code> entoure un vrai appel réseau : il reste, borné à
+          <code>AppException</code>. Le <code>catch (_)</code> autour de <code>refreshAfterLogout</code> part
+          aussi — la méthode est synchrone et n'écrit que des <code>Rx</code>. Les clés
+          <code>navigation_error</code> et <code>error</code>, devenues orphelines, ont suivi.</dd>
         <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
       </dl>
     </article>
