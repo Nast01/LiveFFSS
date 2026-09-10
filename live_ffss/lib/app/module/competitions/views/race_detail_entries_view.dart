@@ -7,6 +7,7 @@ import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_detail_controller.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/athlete_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
@@ -274,8 +275,7 @@ class _AthleteRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name =
-        '${athlete.lastName.toUpperCase()} ${athlete.firstName}'.trim();
+    final name = athlete.displayName;
     final subtitle = _subtitle();
 
     return Container(

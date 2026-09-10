@@ -11,6 +11,7 @@ import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_structure_controller.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/athlete_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/course_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
@@ -628,8 +629,7 @@ class _CompetitorRow extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${athlete.lastName.toUpperCase()} ${athlete.firstName}'
-                      .trim(),
+                  athlete.displayName,
                   style: AppTypography.body.copyWith(fontSize: 13),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

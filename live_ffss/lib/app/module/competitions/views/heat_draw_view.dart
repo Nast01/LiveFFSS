@@ -10,6 +10,7 @@ import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/heat_draw_controller.dart';
 import 'package:live_ffss/app/module/competitions/views/heat_structure_dialog.dart';
 import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/athlete_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
@@ -622,9 +623,8 @@ class _LaneRow extends StatelessWidget {
   /// One athlete reads as a name; a team reads as all of them, in order —
   /// « DUPONT Jean / MARTIN Luc / … » — because on a start line the lane is
   /// the team, not its first swimmer.
-  String get _label => entry.athletes
-      .map((a) => '${a.lastName.toUpperCase()} ${a.firstName}'.trim())
-      .join(' / ');
+  String get _label =>
+      entry.athletes.map((a) => a.displayName).join(' / ');
 
   /// The resolved club when the index reached this athlete, otherwise whatever
   /// label the entry carried — the same source `ClubAvatar` falls back on.

@@ -8,6 +8,7 @@ import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_course_controller.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/athlete_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/course_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
@@ -461,8 +462,7 @@ class _CompetitorRow extends GetView<RaceCourseController> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '${athlete.lastName.toUpperCase()} ${athlete.firstName}'
-                              .trim(),
+                          athlete.displayName,
                           style: AppTypography.body.copyWith(fontSize: 13),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
