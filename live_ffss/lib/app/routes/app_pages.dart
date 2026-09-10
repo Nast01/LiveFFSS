@@ -15,6 +15,8 @@ import 'package:live_ffss/app/module/competitions/views/heat_draw_view.dart';
 import 'package:live_ffss/app/module/competitions/views/race_course_view.dart';
 import 'package:live_ffss/app/module/competitions/views/race_detail_view.dart';
 import 'package:live_ffss/app/module/competitions/views/rfid_writer_view.dart';
+import 'package:live_ffss/app/module/debug/bindings/debug_binding.dart';
+import 'package:live_ffss/app/module/debug/views/debug_view.dart';
 import 'package:live_ffss/app/module/debug/views/restarting_view.dart';
 import 'package:live_ffss/app/module/favorites/bindings/favorites_binding.dart';
 import 'package:live_ffss/app/module/home/bindings/home_binding.dart';
@@ -94,6 +96,12 @@ class AppPages {
       GetPage(
         name: Routes.restarting,
         page: () => const RestartingView(),
+      ),
+    if (kDebugMode)
+      GetPage(
+        name: Routes.debug,
+        page: () => const DebugView(),
+        binding: DebugBinding(),
       ),
   ];
 }
