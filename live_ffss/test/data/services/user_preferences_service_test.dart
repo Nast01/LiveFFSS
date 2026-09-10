@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/data/services/user_preferences_service.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -123,6 +124,31 @@ void main() {
       expect(prefs.lastViewedIds.length, 20);
       expect(prefs.lastViewedIds.first, 99);
       expect(prefs.lastViewedIds.last, 2); // 1 dropped from the tail
+    });
+  });
+
+  group('UserPreferencesService cloisonne par environnement', () {
+    test('lit et ecrit sous les cles prefixees', () async {
+      final scoped = UserPreferencesService(
+        storage,
+        environment: AppEnvironment.development,
+      );
+      when(() => storage.read(key: 'dev_favorite_competitions'))
+          .thenAnswer((_) async => null);
+      when(() => storage.read(key: 'dev_last_viewed_competitions'))
+          .thenAnswer((_) async => null);
+      when(() => storage.write(
+            key: any(named: 'key'),
+            value: any(named: 'value'),
+          )).thenAnswer((_) async {});
+
+      await scoped.init();
+      await scoped.toggleFavorite(7);
+
+      verify(() => storage.write(
+            key: 'dev_favorite_competitions',
+            value: '[7]',
+          )).called(1);
     });
   });
 }

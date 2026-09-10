@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:mocktail/mocktail.dart';
@@ -172,6 +173,19 @@ void main() {
           'athletes': {'100': 'present', '101': 'present'},
         },
       ]);
+    });
+  });
+
+  group('AttendanceService cloisonne par environnement', () {
+    test('lit sous la cle prefixee', () async {
+      final scoped =
+          AttendanceService(storage, environment: AppEnvironment.development);
+      when(() => storage.read(key: 'dev_race_attendance'))
+          .thenAnswer((_) async => null);
+
+      await scoped.init();
+
+      verify(() => storage.read(key: 'dev_race_attendance')).called(1);
     });
   });
 }
