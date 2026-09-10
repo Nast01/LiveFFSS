@@ -29,10 +29,6 @@ class Lane with _$Lane {
 
 extension LaneX on Lane {
   bool get isEmpty => entry == null;
-  int? get currentRank => result?.rank;
-  int? get currentTime => result?.time;
-  String? get currentTimeLabel => result?.timeLabel;
-  bool get hasValidResult => result?.isValid == true;
   bool get isDisqualified => result?.isDisqualified == true;
 }
 
