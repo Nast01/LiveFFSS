@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
@@ -214,6 +215,22 @@ void main() {
 
       expect(await repo.restoreSession(), isNull);
       verifyNever(() => ds.getCurrentUser());
+    });
+  });
+
+  group('AuthRepository cloisonne par environnement', () {
+    test('lit le profil sous la cle prefixee', () async {
+      final scoped = AuthRepositoryImpl(
+        dataSource: ds,
+        tokenStorage: tokens,
+        secureStorage: secure,
+        environment: AppEnvironment.development,
+      );
+      when(() => secure.read(key: 'dev_user')).thenAnswer((_) async => null);
+
+      await scoped.restoreSession();
+
+      verify(() => secure.read(key: 'dev_user')).called(1);
     });
   });
 }

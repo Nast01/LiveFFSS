@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
@@ -20,11 +21,13 @@ class AuthRepositoryImpl implements AuthRepository {
     required AuthRemoteDataSource dataSource,
     required TokenStorage tokenStorage,
     required FlutterSecureStorage secureStorage,
+    AppEnvironment environment = AppEnvironment.production,
   })  : _dataSource = dataSource,
         _tokenStorage = tokenStorage,
-        _secureStorage = secureStorage;
+        _secureStorage = secureStorage,
+        _userKey = '${environment.storagePrefix}user';
 
-  static const _userKey = 'user';
+  final String _userKey;
 
   final AuthRemoteDataSource _dataSource;
   final TokenStorage _tokenStorage;
