@@ -5,6 +5,7 @@ import 'package:live_ffss/app/core/di/initial_binding.dart';
 import 'package:live_ffss/app/core/services/language_service.dart';
 import 'package:live_ffss/app/core/themes/app_theme.dart';
 import 'package:live_ffss/app/core/translations/app_translations.dart';
+import 'package:live_ffss/app/presentation/shared/dev_banner.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
 void main() async {
@@ -27,6 +28,9 @@ void main() async {
       getPages: AppPages.routes,
       theme: appThemeData,
       debugShowCheckedModeBanner: false,
+      builder: (context, child) => DevEnvironmentBanner(
+        child: child ?? const SizedBox.shrink(),
+      ),
       translations: AppTranslations(),
       locale: initialLocale,
       fallbackLocale: const Locale('fr', 'FR'),
