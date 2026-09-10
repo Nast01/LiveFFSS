@@ -35,9 +35,12 @@ class StorageInspectorView extends GetView<StorageInspectorController> {
               ),
               child: const Text(
                 'Cet écran écrit sur le disque, pas dans les objets vivants. '
-                'Supprimer une clé ne vide pas ce que les services tiennent '
-                'déjà en mémoire — il faut relancer l\'application, ou '
-                'basculer d\'environnement, pour qu\'ils le constatent.',
+                'Un service qui ne fait que lire (ex. UserService) ne verra '
+                'pas la suppression avant un redémarrage ou un changement '
+                'd\'environnement. Un service qui réécrit sa clé après coup '
+                '(ProgrammeService, AttendanceService) restaurera la clé '
+                'supprimée dès son prochain enregistrement — quittez l\'écran '
+                'concerné, ou relancez l\'application, avant de supprimer.',
               ),
             ),
             const SizedBox(height: 16),
@@ -132,8 +135,10 @@ Future<void> _confirmDelete(
     builder: (ctx) => AlertDialog(
       title: const Text('Supprimer cette clé ?'),
       content: Text(
-        '« $key » sera effacée du stockage. Si elle porte un tirage non poussé, '
-        'il n\'existe nulle part ailleurs.',
+        '« $key » sera effacée du stockage. Si un service la réécrit après '
+        'coup (ex. Programme, Présence), la suppression peut ne pas tenir. '
+        'Si elle tient et que la clé porte un tirage non poussé, il '
+        'n\'existe nulle part ailleurs.',
       ),
       actions: [
         TextButton(

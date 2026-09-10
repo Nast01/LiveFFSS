@@ -113,22 +113,28 @@ class HttpClient {
     String? error,
   }) {
     if (!httpLog.enabled) return;
-    httpLog.record(HttpLogEntry(
-      at: started,
-      method: method,
-      url: uri?.toString() ?? '(URI non construite)',
-      durationMs: DateTime.now().difference(started).inMilliseconds,
-      statusCode: response?.statusCode,
-      requestBody: HttpLog.truncate(
-        requestBody == null ? null : jsonEncode(requestBody),
-      ),
-      responseBody: response == null
-          ? null
-          : HttpLog.truncate(
-              utf8.decode(response.bodyBytes, allowMalformed: true),
-            ),
-      error: error,
-    ));
+    // Appelé depuis le `catch` générique de `_send` : une exception levée ici
+    // (ex. `jsonEncode` sur un corps non sérialisable) sortirait de tout
+    // `try`, et le journal ferait échouer une requête par ailleurs valide.
+    // Le journal de debug ne doit structurellement jamais pouvoir faire ça.
+    try {
+      httpLog.record(HttpLogEntry(
+        at: started,
+        method: method,
+        url: uri?.toString() ?? '(URI non construite)',
+        durationMs: DateTime.now().difference(started).inMilliseconds,
+        statusCode: response?.statusCode,
+        requestBody: HttpLog.truncate(
+          requestBody == null ? null : jsonEncode(requestBody),
+        ),
+        responseBody: response == null
+            ? null
+            : HttpLog.truncate(
+                utf8.decode(response.bodyBytes, allowMalformed: true),
+              ),
+        error: error,
+      ));
+    } catch (_) {}
   }
 
   /// FFSS authenticates on the `token` query parameter its documentation lists

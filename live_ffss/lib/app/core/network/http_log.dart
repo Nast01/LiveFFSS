@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 
 /// Une requête telle qu'elle est passée, avec ce qu'il faut pour comprendre
@@ -72,7 +74,9 @@ class HttpLog {
     if (body == null) return null;
     if (body.length <= bodyLimit) return body;
     final notice = '\n… tronqué (${body.length} caractères au total)';
-    final cut = bodyLimit - notice.length;
+    // Bornée à 0 : si `bodyLimit` descend un jour sous la longueur de l'avis,
+    // `cut` deviendrait négatif et `substring` planterait.
+    final cut = math.max(0, bodyLimit - notice.length);
     return '${body.substring(0, cut)}$notice';
   }
 }
