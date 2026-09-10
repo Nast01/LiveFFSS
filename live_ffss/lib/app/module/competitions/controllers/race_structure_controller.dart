@@ -12,6 +12,7 @@ import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/course_ranking.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
@@ -82,6 +83,17 @@ class RaceStructureController extends GetxController {
   /// else the screen keeps reading the device's own finish order.
   final Map<int, Map<int, HeatResult>> _serverResults = {};
 
+  /// Places lues pendant ce `load()`, par id de course.
+  ///
+  /// Les deux passes d'import interrogent largement les memes courses :
+  /// `_importCompositions` pour savoir qui est place, `_importResults` pour
+  /// relier un classement a des athletes. Sans ce memo chacune paie son propre
+  /// aller-retour sur les memes places.
+  ///
+  /// Memo de passe et non cache : vide a chaque `load()`, parce qu'un
+  /// rechargement doit justement relire ce que le serveur a change depuis.
+  final Map<int, List<LaneSeat>> _seatsByCourse = {};
+
   /// Athlete id -> athlete, built from the entries this race already fetches,
   /// with clubs resolved. It is what turns a drawn race's `athleteIds` back
   /// into rows the operator can read.
@@ -127,6 +139,7 @@ class RaceStructureController extends GetxController {
   }) async {
     this.race.value = race;
     this.competition.value = competition;
+    _seatsByCourse.clear();
     if (!silent) isLoading.value = true;
     try {
       await _programme.load(competition.id);
@@ -173,6 +186,7 @@ class RaceStructureController extends GetxController {
       // The draw a first device pushed lives in the FFSS places: this is what
       // makes it visible on every other device.
       try {
+        await _prefetchSeats(race);
         await _importCompositions(race);
         await _importResults(race);
         structures.value = _structuresOf(race);
@@ -423,6 +437,16 @@ class RaceStructureController extends GetxController {
     final programme = _programme.current.value;
     if (programme == null) return;
 
+    // Une seule lecture groupee pour toute l'epreuve, avant la boucle : lire
+    // serie par serie faisait payer une latence a chaque course validee.
+    final resultsByHeat = await _meetings.getHeatResultsByHeat({
+      for (final structure in programme.structures)
+        if (structure.raceId == race.id)
+          for (final level in structure.levels)
+            for (final course in coursesOfLevel(level))
+              if ((course.heat?.id ?? 0) != 0) course.heat!.id,
+    });
+
     for (final structure in programme.structures) {
       if (structure.raceId != race.id) continue;
       for (final level in structure.levels) {
@@ -432,15 +456,11 @@ class RaceStructureController extends GetxController {
           final course = _courseOf(courses, stored);
           final heatId = course?.heat?.id ?? 0;
           if (course == null || heatId == 0) continue;
-          final seats = await _meetings
-              .getLaneSeats([for (final lane in course.lanes) lane.id]);
+          final seats = await _seatsOf(course);
           if (seats.isEmpty) continue;
-          List<HeatResult> results;
-          try {
-            results = await _meetings.getHeatResults(heatId);
-          } on AppException {
-            continue;
-          }
+          // Le best-effort par serie est tenu par la lecture groupee : une
+          // serie illisible revient vide, elle ne coute que son classement.
+          final results = resultsByHeat[heatId] ?? const <HeatResult>[];
           if (results.isEmpty) continue;
           final byEntry = {for (final r in results) r.entryId: r};
           final byAthlete = <int, HeatResult>{};
@@ -455,6 +475,39 @@ class RaceStructureController extends GetxController {
         }
       }
     }
+  }
+
+  /// Remplit le memo pour toutes les courses de l'epreuve, en une lecture
+  /// groupee.
+  ///
+  /// Sans lui, les deux passes d'import lisaient course par course, en file :
+  /// un tour de huit courses payait huit latences bout a bout la ou il en paie
+  /// une. Ce qui n'est pas prechargé — rien, en pratique — retombe sur la
+  /// lecture unitaire de [_seatsOf].
+  Future<void> _prefetchSeats(Race race) async {
+    final programme = _programme.current.value;
+    if (programme == null) return;
+    final courses = <int, Run>{};
+    for (final structure in programme.structures) {
+      if (structure.raceId != race.id) continue;
+      for (final level in structure.levels) {
+        for (final course in coursesOfLevel(level)) {
+          if (course.lanes.isNotEmpty) courses[course.id] = course;
+        }
+      }
+    }
+    if (courses.isEmpty) return;
+    _seatsByCourse.addAll(await _meetings.getLaneSeatsByCourse(courses.values));
+  }
+
+  /// Les places d'une course, lues une seule fois par `load()`.
+  Future<List<LaneSeat>> _seatsOf(Run course) async {
+    final known = _seatsByCourse[course.id];
+    if (known != null) return known;
+    final seats =
+        await _meetings.getLaneSeats([for (final l in course.lanes) l.id]);
+    _seatsByCourse[course.id] = seats;
+    return seats;
   }
 
   Run? _courseOf(List<Run> courses, ProgrammeRace stored) {
@@ -537,8 +590,7 @@ class RaceStructureController extends GetxController {
       final race = races[at];
       if (race.finishOrder.isNotEmpty || race.penalties.isNotEmpty) continue;
       if (course.lanes.isEmpty) continue;
-      final seats =
-          await _meetings.getLaneSeats([for (final l in course.lanes) l.id]);
+      final seats = await _seatsOf(course);
       if (seats.isEmpty) continue;
       final entryIds = [for (final seat in seats) seat.entryId];
       final athleteIds = [
@@ -574,8 +626,7 @@ class RaceStructureController extends GetxController {
     var added = false;
     for (final course in orphans) {
       if (course.lanes.isEmpty) continue;
-      final seats =
-          await _meetings.getLaneSeats([for (final l in course.lanes) l.id]);
+      final seats = await _seatsOf(course);
       if (seats.isEmpty) continue;
       races.add(ProgrammeRace(
         // Allocating bumps `nextLocalId` on the live programme; the caller

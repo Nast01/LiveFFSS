@@ -6,7 +6,6 @@ import 'package:live_ffss/app/domain/models/club.dart';
 
 abstract class ClubRepository {
   Future<List<Club>> getClubs(int competitionId);
-  Future<Club> getClubDetail(int clubId);
 
   /// Details for several clubs at once, keyed by club id. Best-effort: a club
   /// whose fetch fails is simply absent from the result. Needed because the
@@ -39,8 +38,10 @@ class ClubRepositoryImpl implements ClubRepository {
     return dtos.expand((d) => d.toDomainClubs()).toList();
   }
 
-  @override
-  Future<Club> getClubDetail(int clubId) async {
+  /// One club, the FFSS bucket organisme resolved back to the club actually
+  /// asked for. Internal: callers go through [getClubDetails], which batches
+  /// the fan-out the API forces on us.
+  Future<Club> _getClubDetail(int clubId) async {
     final dto = await _dataSource.getClubDetail(clubId);
     final clubs = dto.toDomainClubs();
     return clubs.firstWhere((c) => c.id == clubId, orElse: () => clubs.first);
@@ -58,7 +59,7 @@ class ClubRepositoryImpl implements ClubRepository {
       final batch = ids.skip(i).take(_detailBatchSize);
       await Future.wait(batch.map((id) async {
         try {
-          byId[id] = await getClubDetail(id);
+          byId[id] = await _getClubDetail(id);
         } on AppException {
           // Best-effort: this club keeps whatever fallback the view shows.
         }

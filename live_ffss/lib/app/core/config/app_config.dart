@@ -41,11 +41,9 @@ class ApiEndpoints {
   static const String raceList = 'competition/epreuve';
   static const String clubList = 'competition/evenement/:id/organismes';
   static const String entryList = 'competition/engagement';
-  static const String heatList = 'competition/serie';
   static const String clubDetail = 'organisme/:id';
   static const String meetingSubmit = 'competition/:competition/reunion/submit';
   static const String meetingList = 'competition/:id/reunion';
-  static const String meetingDelete = 'competition/reunion/:id/delete';
   // Cassé côté FFSS au 2026-08-31, comme `runSubmit` : tout GET répond
   // `success: false, filterByCreneau() only accepts arguments of type Creneau`.
   // Le repository retombe sur les courses déjà portées par la réponse

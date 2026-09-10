@@ -1,0 +1,1470 @@
+<title>Audit de nettoyage LiveFFSS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --ground: #f4f7fa;
+    --surface: #ffffff;
+    --surface-sunk: #eaeff5;
+    --line: #d3dde6;
+    --line-soft: #e6edf3;
+    --ink: #10202c;
+    --ink-2: #43586a;
+    --ink-3: #74889a;
+    --accent: #1565c0;
+    --accent-soft: #e3eefb;
+    --safe: #2e7d46;
+    --safe-soft: #e2f0e7;
+    --check: #a55f00;
+    --check-soft: #fbeedb;
+    --debate: #5a4a86;
+    --debate-soft: #ece8f6;
+    --strike: #b3261e;
+
+    --display: "Archivo", "Segoe UI", system-ui, sans-serif;
+    --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --mono: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0c1520;
+      --surface: #131f2c;
+      --surface-sunk: #0f1926;
+      --line: #27384a;
+      --line-soft: #1d2c3b;
+      --ink: #dde7f0;
+      --ink-2: #a3b6c7;
+      --ink-3: #71879b;
+      --accent: #6fb1f5;
+      --accent-soft: #16283d;
+      --safe: #6cc189;
+      --safe-soft: #14291d;
+      --check: #e5a049;
+      --check-soft: #2c2113;
+      --debate: #b0a2e0;
+      --debate-soft: #201c31;
+      --strike: #f0837c;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0c1520;
+    --surface: #131f2c;
+    --surface-sunk: #0f1926;
+    --line: #27384a;
+    --line-soft: #1d2c3b;
+    --ink: #dde7f0;
+    --ink-2: #a3b6c7;
+    --ink-3: #71879b;
+    --accent: #6fb1f5;
+    --accent-soft: #16283d;
+    --safe: #6cc189;
+    --safe-soft: #14291d;
+    --check: #e5a049;
+    --check-soft: #2c2113;
+    --debate: #b0a2e0;
+    --debate-soft: #201c31;
+    --strike: #f0837c;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+  }
+
+  /* ---------- masthead ---------- */
+
+  header.mast {
+    padding: 56px 0 32px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 14px;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(34px, 5.5vw, 52px);
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-size: 18px;
+    color: var(--ink-2);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  /* ---------- baseline strip ---------- */
+
+  .baseline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin: 28px 0 0;
+  }
+
+  .baseline > div {
+    background: var(--surface);
+    padding: 16px 18px;
+  }
+
+  .baseline dt {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 6px;
+  }
+
+  .baseline dd {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 25px;
+    letter-spacing: -0.02em;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .baseline dd small {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-3);
+    letter-spacing: 0;
+  }
+
+  .baseline-note {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+    margin: 10px 0 0;
+    line-height: 1.7;
+  }
+
+  .statebar {
+    margin: 26px 0 0;
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--safe);
+    background: var(--surface);
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .statebar p { margin: 0; font-size: 15px; color: var(--ink-2); max-width: 78ch; }
+  .statebar strong { color: var(--ink); }
+
+  .done {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    background: var(--safe-soft);
+    color: var(--safe);
+    white-space: nowrap;
+  }
+
+  tr.is-done td { opacity: 0.62; }
+  tr.is-done td.id { opacity: 1; }
+  article.fiche.is-done { opacity: 0.72; }
+  article.fiche.is-done:hover, article.fiche.is-done:focus-within { opacity: 1; }
+
+  .withdrawn {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--strike);
+    padding: 20px 24px 22px;
+  }
+
+  .withdrawn .fiche-id { color: var(--strike); text-decoration: line-through; }
+
+  /* ---------- sections ---------- */
+
+  section { margin-top: 64px; }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0 0 6px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .section-lede {
+    color: var(--ink-2);
+    font-size: 15.5px;
+    max-width: 66ch;
+    margin: 14px 0 26px;
+  }
+
+  /* ---------- quick pick table ---------- */
+
+  .tablebox {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 760px;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface-sunk);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    text-align: left;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: top;
+  }
+
+  tbody tr:hover td { background: var(--accent-soft); }
+
+  td.id {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  td.id a { color: var(--accent); text-decoration: none; }
+  td.id a:hover { text-decoration: underline; }
+
+  td.cat {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  td.gain { color: var(--ink-2); font-size: 13.5px; }
+
+  td.eff {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 12.5px;
+    text-align: center;
+    color: var(--ink-3);
+  }
+
+  .risk {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    white-space: nowrap;
+    border-radius: 2px;
+  }
+
+  .risk.s { background: var(--safe-soft); color: var(--safe); }
+  .risk.v { background: var(--check-soft); color: var(--check); }
+  .risk.d { background: var(--debate-soft); color: var(--debate); }
+
+  tr.group td {
+    background: var(--surface-sunk);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* ---------- task fiches ---------- */
+
+  .fiches { display: flex; flex-direction: column; gap: 2px; }
+
+  article.fiche {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left-width: 4px;
+    padding: 20px 24px 22px;
+    scroll-margin-top: 16px;
+  }
+
+  article.fiche.s { border-left-color: var(--safe); }
+  article.fiche.v { border-left-color: var(--check); }
+  article.fiche.d { border-left-color: var(--debate); }
+
+  .fiche-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .fiche-id {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+
+  .fiche-title {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: -0.015em;
+    margin: 0;
+    flex: 1 1 320px;
+  }
+
+  .fiche p { margin: 12px 0 0; max-width: 74ch; }
+
+  .fiche dl {
+    margin: 16px 0 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 7px 18px;
+    align-items: baseline;
+  }
+
+  .fiche dt {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding-top: 3px;
+  }
+
+  .fiche dd { margin: 0; font-size: 14.5px; color: var(--ink-2); }
+
+  code, .path, kbd {
+    font-family: var(--mono);
+    font-size: 0.855em;
+    background: var(--surface-sunk);
+    padding: 1.5px 5px;
+    border-radius: 2px;
+    color: var(--ink);
+    word-break: break-word;
+  }
+
+  .cmd {
+    display: block;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: var(--surface-sunk);
+    border-left: 2px solid var(--line);
+    padding: 9px 12px;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--ink-2);
+  }
+
+  .proof {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--ink-2);
+    background: var(--surface-sunk);
+    padding: 10px 13px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    margin: 0;
+  }
+
+  ul.tight { margin: 10px 0 0; padding-left: 20px; }
+  ul.tight li { margin: 4px 0; max-width: 72ch; }
+
+  /* ---------- discuss / discarded ---------- */
+
+  .plain { display: flex; flex-direction: column; gap: 18px; }
+
+  .plain > div {
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+  }
+
+  .plain h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .plain p { margin: 0; color: var(--ink-2); font-size: 15px; max-width: 74ch; }
+
+  .discard {
+    display: grid;
+    grid-template-columns: minmax(210px, 0.9fr) 2fr;
+    gap: 9px 22px;
+    font-size: 14.5px;
+    margin: 0;
+  }
+
+  .discard dt {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink);
+    padding-top: 1px;
+  }
+
+  .discard dd { margin: 0; color: var(--ink-2); }
+
+  @media (max-width: 640px) {
+    .discard { grid-template-columns: 1fr; gap: 2px 0; }
+    .discard dd { margin-bottom: 12px; }
+    .fiche dl { grid-template-columns: 1fr; gap: 2px; }
+    .fiche dd { margin-bottom: 10px; }
+  }
+
+  footer.end {
+    margin-top: 72px;
+    padding-top: 18px;
+    border-top: 2px solid var(--ink);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+    line-height: 1.8;
+  }
+
+  a { color: var(--accent); }
+  a:focus-visible, tr:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">LiveFFSS · branche <span style="color:var(--accent)">cleaning</span> · 10 septembre 2026</p>
+  <h1>Audit de nettoyage</h1>
+  <p class="standfirst">29 tâches numérotées, triées par risque croissant. Les 14 tâches
+  <strong>sûres</strong> ont été appliquées le 10 septembre 2026 en 9 commits. Les 15 restantes
+  attendent : réponds par IDs — <code>CLN-18, 20, 22-24</code> par exemple.</p>
+
+  <div class="statebar">
+    <p><strong>Phase 2 — lot « sûr » livré.</strong> CLN-01 à CLN-10, CLN-12 à CLN-15 :
+    appliquées, vérifiées, commitées. <code>flutter analyze</code> passe de <strong>29 à 6 infos</strong>,
+    <code>flutter test</code> de 988 à <strong>985 tests</strong> (−3 attendus : les deux tests de
+    scaffold et celui de <code>getNext5</code>). <strong>−437 lignes</strong> de code et de traductions,
+    −6 paquets transitifs, −4 assets.</p>
+    <p><strong>Lot « DUP + PERF » livré.</strong> CLN-20, 22, 23, 24 : appliquées en 4 commits,
+    <code>analyze</code> reste à 6 infos et <code>test</code> à 985. Trois widgets partagés naissent
+    (<code>AthleteFormatting</code>, <code>ProgressOverlay</code>, <code>CompetitionThumbnail</code>),
+    <code>LoadingIndicator</code> gagne <code>size</code> et <code>color</code>. Un seul changement
+    visible, assumé : le compteur du voile d'envoi de l'éditeur gagne les 4 px de padding que son jumeau
+    avait déjà.</p>
+    <p><strong>Lot « à vérifier » soldé.</strong> CLN-11, 16, 18, 19, 21, 25, 26 : appliquées en
+    7 commits. <code>flutter analyze</code> affiche désormais <strong>No issues found</strong> — les
+    29 infos du relevé initial sont toutes traitées. <code>flutter test</code> tient à 985.
+    Il reste les 3 tâches discutables.</p>
+    <p><strong>Les 28 tâches retenues sont faites.</strong> CLN-27 close en deux commits — un mémo
+    de passe, puis deux lectures groupées — et son troisième volet est devenu sans objet.
+    <code>flutter analyze</code> : <strong>No issues found</strong> ; <code>flutter test</code> :
+    <strong>992</strong>, dont 10 ajoutés par ce dernier lot.</p>
+    <p><strong>CLN-28 et CLN-29 tranchées et livrées.</strong> Il ne reste que
+    <a href="#CLN-27">CLN-27</a>. <code>analyze</code> : <strong>No issues found</strong> ;
+    <code>test</code> : <strong>982</strong> — la baisse de 985 vient des 3 tests de
+    <code>ClubX</code> supprimés avec leur sujet, pas d'une perte de couverture ailleurs.</p>
+    <p><strong>CLN-17 est retirée : le constat était faux.</strong> Les 16 clés que j'annonçais absentes
+    de <code>fr_FR</code> y sont bien — avec des guillemets doubles, parce que le texte français porte une
+    apostrophe (<code>"Échec de l'envoi des parties"</code>). Ma regex d'audit ne reconnaissait que les
+    valeurs entre quotes simples et sautait ces entrées. Le vrai compte est de <strong>409 clés dans
+    chaque fichier</strong>, parfaitement symétriques, et non 404 / 391. Aucun bug de traduction
+    manquante n'existe.</p>
+  </div>
+
+  <dl class="baseline">
+    <div><dt>flutter test</dt><dd>988 <small>passent</small></dd></div>
+    <div><dt>flutter analyze</dt><dd>29 <small>infos, 0 erreur</small></dd></div>
+    <div><dt>lib/ écrit à la main</dt><dd>22 296 <small>lignes · 196 fichiers</small></dd></div>
+    <div><dt>lib/ généré</dt><dd>21 191 <small>lignes · 94 fichiers</small></dd></div>
+    <div><dt>Morts identifiés</dt><dd>~430 <small>lignes</small></dd></div>
+  </dl>
+  <p class="baseline-note">Baseline réelle, relevée avant tout relevé de code :
+  <code>flutter test</code> → « All tests passed! » (988 tests, 64 s) ·
+  <code>flutter analyze</code> → « 29 issues found (ran in 40.5s) », exit 0, toutes de sévérité <code>info</code> :
+  2 × <code>file_names</code>, 3 × <code>curly_braces_in_flow_control_structures</code>,
+  4 × <code>deprecated_member_use</code>, 20 × <code>prefer_const_constructors</code> (dans <code>test/</code> uniquement).</p>
+</header>
+
+<section>
+  <h2>Ce que l'audit a couvert</h2>
+  <p class="section-lede">Graphe d'imports reconstruit depuis <span class="path">lib/main.dart</span> (196 fichiers
+  applicatifs, 193 atteignables), comptage de références pour les 385 déclarations de haut niveau,
+  membres d'extensions comptés un par un, 409 clés de traduction croisées avec tout <span class="path">lib/</span> et
+  <span class="path">test/</span> — clés construites dynamiquement comprises —, les 10 routes suivies
+  jusqu'à leur appel de navigation, dépendances et assets vérifiés à l'import près.</p>
+
+  <div class="tablebox">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:76px">ID</th>
+        <th style="width:104px">Catégorie</th>
+        <th>Résumé</th>
+        <th style="width:112px">Risque</th>
+        <th style="width:54px">Effort</th>
+        <th style="width:280px">Gain</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group"><td colspan="6">Sûr — zéro référence prouvée, aucun choix à faire</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-09">CLN-09</a></td><td class="cat">DEAD</td>
+        <td>100 clés de traduction jamais référencées, dans les deux langues</td>
+        <td><span class="done">faite</span></td><td class="eff">M</td>
+        <td class="gain">−206 lignes ; les fichiers i18n passent de 948 à 742 lignes</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-01">CLN-01</a></td><td class="cat">DEAD</td>
+        <td>Supprimer <span class="path">core/utils/url_builder.dart</span></td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">−40 lignes ; un doublon de <code>HttpClient._buildUri</code> disparaît</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-04">CLN-04</a></td><td class="cat">TEST</td>
+        <td>Supprimer <span class="path">test/unit_test.dart</span> et <span class="path">test/widget_test.dart</span></td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">−46 lignes ; <code>1+1==2</code> ne compte plus dans les 988</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-02">CLN-02</a></td><td class="cat">DEAD</td>
+        <td>Supprimer <span class="path">presentation/shared/section_header.dart</span></td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">−32 lignes ; un widget partagé que personne ne partage</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-03">CLN-03</a></td><td class="cat">DEAD</td>
+        <td>Supprimer <span class="path">presentation/shared/status_badge.dart</span></td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">−26 lignes ; idem</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-05">CLN-05</a></td><td class="cat">DEAD</td>
+        <td>5 getters morts de <code>CompetitionFormatting</code></td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">−16 lignes ; l'extension passe de 15 à 10 membres</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-08">CLN-08</a></td><td class="cat">DEAD</td>
+        <td><code>CompetitionRepository.getNext5</code> et son groupe de test</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">−11 lignes lib, −18 test ; l'interface tombe à 3 méthodes</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-12">CLN-12</a></td><td class="cat">DEAD</td>
+        <td>4 assets jamais chargés (<code>flutter_logo.png</code> ×3, <code>lottery.png</code>)</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">4 fichiers hors du bundle de l'app</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-10">CLN-10</a></td><td class="cat">DEAD</td>
+        <td>Dépendance <code>cached_network_image</code> jamais importée</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">−1 dépendance transitive dans <code>pubspec.lock</code></td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-06">CLN-06</a></td><td class="cat">DEAD</td>
+        <td><code>RaceFormatting.distanceLabel</code></td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">−1 ligne ; l'extension tombe à 2 membres</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-07">CLN-07</a></td><td class="cat">DEAD</td>
+        <td><code>LanguageService.isFrench</code></td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">−1 ligne ; <code>isEnglish</code> reste, lui, appelé</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-13">CLN-13</a></td><td class="cat">DEAD</td>
+        <td>3 dossiers scaffold vides sous <span class="path">core/</span></td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">Plus d'endroit vide où ranger du code par erreur</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-14">CLN-14</a></td><td class="cat">ARCH</td>
+        <td>Accolades manquantes dans <code>ProfileController</code> (3 infos)</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">29 → 26 infos analyze</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-15">CLN-15</a></td><td class="cat">TEST</td>
+        <td><code>const</code> manquants dans 2 fichiers de test (20 infos)</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">26 → 6 infos analyze ; l'essentiel du bruit disparaît</td></tr>
+
+      <tr class="group"><td colspan="6">À vérifier — le geste est clair, l'effet demande un contrôle</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-16">CLN-16</a></td><td class="cat">DEAD</td>
+        <td>Renommer <span class="path">en_US.dart</span> / <span class="path">fr_FR.dart</span> en minuscules</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">Le build cesse de dépendre de la casse du système de fichiers</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-20">CLN-20</a></td><td class="cat">PERF</td>
+        <td>9 <code>DateFormat</code> reconstruits à chaque cellule de liste</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">1 parse de motif par format au lieu d'un par ligne affichée</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-23">CLN-23</a></td><td class="cat">DUP</td>
+        <td>5 <code>CircularProgressIndicator</code> à la main alors que <code>LoadingIndicator</code> existe</td>
+        <td><span class="done">faite</span></td><td class="eff">M</td>
+        <td class="gain">Un seul endroit décide de la taille et du <code>strokeWidth</code></td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-24">CLN-24</a></td><td class="cat">DUP</td>
+        <td>Vignette + pavé-date dupliqués entre carte et en-tête de détail</td>
+        <td><span class="done">faite</span></td><td class="eff">M</td>
+        <td class="gain">−60 lignes ; une seule règle de repli logo → date</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-22">CLN-22</a></td><td class="cat">DUP</td>
+        <td>Le nom d'athlète formaté à l'identique dans 4 vues</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">Un helper de présentation au lieu de 4 interpolations jumelles</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-26">CLN-26</a></td><td class="cat">ARCH</td>
+        <td><code>UserController</code> attrape <code>catch (e)</code> nu (3 sites)</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">Règle rétablie : seuls les <code>AppException</code> sont avalés</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-25">CLN-25</a></td><td class="cat">ARCH</td>
+        <td><code>LanguageService</code> fait <code>Get.find</code> dans son corps</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">Règle rétablie : injection par constructeur, service testable</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-19">CLN-19</a></td><td class="cat">ARCH</td>
+        <td><code>Radio.groupValue</code> / <code>onChanged</code> dépréciés (4 infos)</td>
+        <td><span class="done">faite</span></td><td class="eff">M</td>
+        <td class="gain">6 → 2 infos analyze ; prêt pour la suppression Flutter</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-18">CLN-18</a></td><td class="cat">DEAD</td>
+        <td>4 getters morts de <code>LaneX</code>, adossés à <code>Lane.result</code></td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">−4 lignes ; touche une zone « known gap », d'où le contrôle</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-21">CLN-21</a></td><td class="cat">ARCH</td>
+        <td><code>FormatConst</code> expose deux <code>DateFormat</code> mutables</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">Deux formats globaux qu'on ne peut plus réassigner par accident</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-11">CLN-11</a></td><td class="cat">DEAD</td>
+        <td><code>flutter_localizations</code> + <code>generate: true</code> sans l10n</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">−1 dépendance ; l'étape gen-l10n disparaît du build</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-17">CLN-17</a></td><td class="cat">—</td>
+        <td><s>16 clés affichées en français comme du texte brut</s> — constat faux, retirée</td>
+        <td><span class="risk d" style="background:var(--check-soft);color:var(--strike)">retirée</span></td><td class="eff">—</td>
+        <td class="gain">Les clés existent bien en <code>fr_FR</code>, en guillemets doubles</td></tr>
+
+      <tr class="group"><td colspan="6">Discutable — vrai constat, arbitrage à toi</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-27">CLN-27</a></td><td class="cat">PERF</td>
+        <td>Un aller-retour <code>getLaneSeats</code> par course, en série (3 boucles)</td>
+        <td><span class="done">faite</span></td><td class="eff">M</td>
+        <td class="gain">Un tour de 8 courses paie 1 latence au lieu de 8</td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-28">CLN-28</a></td><td class="cat">TEST</td>
+        <td><code>ClubX.hasCap</code> / <code>hasLogo</code> : testés, jamais appelés</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
+        <td class="gain">Soit −2 getters + −13 lignes de test, soit un usage dans <code>ClubAvatar</code></td></tr>
+
+      <tr class="is-done"><td class="id"><a href="#CLN-29">CLN-29</a></td><td class="cat">ARCH</td>
+        <td>2 méthodes publiques d'interface à usage purement interne</td>
+        <td><span class="done">faite</span></td><td class="eff">M</td>
+        <td class="gain">Surface publique réduite, mais 34 lignes de test à réécrire</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>Fiches détaillées</h2>
+  <p class="section-lede">Chaque fiche porte la preuve qui a servi à la classer et la commande qui la
+  vérifiera une fois appliquée. Les chemins sont relatifs à <span class="path">live_ffss/</span>.</p>
+
+  <div class="fiches">
+
+    <article class="fiche s is-done" id="CLN-01">
+      <div class="fiche-head"><span class="fiche-id">CLN-01</span> <span class="done">faite</span>
+        <h3 class="fiche-title">Supprimer <span class="path">lib/app/core/utils/url_builder.dart</span></h3></div>
+      <p>Deux helpers statiques, <code>UrlBuilder.buildUrl</code> et <code>buildUrlAllowEmpty</code>,
+      qui construisent une <code>Uri</code> à partir d'une base, d'un chemin et de paramètres — exactement
+      ce que <code>HttpClient._buildUri</code> fait déjà, token compris. Le fichier entier part.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">grep -rn "UrlBuilder|buildUrlAllowEmpty" lib test
+→ lib/app/core/utils/url_builder.dart:1  (déclaration)
+→ lib/app/core/utils/url_builder.dart:19 (déclaration)
+Aucune autre occurrence. Le graphe d'imports depuis main.dart
+ne l'atteint pas : personne ne l'importe, ni lib/ ni test/.</pre></dd>
+        <dt>Dépend de</dt><dd>—</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-02">
+      <div class="fiche-head"><span class="fiche-id">CLN-02</span> <span class="done">faite</span>
+        <h3 class="fiche-title">Supprimer <span class="path">presentation/shared/section_header.dart</span></h3></div>
+      <p>Un titre de section avec <code>trailing</code> optionnel. Les vues qui affichent un titre de
+      section le composent elles-mêmes ; ce widget n'a jamais été adopté.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">grep -rn "SectionHeader|section_header" lib test
+→ seulement les 2 lignes de sa propre déclaration.
+Aucun `import ... section_header.dart` nulle part.</pre></dd>
+        <dt>Note</dt><dd>À comparer avec ses voisins qui, eux, servent :
+          <code>EmptyState</code> 23 usages, <code>LoadingIndicator</code> 12, <code>ErrorState</code> 10.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-03">
+      <div class="fiche-head"><span class="fiche-id">CLN-03</span> <span class="done">faite</span>
+        <h3 class="fiche-title">Supprimer <span class="path">presentation/shared/status_badge.dart</span></h3></div>
+      <p>Une pastille <code>label</code> + <code>color</code>. Même histoire que CLN-02 : déclarée
+      partagée, jamais importée. Les badges effectivement utilisés sont <code>GenderBadge</code> (2 usages)
+      et les chips locales des vues.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">grep -rn "StatusBadge|status_badge" lib test
+→ seulement les 2 lignes de sa propre déclaration.</pre></dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-04">
+      <div class="fiche-head"><span class="fiche-id">CLN-04</span> <span class="done">faite</span>
+        <h3 class="fiche-title">Supprimer les deux tests d'exemple du scaffold</h3></div>
+      <p><span class="path">test/unit_test.dart</span> vérifie que <code>1 + 1 == 2</code>.
+      <span class="path">test/widget_test.dart</span> monte un <code>MaterialApp</code> avec le texte
+      « Hello » et compte les <code>Text</code> — c'est aussi le seul widget test du dépôt, alors que
+      <span class="path">CLAUDE.md</span> interdit les widget tests.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">test/unit_test.dart:12   expect(1 + 1, 2);
+test/widget_test.dart:28 expect(find.byType(Text), findsOneWidget);
+Sortie de flutter test :
+  +986: test/unit_test.dart: Plus Operator should add two numbers together
+  +987: test/widget_test.dart: MyWidget should display a string of text</pre></dd>
+        <dt>Effet</dt><dd>Le compte passe de 988 à 986 tests. C'est une baisse attendue, pas une régression.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter test  # doit afficher +986: All tests passed!</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-05">
+      <div class="fiche-head"><span class="fiche-id">CLN-05</span> <span class="done">faite</span>
+        <h3 class="fiche-title">5 getters morts de <code>CompetitionFormatting</code></h3></div>
+      <p>Dans <span class="path">presentation/modules/competitions/competition_formatting.dart</span> :
+      <code>formattedBeginDate</code>, <code>formattedEndDate</code>, <code>hasRefereePrincipal</code>,
+      <code>phaseLabel</code>, <code>phaseColor</code>. Les 10 autres membres servent, dont
+      <code>phase</code> lui-même — seuls les deux habillages de <code>phase</code> sont morts.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">Pour chacun, grep -rn "\b&lt;nom&gt;\b" lib test
+→ une seule ligne : sa propre déclaration.
+formattedBeginDate  → competition_formatting.dart:8
+formattedEndDate    → competition_formatting.dart:11
+hasRefereePrincipal → competition_formatting.dart:28
+phaseLabel          → competition_formatting.dart:65
+phaseColor          → competition_formatting.dart:72</pre></dd>
+        <dt>Attention</dt><dd>Retirer <code>phaseLabel</code> rend potentiellement orphelines les clés
+          <code>coming</code> / <code>on_going</code> / <code>done</code>. Elles ne figurent pas dans les 98 de
+          CLN-09 (elles sont référencées ailleurs) — à recompter après coup.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-06">
+      <div class="fiche-head"><span class="fiche-id">CLN-06</span> <span class="done">faite</span>
+        <h3 class="fiche-title"><code>RaceFormatting.distanceLabel</code></h3></div>
+      <p><span class="path">presentation/modules/competitions/race_formatting.dart:39</span> —
+      <code>String get distanceLabel =&gt; '$distance m';</code>. Les deux autres membres de l'extension,
+      <code>genderLabel</code> et <code>defaultSpotsPerRace</code>, servent.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">grep -rn "distanceLabel" lib test
+→ race_formatting.dart:39 uniquement.</pre></dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-07">
+      <div class="fiche-head"><span class="fiche-id">CLN-07</span> <span class="done">faite</span>
+        <h3 class="fiche-title"><code>LanguageService.isFrench</code></h3></div>
+      <p><span class="path">core/services/language_service.dart:11</span>. Son jumeau
+      <code>isEnglish</code> est bien appelé (<code>LanguageSelector</code>) — seul <code>isFrench</code> est mort.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">grep -rn "isFrench" lib test
+→ language_service.dart:11 uniquement.</pre></dd>
+        <dt>Voir aussi</dt><dd>Le même fichier porte <a href="#CLN-25">CLN-25</a> — à grouper dans un seul commit
+          si tu prends les deux.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-08">
+      <div class="fiche-head"><span class="fiche-id">CLN-08</span> <span class="done">faite</span>
+        <h3 class="fiche-title"><code>CompetitionRepository.getNext5</code> et son groupe de test</h3></div>
+      <p>Déclaré ligne 21, implémenté ligne 83 de
+      <span class="path">data/repositories/competition_repository.dart</span>. Aucun contrôleur ne
+      l'appelle : la home passe par <code>getAllCompetitions</code> et <code>getCompetitionsForRange</code>.
+      Le seul appelant est <span class="path">test/data/repositories/competition_repository_test.dart:125</span>,
+      qui teste donc une méthode que l'application n'exécute jamais.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">grep -rn "getNext5" lib test
+lib/.../competition_repository.dart:21  Future&lt;List&lt;Competition&gt;&gt; getNext5();
+lib/.../competition_repository.dart:83  Future&lt;List&lt;Competition&gt;&gt; getNext5() async {
+test/.../competition_repository_test.dart:113  group('CompetitionRepository.getNext5', ...
+test/.../competition_repository_test.dart:125  final list = await repo.getNext5();</pre></dd>
+        <dt>Portée</dt><dd>Retirer aussi le <code>group()</code> du test, sinon il ne compile plus.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-09">
+      <div class="fiche-head"><span class="fiche-id">CLN-09</span> <span class="done">faite</span>
+        <h3 class="fiche-title">100 clés de traduction jamais référencées</h3></div>
+      <p>Sur 411 clés distinctes, 100 n'apparaissent nulle part dans <span class="path">lib/</span> ni
+      <span class="path">test/</span> — soit un quart du vocabulaire. Le lot est cohérent : c'est le
+      lexique des modules supprimés (<code>slot_details</code>, <code>no_slot_selected</code>,
+      <code>time_slots</code>, <code>program</code>), des écrans de réunion CRUD (<code>add_meeting</code>,
+      <code>delete_meeting</code>, <code>confirm_delete_meeting</code>…) et des mutations de résultats
+      encore non implémentées (<code>withdraw_athlete</code>, <code>enter_times</code>,
+      <code>beach_ranking_instructions</code>).</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">Chaque clé cherchée entre quotes dans tout lib/ + test/,
+fichiers de traduction exclus. 100 sans aucun résultat.
+
+Faux positifs déjà écartés : round_serie_one, round_demi_one,
+round_quart_one, round_finale_one, round_unknown_one — construites
+dynamiquement par programme_formatting.dart:32
+  String get singularLabelKey =&gt; '${labelKey}_one';
+Elles restent.</pre></dd>
+        <dt>Liste</dt><dd>Les 98 sont dans l'ordre alphabétique en annexe du commit ; je la colle dans le
+          message de commit pour qu'un <code>git log -S</code> retrouve n'importe laquelle plus tard.</dd>
+        <dt>Résultat</dt><dd>Les deux fichiers passent de 409 à <strong>311 clés</strong> et deviennent
+          symétriques ; le recomptage après coup donne 0 clé morte restante.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test
+# puis, à l'œil, ouvrir home + détail compétition + programme</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-10">
+      <div class="fiche-head"><span class="fiche-id">CLN-10</span> <span class="done">faite</span>
+        <h3 class="fiche-title">Dépendance <code>cached_network_image</code> jamais importée</h3></div>
+      <p>Déclarée <span class="path">pubspec.yaml:12</span>. Aucun fichier ne l'importe : les images
+      distantes passent toutes par <code>Image.network</code> brut
+      (<code>ClubAvatar</code>, <code>CompetitionCard</code>, l'en-tête de détail).</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">grep -rn "package:cached_network_image" lib test → 0</pre></dd>
+        <dt>Voir aussi</dt><dd>L'autre lecture — l'adopter au lieu de la retirer — est traitée
+          en <a href="#redisc">À rediscuter</a>. Cette tâche-ci ne fait que la retirer.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter pub get &amp;&amp; flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche v is-done" id="CLN-11">
+      <div class="fiche-head"><span class="fiche-id">CLN-11</span> <span class="done">faite</span>
+        <h3 class="fiche-title"><code>flutter_localizations</code> et <code>generate: true</code> sans l10n</h3></div>
+      <p><span class="path">pubspec.yaml:15</span> déclare <code>flutter_localizations</code> et la ligne 36
+      active <code>generate: true</code>. Le dépôt n'a ni <span class="path">l10n.yaml</span> ni fichier
+      <span class="path">.arb</span>, et aucune vue ne pose <code>localizationsDelegates</code> ou
+      <code>supportedLocales</code> : la traduction passe entièrement par <code>AppTranslations</code> de GetX.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">grep -rn "package:flutter_localizations" lib test → 0
+grep -rn "localizationsDelegates|supportedLocales|GlobalMaterialLocalizations" lib → 0
+ls l10n.yaml → absent ; find . -name '*.arb' → aucun</pre></dd>
+        <dt>Question tranchée</dt><dd>Le doute portait sur <code>showTimePicker</code>, bien utilisé
+          (<span class="path">schedule_view.dart:408</span>). Il tombe : <code>GetMaterialApp</code> ne
+          reçoit <strong>ni <code>localizationsDelegates</code> ni <code>supportedLocales</code></strong>,
+          donc Material retombe déjà sur <code>DefaultMaterialLocalizations</code> et sur le
+          <code>supportedLocales</code> par défaut, <code>[en_US]</code>. Retirer la dépendance ne change
+          rien au rendu. Vérifié par un <code>flutter build web</code> complet, pas seulement par analyze.
+          <strong>Défaut constaté, non corrigé</strong> : c'est aussi pourquoi ce sélecteur d'heure est en
+          anglais pour un utilisateur français — seul son <code>helpText</code> est traduit, parce qu'il est
+          passé explicitement. Le corriger demande le geste inverse (remettre la dépendance et câbler les
+          delegates) : c'est un ajout, pas un nettoyage.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter pub get &amp;&amp; flutter analyze &amp;&amp; flutter test
+flutter run  # ouvrir Programme → planifier un créneau → sélecteur d'heure</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-12">
+      <div class="fiche-head"><span class="fiche-id">CLN-12</span> <span class="done">faite</span>
+        <h3 class="fiche-title">4 assets jamais chargés</h3></div>
+      <p><span class="path">assets/images/</span> est déclaré en bloc dans le pubspec, donc tout ce
+      qu'il contient part dans le bundle. Sur 5 fichiers, un seul est référencé.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">assets/images/flutter_logo.png        → 0 référence
+assets/images/2.0x/flutter_logo.png   → 0 référence
+assets/images/3.0x/flutter_logo.png   → 0 référence
+assets/images/lottery.png             → 0 référence
+assets/images/logo_ffss.png           → home_view.dart:105  ✓ gardé</pre></dd>
+        <dt>Note</dt><dd><code>lottery.png</code> évoque le tirage au sort des séries — si un écran de
+          tirage doit l'afficher un jour, dis-le et je le laisse.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test
+flutter run  # la home doit toujours afficher le logo FFSS</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-13">
+      <div class="fiche-head"><span class="fiche-id">CLN-13</span> <span class="done">faite</span>
+        <h3 class="fiche-title">3 dossiers scaffold vides</h3></div>
+      <p><span class="path">lib/app/core/bindings/</span>, <span class="path">core/controllers/</span>,
+      <span class="path">core/middleware/</span>. <span class="path">CLAUDE.md</span> les signale déjà et
+      dit de ne rien y mettre — les supprimer ferme le sujet.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">find lib -type d -empty
+lib/app/core/bindings
+lib/app/core/controllers
+lib/app/core/middleware</pre></dd>
+        <dt>Portée</dt><dd>Git ne suit pas les dossiers vides : le commit ne contiendra que la mise à jour
+          de <span class="path">CLAUDE.md</span> qui les mentionne. C'est voulu.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">find lib -type d -empty  # doit ne rien afficher</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-14">
+      <div class="fiche-head"><span class="fiche-id">CLN-14</span> <span class="done">faite</span>
+        <h3 class="fiche-title">Accolades manquantes dans <code>ProfileController</code></h3></div>
+      <p>Trois <code>if</code> sur une ligne, lignes 46, 95 et 97 de
+      <span class="path">module/auth/controllers/profile_controller.dart</span>. Seule violation de
+      <code>curly_braces_in_flow_control_structures</code> du dépôt.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">flutter analyze
+info - Statements in an if should be enclosed in a block
+  - profile_controller.dart:46:7
+  - profile_controller.dart:95:7
+  - profile_controller.dart:97:7</pre></dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze  # 3 infos de moins</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche s is-done" id="CLN-15">
+      <div class="fiche-head"><span class="fiche-id">CLN-15</span> <span class="done">faite</span>
+        <h3 class="fiche-title"><code>const</code> manquants dans deux fichiers de test</h3></div>
+      <p>20 des 29 infos analyze — les deux tiers du bruit — viennent de
+      <span class="path">test/presentation/modules/competitions/controllers/race_structure_controller_test.dart</span>
+      (17) et <span class="path">race_course_controller_test.dart</span> (3).</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">flutter analyze | grep prefer_const_constructors | wc -l → 20
+Toutes dans test/ ; lib/ n'en a aucune.</pre></dd>
+        <dt>Effet</dt><dd>Après CLN-14 + CLN-15 il reste 6 infos : 2 <code>file_names</code>
+          (<a href="#CLN-16">CLN-16</a>) et 4 <code>deprecated_member_use</code> (<a href="#CLN-19">CLN-19</a>).
+          Les trois tâches ensemble ramènent analyze à zéro.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche v is-done" id="CLN-16">
+      <div class="fiche-head"><span class="fiche-id">CLN-16</span> <span class="done">faite</span>
+        <h3 class="fiche-title">Renommer les fichiers de traduction en minuscules</h3></div>
+      <p>Les fichiers s'appellent <span class="path">en_US.dart</span> et <span class="path">fr_FR.dart</span>,
+      mais <span class="path">app_translations.dart</span> les importe en <code>'en_us.dart'</code> et
+      <code>'fr_fr.dart'</code>. Ça compile ici parce que NTFS ignore la casse. Sur un système de fichiers
+      sensible à la casse — une CI Linux, un build macOS sensible — les deux imports ne résolvent plus et
+      l'application ne compile pas. C'est aussi ce que signalent les deux infos <code>file_names</code>.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">app_translations.dart:2  import 'en_us.dart';   → fichier réel : en_US.dart
+app_translations.dart:3  import 'fr_fr.dart';   → fichier réel : fr_FR.dart
+
+flutter analyze
+info - The file name 'en_US.dart' isn't a lower_case_with_underscores identifier
+info - The file name 'fr_FR.dart' isn't a lower_case_with_underscores identifier</pre></dd>
+        <dt>Pourquoi « à vérifier »</dt><dd>Un <code>git mv en_US.dart en_us.dart</code> est un no-op sur
+          Windows. Il faut passer par un nom intermédiaire (<code>git mv en_US.dart tmp &amp;&amp; git mv tmp en_us.dart</code>)
+          et confirmer que le commit porte bien un renommage, pas rien.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">git show --stat HEAD   # doit montrer en_US.dart => en_us.dart
+flutter analyze         # 2 infos de moins</code></dd>
+      </dl>
+    </article>
+
+    <article class="withdrawn" id="CLN-17">
+      <div class="fiche-head"><span class="fiche-id">CLN-17</span>
+        <h3 class="fiche-title">Retirée — le constat était faux</h3></div>
+      <p>J'annonçais 16 clés utilisées par le code et absentes de <code>fr_FR</code>, donc affichées
+      telles quelles aux utilisateurs français. <strong>C'est faux.</strong> Ces clés sont bien présentes ;
+      elles portent seulement des valeurs entre <em>guillemets doubles</em>, parce que le texte français
+      contient une apostrophe. Ma regex d'extraction ne reconnaissait que <code>'clé': 'valeur'</code> et
+      sautait ces entrées, ce qui les faisait passer pour manquantes.</p>
+      <dl>
+        <dt>Contrôle</dt><dd><pre class="proof">fr_FR.dart:302  'round_push_failed': "Échec de l'envoi des parties",
+fr_FR.dart:361  'schedule_item_failed': "FFSS n'a pas enregistré cet item",
+fr_FR.dart:251  'bracelet_not_writable': "Ce bracelet n'est pas inscriptible",
+fr_FR.dart:424  'heat_draw_lanes_failed': ...
+
+Recomptage avec un lecteur conscient des littéraux Dart :
+  en_US.dart  409 clés     fr_FR.dart  409 clés
+  en sans fr : error_fetching, failed_to_load
+  fr sans en : error_fetching_competition, failed_to_load_competition
+Ces 4 asymétries étaient toutes des clés mortes, parties avec CLN-09.</pre></dd>
+        <dt>Ce qui reste vrai</dt><dd>Le comportement de GetX que je citais est exact — locale et
+          <code>fallbackLocale</code> tous deux à <code>fr_FR</code>, une clé absente renvoie la clé brute
+          (get-4.6.6, <span class="path">internacionalization.dart:99-111</span>). Il n'y avait simplement
+          aucune clé absente pour déclencher le cas.</dd>
+        <dt>Effet sur CLN-09</dt><dd>Le vrai total est 411 clés distinctes, dont 100 mortes — et non
+          409 dont 98. Les deux clés supplémentaires sont <code>coming</code> et <code>on_going</code>,
+          orphelines depuis CLN-05.</dd>
+      </dl>
+    </article>
+
+    <article class="fiche v is-done" id="CLN-18">
+      <div class="fiche-head"><span class="fiche-id">CLN-18</span> <span class="done">faite</span>
+        <h3 class="fiche-title">4 getters morts de <code>LaneX</code></h3></div>
+      <p><span class="path">domain/models/lane.dart:32-35</span> : <code>currentRank</code>,
+      <code>currentTime</code>, <code>currentTimeLabel</code>, <code>hasValidResult</code>.
+      <code>isEmpty</code> et <code>isDisqualified</code>, eux, servent.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">grep -rn "currentRank|currentTime|currentTimeLabel|hasValidResult" lib test
+→ uniquement lane.dart:32, 33, 34, 35.</pre></dd>
+        <dt>Pourquoi « à vérifier »</dt><dd>Les quatre lisent <code>Lane.result</code>, que
+          <span class="path">CLAUDE.md</span> décrit comme jamais peuplé — c'est une couture en attente de
+          backend, pas du code oublié. Les retirer allège aujourd'hui mais devra être réécrit le jour où
+          l'endpoint résultats arrive. C'est ton arbitrage : je les retire si tu le dis, je les laisse sinon.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche v is-done" id="CLN-19">
+      <div class="fiche-head"><span class="fiche-id">CLN-19</span> <span class="done">faite</span>
+        <h3 class="fiche-title"><code>Radio.groupValue</code> / <code>onChanged</code> dépréciés</h3></div>
+      <p>Quatre occurrences dans <span class="path">module/competitions/views/heat_structure_dialog.dart</span>
+      (lignes 80, 84, 88, 92). Flutter demande de passer par un ancêtre <code>RadioGroup</code>.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">flutter analyze
+info - 'groupValue' is deprecated ... Use a RadioGroup ancestor
+  - heat_structure_dialog.dart:80:13 et :88:13
+info - 'onChanged' is deprecated ... Use RadioGroup to handle value change
+  - heat_structure_dialog.dart:84:13 et :92:13
+« deprecated after v3.32.0-0.0.pre » — le projet tourne sur Flutter 3.41.9.</pre></dd>
+        <dt>Pourquoi « à vérifier »</dt><dd>La migration change la structure du dialogue (un
+          <code>RadioGroup</code> englobant, l'état remonté d'un cran). C'est le dialogue qui choisit la
+          structure des séries : il faut l'ouvrir et cocher les deux options pour confirmer.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze  # 4 infos de moins
+flutter run  # Épreuve → Tirage → dialogue Structure : les 2 choix répondent</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche v is-done" id="CLN-20">
+      <div class="fiche-head"><span class="fiche-id">CLN-20</span> <span class="done">faite</span>
+        <h3 class="fiche-title">9 <code>DateFormat</code> reconstruits à chaque cellule</h3></div>
+      <p><span class="path">competition_formatting.dart</span> instancie un <code>DateFormat</code> dans le
+      corps de chaque getter — <code>formattedDayBeginDate</code>, <code>formattedBeginDateMonth</code>,
+      <code>dayDateBeginDate</code> (2 par appel), <code>formattedDateRange</code> (2 par appel). Ces getters
+      sont appelés depuis <code>_DateBlock</code> et <code>_CardBody</code>, c'est-à-dire une fois par carte
+      de compétition affichée, à chaque frame de rebuild. Chaque construction reparse le motif intl.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">competition_formatting.dart : lignes 9, 12, 15, 19, 23, 24, 91, 95
+  DateFormat('dd/MM/yyyy') · DateFormat('dd') · DateFormat('MMM')
+  DateFormat('EEE') · DateFormat('yyyy MMM dd')
+Appelés depuis competition_card.dart (_DateBlock, _CardBody)
+et competition_detail_view.dart (_HeaderDateBlock).</pre></dd>
+        <dt>Geste</dt><dd>Hisser chaque motif en <code>static final</code> privé du fichier. Trois des huit
+          disparaissent si <a href="#CLN-05">CLN-05</a> passe avant.</dd>
+        <dt>Question tranchée</dt><dd>Le doute portait sur la locale figée. Il tombe : <strong>rien dans
+          le projet ne pose <code>Intl.defaultLocale</code></strong> — <span class="path">main.dart</span>
+          appelle <code>initializeDateFormatting()</code> sans locale, et <code>Get.updateLocale</code> ne
+          touche pas Intl. Un <code>DateFormat</code> sans locale explicite résout donc toujours celle du
+          device, identique à chaque construction : le hisser ne fige rien de plus.
+          <strong>Effet de bord constaté, non corrigé</strong> : c'est aussi pourquoi le mois abrégé des
+          cartes suit la langue du device et non celle de l'app. Antérieur à ce lot.</dd>
+        <dt>Dépend de</dt><dd>Idéalement après <a href="#CLN-05">CLN-05</a>.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter test
+flutter run  # home → changer FR/EN → le mois des cartes doit suivre</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche v is-done" id="CLN-21">
+      <div class="fiche-head"><span class="fiche-id">CLN-21</span> <span class="done">faite</span>
+        <h3 class="fiche-title"><code>FormatConst</code> expose deux formats mutables</h3></div>
+      <p><span class="path">core/const/format_const.dart:6-7</span> déclare
+      <code>static DateFormat dateFormat</code> et <code>static DateFormat timeFormat</code> — sans
+      <code>final</code>. N'importe quel appelant peut les réassigner globalement. Les 9 sites d'usage ne
+      font que lire.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">format_const.dart:6  static DateFormat dateFormat = DateFormat('yyyy-MM-dd');
+format_const.dart:7  static DateFormat timeFormat = DateFormat('HH:mm');
+9 lectures (.format(...)), 0 écriture, dans 4 vues.</pre></dd>
+        <dt>Pourquoi « à vérifier »</dt><dd>Passer en <code>static final</code> est trivial, mais ces deux
+          motifs sont non localisés (<code>yyyy-MM-dd</code>, <code>HH:mm</code>) : les figer est sans
+          risque ici, contrairement à <a href="#CLN-20">CLN-20</a>. Je le classe « à vérifier » seulement
+          parce qu'il partage la question de la locale figée.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche v is-done" id="CLN-22">
+      <div class="fiche-head"><span class="fiche-id">CLN-22</span> <span class="done">faite</span>
+        <h3 class="fiche-title">Le nom d'athlète formaté à l'identique dans 4 vues</h3></div>
+      <p>La même expression — nom en capitales, prénom, <code>.trim()</code> — est réécrite dans quatre
+      fichiers de vue. Elle appartient à <span class="path">presentation/modules/</span>, à côté de
+      <code>heatName</code> et <code>structureTitle</code>.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">heat_draw_view.dart:626
+  .map((a) =&gt; '${a.lastName.toUpperCase()} ${a.firstName}'.trim())
+race_course_view.dart:464
+  '${athlete.lastName.toUpperCase()} ${athlete.firstName}'
+race_detail_entries_view.dart:278
+  '${athlete.lastName.toUpperCase()} ${athlete.firstName}'.trim();
+race_structure_view.dart:631
+  '${athlete.lastName.toUpperCase()} ${athlete.firstName}'</pre></dd>
+        <dt>Correction</dt><dd>La fiche annonçait que deux des quatre sites n'appelaient pas
+          <code>.trim()</code>. <strong>Faux</strong> : les quatre l'appellent, sur la ligne suivante que
+          le grep du relevé coupait. L'extraction est donc strictement iso-comportement, sans arbitrage
+          de bord à faire.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche v is-done" id="CLN-23">
+      <div class="fiche-head"><span class="fiche-id">CLN-23</span> <span class="done">faite</span>
+        <h3 class="fiche-title">5 spinners à la main alors que <code>LoadingIndicator</code> couvre les deux cas</h3></div>
+      <p><code>LoadingIndicator</code> offre exactement les deux formes utilisées :
+      <code>compact: true</code> rend un <code>SizedBox(20, CircularProgressIndicator(strokeWidth: 2))</code>,
+      et la forme par défaut rend <code>Column[spinner, SizedBox, Text(message)]</code>. Cinq sites les
+      réécrivent, avec des tailles qui ont dérivé (16, 18, 20).</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">Forme compacte réécrite :
+  race_course_view.dart:365-367        SizedBox(16,16) + strokeWidth: 2
+  structure_editor_view.dart:416-418   SizedBox(18,18) + strokeWidth: 2
+  structure_server_state.dart:153-156  SizedBox(16,16) + strokeWidth: 2 + color
+
+Forme « spinner + message » réécrite :
+  structure_editor_view.dart:274-276   Column + 'round_pushing'.tr
+  structure_overview_view.dart:184-186 Column + 'race_format_creating'.tr
+
+Référence : loading_indicator.dart:18-24 (compact) et :25-41 (message)</pre></dd>
+        <dt>Pourquoi « à vérifier »</dt><dd><code>structure_server_state.dart</code> passe
+          <code>color: Colors.white</code> — le spinner est sur un bouton coloré. <code>LoadingIndicator</code>
+          n'expose pas de couleur : il faudra soit l'ajouter, soit laisser ce site tel quel. Je ferai le
+          premier et je le dirai.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test
+flutter run  # Programme → pousser un tour ; Épreuve → publier une course</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche v is-done" id="CLN-24">
+      <div class="fiche-head"><span class="fiche-id">CLN-24</span> <span class="done">faite</span>
+        <h3 class="fiche-title">Vignette et pavé-date dupliqués entre la carte et l'en-tête de détail</h3></div>
+      <p><code>_CardThumbnail</code> / <code>_DateBlock</code> (dans
+      <span class="path">presentation/shared/competition_card.dart</span>) et
+      <code>_HeaderThumbnail</code> / <code>_HeaderDateBlock</code> (dans
+      <span class="path">module/competitions/views/competition_detail_view.dart</span>) sont le même couple
+      de widgets à quatre variables près : la taille (56 contre 64), la couleur de fond du pavé
+      (<code>surfaceMuted</code> contre <code>white</code>), la couleur du texte, et le style du jour
+      (<code>subtitle</code> contre <code>title</code> + <code>fontSize: 18</code>).</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">competition_card.dart:57-81   _CardThumbnail
+competition_detail_view.dart:181-206  _HeaderThumbnail
+  → même corps : logoUrl vide ? pavé-date : ClipRRect(Image.network(
+      errorBuilder: pavé-date, loadingBuilder: pavé-date))
+
+competition_card.dart:83-118  _DateBlock
+competition_detail_view.dart:209-244  _HeaderDateBlock
+  → même corps : Container carré + Column[mois, jour]
+    lisant formattedBeginDateMonth et formattedDayBeginDate</pre></dd>
+        <dt>Geste</dt><dd>Un widget partagé paramétré par taille et palette, posé dans
+          <span class="path">presentation/shared/</span> — c'est l'endroit que le projet réserve à ce genre
+          de chose, et deux places viennent justement de s'y libérer (<a href="#CLN-02">CLN-02</a>,
+          <a href="#CLN-03">CLN-03</a>).</dd>
+        <dt>Pourquoi « à vérifier »</dt><dd>Les deux rendus doivent rester visuellement identiques à
+          l'actuel : c'est une comparaison à l'œil, pas un test.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter run  # home (cartes 56px) puis détail (en-tête 64px)</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche v is-done" id="CLN-25">
+      <div class="fiche-head"><span class="fiche-id">CLN-25</span> <span class="done">faite</span>
+        <h3 class="fiche-title"><code>LanguageService</code> fait <code>Get.find</code> dans son corps</h3></div>
+      <p><span class="path">core/services/language_service.dart:8</span> :
+      <code>final FlutterSecureStorage _storage = Get.find&lt;FlutterSecureStorage&gt;();</code>.
+      <span class="path">CLAUDE.md</span> exige l'injection par constructeur ; c'est le seul service qui y
+      déroge. Ses trois voisins (<code>UserPreferencesService</code>, <code>ProgrammeService</code>,
+      <code>AttendanceService</code>) reçoivent tous leur storage en paramètre.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">language_service.dart:6  static LanguageService get to =&gt; Get.find();
+language_service.dart:8  final FlutterSecureStorage _storage = Get.find&lt;...&gt;();
+
+initial_binding.dart:170  await Get.putAsync&lt;LanguageService&gt;(
+                            () async =&gt; LanguageService().init());
+à comparer avec :173      UserPreferencesService(Get.find&lt;FlutterSecureStorage&gt;()).init()</pre></dd>
+        <dt>Effet de bord</dt><dd>C'est aussi ce qui empêche de tester le service :
+          <span class="path">test/data/services/</span> couvre les trois autres, pas celui-là.</dd>
+        <dt>Pourquoi « à vérifier »</dt><dd><code>static LanguageService get to =&gt; Get.find()</code>
+          reste un accès statique ; je le laisse si quelque chose s'en sert, sinon il part avec.</dd>
+        <dt>Voir aussi</dt><dd>Même fichier que <a href="#CLN-07">CLN-07</a>.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche v is-done" id="CLN-26">
+      <div class="fiche-head"><span class="fiche-id">CLN-26</span> <span class="done">faite</span>
+        <h3 class="fiche-title"><code>UserController</code> attrape <code>catch (e)</code> nu</h3></div>
+      <p>Lignes 20, 32 et 48 de <span class="path">module/auth/controllers/user_controller.dart</span>.
+      La règle est d'attraper <code>AppException</code> et de laisser passer le reste ; ici un
+      <code>StateError</code> ou un <code>LocaleDataException</code> serait silencieusement transformé en
+      snackbar « erreur de navigation ». Tous les autres contrôleurs du projet — 24 sites — font
+      <code>on AppException catch (e)</code>.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">user_controller.dart:20, :32, :48   } catch (e) {
+Reste du dépôt : 24 × "on AppException catch (e)" dans 9 contrôleurs.
+Seules autres exceptions : http_client.dart (mapping voulu) et
+nfc_rfid_writer_impl.dart (frontière plugin).</pre></dd>
+        <dt>Ce qui a été fait</dt><dd>Les trois sites ne relevaient pas du même geste. Les deux
+          <code>catch</code> autour de <code>Get.toNamed</code> n'entouraient aucun appel capable de lever un
+          <code>AppException</code> : les resserrer aurait laissé un <code>catch</code> mort, ils ont donc été
+          <strong>retirés</strong>. Avec eux part <code>_showErrorSnackbar</code>, soit un des deux
+          <code>Get.snackbar</code> que <span class="path">CLAUDE.md</span> porte en dette différée sur ce
+          fichier. Celui de <code>logout</code> entoure un vrai appel réseau : il reste, borné à
+          <code>AppException</code>. Le <code>catch (_)</code> autour de <code>refreshAfterLogout</code> part
+          aussi — la méthode est synchrone et n'écrit que des <code>Rx</code>. Les clés
+          <code>navigation_error</code> et <code>error</code>, devenues orphelines, ont suivi.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche d is-done" id="CLN-27">
+      <div class="fiche-head"><span class="fiche-id">CLN-27</span> <span class="done">faite</span>
+        <h3 class="fiche-title">Un aller-retour <code>getLaneSeats</code> par course, en série</h3></div>
+      <p>Trois boucles de <span class="path">module/competitions/controllers/race_structure_controller.dart</span>
+      appellent <code>getLaneSeats</code> une course à la fois, chacune attendue avant la suivante.
+      <code>getLaneSeats</code> parallélise déjà les <em>places</em> d'une course
+      (<span class="path">meeting_repository.dart:304</span>, chunks de <code>_runsBatchSize</code>) — c'est
+      l'étage au-dessus, les courses, qui reste séquentiel. Un tour de 8 courses paie 8 latences bout à bout
+      à l'ouverture de l'onglet Structure.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">race_structure_controller.dart:536-541  for (final (at, course) in pairs) { ... await _meetings.getLaneSeats(...)
+race_structure_controller.dart:575-578  for (final course in orphans) { ... await _meetings.getLaneSeats(...)
+race_structure_controller.dart:426-435  triple boucle imbriquée, un getLaneSeats + un getHeatResults par course
+
+Le motif à suivre existe déjà dans le dépôt :
+  club_repository.dart:57      chunks de _detailBatchSize = 8
+  meeting_repository.dart:304  chunks de _runsBatchSize</pre></dd>
+        <dt>Ce qui a été fait, en deux temps</dt><dd>
+          <ul class="tight">
+            <li><strong>Un mémo de passe d'abord.</strong> Les deux passes lisaient <em>les mêmes places
+              deux fois</em> — ce que le relevé initial avait manqué. Un mémo par id de course, vidé à
+              chaque <code>load()</code>. Prouvé par la mesure : le test ajouté échoue avec
+              <code>Expected: &lt;1&gt; Actual: &lt;2&gt;</code> quand on le neutralise.</li>
+            <li><strong>Puis deux lectures groupées</strong> dans <code>MeetingRepository</code> —
+              <code>getLaneSeatsByCourse</code> et <code>getHeatResultsByHeat</code> — qui aplatissent
+              avant de découper, pour que le fan-out reste borné par le nombre de places et non par le
+              nombre de courses.</li>
+          </ul>
+          Sur l'épreuve type à 3 tours et 7 courses, en comptant les allers-retours dans le code :
+          <strong>21 en file → 14 après le mémo → 2</strong>.</dd>
+        <dt>Les trois blocages, revus</dt><dd>Deux des trois que la fiche annonçait n'existaient pas.
+          La boucle 536 écrit à des index <strong>distincts</strong>, garantis par le set
+          <code>claimed</code> : aucune collision. La boucle 426 écrit sous des clés distinctes. Seul
+          <code>allocateId</code> était un vrai danger — et il a disparu sans être touché : le
+          préchargement sert ses places déjà résolues, donc <code>_adoptOrphanCourses</code> garde sa
+          boucle séquentielle intacte. <strong>Le troisième volet est devenu sans objet.</strong></dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter test  # race_structure_controller_test.dart couvre ces chemins
+flutter run  # Épreuve → Structure sur une compétition à plusieurs tours</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche d is-done" id="CLN-28">
+      <div class="fiche-head"><span class="fiche-id">CLN-28</span> <span class="done">faite</span>
+        <h3 class="fiche-title"><code>ClubX.hasCap</code> / <code>hasLogo</code> : testés, jamais appelés</h3></div>
+      <p><span class="path">data/mappers/club_mapper.dart:123-124</span>. Trois tests les couvrent
+      (<span class="path">test/data/mappers/club_mapper_test.dart:334-347</span>) et aucune ligne de
+      <span class="path">lib/</span> ne les appelle : c'est la définition d'un test qui se rassure lui-même.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">grep -rn "hasLogo|hasCap" lib test
+lib/app/data/mappers/club_mapper.dart:123  bool get hasLogo =&gt; logoUrl?.isNotEmpty == true;
+lib/app/data/mappers/club_mapper.dart:124  bool get hasCap  =&gt; capUrl?.isNotEmpty == true;
+test/... : 7 lignes, 3 tests.
+Aucune autre occurrence dans lib/.</pre></dd>
+        <dt>Arbitrage rendu : 28a</dt><dd><code>ClubAvatar</code> réimplémente bien la même condition
+          (<span class="path">club_avatar.dart:37-38</span>), mais <code>ClubX</code> vit dans
+          <span class="path">data/mappers/</span> et <strong><span class="path">lib/app/presentation/</span>
+          n'importe aujourd'hui rien de <span class="path">lib/app/data/</span></strong> — vérifié, zéro
+          import. Câbler les getters (28b) aurait payé le premier franchissement de cette frontière pour
+          deux prédicats d'une ligne : mauvais échange, d'autant que <code>ClubAvatar</code> ne teste pas un
+          booléen mais construit une liste d'URLs, où la forme inline se lit aussi bien. Les getters et leurs
+          trois tests sont donc supprimés. Si la question revient, le bon geste sera de déplacer ces
+          prédicats vers le domaine ou la présentation d'abord, pas d'importer un mapper depuis un widget.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+    <article class="fiche d is-done" id="CLN-29">
+      <div class="fiche-head"><span class="fiche-id">CLN-29</span> <span class="done">faite</span>
+        <h3 class="fiche-title">2 méthodes publiques d'interface à usage purement interne</h3></div>
+      <p><code>CompetitionRepository.getCompetitions</code> n'est appelée que par
+      <code>getAllCompetitions</code> et <code>getNext5</code>, dans la même classe.
+      <code>ClubRepository.getClubDetail</code> n'est appelée que par <code>getClubDetails</code>, dans la
+      même classe. Les deux sont déclarées dans l'interface abstraite : elles font partie du contrat que
+      tout le projet peut appeler, alors que rien ne les appelle de l'extérieur.</p>
+      <dl>
+        <dt>Preuve</dt><dd><pre class="proof">getCompetitions  → competition_repository.dart:48 et :107 (interne)
+                 → 13 occurrences dans competition_repository_test.dart
+                 → 0 dans un contrôleur
+getClubDetail    → club_repository.dart:44 et :61 (interne)
+                 → 21 occurrences dans club_repository_test.dart
+                 → 0 dans un contrôleur</pre></dd>
+        <dt>Le coût annoncé ne s'est pas matérialisé</dt><dd>La fiche craignait de perdre des tests utiles.
+          <strong>982 tests avant, 982 après</strong> : les quatre se reroutent proprement. Le forwarding de
+          <code>type</code> / <code>visibility</code> / <code>pageSize</code> se vérifie sur
+          <code>getAllCompetitions</code>, qui les porte jusqu'à la source et numérote les pages ; les trois
+          tests du bucket organisme passent par <code>getClubDetails</code>, dont la map garde l'id demandé
+          en clé et le club résolu en valeur — une assertion en fait <em>plus</em> proche de ce que les
+          appelants voient réellement. Les deux interfaces tombent à deux méthodes chacune.</dd>
+        <dt>Dépend de</dt><dd>Après <a href="#CLN-08">CLN-08</a>.</dd>
+        <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
+      </dl>
+    </article>
+
+  </div>
+</section>
+
+<section id="redisc">
+  <h2>À rediscuter — sans ID</h2>
+  <p class="section-lede">Trouvailles qui demandent une décision produit ou backend. Je ne les exécuterai pas
+  sur une simple liste d'IDs.</p>
+
+  <div class="plain">
+    <div>
+      <h3><code>cached_network_image</code> : la retirer ou l'adopter</h3>
+      <p><a href="#CLN-10">CLN-10</a> la retire, parce que c'est le geste de nettoyage. Mais l'app affiche
+      des logos de clubs distants dans des listes qui défilent — <code>ClubAvatar</code>, les cartes de
+      compétition, l'en-tête de détail — et <code>Image.network</code> ne met rien en cache sur disque :
+      chaque retour sur la home relance les requêtes. La dépendance a peut-être été ajoutée pour ça et
+      jamais câblée. Dis-moi laquelle des deux lectures est la bonne.</p>
+    </div>
+    <div>
+      <h3><code>UserController</code> et <code>ProfileController</code> : la dette assumée</h3>
+      <p>Les deux gardent <code>Get.snackbar</code> (3 sites) et <code>.tr</code> (23 sites) en violation
+      directe de la discipline contrôleur. <span class="path">CLAUDE.md</span> dit explicitement que c'est
+      différé. Le nettoyer veut dire faire passer les deux vues au motif <code>Rxn&lt;UiMessage&gt;</code> +
+      <code>ever()</code> — un vrai refactor, pas un nettoyage, et donc hors périmètre de cet audit.
+      <a href="#CLN-26">CLN-26</a> n'en traite que la part qui peut masquer un crash.</p>
+    </div>
+    <div>
+      <h3>Les 100 clés mortes venaient d'un vocabulaire cohérent</h3>
+      <p>Ce n'étaient pas 100 oublis épars : c'est le lexique de fonctionnalités entières —
+      CRUD de réunion, saisie de temps et de classements plage, retrait d'athlète, écran de créneau.
+      Certaines correspondent aux <em>known gaps</em> encore ouverts
+      (<code>updateBeachRankings</code>, <code>withdrawAthlete</code>). Les supprimer est correct
+      aujourd'hui ; il faudra les réécrire quand le backend arrivera. Confirme que c'est le bon arbitrage
+      avant que je lance <a href="#CLN-09">CLN-09</a>.</p>
+    </div>
+    <div>
+      <h3><span class="path">CLAUDE.md</span> a pris du retard sur le code</h3>
+      <p>Le fichier décrit sept domaines de datasource ; il y en a neuf (<code>race_format</code>,
+      <code>programme</code> se sont ajoutés). Il ne mentionne ni <span class="path">core/rfid/</span>
+      (4 fichiers, l'écriture de bracelets NFC), ni le module <code>programme</code>, ni
+      <code>core/utils/competition_days.dart</code>, ni les widgets partagés
+      <code>FilterChipBar</code> / <code>GenderBadge</code>. Il liste <code>SectionHeader</code> et
+      <code>StatusBadge</code> comme partagés alors qu'ils sont morts (<a href="#CLN-02">CLN-02</a>,
+      <a href="#CLN-03">CLN-03</a>). Une remise à jour est un travail à part — dis-moi si tu la veux et je
+      la traite comme une tâche à elle seule.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Écarté — regardé, laissé tel quel</h2>
+  <p class="section-lede">Ce que l'audit a couvert sans rien produire. C'est la moitié utile du rapport :
+  elle dit où il est inutile de chercher.</p>
+
+  <dl class="discard">
+    <dt>Les 10 routes</dt>
+    <dd>Toutes déclarées, toutes pourvues d'un <code>GetPage</code>, toutes atteintes par au moins un
+      <code>Get.toNamed</code> / <code>offAllNamed</code> hors <span class="path">app_pages.dart</span>.
+      Aucun îlot du type <code>program</code>/<code>slot</code> ne subsiste.</dd>
+
+    <dt>Les 120 déclarations privées</dt>
+    <dd>Chaque <code>class _Xxx</code> a été recomptée dans son propre fichier : aucune n'est orpheline.
+      Le premier passage les avait signalées à tort — l'exclusion du fichier déclarant.</dd>
+
+    <dt>Discipline contrôleur</dt>
+    <dd>Zéro <code>Get.context!</code>, zéro <code>Get.dialog</code>, zéro <code>BuildContext</code> en
+      paramètre, zéro <code>TextEditingController</code> ou <code>GlobalKey</code> dans un contrôleur.
+      Les 3 <code>Get.snackbar</code> restants sont ceux que <span class="path">CLAUDE.md</span> déclare
+      différés, plus l'exception assumée d'<code>InitialBinding</code>.</dd>
+
+    <dt><code>createDefaultLanes</code></dt>
+    <dd>Boucle séquentielle, mais le commentaire dit pourquoi : « FFSS ne numérote rien lui-même, les
+      places sont à nous de numéroter ». Une intention documentée n'est pas un oubli.</dd>
+
+    <dt>Écritures en série (<code>syncLanes</code>, <code>submitSlot</code>, <code>submitRun</code>, <code>_submitLevel</code>)</dt>
+    <dd>Le serveur attribue les ids dans l'ordre d'envoi et le code réutilise l'id rendu au tour suivant.
+      Paralléliser changerait la sémantique, pas seulement la vitesse.</dd>
+
+    <dt>Boucles de pagination (<code>while (true)</code> ×5)</dt>
+    <dd>Séquentielles par nature : la page n+1 ne peut pas être demandée avant de savoir si la page n était
+      pleine.</dd>
+
+    <dt>Les 9 <code>ListView(</code> sans <code>.builder</code></dt>
+    <dd>Toutes portent un nombre borné d'enfants — onglets, sections d'une journée, niveaux d'un tour. Les
+      listes réellement longues (compétitions, engagements) utilisent déjà
+      <code>ListView.separated</code>/<code>.builder</code>.</dd>
+
+    <dt><code>const</code> dans <span class="path">lib/</span></dt>
+    <dd>Analyzer clean : les 20 <code>prefer_const_constructors</code> sont toutes dans
+      <span class="path">test/</span> (<a href="#CLN-15">CLN-15</a>).</dd>
+
+    <dt>Portée des <code>Obx</code></dt>
+    <dd>Vérifiée sur les vues de liste. <code>_HomeList</code> imbrique déjà un <code>Obx</code> par cellule
+      pour l'état favori plutôt que de rebâtir la liste entière — c'est le bon motif, pas un défaut.</dd>
+
+    <dt>Clés construites dynamiquement</dt>
+    <dd><code>labelKey</code>, <code>singularLabelKey</code> (<code>'${labelKey}_one'</code>),
+      <code>qualificationLabelKeys[code]</code>, <code>criterion.labelKey</code> : toutes retracées avant
+      de conclure. C'est ce qui a sauvé les 5 clés <code>round_*_one</code> de la suppression.</dd>
+
+    <dt>Stubs des <em>known gaps</em></dt>
+    <dd><code>ResultRepository</code>, <code>RankingRemoteDataSourceImpl</code>,
+      <code>ProgrammeRemoteDataSourceImpl</code>, le repli de <code>_getAllRuns</code>,
+      <code>Lane.entry</code> — coutures en attente de backend, laissées intactes comme demandé.
+      Seul <a href="#CLN-18">CLN-18</a> effleure la zone, et il est classé « à vérifier » pour ça.</dd>
+
+    <dt>Code généré</dt>
+    <dd>94 fichiers, 21 191 lignes de <code>.freezed.dart</code> / <code>.g.dart</code> — hors périmètre,
+      jamais édités à la main.</dd>
+  </dl>
+</section>
+
+<footer class="end">
+  Phase 1 close · aucun fichier source modifié · <code>git status</code> ne montre que ce document<br>
+  Réponds par IDs pour lancer la phase 2 — un commit par tâche, <code>flutter analyze</code> puis
+  <code>flutter test</code> après chacun, sortie citée.
+</footer>
+
+</div>

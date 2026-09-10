@@ -11,6 +11,7 @@ import 'package:live_ffss/app/module/competitions/views/competition_detail_point
 import 'package:live_ffss/app/module/competitions/views/competition_detail_programme_view.dart';
 import 'package:live_ffss/app/module/competitions/views/competition_detail_races_view.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/competition_formatting.dart';
+import 'package:live_ffss/app/presentation/shared/competition_thumbnail.dart';
 import 'package:live_ffss/app/presentation/shared/home_wave.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
@@ -118,7 +119,7 @@ class _CompetitionDetailHeader extends GetView<CompetitionDetailController> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _HeaderThumbnail(competition: competition),
+                CompetitionThumbnail.header(competition: competition),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
@@ -170,72 +171,6 @@ class _CompetitionDetailHeader extends GetView<CompetitionDetailController> {
                 const SizedBox(width: AppSpacing.sm),
                 _DetailPill(label: 'points'.tr, index: 3),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeaderThumbnail extends StatelessWidget {
-  const _HeaderThumbnail({required this.competition});
-
-  final Competition competition;
-
-  @override
-  Widget build(BuildContext context) {
-    final logoUrl = competition.organizerClub.logoUrl;
-    if (logoUrl == null || logoUrl.isEmpty) {
-      return _HeaderDateBlock(competition: competition);
-    }
-    return ClipRRect(
-      borderRadius: AppRadius.smRadius,
-      child: Image.network(
-        logoUrl,
-        width: 64,
-        height: 64,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            _HeaderDateBlock(competition: competition),
-        loadingBuilder: (_, child, progress) => progress == null
-            ? child
-            : _HeaderDateBlock(competition: competition),
-      ),
-    );
-  }
-}
-
-class _HeaderDateBlock extends StatelessWidget {
-  const _HeaderDateBlock({required this.competition});
-
-  final Competition competition;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: AppRadius.smRadius,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            competition.formattedBeginDateMonth,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-            ),
-          ),
-          Text(
-            competition.formattedDayBeginDate,
-            style: AppTypography.title.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-              fontSize: 18,
             ),
           ),
         ],

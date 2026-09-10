@@ -63,42 +63,48 @@ class _HeatStructureDialogState extends State<HeatStructureDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('heat_draw_structure_title'.tr),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'heat_draw_presence'.trParams({
-              'present': '${widget.presentCount}',
-              'engaged': '${widget.engagedCount}',
-            }),
-            style: AppTypography.caption,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          RadioListTile<int>(
-            value: _declaredOption,
-            groupValue: _selectedOption,
-            contentPadding: EdgeInsets.zero,
-            title: Text('heat_draw_structure_declared'.tr),
-            subtitle: Text(_label(widget.declared)),
-            onChanged: (_) => setState(() => _selectedOption = _declaredOption),
-          ),
-          RadioListTile<int>(
-            value: _proposedOption,
-            groupValue: _selectedOption,
-            contentPadding: EdgeInsets.zero,
-            title: Text('heat_draw_structure_proposed'.tr),
-            subtitle: Text(_label(widget.proposed)),
-            onChanged: (_) => setState(() => _selectedOption = _proposedOption),
-          ),
-          TextButton.icon(
-            icon: const Icon(Icons.open_in_new, size: 18),
-            label: Text('heat_draw_structure_edit'.tr),
-            onPressed: () => Navigator.of(context).pop<HeatStructureResult>(
-              (plan: null, editStructure: true),
+      // Le RadioGroup enveloppe tout le contenu et pas seulement les deux
+      // lignes : il ne pose aucune contrainte de mise en page, alors qu'une
+      // Column supplementaire autour des seules lignes changerait les
+      // contraintes horizontales que recoivent les ListTile.
+      content: RadioGroup<int>(
+        groupValue: _selectedOption,
+        onChanged: (value) => setState(
+          () => _selectedOption = value ?? _selectedOption,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'heat_draw_presence'.trParams({
+                'present': '${widget.presentCount}',
+                'engaged': '${widget.engagedCount}',
+              }),
+              style: AppTypography.caption,
             ),
-          ),
-        ],
+            const SizedBox(height: AppSpacing.sm),
+            RadioListTile<int>(
+              value: _declaredOption,
+              contentPadding: EdgeInsets.zero,
+              title: Text('heat_draw_structure_declared'.tr),
+              subtitle: Text(_label(widget.declared)),
+            ),
+            RadioListTile<int>(
+              value: _proposedOption,
+              contentPadding: EdgeInsets.zero,
+              title: Text('heat_draw_structure_proposed'.tr),
+              subtitle: Text(_label(widget.proposed)),
+            ),
+            TextButton.icon(
+              icon: const Icon(Icons.open_in_new, size: 18),
+              label: Text('heat_draw_structure_edit'.tr),
+              onPressed: () => Navigator.of(context).pop<HeatStructureResult>(
+                (plan: null, editStructure: true),
+              ),
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(

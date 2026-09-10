@@ -55,6 +55,7 @@ void main() {
     registerFallbackValue('');
     registerFallbackValue(const <Athlete>[]);
     registerFallbackValue(const <int>[]);
+    registerFallbackValue(const <Run>[]);
   });
 
   const competition = Competition(
@@ -168,6 +169,20 @@ void main() {
         .thenAnswer((_) async => const []);
     when(() => meetingRepo.getLaneSeats(any()))
         .thenAnswer((_) async => const []);
+    // Le controleur precharge les places d'un coup, et les classements de meme.
+    // Les tests continuent de decrire les donnees course par course et serie
+    // par serie ; ces deux relais les rassemblent exactement comme le vrai
+    // repository le fait — equivalence que ses propres tests verifient.
+    when(() => meetingRepo.getLaneSeatsByCourse(any())).thenAnswer((call) async {
+      final courses = call.positionalArguments.first as Iterable<Run>;
+      return {
+        for (final course in courses)
+          course.id: await meetingRepo
+              .getLaneSeats([for (final lane in course.lanes) lane.id]),
+      };
+    });
+    when(() => meetingRepo.getHeatResultsByHeat(any()))
+        .thenAnswer((_) async => const {});
     raceFormatRepo = _MockRaceFormatRepo();
     when(() => raceFormatRepo.getRaceFormats(any()))
         .thenAnswer((_) async => const []);
@@ -882,7 +897,7 @@ void main() {
     // résultats.
     test('une composition locale sans résultat s efface devant le serveur',
         () async {
-      final local = CompetitionProgramme(
+      const local = CompetitionProgramme(
         competitionId: 42,
         nextLocalId: 100,
         structures: [
@@ -892,7 +907,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Cadets',
             levels: [
-              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: [
                 ProgrammeRace(
                     id: 1, number: 1, entryIds: [999], athleteIds: [99]),
               ]),
@@ -918,7 +933,7 @@ void main() {
     });
 
     test('une série qui porte des résultats n est jamais écrasée', () async {
-      final local = CompetitionProgramme(
+      const local = CompetitionProgramme(
         competitionId: 42,
         nextLocalId: 100,
         structures: [
@@ -928,7 +943,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Cadets',
             levels: [
-              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: [
                 ProgrammeRace(
                   id: 1,
                   number: 1,
@@ -962,7 +977,7 @@ void main() {
     // Des places encore vides (le tour vient d'être posé) ne disent rien du
     // tirage : la copie locale reste.
     test('des places vides n effacent pas un tirage local', () async {
-      final local = CompetitionProgramme(
+      const local = CompetitionProgramme(
         competitionId: 42,
         nextLocalId: 100,
         structures: [
@@ -972,7 +987,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Cadets',
             levels: [
-              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: [
                 ProgrammeRace(
                     id: 1, number: 1, entryIds: [999], athleteIds: [99]),
               ]),
@@ -992,6 +1007,28 @@ void main() {
 
       final drawn = controller.structures.single.levels.single.races.single;
       expect(drawn.entryIds, [999]);
+    });
+
+    // Tout le tour tient en une lecture groupee, quel que soit le nombre de
+    // courses : c'est ce que CLN-27 visait. Auparavant les deux passes
+    // d'import lisaient course par course, en file, et l'adoption des courses
+    // orphelines ajoutait encore une latence chacune.
+    test('les places de tout le tour sont lues en une fois', () async {
+      when(() => raceFormatRepo.getRaceFormats(42)).thenAnswer((_) async => [
+            format(details: const [serverSerie])
+          ]);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([
+              course(25, lanes: const [Lane(id: 71, number: 1)]),
+              course(26, lanes: const [Lane(id: 72, number: 1)]),
+              course(27, lanes: const [Lane(id: 73, number: 1)]),
+            ]),
+          ]);
+
+      await loadFresh();
+
+      verify(() => meetingRepo.getLaneSeatsByCourse(any())).called(1);
+      verify(() => meetingRepo.getHeatResultsByHeat(any())).called(1);
     });
 
     // Une course ajoutée sur le site fédéral n'a aucune série locale où se
@@ -1152,7 +1189,7 @@ void main() {
     // purge du stockage.
     test('une structure stockée hors des catégories de l épreuve est ignorée',
         () async {
-      final polluted = CompetitionProgramme(
+      const polluted = CompetitionProgramme(
         competitionId: 42,
         nextLocalId: 100,
         structures: [
@@ -1162,7 +1199,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Cadets',
             levels: [
-              RoundLevel(type: RoundType.serie, serverId: 39, races: const [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: [
                 ProgrammeRace(id: 1, number: 1),
               ]),
             ],
@@ -1173,7 +1210,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Juniors',
             levels: [
-              RoundLevel(type: RoundType.finale, serverId: 40, races: const [
+              RoundLevel(type: RoundType.finale, serverId: 40, races: [
                 ProgrammeRace(id: 2, number: 1),
               ]),
             ],
@@ -1194,7 +1231,7 @@ void main() {
     // n'invente pas une restriction qui masquerait un travail existant.
     test('une épreuve sans catégorie déclarée garde ce qui est stocké',
         () async {
-      final stored = CompetitionProgramme(
+      const stored = CompetitionProgramme(
         competitionId: 42,
         nextLocalId: 100,
         structures: [
@@ -1204,7 +1241,7 @@ void main() {
             raceLabel: '100m',
             categoryLabel: 'Cadets',
             levels: [
-              RoundLevel(type: RoundType.serie, races: const [
+              RoundLevel(type: RoundType.serie, races: [
                 ProgrammeRace(id: 1, number: 1),
               ]),
             ],
@@ -1344,8 +1381,8 @@ void main() {
                   lanes: const [Lane(id: 71, number: 1)]),
             ]),
           ]);
-      when(() => meetingRepo.getHeatResults(94369))
-          .thenAnswer((_) async => results);
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => {94369: results});
       when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
             (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
             (laneId: 71, number: 2, entryId: 102, athleteIds: [12]),
@@ -1391,6 +1428,63 @@ void main() {
       expect(controller.placeInRace(serieRace(), 12), 2);
     });
 
+    /// Une serie encore vierge : _importCompositions la remplit depuis les
+    /// places, puis _importResults relit le meme classement. Les deux passes
+    /// visent donc la meme course.
+    CompetitionProgramme undrawnOrder() => const CompetitionProgramme(
+          competitionId: 42,
+          nextLocalId: 100,
+          structures: [
+            EventStructure(
+              raceId: 500,
+              categoryId: 7,
+              raceLabel: '100m',
+              categoryLabel: 'Cadets',
+              levels: [
+                RoundLevel(type: RoundType.serie, serverId: 39, races: [
+                  ProgrammeRace(id: 1, number: 1, runId: 25),
+                ]),
+              ],
+            ),
+          ],
+        );
+
+    // Les places d'une course ne sont lues qu'une fois par chargement, meme
+    // quand les deux passes d'import la visent : sans memo, l'ecran payait
+    // deux fois le meme aller-retour par course.
+    test('une course visee par les deux passes n est lue qu une fois',
+        () async {
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(undrawnOrder().toJson()));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([
+              course(25,
+                  heat: const Heat(id: 94369),
+                  lanes: const [Lane(id: 71, number: 1)]),
+            ]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
+            (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
+          ]);
+      when(() => meetingRepo.getHeatResultsByHeat(any())).thenAnswer((_) async =>
+          const {
+            94369: [
+              (entryId: 101, rank: 1, isDisqualified: false, complement: null)
+            ]
+          });
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo);
+
+      await controller.load(race(500), competition);
+
+      verify(() => meetingRepo.getLaneSeats([71])).called(1);
+      // La composition a bien ete adoptee, donc la premiere passe a lu.
+      expect(serieRace().athleteIds, [11]);
+      // Et le classement serveur a bien ete relie, donc la seconde a lu aussi.
+      expect(controller.placeInRace(serieRace(), 11), 1);
+    });
+
     test('une course sans série ne déclenche aucune lecture', () async {
       when(() => storage.read(key: any(named: 'key')))
           .thenAnswer((_) async => jsonEncode(localOrder().toJson()));
@@ -1403,7 +1497,10 @@ void main() {
 
       await controller.load(race(500), competition);
 
-      verifyNever(() => meetingRepo.getHeatResults(any()));
+      final asked = verify(() => meetingRepo.getHeatResultsByHeat(captureAny()))
+          .captured
+          .single as Iterable<int>;
+      expect(asked, isEmpty);
       expect(controller.placeInRace(serieRace(), 11), 1);
     });
   });

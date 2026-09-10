@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
+import 'package:live_ffss/app/data/dtos/heat_result_dto.dart';
 import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
 import 'package:live_ffss/app/data/dtos/lane_detail_dto.dart';
 import 'package:live_ffss/app/data/dtos/run_dto.dart';
 import 'package:live_ffss/app/data/dtos/slot_dto.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/domain/models/lane.dart';
+import 'package:live_ffss/app/domain/models/run.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockDataSource extends Mock implements MeetingRemoteDataSource {}
@@ -95,13 +97,6 @@ void main() {
           endTime: '11:45',
           id: null,
         )).called(1);
-  });
-
-  test('deleteMeeting forwards meetingId', () async {
-    when(() => ds.deleteMeeting(any())).thenAnswer((_) async => true);
-    final ok = await repo.deleteMeeting(7);
-    expect(ok, true);
-    verify(() => ds.deleteMeeting(7)).called(1);
   });
 
   RunDto makeRunDto(int slotId) => RunDto(
@@ -317,13 +312,6 @@ void main() {
     });
   });
 
-  test('deleteLane forwards the lane id', () async {
-    when(() => ds.deleteLane(any())).thenAnswer((_) async => true);
-
-    expect(await repo.deleteLane(6), isTrue);
-    verify(() => ds.deleteLane(6)).called(1);
-  });
-
   test('submitRun forwards every field and returns the assigned id', () async {
     when(() => ds.submitRun(
           slotId: any(named: 'slotId'),
@@ -490,6 +478,115 @@ void main() {
     test('aucune place, aucun appel', () async {
       expect(await repo.getLaneSeats(const []), isEmpty);
       verifyNever(() => ds.getLaneDetail(any()));
+    });
+  });
+
+  group('getLaneSeatsByCourse', () {
+    LaneDetailDto occupied(int laneId, int number, int entryId) =>
+        LaneDetailDto(
+          id: laneId,
+          number: number,
+          seat: LaneSeatDto(entryId: entryId, athletes: const []),
+        );
+
+    Run course(int id, List<int> laneIds) => Run(
+          id: id,
+          name: 'Serie',
+          label: '',
+          fullLabel: '',
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: '',
+          beginTime: DateTime(2026, 6, 13, 8),
+          endTime: DateTime(2026, 6, 13, 9),
+          lanes: [for (final l in laneIds) Lane(id: l, number: 0)],
+        );
+
+    test('rend les sieges ranges sous leur course, tries par place', () async {
+      when(() => ds.getLaneDetail(7)).thenAnswer((_) async => occupied(7, 2, 102));
+      when(() => ds.getLaneDetail(8)).thenAnswer((_) async => occupied(8, 1, 101));
+      when(() => ds.getLaneDetail(9)).thenAnswer((_) async => occupied(9, 1, 201));
+
+      final byCourse = await repo.getLaneSeatsByCourse([
+        course(25, [7, 8]),
+        course(26, [9]),
+      ]);
+
+      expect(byCourse[25]!.map((s) => s.entryId), [101, 102]);
+      expect(byCourse[25]!.map((s) => s.number), [1, 2]);
+      expect(byCourse[26]!.map((s) => s.entryId), [201]);
+    });
+
+    // Meme regle qu'en lecture unitaire : une place libre ne dit rien de la
+    // composition, une place illisible coute son siege et pas le lot.
+    test('place libre et place illisible sont passees, les autres arrivent',
+        () async {
+      when(() => ds.getLaneDetail(7))
+          .thenAnswer((_) async => const LaneDetailDto(id: 7, number: 1));
+      when(() => ds.getLaneDetail(8)).thenThrow(const NetworkException('coupe'));
+      when(() => ds.getLaneDetail(9)).thenAnswer((_) async => occupied(9, 3, 103));
+
+      final byCourse = await repo.getLaneSeatsByCourse([course(25, [7, 8, 9])]);
+
+      expect(byCourse[25]!.map((s) => s.entryId), [103]);
+    });
+
+    // Presente avec une liste vide plutot qu'absente : l'appelant distingue
+    // « course sans composition » de « course jamais demandee ».
+    test('une course sans place figure quand meme, vide', () async {
+      final byCourse = await repo.getLaneSeatsByCourse([course(25, const [])]);
+
+      expect(byCourse.containsKey(25), isTrue);
+      expect(byCourse[25], isEmpty);
+      verifyNever(() => ds.getLaneDetail(any()));
+    });
+
+    test('aucune course, aucun appel', () async {
+      expect(await repo.getLaneSeatsByCourse(const []), isEmpty);
+      verifyNever(() => ds.getLaneDetail(any()));
+    });
+  });
+
+  group('getHeatResultsByHeat', () {
+    HeatResultDto outcome(int entryId, int rank) => HeatResultDto(
+          rank: rank,
+          entry: HeatResultEntryDto(id: entryId),
+        );
+
+    test('range les resultats sous leur serie', () async {
+      when(() => ds.getHeatResults(1)).thenAnswer((_) async => [outcome(101, 1)]);
+      when(() => ds.getHeatResults(2)).thenAnswer((_) async => [outcome(201, 2)]);
+
+      final byHeat = await repo.getHeatResultsByHeat([1, 2]);
+
+      expect(byHeat[1]!.single.entryId, 101);
+      expect(byHeat[2]!.single.rank, 2);
+    });
+
+    // Best-effort par serie : une serie illisible coute son classement, pas
+    // celui des autres courses du tour.
+    test('une serie illisible revient vide, les autres sont lues', () async {
+      when(() => ds.getHeatResults(1)).thenThrow(const NetworkException('coupe'));
+      when(() => ds.getHeatResults(2)).thenAnswer((_) async => [outcome(201, 2)]);
+
+      final byHeat = await repo.getHeatResultsByHeat([1, 2]);
+
+      expect(byHeat[1], isEmpty);
+      expect(byHeat[2]!.single.entryId, 201);
+    });
+
+    test('un id demande deux fois n est lu qu une fois', () async {
+      when(() => ds.getHeatResults(1)).thenAnswer((_) async => [outcome(101, 1)]);
+
+      final byHeat = await repo.getHeatResultsByHeat([1, 1]);
+
+      expect(byHeat.keys, [1]);
+      verify(() => ds.getHeatResults(1)).called(1);
+    });
+
+    test('aucune serie, aucun appel', () async {
+      expect(await repo.getHeatResultsByHeat(const []), isEmpty);
+      verifyNever(() => ds.getHeatResults(any()));
     });
   });
 

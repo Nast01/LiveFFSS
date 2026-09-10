@@ -8,6 +8,7 @@ import 'package:live_ffss/app/data/mappers/lane_detail_mapper.dart';
 import 'package:live_ffss/app/data/mappers/meeting_mapper.dart';
 import 'package:live_ffss/app/domain/models/lane.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
+import 'package:live_ffss/app/domain/models/run.dart';
 
 abstract class MeetingRepository {
   Future<List<Meeting>> getMeetings(int competitionId);
@@ -23,8 +24,6 @@ abstract class MeetingRepository {
     required DateTime endHour,
     int? id,
   });
-  Future<bool> deleteMeeting(int meetingId);
-
   /// Creates a créneau of a réunion, or updates the one with the given [id].
   ///
   /// [raceFormatDetailId] is the round ("partie") this créneau schedules;
@@ -61,8 +60,6 @@ abstract class MeetingRepository {
   /// half-equipped *and* silent is worse.
   Future<int> createDefaultLanes({required int runId, required int count});
 
-  Future<bool> deleteLane(int laneId);
-
   /// Makes the course's spots mirror [entryIds]: one spot per entry, numbered
   /// from 1 in lane order, [existing] spots rewritten before any is created,
   /// the surplus deleted. Returns how many spots are confirmed afterwards —
@@ -80,6 +77,15 @@ abstract class MeetingRepository {
   /// a free place is simply not a seat.
   Future<List<LaneSeat>> getLaneSeats(Iterable<int> laneIds);
 
+  /// The seats of several courses at once, keyed by course id.
+  ///
+  /// One grouped read rather than one per course: the places of every course
+  /// asked for share the same bounded fan-out, so a round of eight courses
+  /// pays one latency instead of eight. A course with no place, or whose
+  /// places all fail to load, comes back with an empty list rather than
+  /// missing from the map.
+  Future<Map<int, List<LaneSeat>>> getLaneSeatsByCourse(Iterable<Run> courses);
+
   /// Publishes one course's results: creates (or updates) the FFSS `serie`,
   /// ties the course to it when [link] says which course, then records one
   /// result per competitor, seated in the place they raced from.
@@ -96,7 +102,13 @@ abstract class MeetingRepository {
   });
 
   /// The results FFSS holds for a heat, by engagement.
-  Future<List<HeatResult>> getHeatResults(int heatId);
+  /// The results of several heats at once, keyed by heat id. Same bargain as
+  /// [getLaneSeatsByCourse], and the same best-effort: a heat whose read fails
+  /// comes back empty, so one unreadable heat costs its own ranking rather
+  /// than the whole batch.
+  Future<Map<int, List<HeatResult>>> getHeatResultsByHeat(
+    Iterable<int> heatIds,
+  );
 }
 
 class MeetingRepositoryImpl implements MeetingRepository {
@@ -204,10 +216,6 @@ class MeetingRepositoryImpl implements MeetingRepository {
       );
 
   @override
-  Future<bool> deleteMeeting(int meetingId) =>
-      _dataSource.deleteMeeting(meetingId);
-
-  @override
   Future<int> submitSlot({
     required int meetingId,
     required String name,
@@ -242,9 +250,6 @@ class MeetingRepositoryImpl implements MeetingRepository {
     }
     return created;
   }
-
-  @override
-  Future<bool> deleteLane(int laneId) => _dataSource.deleteLane(laneId);
 
   @override
   Future<int> submitRun({
@@ -317,6 +322,59 @@ class MeetingRepositoryImpl implements MeetingRepository {
   }
 
   @override
+  Future<Map<int, List<LaneSeat>>> getLaneSeatsByCourse(
+    Iterable<Run> courses,
+  ) async {
+    final byCourse = {for (final course in courses) course.id: <LaneSeat>[]};
+    // Aplati avant d'etre decoupe : le fan-out reste borne par le nombre de
+    // places demandees et non par le nombre de courses, sans quoi un tour de
+    // huit courses a seize places en lancerait cent vingt-huit d'un coup.
+    final wanted = [
+      for (final course in courses)
+        for (final lane in course.lanes) (course.id, lane.id),
+    ];
+    for (var i = 0; i < wanted.length; i += _runsBatchSize) {
+      final batch = wanted.skip(i).take(_runsBatchSize);
+      // Ecrit depuis la closure : Dart n'a qu'un fil, donc le `add` s'execute
+      // apres son propre await sans course avec les autres. L'ordre d'arrivee
+      // n'importe pas, le tri par numero de place vient ensuite.
+      await Future.wait(batch.map((want) async {
+        try {
+          // null = place libre : elle ne dit rien de la composition, comme
+          // dans getLaneSeats qui la filtre par whereType.
+          final seat = (await _dataSource.getLaneDetail(want.$2)).toSeat();
+          if (seat != null) byCourse[want.$1]!.add(seat);
+        } on AppException {
+          // Best-effort : cette place manquera, la course garde les autres.
+        }
+      }));
+    }
+    for (final seats in byCourse.values) {
+      seats.sort((a, b) => a.number.compareTo(b.number));
+    }
+    return byCourse;
+  }
+
+  @override
+  Future<Map<int, List<HeatResult>>> getHeatResultsByHeat(
+    Iterable<int> heatIds,
+  ) async {
+    final ids = heatIds.toSet().toList();
+    final byHeat = {for (final id in ids) id: <HeatResult>[]};
+    for (var i = 0; i < ids.length; i += _runsBatchSize) {
+      final batch = ids.skip(i).take(_runsBatchSize);
+      await Future.wait(batch.map((heatId) async {
+        try {
+          byHeat[heatId] = await _getHeatResults(heatId);
+        } on AppException {
+          // Best-effort : cette serie reste vide, les autres sont lues.
+        }
+      }));
+    }
+    return byHeat;
+  }
+
+  @override
   Future<int> publishCourseResults({
     required int raceId,
     required String heatName,
@@ -361,8 +419,9 @@ class MeetingRepositoryImpl implements MeetingRepository {
     return heat;
   }
 
-  @override
-  Future<List<HeatResult>> getHeatResults(int heatId) async {
+  /// Les resultats d'une serie. Interne : les appelants passent par
+  /// [getHeatResultsByHeat], qui borne le fan-out.
+  Future<List<HeatResult>> _getHeatResults(int heatId) async {
     final dtos = await _dataSource.getHeatResults(heatId);
     return [
       for (final dto in dtos)

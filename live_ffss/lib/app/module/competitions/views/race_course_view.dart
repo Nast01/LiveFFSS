@@ -8,13 +8,14 @@ import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_course_controller.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/athlete_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/course_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
-import 'package:live_ffss/app/presentation/shared/ui_message.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
 
 class RaceCourseView extends StatefulWidget {
   const RaceCourseView({super.key});
@@ -31,14 +32,7 @@ class _RaceCourseViewState extends State<RaceCourseView> {
   void initState() {
     super.initState();
     _ctrl = Get.find<RaceCourseController>();
-    _messageWorker = ever<UiMessage?>(_ctrl.message, (m) {
-      if (m == null || !mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(m.text),
-        backgroundColor:
-            m is UiMessageError ? AppColors.statusError : AppColors.primary,
-      ));
-    });
+    _messageWorker = showUiMessages(_ctrl.message);
   }
 
   @override
@@ -361,11 +355,7 @@ class _EntryBar extends GetView<RaceCourseController> {
                       ? null
                       : controller.validate,
                   icon: controller.isPublishing.value
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                      ? const LoadingIndicator(compact: true, size: 16)
                       : const Icon(Icons.cloud_upload_outlined, size: 18),
                   label: Text('course_validate'.tr),
                 ),
@@ -461,8 +451,7 @@ class _CompetitorRow extends GetView<RaceCourseController> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '${athlete.lastName.toUpperCase()} ${athlete.firstName}'
-                              .trim(),
+                          athlete.displayName,
                           style: AppTypography.body.copyWith(fontSize: 13),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

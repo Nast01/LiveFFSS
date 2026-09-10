@@ -10,13 +10,14 @@ import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/heat_draw_controller.dart';
 import 'package:live_ffss/app/module/competitions/views/heat_structure_dialog.dart';
 import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/athlete_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
-import 'package:live_ffss/app/presentation/shared/ui_message.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
 class HeatDrawView extends StatefulWidget {
@@ -35,14 +36,7 @@ class _HeatDrawViewState extends State<HeatDrawView> {
   void initState() {
     super.initState();
     _ctrl = Get.find<HeatDrawController>();
-    _messageWorker = ever<UiMessage?>(_ctrl.message, (m) {
-      if (m == null || !mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(m.text),
-        backgroundColor:
-            m is UiMessageError ? AppColors.statusError : AppColors.primary,
-      ));
-    });
+    _messageWorker = showUiMessages(_ctrl.message);
     _savedWorker = ever<bool>(_ctrl.saved, (saved) {
       if (saved && mounted) Get.back<void>();
     });
@@ -622,9 +616,8 @@ class _LaneRow extends StatelessWidget {
   /// One athlete reads as a name; a team reads as all of them, in order —
   /// « DUPONT Jean / MARTIN Luc / … » — because on a start line the lane is
   /// the team, not its first swimmer.
-  String get _label => entry.athletes
-      .map((a) => '${a.lastName.toUpperCase()} ${a.firstName}'.trim())
-      .join(' / ');
+  String get _label =>
+      entry.athletes.map((a) => a.displayName).join(' / ');
 
   /// The resolved club when the index reached this athlete, otherwise whatever
   /// label the entry carried — the same source `ClubAvatar` falls back on.

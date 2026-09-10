@@ -118,8 +118,3 @@ Club _club({
         referees.map((r) => r.toDomain().copyWith(club: clubLite)).toList(),
   );
 }
-
-extension ClubX on Club {
-  bool get hasLogo => logoUrl?.isNotEmpty == true;
-  bool get hasCap => capUrl?.isNotEmpty == true;
-}

@@ -9,10 +9,7 @@ environment:
   sdk: '>=3.4.3 <4.0.0'
 
 dependencies:
-  cached_network_image: ^3.4.1
   flutter:
-    sdk: flutter
-  flutter_localizations:
     sdk: flutter
   flutter_secure_storage: ^9.2.4
   freezed_annotation: ^2.4.4
@@ -33,7 +30,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  generate: true
 
   assets:
     - assets/images/

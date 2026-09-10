@@ -9,15 +9,16 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 **Data + domain layers:**
 - **`lib/app/data/dtos/`** — freezed + json_serializable, 1:1 with FFSS API JSON. French field names mapped via `@JsonKey(name: 'NomCompletOrga')` etc. First line: `// ignore_for_file: invalid_annotation_target` when using `@JsonKey` on freezed factory params.
 - **`lib/app/data/mappers/`** — extension `XMapper on XDto { X toDomain() => ... }`. Date parsing, enum decoding, default-handling all live here.
-- **`lib/app/data/datasources/`** — abstract `XRemoteDataSource` + `Impl(HttpClient)`. Returns DTOs. Seven domains: auth, club, competition, meeting, race, ranking, result. `result` and `ranking` are stubs (see Known gaps) and their `Impl` takes no `HttpClient`; `RankingRemoteDataSource` also returns domain models rather than DTOs, because there are no ranking DTOs to write until the endpoints are documented.
+- **`lib/app/data/datasources/`** — abstract `XRemoteDataSource` + `Impl(HttpClient)`. Returns DTOs. Nine domains: auth, club, competition, meeting, programme, race, race_format, ranking, result. `result`, `ranking` and `programme` are stubs (see Known gaps) and their `Impl` takes no `HttpClient`; `RankingRemoteDataSource` also returns domain models rather than DTOs, because there are no ranking DTOs to write until the endpoints are documented.
 - **`lib/app/data/repositories/`** — abstract `XRepository` + `Impl(XRemoteDataSource)`. Returns domain models. Owns auto-pagination, orchestration.
-- **`lib/app/data/services/`** — `UserService` (long-lived auth state, exposes `Rx<User?>`, listens to `AuthRepository.userStream`) and `UserPreferencesService` (favorite + last-viewed competition ids, persisted to secure storage under `'favorite_competitions'` / `'last_viewed_competitions'`; last-viewed is capped at 20, newest first). Plus `AttendanceService` (marshalling presence per race, under `'race_attendance'`; races held newest-touched first and capped at 100, so the list order IS the eviction order). Device-local only — the FFSS API has no presence endpoint, so two phones marshalling the same race don't see each other.
-- **`lib/app/domain/models/`** — freezed pure types, no `@JsonKey`. Enums for status/role/discipline. Includes `athlete`, `attendance_status`, `category`, `club`, `club_ranking`, `competition`, `discipline`, `entry`, `heat`, `individual_ranking`, `lane`, `meeting`, `race`, `race_format_configuration`, `race_format_detail`, `referee`, `relay_ranking`, `result`, `run`, `slot`, `user`.
+- **`lib/app/data/services/`** — `UserService` (long-lived auth state, exposes `Rx<User?>`, listens to `AuthRepository.userStream`) and `UserPreferencesService` (favorite + last-viewed competition ids, persisted to secure storage under `'favorite_competitions'` / `'last_viewed_competitions'`; last-viewed is capped at 20, newest first). Plus `ProgrammeService` (the device's own draw and structures, keyed by competition, under `'programme'`; owns `nextLocalId` and hands out ids via `allocateId()`) and `AttendanceService` (marshalling presence per race, under `'race_attendance'`; races held newest-touched first and capped at 100, so the list order IS the eviction order). Device-local only — the FFSS API has no presence endpoint, so two phones marshalling the same race don't see each other.
+- **`lib/app/domain/models/`** — freezed pure types, no `@JsonKey`. Enums for status/role/discipline. Includes `athlete`, `attendance_status`, `category`, `club`, `club_ranking`, `competition`, `competition_programme`, `course_penalty`, `course_ranking`, `discipline`, `entry`, `event_structure`, `heat`, `heat_draw`, `heat_plan`, `individual_ranking`, `lane`, `meeting`, `programme_race`, `programme_site`, `qualification`, `race`, `race_format_configuration`, `race_format_detail`, `referee`, `relay_ranking`, `result`, `round_level`, `round_order`, `run`, `slot`, `structure_generator`, `user`. Several of the programme-side ones are pure functions over records rather than freezed classes — `course_ranking`, `heat_draw`, `round_order`, `structure_generator` hold the draw and ordering rules.
 
 **Feature modules (dual location — both are live):**
 - **`lib/app/module/<feature>/{bindings,controllers,views}/`** — actual feature code: GetX bindings, controllers, view widgets. Modules: `auth`, `competitions`, `favorites`, `home`, `main_shell`, `programme`. Auth module also holds `profile_*` and `user_*`. `main_shell` is the bottom-nav host mounted at `Routes.home`; `home` and `favorites` are tabs inside it, not standalone routes.
-- **`lib/app/presentation/modules/<feature>/`** — view-side formatting helpers — extensions (`CompetitionFormatting`, `RaceFormatting`, `GenderFormatting`, `RoundTypeFormatting`, `EventStructureFormatting`) and free functions (`courseBadgeLabel`, `structureTitle`, `heatName`) for date strings, status labels, colors. Covers `competitions` and `programme` only; `programme/day_sections.dart` also lives here as a view-side grouping type.
-- **`lib/app/presentation/shared/`** — `LoadingIndicator`, `EmptyState`, `ErrorState`, `StatusBadge`, `SectionHeader`, `UiMessage`, `LanguageSelector`, `CompetitionCard`, `HomeWave`, `ClubAvatar`.
+- **`lib/app/presentation/modules/<feature>/`** — view-side formatting helpers — extensions (`CompetitionFormatting`, `RaceFormatting`, `GenderFormatting`, `AthleteFormatting`, `RoundTypeFormatting`, `EventStructureFormatting`) and free functions (`courseBadgeLabel`, `courseBadgeColor`, `structureTitle`, `heatName`, `chainSummary`) for date strings, status labels, colors. Covers `competitions` and `programme` only; `programme/day_sections.dart` also lives here as a view-side grouping type.
+- **`lib/app/presentation/shared/`** — `LoadingIndicator` (plain, or `compact: true` with `size`/`color` for a spinner in a button slot), `ProgressOverlay` (the modal veil during a server push), `EmptyState`, `ErrorState`, `FilterChipBar`, `GenderBadge`, `LanguageSelector`, `HomeWave`, `ClubAvatar`, `CompetitionCard`, `CompetitionThumbnail` (`.card` / `.header`), `UiMessage` + `UiMessageDisplay`.
+  - `UiMessage` is the type a controller builds; `ui_message_display.dart` is the `State` extension a view calls — `_worker = showUiMessages(controller.message)` in `initState`, `_worker.dispose()` in `dispose`. Never re-hand-roll the `ever` + `ScaffoldMessenger` block: there is exactly one in `lib/`.
 - **`lib/app/routes/`** — `app_pages.dart` (GetPage list, per-route bindings) + `app_routes.dart` (route name constants, `part of 'app_pages.dart'`). `AppPages.initial = Routes.home`. Every declared route has a `GetPage`, and every `GetPage` is reachable — keep it that way: a constant nothing navigates to is how the `program`/`slot` island went unnoticed.
 
 **Core (`lib/app/core/`):**
@@ -26,13 +27,13 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 - `enum/` — UI-side enums (`CompetitionVisibility`, `CompetitionType`); domain enums live with their model.
 - `errors/` — sealed `AppException` family (`ApiException`, `AuthException`, `NetworkException`, `UnknownException`).
 - `network/` — `HttpClient`, `TokenStorage`.
+- `rfid/` — bracelet writing over NFC: `RfidWriter` (the seam) + `NfcRfidWriterImpl`, `BraceletPayload`, `NdefTextRecord`. Android-only; every other platform gets `UnsupportedRfidWriter` and the UI hides its entry point. `InitialBinding` picks between them on `defaultTargetPlatform`, never `Platform.isAndroid` — the latter throws on web.
 - `services/` — `LanguageService` (locale persistence via secure storage; async-init).
 - `theme/` — `AppColors`, `AppRadius`, `AppSpacing`, `AppTypography` (design tokens).
 - `themes/` — `app_theme.dart` (assembles tokens into `ThemeData`).
 - `translations/` — `AppTranslations` + `en_us.dart`, `fr_fr.dart`.
-- `utils/` — `url_builder.dart`, `validators.dart`.
+- `utils/` — `competition_days.dart`, `validators.dart`.
 - `di/InitialBinding` — single registration point (see DI order section).
-- Empty scaffold dirs that survived the cleanup: `core/bindings/`, `core/controllers/`, `core/middleware/`. Don't add to them — register in `InitialBinding` or per-module bindings instead.
 
 ## Controller discipline (enforce by review)
 
@@ -45,7 +46,11 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 - **Constructor injection only.** `Get.lazyPut<X>(() => X(Get.find<Y>()))` in bindings. NEVER `Get.find()` inside controller body.
 - **Catch `AppException`** (the sealed type from `core/errors/`), not raw `Exception`. Let other throwables propagate.
 
-Known violations: `UserController` and `ProfileController` still have `Get.snackbar`/`.tr` calls. Explicitly deferred. Don't propagate the pattern; clean them up if you touch the views.
+Known violations, both in the auth module and both explicitly deferred:
+`ProfileController` (1 `Get.snackbar`, 20 `.tr`) and `UserController` (1 `Get.snackbar`, 2 `.tr`).
+Clearing them means moving both views to the `Rxn<UiMessage>` + `showUiMessages` pattern — a refactor, not a cleanup. Don't propagate the pattern; clean them up if you touch the views.
+
+One narrow exception to constructor injection: `LanguageService.to` stays a static locator, because `RaceFormatting` needs the active language and a presentation extension has no constructor to inject into.
 
 One deliberate exception outside controllers: `InitialBinding._wireSessionExpirationHandler` uses `Get.snackbar` + `.tr` + `Get.offAllNamed`. It hangs off `HttpClient.onAuthFailure` and has no view to delegate to, so the rule doesn't apply there.
 
@@ -57,7 +62,7 @@ One deliberate exception outside controllers: `InitialBinding._wireSessionExpira
 - **`HttpClient`**: mock `http.Client`. Cover URL building, header injection, error mapping, transport failures.
 - **No widget tests, no integration tests.** Pragmatic core coverage = mapper/repo/controller layers.
 - For mocktail: `class _MockX extends Mock implements X {}` (NOT `extends Fake` — Fake doesn't support `when()`). For non-primitive `any()` matchers, register fallback values: `setUpAll(() { registerFallbackValue(_FakeUri()); })`.
-- **Test layout**: mappers/repos/datasources/services/core mirror their source paths (`test/data/mappers/`, `test/data/repositories/`, `test/data/datasources/`, `test/data/services/`, `test/core/...`). Controller tests live at `test/presentation/modules/<feature>/controllers/` even though the controllers themselves are at `lib/app/module/<feature>/controllers/` — the test path follows the architectural intent, not the current source location. The legacy `test/widget_test.dart` and `test/unit_test.dart` are scaffold leftovers; don't extend them.
+- **Test layout**: mappers/repos/datasources/services/core mirror their source paths (`test/data/mappers/`, `test/data/repositories/`, `test/data/datasources/`, `test/data/services/`, `test/core/...`). Controller tests live at `test/presentation/modules/<feature>/controllers/` even though the controllers themselves are at `lib/app/module/<feature>/controllers/` — the test path follows the architectural intent, not the current source location.
 
 ## Codegen workflow
 
@@ -101,7 +106,8 @@ When `build_runner` regenerates other files via CRLF normalization (Windows quir
 1. `AppConfig`
 2. `FlutterSecureStorage` → `TokenStorage`
 3. `HttpClient`
-4. Per-domain DataSource → Repository (Auth, Competition, Club, Race, Meeting, Result, Ranking)
+3b. `RfidWriter` — `NfcRfidWriterImpl` on Android, `const UnsupportedRfidWriter()` everywhere else, chosen on `defaultTargetPlatform` (not `Platform.isAndroid`, which throws on web).
+4. Per-domain DataSource → Repository (Auth, Competition, Club, Race, RaceFormat, Meeting, Result, Ranking, Programme)
 5. `UserService` (async — `Get.putAsync`, depends on `AuthRepository`; lives at `lib/app/data/services/`)
 6. `LanguageService` (async; lives at `lib/app/core/services/`)
 7. `UserPreferencesService`, then `ProgrammeService`, then `AttendanceService` (all async, all depend on `FlutterSecureStorage`; live at `lib/app/data/services/`)
@@ -115,9 +121,12 @@ All `permanent: true`. Per-route bindings (under `lib/app/module/<feature>/bindi
 - Don't add `Get.lazyPut<X>(() => X())` (no-arg construction) for any class that depends on a service. Constructor-inject via `Get.find<Service>()` in the lambda.
 - Don't add `dart:mirrors`-style runtime reflection. Don't add `analyzer.errors.X: ignore` overrides — fix the issue or document why.
 - Don't write hand-rolled `fromJson`. Use freezed + json_serializable. The analyzer is strict-cast and will flag dynamic coercions.
-- Don't add new dependencies without justification — `getwidget` and `google_fonts` were dropped because nothing imported them.
+- Don't add new dependencies without justification — `getwidget`, `google_fonts`, `cached_network_image` and `flutter_localizations` were all dropped because nothing imported them. `cached_network_image` in particular: if you re-add it, wire it, because club logos currently have no disk cache.
 - Don't add comments that narrate what the next line does. Add comments only where the **why** is non-obvious (a hidden constraint, a workaround, a backend quirk).
 - Don't hand-roll a club image. Any club shown as an icon goes through `ClubAvatar` (`presentation/shared/club_avatar.dart`), which falls back in a fixed order: **logo → cap → first letter of the club name**. Never a generic icon, never a blank box, and never a different order.
+- Don't hand-roll a spinner or a progress veil. `LoadingIndicator` covers both shapes — plain, and `compact: true` with `size`/`color` for a button slot — and `ProgressOverlay` is the veil during a server push. The only raw `CircularProgressIndicator`s left in `lib/` are the two inside `LoadingIndicator`, the one inside `ProgressOverlay`, and `login_view.dart:105` — a full-size one in a button, which matches neither shape and was left alone on purpose.
+- Don't read a course's places one course at a time. `MeetingRepository.getLaneSeatsByCourse` and `getHeatResultsByHeat` flatten before chunking, so the fan-out stays bounded by the number of places and not by the number of courses. `RaceStructureController` prefetches once per `load()` into a memo — see the CLN-27 commits for what the serial version cost.
+- Don't leave a translation key behind when you delete its last caller, and don't add one to a single language. The two files are kept **symmetric and free of dead keys**; a key built at runtime (`'${labelKey}_one'`) is the one exception, so grep for the suffix before concluding a key is unused.
 - Don't widget-test. Test the logic layers; verify UI manually with `flutter run`.
 
 ## Known gaps (documented, not bugs)
@@ -126,6 +135,7 @@ All `permanent: true`. Per-route bindings (under `lib/app/module/<feature>/bindi
 - **`Lane.entry` / `Lane.result` are never populated in the réunion tree** — FFSS masks them there even when set. Who sits in a place is served ONLY by the place detail route, with lower-case keys that are neither `EntryDto`'s nor `LaneDto`'s: that shape is modelled in `LaneDetailDto`, and `MeetingRepository.getLaneSeats` reads it one place at a time (this is what syncs a draw between devices). `Lane.result` and `remplacants` remain unseen populated — don't guess their shape.
 - **Default lanes are created, never reconciled.** `MeetingRepository.createDefaultLanes` opens a course with 1..n spots, and `scheduleRound` calls it for every course it creates. Nothing yet detects a course whose lane count later drifted from its round's `spotsPerRace`, nor fills in the courses of a créneau created before this landed.
 - **`GET competition/reunion/creneau/:id/course` is still broken** (`filterByCreneau() only accepts arguments of type Creneau`) even though the matching `course/submit` was fixed on 2026-09-01. `MeetingRepository._getAllRuns` falls back to the courses the réunion payload carries, which is why the Programme tab still fills. Don't remove that fallback.
+- **`getHeatResults` is private.** `MeetingRepository` exposes only the batched `getHeatResultsByHeat`; the per-heat read is internal to it. Same for `_getCompetitions` and `_getClubDetail` in their repositories — the paginating/batching method is the public contract.
 - **Rankings feature:** `RankingRemoteDataSourceImpl` is a stub returning empty lists for club/individual/relay rankings — the FFSS endpoints aren't documented. The Points tab in competition detail is built around the `EmptyState` path, so when the backend lands, swap the stub for an HTTP-backed impl and the repository, controller, view, and tests stay as-is.
 
 ## Where to look first

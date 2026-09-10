@@ -40,8 +40,12 @@ void main() {
     repo = CompetitionRepositoryImpl(ds);
   });
 
-  group('CompetitionRepository.getCompetitions', () {
-    test('forwards params and maps DTOs to domain', () async {
+  group('CompetitionRepository.getAllCompetitions', () {
+    // Le forwarding se verifie ici depuis que la page brute est privee : c'est
+    // getAllCompetitions qui porte type, visibility et pageSize jusqu'a la
+    // source, et qui numerote les pages.
+    test('forwards type, visibility and pageSize, and maps DTOs to domain',
+        () async {
       when(() => ds.getCompetitions(
             season: any(named: 'season'),
             startDate: any(named: 'startDate'),
@@ -51,10 +55,9 @@ void main() {
             pageSize: any(named: 'pageSize'),
           )).thenAnswer((_) async => [makeDto(1), makeDto(2)]);
 
-      final list = await repo.getCompetitions(
+      final list = await repo.getAllCompetitions(
         type: CompetitionType.mixte,
         visibility: CompetitionVisibility.passed,
-        page: 2,
         pageSize: 25,
       );
 
@@ -65,13 +68,11 @@ void main() {
             startDate: any(named: 'startDate'),
             type: CompetitionType.mixte,
             visibility: CompetitionVisibility.passed,
-            page: 2,
+            page: 1,
             pageSize: 25,
           )).called(1);
     });
-  });
 
-  group('CompetitionRepository.getAllCompetitions', () {
     test('paginates until a partial page is returned', () async {
       var calls = 0;
       when(() => ds.getCompetitions(
@@ -107,24 +108,6 @@ void main() {
 
       final list = await repo.getAllCompetitions();
       expect(list, isEmpty);
-    });
-  });
-
-  group('CompetitionRepository.getNext5', () {
-    test('requests page 1, size 5, takes 5', () async {
-      when(() => ds.getCompetitions(
-            season: any(named: 'season'),
-            startDate: any(named: 'startDate'),
-            type: any(named: 'type'),
-            visibility: any(named: 'visibility'),
-            page: 1,
-            pageSize: 5,
-          )).thenAnswer(
-          (_) async => List.generate(7, (i) => makeDto(i + 1)));
-
-      final list = await repo.getNext5();
-      expect(list.length, 5);
-      expect(list.map((c) => c.id), [1, 2, 3, 4, 5]);
     });
   });
 

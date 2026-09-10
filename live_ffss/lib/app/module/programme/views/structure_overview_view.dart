@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/theme/app_colors.dart';
-import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
@@ -15,7 +14,8 @@ import 'package:live_ffss/app/presentation/modules/programme/programme_formattin
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
-import 'package:live_ffss/app/presentation/shared/ui_message.dart';
+import 'package:live_ffss/app/presentation/shared/progress_overlay.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
 class StructureOverviewView extends StatefulWidget {
@@ -33,14 +33,7 @@ class _StructureOverviewViewState extends State<StructureOverviewView> {
   void initState() {
     super.initState();
     controller = Get.find<ProgrammeController>();
-    _messageWorker = ever<UiMessage?>(controller.message, (m) {
-      if (m == null || !mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(m.text),
-        backgroundColor:
-            m is UiMessageError ? AppColors.statusError : AppColors.primary,
-      ));
-    });
+    _messageWorker = showUiMessages(controller.message);
   }
 
   @override
@@ -168,38 +161,19 @@ class _SubmitOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ProgrammeController>();
-    return Positioned.fill(
-      child: ColoredBox(
-        color: Colors.black.withValues(alpha: 0.35),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: AppRadius.mdRadius,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: AppSpacing.md),
-                Text('race_format_creating'.tr, style: AppTypography.body),
-                Obx(() {
-                  final total = controller.submitTotal.value;
-                  if (total == 0) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.xs),
-                    child: Text(
-                      '${controller.submitDone.value} / $total',
-                      style: AppTypography.caption,
-                    ),
-                  );
-                }),
-              ],
-            ),
+    return ProgressOverlay(
+      message: 'race_format_creating'.tr,
+      progress: Obx(() {
+        final total = controller.submitTotal.value;
+        if (total == 0) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.xs),
+          child: Text(
+            '${controller.submitDone.value} / $total',
+            style: AppTypography.caption,
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 }

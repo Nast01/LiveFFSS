@@ -168,7 +168,7 @@ class InitialBinding {
       () async => UserService(Get.find<AuthRepository>()).init(),
     );
     await Get.putAsync<LanguageService>(
-      () async => LanguageService().init(),
+      () async => LanguageService(Get.find<FlutterSecureStorage>()).init(),
     );
     await Get.putAsync<UserPreferencesService>(
       () async => UserPreferencesService(

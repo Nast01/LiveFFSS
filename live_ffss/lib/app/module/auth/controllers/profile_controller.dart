@@ -42,8 +42,9 @@ class ProfileController extends GetxController {
   String get userInitials {
     final u = currentUser;
     if (u == null) return '?';
-    if (hasFirstName && hasLastName)
+    if (hasFirstName && hasLastName) {
       return '${u.firstName![0]}${u.lastName![0]}';
+    }
     if (hasFirstName) return u.firstName![0];
     if (hasLastName) return u.lastName![0];
     return u.label.isNotEmpty ? u.label[0] : '?';
@@ -91,10 +92,12 @@ class ProfileController extends GetxController {
     final now = DateTime.now();
     if (exp.isBefore(now)) return 'session_expired'.tr;
     final d = exp.difference(now);
-    if (d.inDays > 0)
+    if (d.inDays > 0) {
       return 'expires_in_days'.trParams({'days': d.inDays.toString()});
-    if (d.inHours > 0)
+    }
+    if (d.inHours > 0) {
       return 'expires_in_hours'.trParams({'hours': d.inHours.toString()});
+    }
     return 'expires_soon'.tr;
   }
 

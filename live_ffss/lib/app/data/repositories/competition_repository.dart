@@ -5,20 +5,11 @@ import 'package:live_ffss/app/data/mappers/competition_mapper.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 
 abstract class CompetitionRepository {
-  Future<List<Competition>> getCompetitions({
-    CompetitionType type = CompetitionType.mixte,
-    CompetitionVisibility visibility = CompetitionVisibility.incoming,
-    int pageSize = 10,
-    int page = 1,
-  });
-
   Future<List<Competition>> getAllCompetitions({
     CompetitionType type = CompetitionType.mixte,
     CompetitionVisibility visibility = CompetitionVisibility.incoming,
     int pageSize = 10,
   });
-
-  Future<List<Competition>> getNext5();
 
   Future<List<Competition>> getCompetitionsForRange({
     required DateTime from,
@@ -38,12 +29,13 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
 
   final CompetitionRemoteDataSource _dataSource;
 
-  @override
-  Future<List<Competition>> getCompetitions({
-    CompetitionType type = CompetitionType.mixte,
-    CompetitionVisibility visibility = CompetitionVisibility.incoming,
-    int pageSize = _defaultPageSize,
-    int page = 1,
+  /// Une page brute. Interne : les appelants passent par les deux methodes
+  /// qui paginent pour eux, seule facon d'obtenir une liste complete.
+  Future<List<Competition>> _getCompetitions({
+    required CompetitionType type,
+    required CompetitionVisibility visibility,
+    required int pageSize,
+    required int page,
   }) async {
     final dtos = await _dataSource.getCompetitions(
       season: _defaultSeason,
@@ -65,7 +57,7 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
     final all = <Competition>[];
     var page = 1;
     while (true) {
-      final batch = await getCompetitions(
+      final batch = await _getCompetitions(
         type: type,
         visibility: visibility,
         pageSize: pageSize,
@@ -77,17 +69,6 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
       page++;
     }
     return all;
-  }
-
-  @override
-  Future<List<Competition>> getNext5() async {
-    final batch = await getCompetitions(
-      visibility: CompetitionVisibility.incoming,
-      type: CompetitionType.mixte,
-      pageSize: 5,
-      page: 1,
-    );
-    return batch.take(5).toList();
   }
 
   @override
