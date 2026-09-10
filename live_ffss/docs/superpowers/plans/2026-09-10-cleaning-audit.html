@@ -501,6 +501,12 @@
     <code>flutter test</code> de 988 à <strong>985 tests</strong> (−3 attendus : les deux tests de
     scaffold et celui de <code>getNext5</code>). <strong>−437 lignes</strong> de code et de traductions,
     −6 paquets transitifs, −4 assets.</p>
+    <p><strong>Lot « DUP + PERF » livré.</strong> CLN-20, 22, 23, 24 : appliquées en 4 commits,
+    <code>analyze</code> reste à 6 infos et <code>test</code> à 985. Trois widgets partagés naissent
+    (<code>AthleteFormatting</code>, <code>ProgressOverlay</code>, <code>CompetitionThumbnail</code>),
+    <code>LoadingIndicator</code> gagne <code>size</code> et <code>color</code>. Un seul changement
+    visible, assumé : le compteur du voile d'envoi de l'éditeur gagne les 4 px de padding que son jumeau
+    avait déjà.</p>
     <p><strong>CLN-17 est retirée : le constat était faux.</strong> Les 16 clés que j'annonçais absentes
     de <code>fr_FR</code> y sont bien — avec des guillemets doubles, parce que le texte français porte une
     apostrophe (<code>"Échec de l'envoi des parties"</code>). Ma regex d'audit ne reconnaissait que les
@@ -623,24 +629,24 @@
         <td><span class="risk v">à vérifier</span></td><td class="eff">S</td>
         <td class="gain">Le build cesse de dépendre de la casse du système de fichiers</td></tr>
 
-      <tr><td class="id"><a href="#CLN-20">CLN-20</a></td><td class="cat">PERF</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-20">CLN-20</a></td><td class="cat">PERF</td>
         <td>9 <code>DateFormat</code> reconstruits à chaque cellule de liste</td>
-        <td><span class="risk v">à vérifier</span></td><td class="eff">S</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
         <td class="gain">1 parse de motif par format au lieu d'un par ligne affichée</td></tr>
 
-      <tr><td class="id"><a href="#CLN-23">CLN-23</a></td><td class="cat">DUP</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-23">CLN-23</a></td><td class="cat">DUP</td>
         <td>5 <code>CircularProgressIndicator</code> à la main alors que <code>LoadingIndicator</code> existe</td>
-        <td><span class="risk v">à vérifier</span></td><td class="eff">M</td>
+        <td><span class="done">faite</span></td><td class="eff">M</td>
         <td class="gain">Un seul endroit décide de la taille et du <code>strokeWidth</code></td></tr>
 
-      <tr><td class="id"><a href="#CLN-24">CLN-24</a></td><td class="cat">DUP</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-24">CLN-24</a></td><td class="cat">DUP</td>
         <td>Vignette + pavé-date dupliqués entre carte et en-tête de détail</td>
-        <td><span class="risk v">à vérifier</span></td><td class="eff">M</td>
+        <td><span class="done">faite</span></td><td class="eff">M</td>
         <td class="gain">−60 lignes ; une seule règle de repli logo → date</td></tr>
 
-      <tr><td class="id"><a href="#CLN-22">CLN-22</a></td><td class="cat">DUP</td>
+      <tr class="is-done"><td class="id"><a href="#CLN-22">CLN-22</a></td><td class="cat">DUP</td>
         <td>Le nom d'athlète formaté à l'identique dans 4 vues</td>
-        <td><span class="risk v">à vérifier</span></td><td class="eff">S</td>
+        <td><span class="done">faite</span></td><td class="eff">S</td>
         <td class="gain">Un helper de présentation au lieu de 4 interpolations jumelles</td></tr>
 
       <tr><td class="id"><a href="#CLN-26">CLN-26</a></td><td class="cat">ARCH</td>
@@ -1056,8 +1062,8 @@ flutter run  # Épreuve → Tirage → dialogue Structure : les 2 choix réponde
       </dl>
     </article>
 
-    <article class="fiche v" id="CLN-20">
-      <div class="fiche-head"><span class="fiche-id">CLN-20</span>
+    <article class="fiche v is-done" id="CLN-20">
+      <div class="fiche-head"><span class="fiche-id">CLN-20</span> <span class="done">faite</span>
         <h3 class="fiche-title">9 <code>DateFormat</code> reconstruits à chaque cellule</h3></div>
       <p><span class="path">competition_formatting.dart</span> instancie un <code>DateFormat</code> dans le
       corps de chaque getter — <code>formattedDayBeginDate</code>, <code>formattedBeginDateMonth</code>,
@@ -1072,11 +1078,13 @@ Appelés depuis competition_card.dart (_DateBlock, _CardBody)
 et competition_detail_view.dart (_HeaderDateBlock).</pre></dd>
         <dt>Geste</dt><dd>Hisser chaque motif en <code>static final</code> privé du fichier. Trois des huit
           disparaissent si <a href="#CLN-05">CLN-05</a> passe avant.</dd>
-        <dt>Pourquoi « à vérifier »</dt><dd>Un <code>DateFormat</code> hissé fige la locale au premier appel.
-          L'app permet de changer de langue à chaud (<code>LanguageSelector</code>) : ces motifs-là sont
-          purement numériques sauf <code>'MMM'</code> et <code>'EEE'</code>, qui eux sont localisés. Il faut
-          soit les laisser à la construction, soit les reconstruire sur changement de locale — je tranche à
-          l'exécution et je le dis.</dd>
+        <dt>Question tranchée</dt><dd>Le doute portait sur la locale figée. Il tombe : <strong>rien dans
+          le projet ne pose <code>Intl.defaultLocale</code></strong> — <span class="path">main.dart</span>
+          appelle <code>initializeDateFormatting()</code> sans locale, et <code>Get.updateLocale</code> ne
+          touche pas Intl. Un <code>DateFormat</code> sans locale explicite résout donc toujours celle du
+          device, identique à chaque construction : le hisser ne fige rien de plus.
+          <strong>Effet de bord constaté, non corrigé</strong> : c'est aussi pourquoi le mois abrégé des
+          cartes suit la langue du device et non celle de l'app. Antérieur à ce lot.</dd>
         <dt>Dépend de</dt><dd>Idéalement après <a href="#CLN-05">CLN-05</a>.</dd>
         <dt>Vérifier</dt><dd><code class="cmd">flutter test
 flutter run  # home → changer FR/EN → le mois des cartes doit suivre</code></dd>
@@ -1102,8 +1110,8 @@ format_const.dart:7  static DateFormat timeFormat = DateFormat('HH:mm');
       </dl>
     </article>
 
-    <article class="fiche v" id="CLN-22">
-      <div class="fiche-head"><span class="fiche-id">CLN-22</span>
+    <article class="fiche v is-done" id="CLN-22">
+      <div class="fiche-head"><span class="fiche-id">CLN-22</span> <span class="done">faite</span>
         <h3 class="fiche-title">Le nom d'athlète formaté à l'identique dans 4 vues</h3></div>
       <p>La même expression — nom en capitales, prénom, <code>.trim()</code> — est réécrite dans quatre
       fichiers de vue. Elle appartient à <span class="path">presentation/modules/</span>, à côté de
@@ -1117,16 +1125,16 @@ race_detail_entries_view.dart:278
   '${athlete.lastName.toUpperCase()} ${athlete.firstName}'.trim();
 race_structure_view.dart:631
   '${athlete.lastName.toUpperCase()} ${athlete.firstName}'</pre></dd>
-        <dt>À noter</dt><dd>Deux des quatre appellent <code>.trim()</code>, deux non — la duplication a déjà
-          divergé. C'est l'argument le plus solide pour l'extraire.</dd>
-        <dt>Pourquoi « à vérifier »</dt><dd>Unifier veut dire que les deux sites sans <code>.trim()</code>
-          changent de sortie sur un prénom vide. Comportement de bord, mais changement quand même.</dd>
+        <dt>Correction</dt><dd>La fiche annonçait que deux des quatre sites n'appelaient pas
+          <code>.trim()</code>. <strong>Faux</strong> : les quatre l'appellent, sur la ligne suivante que
+          le grep du relevé coupait. L'extraction est donc strictement iso-comportement, sans arbitrage
+          de bord à faire.</dd>
         <dt>Vérifier</dt><dd><code class="cmd">flutter analyze &amp;&amp; flutter test</code></dd>
       </dl>
     </article>
 
-    <article class="fiche v" id="CLN-23">
-      <div class="fiche-head"><span class="fiche-id">CLN-23</span>
+    <article class="fiche v is-done" id="CLN-23">
+      <div class="fiche-head"><span class="fiche-id">CLN-23</span> <span class="done">faite</span>
         <h3 class="fiche-title">5 spinners à la main alors que <code>LoadingIndicator</code> couvre les deux cas</h3></div>
       <p><code>LoadingIndicator</code> offre exactement les deux formes utilisées :
       <code>compact: true</code> rend un <code>SizedBox(20, CircularProgressIndicator(strokeWidth: 2))</code>,
@@ -1152,8 +1160,8 @@ flutter run  # Programme → pousser un tour ; Épreuve → publier une course</
       </dl>
     </article>
 
-    <article class="fiche v" id="CLN-24">
-      <div class="fiche-head"><span class="fiche-id">CLN-24</span>
+    <article class="fiche v is-done" id="CLN-24">
+      <div class="fiche-head"><span class="fiche-id">CLN-24</span> <span class="done">faite</span>
         <h3 class="fiche-title">Vignette et pavé-date dupliqués entre la carte et l'en-tête de détail</h3></div>
       <p><code>_CardThumbnail</code> / <code>_DateBlock</code> (dans
       <span class="path">presentation/shared/competition_card.dart</span>) et
