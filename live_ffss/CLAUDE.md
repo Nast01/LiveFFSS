@@ -57,7 +57,7 @@ One deliberate exception outside controllers: `InitialBinding._wireSessionExpira
 - **`HttpClient`**: mock `http.Client`. Cover URL building, header injection, error mapping, transport failures.
 - **No widget tests, no integration tests.** Pragmatic core coverage = mapper/repo/controller layers.
 - For mocktail: `class _MockX extends Mock implements X {}` (NOT `extends Fake` — Fake doesn't support `when()`). For non-primitive `any()` matchers, register fallback values: `setUpAll(() { registerFallbackValue(_FakeUri()); })`.
-- **Test layout**: mappers/repos/datasources/services/core mirror their source paths (`test/data/mappers/`, `test/data/repositories/`, `test/data/datasources/`, `test/data/services/`, `test/core/...`). Controller tests live at `test/presentation/modules/<feature>/controllers/` even though the controllers themselves are at `lib/app/module/<feature>/controllers/` — the test path follows the architectural intent, not the current source location. The legacy `test/widget_test.dart` and `test/unit_test.dart` are scaffold leftovers; don't extend them.
+- **Test layout**: mappers/repos/datasources/services/core mirror their source paths (`test/data/mappers/`, `test/data/repositories/`, `test/data/datasources/`, `test/data/services/`, `test/core/...`). Controller tests live at `test/presentation/modules/<feature>/controllers/` even though the controllers themselves are at `lib/app/module/<feature>/controllers/` — the test path follows the architectural intent, not the current source location.
 
 ## Codegen workflow
 
