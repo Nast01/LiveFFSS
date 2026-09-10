@@ -103,8 +103,8 @@ When `build_runner` regenerates other files via CRLF normalization (Windows quir
 
 ## DI registration order in `InitialBinding`
 
-1. `FlutterSecureStorage` → `EnvironmentStorage` → `TokenStorage`
-2. `AppConfig` — construite à partir du choix d'endpoint relu dans `EnvironmentStorage`. Le storage passe donc **devant** la config, contrairement à ce que faisait la version d'origine.
+1. `FlutterSecureStorage` → `EnvironmentStorage` — le storage passe devant la config, contrairement à ce que faisait la version d'origine, parce que celle-ci se construit à partir du choix d'endpoint que le storage persiste.
+2. `AppConfig` → `TokenStorage` — `AppConfig.fromEnv()` relit ce choix pour résoudre l'environnement ; `TokenStorage` le suit car il en tire l'environnement qui préfixe sa clé.
 3. `HttpClient`
 3b. `RfidWriter` — `NfcRfidWriterImpl` on Android, `const UnsupportedRfidWriter()` everywhere else, chosen on `defaultTargetPlatform` (not `Platform.isAndroid`, which throws on web).
 4. Per-domain DataSource → Repository (Auth, Competition, Club, Race, RaceFormat, Meeting, Result, Ranking, Programme)
