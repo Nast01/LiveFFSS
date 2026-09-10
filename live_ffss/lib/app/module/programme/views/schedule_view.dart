@@ -19,7 +19,7 @@ import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/gender_badge.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
-import 'package:live_ffss/app/presentation/shared/ui_message.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
 
 class ScheduleView extends StatefulWidget {
   const ScheduleView({super.key});
@@ -40,14 +40,7 @@ class _ScheduleViewState extends State<ScheduleView> {
     _compWorker =
         ever<Competition?>(_programme.competition, _onCompetitionChanged);
     _onCompetitionChanged(_programme.competition.value);
-    _messageWorker = ever<UiMessage?>(_controller.message, (m) {
-      if (m == null || !mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(m.text),
-        backgroundColor:
-            m is UiMessageError ? AppColors.statusError : AppColors.primary,
-      ));
-    });
+    _messageWorker = showUiMessages(_controller.message);
   }
 
   @override

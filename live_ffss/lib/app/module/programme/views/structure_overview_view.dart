@@ -15,7 +15,7 @@ import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/presentation/shared/progress_overlay.dart';
-import 'package:live_ffss/app/presentation/shared/ui_message.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
 class StructureOverviewView extends StatefulWidget {
@@ -33,14 +33,7 @@ class _StructureOverviewViewState extends State<StructureOverviewView> {
   void initState() {
     super.initState();
     controller = Get.find<ProgrammeController>();
-    _messageWorker = ever<UiMessage?>(controller.message, (m) {
-      if (m == null || !mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(m.text),
-        backgroundColor:
-            m is UiMessageError ? AppColors.statusError : AppColors.primary,
-      ));
-    });
+    _messageWorker = showUiMessages(controller.message);
   }
 
   @override

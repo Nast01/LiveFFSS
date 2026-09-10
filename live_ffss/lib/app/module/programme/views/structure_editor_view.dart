@@ -10,7 +10,7 @@ import 'package:live_ffss/app/module/programme/views/structure_bracket.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/presentation/shared/progress_overlay.dart';
-import 'package:live_ffss/app/presentation/shared/ui_message.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
 class StructureEditorView extends StatefulWidget {
@@ -28,14 +28,7 @@ class _StructureEditorViewState extends State<StructureEditorView> {
   @override
   void initState() {
     super.initState();
-    _messageWorker = ever<UiMessage?>(_controller.message, (m) {
-      if (m == null || !mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(m.text),
-        backgroundColor:
-            m is UiMessageError ? AppColors.statusError : AppColors.primary,
-      ));
-    });
+    _messageWorker = showUiMessages(_controller.message);
   }
 
   @override

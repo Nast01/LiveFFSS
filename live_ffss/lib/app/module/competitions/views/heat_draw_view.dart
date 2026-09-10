@@ -17,7 +17,7 @@ import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
-import 'package:live_ffss/app/presentation/shared/ui_message.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
 class HeatDrawView extends StatefulWidget {
@@ -36,14 +36,7 @@ class _HeatDrawViewState extends State<HeatDrawView> {
   void initState() {
     super.initState();
     _ctrl = Get.find<HeatDrawController>();
-    _messageWorker = ever<UiMessage?>(_ctrl.message, (m) {
-      if (m == null || !mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(m.text),
-        backgroundColor:
-            m is UiMessageError ? AppColors.statusError : AppColors.primary,
-      ));
-    });
+    _messageWorker = showUiMessages(_ctrl.message);
     _savedWorker = ever<bool>(_ctrl.saved, (saved) {
       if (saved && mounted) Get.back<void>();
     });

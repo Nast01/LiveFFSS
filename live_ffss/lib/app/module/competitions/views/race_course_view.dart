@@ -15,7 +15,7 @@ import 'package:live_ffss/app/presentation/modules/programme/programme_formattin
 import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
-import 'package:live_ffss/app/presentation/shared/ui_message.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
 
 class RaceCourseView extends StatefulWidget {
   const RaceCourseView({super.key});
@@ -32,14 +32,7 @@ class _RaceCourseViewState extends State<RaceCourseView> {
   void initState() {
     super.initState();
     _ctrl = Get.find<RaceCourseController>();
-    _messageWorker = ever<UiMessage?>(_ctrl.message, (m) {
-      if (m == null || !mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(m.text),
-        backgroundColor:
-            m is UiMessageError ? AppColors.statusError : AppColors.primary,
-      ));
-    });
+    _messageWorker = showUiMessages(_ctrl.message);
   }
 
   @override
