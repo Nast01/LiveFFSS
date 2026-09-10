@@ -1391,6 +1391,59 @@ void main() {
       expect(controller.placeInRace(serieRace(), 12), 2);
     });
 
+    /// Une serie encore vierge : _importCompositions la remplit depuis les
+    /// places, puis _importResults relit le meme classement. Les deux passes
+    /// visent donc la meme course.
+    CompetitionProgramme undrawnOrder() => const CompetitionProgramme(
+          competitionId: 42,
+          nextLocalId: 100,
+          structures: [
+            EventStructure(
+              raceId: 500,
+              categoryId: 7,
+              raceLabel: '100m',
+              categoryLabel: 'Cadets',
+              levels: [
+                RoundLevel(type: RoundType.serie, serverId: 39, races: [
+                  ProgrammeRace(id: 1, number: 1, runId: 25),
+                ]),
+              ],
+            ),
+          ],
+        );
+
+    // Les places d'une course ne sont lues qu'une fois par chargement, meme
+    // quand les deux passes d'import la visent : sans memo, l'ecran payait
+    // deux fois le meme aller-retour par course.
+    test('une course visee par les deux passes n est lue qu une fois',
+        () async {
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(undrawnOrder().toJson()));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+            meetingWith([
+              course(25,
+                  heat: const Heat(id: 94369),
+                  lanes: const [Lane(id: 71, number: 1)]),
+            ]),
+          ]);
+      when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
+            (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
+          ]);
+      when(() => meetingRepo.getHeatResults(94369)).thenAnswer((_) async =>
+          const [(entryId: 101, rank: 1, isDisqualified: false, complement: null)]);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo);
+
+      await controller.load(race(500), competition);
+
+      verify(() => meetingRepo.getLaneSeats([71])).called(1);
+      // La composition a bien ete adoptee, donc la premiere passe a lu.
+      expect(serieRace().athleteIds, [11]);
+      // Et le classement serveur a bien ete relie, donc la seconde a lu aussi.
+      expect(controller.placeInRace(serieRace(), 11), 1);
+    });
+
     test('une course sans série ne déclenche aucune lecture', () async {
       when(() => storage.read(key: any(named: 'key')))
           .thenAnswer((_) async => jsonEncode(localOrder().toJson()));

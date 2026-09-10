@@ -12,6 +12,7 @@ import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/course_ranking.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
+import 'package:live_ffss/app/domain/models/lane.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
@@ -82,6 +83,17 @@ class RaceStructureController extends GetxController {
   /// else the screen keeps reading the device's own finish order.
   final Map<int, Map<int, HeatResult>> _serverResults = {};
 
+  /// Places lues pendant ce `load()`, par id de course.
+  ///
+  /// Les deux passes d'import interrogent largement les memes courses :
+  /// `_importCompositions` pour savoir qui est place, `_importResults` pour
+  /// relier un classement a des athletes. Sans ce memo chacune paie son propre
+  /// aller-retour sur les memes places.
+  ///
+  /// Memo de passe et non cache : vide a chaque `load()`, parce qu'un
+  /// rechargement doit justement relire ce que le serveur a change depuis.
+  final Map<int, List<LaneSeat>> _seatsByCourse = {};
+
   /// Athlete id -> athlete, built from the entries this race already fetches,
   /// with clubs resolved. It is what turns a drawn race's `athleteIds` back
   /// into rows the operator can read.
@@ -127,6 +139,7 @@ class RaceStructureController extends GetxController {
   }) async {
     this.race.value = race;
     this.competition.value = competition;
+    _seatsByCourse.clear();
     if (!silent) isLoading.value = true;
     try {
       await _programme.load(competition.id);
@@ -432,8 +445,7 @@ class RaceStructureController extends GetxController {
           final course = _courseOf(courses, stored);
           final heatId = course?.heat?.id ?? 0;
           if (course == null || heatId == 0) continue;
-          final seats = await _meetings
-              .getLaneSeats([for (final lane in course.lanes) lane.id]);
+          final seats = await _seatsOf(course);
           if (seats.isEmpty) continue;
           List<HeatResult> results;
           try {
@@ -455,6 +467,16 @@ class RaceStructureController extends GetxController {
         }
       }
     }
+  }
+
+  /// Les places d'une course, lues une seule fois par `load()`.
+  Future<List<LaneSeat>> _seatsOf(Run course) async {
+    final known = _seatsByCourse[course.id];
+    if (known != null) return known;
+    final seats =
+        await _meetings.getLaneSeats([for (final l in course.lanes) l.id]);
+    _seatsByCourse[course.id] = seats;
+    return seats;
   }
 
   Run? _courseOf(List<Run> courses, ProgrammeRace stored) {
@@ -537,8 +559,7 @@ class RaceStructureController extends GetxController {
       final race = races[at];
       if (race.finishOrder.isNotEmpty || race.penalties.isNotEmpty) continue;
       if (course.lanes.isEmpty) continue;
-      final seats =
-          await _meetings.getLaneSeats([for (final l in course.lanes) l.id]);
+      final seats = await _seatsOf(course);
       if (seats.isEmpty) continue;
       final entryIds = [for (final seat in seats) seat.entryId];
       final athleteIds = [
@@ -574,8 +595,7 @@ class RaceStructureController extends GetxController {
     var added = false;
     for (final course in orphans) {
       if (course.lanes.isEmpty) continue;
-      final seats =
-          await _meetings.getLaneSeats([for (final l in course.lanes) l.id]);
+      final seats = await _seatsOf(course);
       if (seats.isEmpty) continue;
       races.add(ProgrammeRace(
         // Allocating bumps `nextLocalId` on the live programme; the caller
