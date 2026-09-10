@@ -36,8 +36,6 @@ extension GenderFormatting on Gender {
 }
 
 extension RaceFormatting on Race {
-  String get distanceLabel => '$distance m';
-
   /// Same string-matching seam as `CompetitionFormatting.isBeach`, applied per
   /// race so a mixed programme resolves each épreuve on its own speciality.
   bool get isBeach {

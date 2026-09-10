@@ -5,12 +5,6 @@ import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 
 extension CompetitionFormatting on Competition {
-  String get formattedBeginDate =>
-      beginDate == null ? '' : DateFormat('dd/MM/yyyy').format(beginDate!);
-
-  String get formattedEndDate =>
-      endDate == null ? '' : DateFormat('dd/MM/yyyy').format(endDate!);
-
   String get formattedDayBeginDate =>
       beginDate == null ? '' : DateFormat('dd').format(beginDate!);
 
@@ -24,9 +18,6 @@ extension CompetitionFormatting on Competition {
     final date = DateFormat('dd').format(beginDate!);
     return '$day $date';
   }
-
-  bool get hasRefereePrincipal =>
-      refereePrincipal != null && refereePrincipal!.isNotEmpty;
 
   EntryStatus get entryStatus {
     final start = beginEntryLimitDate;
@@ -60,20 +51,6 @@ extension CompetitionFormatting on Competition {
         EntryStatus.closed => AppColors.statusError,
         EntryStatus.soon => AppColors.statusWaiting,
         EntryStatus.unknown => AppColors.textMuted,
-      };
-
-  String get phaseLabel => switch (phase) {
-        CompetitionStatus.coming => 'coming'.tr,
-        CompetitionStatus.onGoing => 'on_going'.tr,
-        CompetitionStatus.done => 'done'.tr,
-        CompetitionStatus.unknown => 'unknown'.tr,
-      };
-
-  Color get phaseColor => switch (phase) {
-        CompetitionStatus.onGoing => AppColors.statusInProgress,
-        CompetitionStatus.done => AppColors.textMuted,
-        CompetitionStatus.coming => AppColors.primary,
-        CompetitionStatus.unknown => AppColors.textMuted,
       };
 
   bool get isSwimming {

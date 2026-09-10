@@ -8,7 +8,6 @@ class LanguageService extends GetxService {
   final FlutterSecureStorage _storage = Get.find<FlutterSecureStorage>();
   final RxString currentLanguage = 'fr_FR'.obs;
 
-  bool get isFrench => currentLanguage.value == 'fr_FR';
   bool get isEnglish => currentLanguage.value == 'en_US';
 
   Future<LanguageService> init() async {
