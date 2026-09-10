@@ -132,11 +132,16 @@ Six clés portent des données propres à un backend et sont préfixées :
 Deux clés restent globales : `language`, une préférence d'interface qui ne
 vient pas du serveur, et `api_environment` elle-même.
 
-Mécanique : un paramètre nommé `keyPrefix` de **défaut `''`** sur les cinq
-classes concernées ; `InitialBinding` passe `config.environment.storagePrefix`.
-Le préfixe de production étant vide, les données déjà présentes sur les
-téléphones sont intactes, aucune migration n'est nécessaire, et aucun test
-existant ne change.
+Mécanique : un paramètre nommé `environment` de **défaut
+`AppEnvironment.production`** sur les cinq classes concernées, dont elles
+tirent leur préfixe ; `InitialBinding` passe `config.environment`. Le préfixe
+de production étant vide, les données déjà présentes sur les téléphones sont
+intactes, aucune migration n'est nécessaire, et aucun test existant ne change.
+
+C'est l'environnement qui circule, et non un simple `String keyPrefix` :
+`ProgrammeService` a besoin de la règle de propriété ci-dessous pour son
+effacement scopé, pas seulement du préfixe, et faire circuler deux
+représentations de la même chose finirait par les désynchroniser.
 
 ### Effacement scopé
 
@@ -191,8 +196,23 @@ couleur `AppColors.statusWaiting`, l'orange déjà présent au thème.
 
 C'est le mécanisme exact de `debugShowCheckedModeBanner`. Comme le `builder`
 enveloppe le `Navigator`, le ruban reste au-dessus des routes, des dialogues et
-des bottom sheets sans qu'aucune vue ait à le savoir. Aucune réactivité n'est
-nécessaire : la bascule reconstruit toute l'application.
+des bottom sheets sans qu'aucune vue ait à le savoir.
+
+Le ruban ne lit pas l'environnement dans `AppConfig`, mais dans un
+`ValueNotifier<AppEnvironment>` global, `activeEnvironment`
+(`lib/app/core/config/active_environment.dart`), que `InitialBinding.register()`
+positionne. Deux raisons, toutes deux dues au fait que le `builder` vit
+au-dessus du `Navigator` et survit donc à la bascule :
+
+- entre le `Get.deleteAll()` et le `InitialBinding.register()`, un `Get.find`
+  lèverait — le ruban doit continuer à se peindre pendant cette fenêtre ;
+- `Get.offAllNamed` change la pile de routes, pas le `builder` : une lecture
+  ponctuelle resterait figée sur l'ancienne valeur, et le ruban n'apparaîtrait
+  qu'au prochain rebuild fortuit de `MaterialApp`.
+
+C'est un état mutable global, ce que le dépôt évite partout ailleurs. Il est
+justifié ici précisément parce qu'il doit survivre à la destruction du
+conteneur d'injection — c'est le seul objet dans ce cas.
 
 Le ruban est décoratif et peut recouvrir une action d'AppBar située dans le
 coin haut-droit — c'est déjà le cas du ruban de debug de Flutter, et c'est
@@ -246,6 +266,7 @@ widget, hors périmètre de test du dépôt.
 
 - `lib/app/core/config/app_environment.dart`
 - `lib/app/core/config/environment_storage.dart`
+- `lib/app/core/config/active_environment.dart`
 - `lib/app/core/di/app_restart.dart`
 - `lib/app/presentation/shared/dev_banner.dart`
 - `lib/app/module/debug/bindings/debug_binding.dart`
@@ -260,11 +281,11 @@ widget, hors périmètre de test du dépôt.
 
 - `lib/app/core/config/app_config.dart` — champ `environment`, `forEnvironment`, `fromEnv` déléguant à `resolve`
 - `lib/app/core/di/initial_binding.dart` — storage avant config, propagation du préfixe
-- `lib/app/core/network/token_storage.dart` — `keyPrefix`
-- `lib/app/data/repositories/auth_repository.dart` — `keyPrefix`
-- `lib/app/data/services/user_preferences_service.dart` — `keyPrefix`
-- `lib/app/data/services/programme_service.dart` — `keyPrefix`, effacement scopé
-- `lib/app/data/services/attendance_service.dart` — `keyPrefix`
+- `lib/app/core/network/token_storage.dart` — `environment`
+- `lib/app/data/repositories/auth_repository.dart` — `environment`
+- `lib/app/data/services/user_preferences_service.dart` — `environment`
+- `lib/app/data/services/programme_service.dart` — `environment`, effacement scopé
+- `lib/app/data/services/attendance_service.dart` — `environment`
 - `lib/main.dart` — `DevEnvironmentBanner` dans le `builder:`
 - `lib/app/routes/app_pages.dart` et `app_routes.dart` — `/debug` et `/restarting`
 - `lib/app/module/auth/views/profile_view.dart` — entrée vers `/debug`
