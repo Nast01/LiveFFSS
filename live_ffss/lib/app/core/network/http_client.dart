@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:live_ffss/app/core/config/app_config.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
+import 'package:live_ffss/app/core/network/http_log.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 
 class HttpClient {
@@ -34,41 +35,100 @@ class HttpClient {
     String path, {
     Map<String, dynamic>? query,
   }) =>
-      _send((token) => _inner.get(
-            _buildUri(path, query, token),
-            headers: _buildHeaders(token),
-          ));
+      _send(
+        method: 'GET',
+        path: path,
+        query: query,
+        send: (uri, headers) => _inner.get(uri, headers: headers),
+      );
 
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? query,
     Object? body,
   }) =>
-      _send((token) => _inner.post(
-            _buildUri(path, query, token),
-            headers: _buildHeaders(token),
-            body: body == null ? null : jsonEncode(body),
-          ));
+      _send(
+        method: 'POST',
+        path: path,
+        query: query,
+        body: body,
+        send: (uri, headers) => _inner.post(
+          uri,
+          headers: headers,
+          body: body == null ? null : jsonEncode(body),
+        ),
+      );
 
   /// Reads the token here rather than in [get] and [post] so a failing
   /// TokenStorage is caught by the same mapping as a failing request, and so
   /// the decoder can say whether the call went out authenticated.
-  Future<Map<String, dynamic>> _send(
-      Future<http.Response> Function(String? token) request) async {
+  Future<Map<String, dynamic>> _send({
+    required String method,
+    required String path,
+    required Future<http.Response> Function(
+            Uri uri, Map<String, String> headers)
+        send,
+    Map<String, dynamic>? query,
+    Object? body,
+  }) async {
+    final started = DateTime.now();
+    Uri? uri;
     try {
       final token = await _tokenStorage.getToken();
-      final response = await request(token);
+      uri = _buildUri(path, query, token);
+      final response = await send(uri, _buildHeaders(token));
+      _record(started, method, uri, body, response: response);
       return _decode(response,
           authenticated: token != null && token.isNotEmpty);
     } on AppException {
+      // Déjà journalisée : l'entrée écrite juste avant `_decode` porte le
+      // statut et le corps qui expliquent le refus. La ré-enregistrer ici en
+      // ferait un doublon.
       rethrow;
     } on SocketException catch (e) {
+      _record(started, method, uri, body, error: e.message);
       throw NetworkException(e.message);
     } on TimeoutException catch (e) {
-      throw NetworkException(e.message ?? 'Request timed out');
+      final message = e.message ?? 'Request timed out';
+      _record(started, method, uri, body, error: message);
+      throw NetworkException(message);
     } catch (e) {
+      _record(started, method, uri, body, error: e.toString());
       throw UnknownException(e.toString());
     }
+  }
+
+  /// Le corps est décodé en UTF-8 comme dans [_decode] : un journal qui
+  /// afficherait des accents mangés ne servirait justement pas à diagnostiquer
+  /// le bug d'encodage qu'il est là pour montrer.
+  ///
+  /// Sort avant tout travail quand le journal est éteint — c'est ce qui rend
+  /// son coût nul par défaut.
+  void _record(
+    DateTime started,
+    String method,
+    Uri? uri,
+    Object? requestBody, {
+    http.Response? response,
+    String? error,
+  }) {
+    if (!httpLog.enabled) return;
+    httpLog.record(HttpLogEntry(
+      at: started,
+      method: method,
+      url: uri?.toString() ?? '(URI non construite)',
+      durationMs: DateTime.now().difference(started).inMilliseconds,
+      statusCode: response?.statusCode,
+      requestBody: HttpLog.truncate(
+        requestBody == null ? null : jsonEncode(requestBody),
+      ),
+      responseBody: response == null
+          ? null
+          : HttpLog.truncate(
+              utf8.decode(response.bodyBytes, allowMalformed: true),
+            ),
+      error: error,
+    ));
   }
 
   /// FFSS authenticates on the `token` query parameter its documentation lists

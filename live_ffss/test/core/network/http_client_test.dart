@@ -7,6 +7,7 @@ import 'package:live_ffss/app/core/config/app_config.dart';
 import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
+import 'package:live_ffss/app/core/network/http_log.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -607,6 +608,76 @@ void main() {
         throwsA(isA<ApiException>()
             .having((e) => e.message, 'message', 'Unexpected response shape')),
       );
+    });
+  });
+
+  group('journal HTTP', () {
+    setUp(() {
+      httpLog
+        ..clear()
+        ..enabled = false;
+    });
+
+    tearDown(() {
+      httpLog
+        ..clear()
+        ..enabled = false;
+    });
+
+    test('n\'enregistre rien quand le journal est eteint', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => null);
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => http.Response('{"success":true}', 200));
+
+      await client.get('competition/evenement');
+
+      expect(httpLog.entries, isEmpty);
+    });
+
+    test('enregistre une requete reussie quand il est actif', () async {
+      httpLog.enabled = true;
+      when(() => tokens.getToken()).thenAnswer((_) async => null);
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => http.Response('{"success":true}', 200));
+
+      await client.get('competition/evenement');
+
+      expect(httpLog.entries.length, 1);
+      final entry = httpLog.entries.single;
+      expect(entry.method, 'GET');
+      expect(entry.url, contains('competition/evenement'));
+      expect(entry.statusCode, 200);
+      expect(entry.responseBody, '{"success":true}');
+    });
+
+    test('enregistre une reponse en erreur, une seule fois', () async {
+      httpLog.enabled = true;
+      when(() => tokens.getToken()).thenAnswer((_) async => null);
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => http.Response('{"message":"boom"}', 500));
+
+      await expectLater(
+        client.get('competition/evenement'),
+        throwsA(isA<ApiException>()),
+      );
+
+      expect(httpLog.entries.length, 1);
+      expect(httpLog.entries.single.statusCode, 500);
+    });
+
+    test('enregistre une coupure reseau', () async {
+      httpLog.enabled = true;
+      when(() => tokens.getToken()).thenAnswer((_) async => null);
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenThrow(const SocketException('pas de route'));
+
+      await expectLater(
+        client.get('competition/evenement'),
+        throwsA(isA<NetworkException>()),
+      );
+
+      expect(httpLog.entries.single.error, contains('pas de route'));
+      expect(httpLog.entries.single.statusCode, isNull);
     });
   });
 }
