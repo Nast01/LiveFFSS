@@ -88,5 +88,11 @@ void main() {
         AppEnvironment.production,
       );
     });
+
+    test('l\'interrupteur du journal HTTP est une cle globale', () {
+      expect(AppEnvironment.owner('debug_http_log'), isNull);
+      expect(AppEnvironment.httpLogKey, 'debug_http_log');
+      expect(AppEnvironment.globalKeys, contains('debug_http_log'));
+    });
   });
 }

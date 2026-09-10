@@ -38,10 +38,19 @@ enum AppEnvironment {
   /// détermine le préfixe, elle ne peut pas vivre à l'intérieur.
   static const String environmentKey = 'api_environment';
 
+  /// L'interrupteur du journal HTTP de debug. Globale comme les deux autres :
+  /// rangée dans un environnement, l'effacement scopé de `clearEverything()`
+  /// l'attribuerait à la production et l'emporterait au premier nettoyage.
+  static const String httpLogKey = 'debug_http_log';
+
   /// Clés qui n'appartiennent à aucun environnement : elles survivent à une
   /// bascule comme à un effacement scopé. `language` est une préférence
   /// d'interface, elle ne vient pas du serveur.
-  static const Set<String> globalKeys = {'language', environmentKey};
+  static const Set<String> globalKeys = {
+    'language',
+    environmentKey,
+    httpLogKey,
+  };
 
   static AppEnvironment? fromName(String? name) {
     for (final environment in values) {

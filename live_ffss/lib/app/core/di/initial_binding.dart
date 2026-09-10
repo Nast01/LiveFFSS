@@ -3,8 +3,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/config/active_environment.dart';
 import 'package:live_ffss/app/core/config/app_config.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/core/config/environment_storage.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
+import 'package:live_ffss/app/core/network/http_log.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:live_ffss/app/core/rfid/nfc_rfid_writer_impl.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
@@ -59,6 +61,15 @@ class InitialBinding {
     Get.put<AppConfig>(config, permanent: true);
     final environment = config.environment;
     activeEnvironment.value = environment;
+
+    // Restaure l'interrupteur du journal HTTP. Sans persistance, reproduire un
+    // bug qui demande de relancer l'application ferait perdre l'activation au
+    // pire moment.
+    if (kDebugMode) {
+      httpLog.enabled = await Get.find<FlutterSecureStorage>()
+              .read(key: AppEnvironment.httpLogKey) ==
+          'true';
+    }
 
     Get.put<TokenStorage>(
       TokenStorage(
