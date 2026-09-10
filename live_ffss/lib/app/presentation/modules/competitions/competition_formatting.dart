@@ -4,18 +4,28 @@ import 'package:intl/intl.dart';
 import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 
+/// Construire un `DateFormat` reparse son motif ; ces formats-là sont lus une
+/// fois par carte de compétition affichée, à chaque rebuild. Les hisser hors
+/// des getters ne change pas ce qu'ils rendent : rien ne pose
+/// `Intl.defaultLocale`, donc la locale que résout `DateFormat` est celle du
+/// device, fixée pour la durée du processus — et non la langue de l'app, qui
+/// elle change à chaud.
+final _dayFormat = DateFormat('dd');
+final _monthFormat = DateFormat('MMM');
+final _weekdayFormat = DateFormat('EEE');
+final _rangeFormat = DateFormat('yyyy MMM dd');
+
 extension CompetitionFormatting on Competition {
   String get formattedDayBeginDate =>
-      beginDate == null ? '' : DateFormat('dd').format(beginDate!);
+      beginDate == null ? '' : _dayFormat.format(beginDate!);
 
-  String get formattedBeginDateMonth => beginDate == null
-      ? ''
-      : DateFormat('MMM').format(beginDate!).toUpperCase();
+  String get formattedBeginDateMonth =>
+      beginDate == null ? '' : _monthFormat.format(beginDate!).toUpperCase();
 
   String get dayDateBeginDate {
     if (beginDate == null) return '';
-    final day = DateFormat('EEE').format(beginDate!).toUpperCase();
-    final date = DateFormat('dd').format(beginDate!);
+    final day = _weekdayFormat.format(beginDate!).toUpperCase();
+    final date = _dayFormat.format(beginDate!);
     return '$day $date';
   }
 
@@ -65,10 +75,10 @@ extension CompetitionFormatting on Competition {
 
   String get formattedDateRange {
     if (beginDate == null) return '';
-    final fmt = DateFormat('yyyy MMM dd');
     if (endDate == null || endDate!.isAtSameMomentAs(beginDate!)) {
-      return fmt.format(beginDate!);
+      return _rangeFormat.format(beginDate!);
     }
-    return '${fmt.format(beginDate!)} - ${DateFormat('dd').format(endDate!)}';
+    return '${_rangeFormat.format(beginDate!)}'
+        ' - ${_dayFormat.format(endDate!)}';
   }
 }
