@@ -32,7 +32,6 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 - `translations/` — `AppTranslations` + `en_us.dart`, `fr_fr.dart`.
 - `utils/` — `competition_days.dart`, `validators.dart`.
 - `di/InitialBinding` — single registration point (see DI order section).
-- Empty scaffold dirs that survived the cleanup: `core/bindings/`, `core/controllers/`, `core/middleware/`. Don't add to them — register in `InitialBinding` or per-module bindings instead.
 
 ## Controller discipline (enforce by review)
 
