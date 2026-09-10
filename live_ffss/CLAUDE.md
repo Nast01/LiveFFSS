@@ -17,12 +17,12 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 **Feature modules (dual location — both are live):**
 - **`lib/app/module/<feature>/{bindings,controllers,views}/`** — actual feature code: GetX bindings, controllers, view widgets. Modules: `auth`, `competitions`, `debug`, `favorites`, `home`, `main_shell`, `programme`. Auth module also holds `profile_*` and `user_*`. `main_shell` is the bottom-nav host mounted at `Routes.home`; `home` and `favorites` are tabs inside it, not standalone routes. `debug` n'est déclaré que sous `kDebugMode`, routes comprises : en release ses `GetPage` n'existent pas. Ses textes sont en dur et non traduits, délibérément.
 - **`lib/app/presentation/modules/<feature>/`** — view-side formatting helpers — extensions (`CompetitionFormatting`, `RaceFormatting`, `GenderFormatting`, `AthleteFormatting`, `RoundTypeFormatting`, `EventStructureFormatting`) and free functions (`courseBadgeLabel`, `courseBadgeColor`, `structureTitle`, `heatName`, `chainSummary`) for date strings, status labels, colors. Covers `competitions` and `programme` only; `programme/day_sections.dart` also lives here as a view-side grouping type.
-- **`lib/app/presentation/shared/`** — `LoadingIndicator` (plain, or `compact: true` with `size`/`color` for a spinner in a button slot), `ProgressOverlay` (the modal veil during a server push), `EmptyState`, `ErrorState`, `FilterChipBar`, `GenderBadge`, `LanguageSelector`, `HomeWave`, `ClubAvatar`, `CompetitionCard`, `CompetitionThumbnail` (`.card` / `.header`), `UiMessage` + `UiMessageDisplay`.
+- **`lib/app/presentation/shared/`** — `LoadingIndicator` (plain, or `compact: true` with `size`/`color` for a spinner in a button slot), `ProgressOverlay` (the modal veil during a server push), `EmptyState`, `ErrorState`, `FilterChipBar`, `GenderBadge`, `LanguageSelector`, `HomeWave`, `ClubAvatar`, `CompetitionCard`, `CompetitionThumbnail` (`.card` / `.header`), `UiMessage` + `UiMessageDisplay`, `DevEnvironmentBanner` (the « DEV » ribbon, debug build only).
   - `UiMessage` is the type a controller builds; `ui_message_display.dart` is the `State` extension a view calls — `_worker = showUiMessages(controller.message)` in `initState`, `_worker.dispose()` in `dispose`. Never re-hand-roll the `ever` + `ScaffoldMessenger` block: there is exactly one in `lib/`.
-- **`lib/app/routes/`** — `app_pages.dart` (GetPage list, per-route bindings) + `app_routes.dart` (route name constants, `part of 'app_pages.dart'`). `AppPages.initial = Routes.home`. Every declared route has a `GetPage`, and every `GetPage` is reachable — keep it that way: a constant nothing navigates to is how the `program`/`slot` island went unnoticed.
+- **`lib/app/routes/`** — `app_pages.dart` (GetPage list, per-route bindings) + `app_routes.dart` (route name constants, `part of 'app_pages.dart'`). `AppPages.initial = Routes.home`. Every declared route has a `GetPage`, and every `GetPage` is reachable — keep it that way: a constant nothing navigates to is how the `program`/`slot` island went unnoticed. One declared exception: `Routes.debug` and `Routes.restarting` only get a `GetPage` under `kDebugMode` — see `app_pages.dart`.
 
 **Core (`lib/app/core/`):**
-- `config/` — `AppConfig.fromEnv()`.
+- `config/` — `AppConfig.fromEnv()`, plus `app_environment.dart` (`AppEnvironment`, the two FFSS backends), `environment_storage.dart` (persists the chosen one), `active_environment.dart` (the live `ValueNotifier` the DEV banner watches).
 - `const/` — `FormatConst` (intl `DateFormat`s). API path templates live in `config/app_config.dart` (`ApiEndpoints`), not here.
 - `enum/` — UI-side enums (`CompetitionVisibility`, `CompetitionType`); domain enums live with their model.
 - `errors/` — sealed `AppException` family (`ApiException`, `AuthException`, `NetworkException`, `UnknownException`).
@@ -33,7 +33,7 @@ Rules and conventions for working in this codebase. Reference for future Claude 
 - `themes/` — `app_theme.dart` (assembles tokens into `ThemeData`).
 - `translations/` — `AppTranslations` + `en_us.dart`, `fr_fr.dart`.
 - `utils/` — `competition_days.dart`, `validators.dart`.
-- `di/InitialBinding` — single registration point (see DI order section).
+- `di/InitialBinding` — single registration point (see DI order section). `di/app_restart.dart` (`AppRestart.switchTo`) is the cold-restart-without-a-process-relaunch used by the environment switcher: it saves the choice, tears down the view stack, then `Get.deleteAll` + re-`register()` + navigate home.
 
 ## Controller discipline (enforce by review)
 

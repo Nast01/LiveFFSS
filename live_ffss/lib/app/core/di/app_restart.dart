@@ -1,7 +1,11 @@
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/core/config/environment_storage.dart';
 import 'package:live_ffss/app/core/di/initial_binding.dart';
+import 'package:live_ffss/app/core/network/http_client.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
 /// Bascule d'environnement : un démarrage à froid sans relancer le processus.
@@ -15,15 +19,31 @@ abstract class AppRestart {
     // 1. Avant le deleteAll, qui désenregistre EnvironmentStorage.
     await Get.find<EnvironmentStorage>().save(environment);
 
-    // 2. Vide la pile de vues. Entre le deleteAll et le register, aucun
-    // `Get.find` ne doit s'exécuter : /restarting n'a ni binding ni
-    // contrôleur, ce qui rend cette fenêtre vide par construction.
-    await Get.offAllNamed<void>(Routes.restarting);
+    // 2. Vide la pile de vues. Le Future d'offAllNamed ne se complète qu'au
+    // dépilement de la route poussée : l'attendre ici bloquerait tout ce qui
+    // suit, sur l'écran d'attente. Ce qu'il faut attendre, c'est la frame qui
+    // démonte l'ancienne pile — /restarting n'a ni binding ni contrôleur, donc
+    // une fois celle-ci écoulée, plus aucune vue ne peut faire de Get.find.
+    unawaited(Get.offAllNamed<void>(Routes.restarting));
+    await WidgetsBinding.instance.endOfFrame;
+
+    // Neutralise l'ancien gestionnaire d'échec d'authentification : il capture
+    // l'AuthRepository actuel par référence (donc il ne lèvera pas), mais il
+    // navigue. Une requête partie avant la bascule peut répondre après le
+    // register() ci-dessous avec un 403 "Invalid token" ; sans ceci, ce
+    // gestionnaire obsolète pousserait /login en course avec le retour vers
+    // /home.
+    Get.find<HttpClient>().onAuthFailure = () async {};
 
     // 3-4. Le conteneur repart de zéro, avec le nouvel environnement.
+    // Get.deleteAll détruit aussi GetMaterialController, le contrôleur racine
+    // que GetMaterialApp enregistre. Sans conséquence observable : la clé du
+    // navigateur et les traductions sont des statiques hors conteneur, et
+    // navigation, Get.updateLocale, Get.snackbar et .tr fonctionnent tous
+    // après la reconstruction ci-dessous.
     Get.deleteAll(force: true);
     await InitialBinding.register();
 
-    await Get.offAllNamed<void>(Routes.home);
+    unawaited(Get.offAllNamed<void>(Routes.home));
   }
 }

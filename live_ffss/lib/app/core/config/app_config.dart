@@ -13,6 +13,10 @@ class AppConfig {
         apiVersion = 'api/v1.0',
         environment = AppEnvironment.production;
 
+  /// Construit une config directement depuis un [AppEnvironment], en
+  /// contournant `AppEnvironment.resolve` et donc sa garde `kDebugMode`.
+  /// Réservé à [fromEnv] et aux tests — n'appeler ceci ailleurs revient à
+  /// rendre l'environnement de développement joignable hors debug.
   factory AppConfig.forEnvironment(AppEnvironment environment) => AppConfig(
         baseUrl: environment.baseUrl,
         apiVersion: environment.apiVersion,

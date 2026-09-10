@@ -50,9 +50,11 @@ class InitialBinding {
     );
 
     // 2. Config. Hors build debug, `fromEnv` ignore le choix mémorisé et
-    // renvoie la production — voir AppEnvironment.resolve.
+    // renvoie la production — voir AppEnvironment.resolve. Inutile de lire le
+    // storage dans ce cas : on rend l'intention explicite plutôt que de payer
+    // une lecture secure storage à chaque démarrage à froid en release.
     final config = AppConfig.fromEnv(
-      stored: await Get.find<EnvironmentStorage>().read(),
+      stored: kDebugMode ? await Get.find<EnvironmentStorage>().read() : null,
     );
     Get.put<AppConfig>(config, permanent: true);
     final environment = config.environment;

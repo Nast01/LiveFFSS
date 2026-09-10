@@ -14,14 +14,18 @@ class ProfileView extends GetView<ProfileController> {
       appBar: AppBar(
         title: Text('profile'.tr),
         centerTitle: true,
+        // Non const : la liste est conditionnelle sur kDebugMode. Le
+        // sélecteur de langue sert tous les jours, l'icône de debug rarement —
+        // c'est donc elle qui va en dernier, sous le ruban « DEV » posé en
+        // haut à droite par DevEnvironmentBanner.
         actions: [
+          const LanguageSelector(),
           if (kDebugMode)
             IconButton(
               icon: const Icon(Icons.bug_report_outlined),
               tooltip: 'Debug',
               onPressed: () => Get.toNamed<void>(Routes.debug),
             ),
-          const LanguageSelector(),
           const SizedBox(width: 16),
         ],
       ),
