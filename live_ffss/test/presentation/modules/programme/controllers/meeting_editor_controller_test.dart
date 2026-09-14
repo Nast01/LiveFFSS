@@ -754,6 +754,38 @@ void main() {
     verifyNever(() => repo.deleteSlot(any()));
   });
 
+  test('a refused deletion is signalled and recomputes nothing', () async {
+    // schedule_controller_test.dart couvrait ce refus explicite (deleteRun
+    // rend false, sans lever) séparément de la levée d'AppException : les
+    // deux chemins divergent avant tout recompactage.
+    await seed([
+      meeting(slots: [
+        slot(10, 'Séries', 8, 0, 8, 10,
+            detail: partie(100), runs: [run(11, 'Série 1', 8, 0, 8, 10)]),
+      ]),
+    ]);
+    when(() => repo.deleteRun(any())).thenAnswer((_) async => false);
+
+    await controller.removeRun(11);
+
+    expect(controller.message.value, isA<UiMessageError>());
+    verifyNever(() => repo.deleteSlot(any()));
+    // Un seul appel : celui de seed(). Le refus n'a pas déclenché de
+    // rechargement.
+    verify(() => repo.getMeetings(any())).called(1);
+  });
+
+  test('removeRun on an unknown course triggers no call', () async {
+    await seed([
+      meeting(slots: [slot(10, 'Séries', 8, 0, 8, 10)])
+    ]);
+    stubWritesOk();
+
+    await controller.removeRun(999);
+
+    verifyNever(() => repo.deleteRun(any()));
+  });
+
   test('removeSlot repacks the réunion afterwards', () async {
     await seed([
       meeting(slots: [

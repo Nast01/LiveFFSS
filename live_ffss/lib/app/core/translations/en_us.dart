@@ -96,7 +96,6 @@ final Map<String, String> enUS = {
   'date': 'Date',
   'cancel': 'Cancel',
   'create': 'Create',
-  'failed_to_create_meeting': 'Failed to create meeting',
   'delete': 'Supprimer',
   'success': 'Succès',
 
@@ -229,7 +228,6 @@ final Map<String, String> enUS = {
       'The levels, races and any heats already drawn for the @count events shown will be lost. Events hidden by the filters are left untouched.',
 
   // Programme scheduling
-  'site_all': 'All',
   'sites': 'Sites',
   'add_site': 'Add a site',
   'site_name': 'Site name',
@@ -247,7 +245,6 @@ final Map<String, String> enUS = {
   'schedule_day_range': '@begin → @end',
   'schedule_manual_items': 'General',
   'schedule_no_meeting': 'No FFSS réunion for this day yet',
-  'schedule_start_title': 'Day start time',
   'schedule_all_placed': 'Every round is placed',
   'schedule_course_count': '@count race(s)',
   'schedule_place_round': 'Place on this day',

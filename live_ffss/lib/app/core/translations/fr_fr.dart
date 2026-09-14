@@ -97,7 +97,6 @@ final Map<String, String> frFR = {
   'date': 'Date',
   'cancel': 'Annuler',
   'create': 'Créer',
-  'failed_to_create_meeting': 'Échec de la création de la réunion',
   'delete': 'Supprimer',
   'success': 'Succès',
 
@@ -231,7 +230,6 @@ final Map<String, String> frFR = {
       'Les niveaux, les courses et les séries déjà tirées des @count épreuves affichées seront perdus. Les épreuves masquées par les filtres ne sont pas touchées.',
 
   // Programme scheduling
-  'site_all': 'Tous',
   'sites': 'Sites',
   'add_site': 'Ajouter un site',
   'site_name': 'Nom du site',
@@ -249,7 +247,6 @@ final Map<String, String> frFR = {
   'schedule_day_range': '@begin → @end',
   'schedule_manual_items': 'Général',
   'schedule_no_meeting': "Aucune réunion sur FFSS pour cette journée",
-  'schedule_start_title': "Heure de départ de la journée",
   'schedule_all_placed': 'Tous les tours sont placés',
   'schedule_course_count': '@count course(s)',
   'schedule_place_round': 'Placer sur cette journée',
