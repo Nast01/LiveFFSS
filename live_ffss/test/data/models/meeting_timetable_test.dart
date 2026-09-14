@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/meeting_timetable.dart';
 import 'package:live_ffss/app/domain/models/run.dart';
 import 'package:live_ffss/app/domain/models/slot.dart';
@@ -30,7 +31,57 @@ Slot slot(int id, int beginH, int beginM, int endH, int endM,
       runs: runs,
     );
 
+Meeting meeting(List<Slot> slots, {int beginH = 8, int beginM = 0}) => Meeting(
+      id: 1,
+      name: 'R',
+      description: '',
+      date: DateTime(2026, 9, 12),
+      beginHour: DateTime(2026, 9, 12, beginH, beginM),
+      endHour: DateTime(2026, 9, 12, beginH, beginM),
+      slots: slots,
+    );
+
 void main() {
+  group('endMinutesOf', () {
+    test('a réunion with no item ends at its own start', () {
+      expect(
+          endMinutesOf(meeting(const [], beginH: 8, beginM: 15)), 8 * 60 + 15);
+    });
+
+    test(
+        'a gap between two items still reads the later end, not a packed '
+        'one', () {
+      // Un trou entre 8:10 et 9:00 : un recompactage depuis le début
+      // rendrait 8:30 (10 + 10 minutes bout à bout), alors que le dernier
+      // item réel finit à 9:10.
+      final held = meeting([
+        slot(1, 8, 0, 8, 10),
+        slot(2, 9, 0, 9, 10),
+      ]);
+
+      expect(endMinutesOf(held), 9 * 60 + 10);
+    });
+
+    test('two overlapping items: the maximum, not the last in list order', () {
+      final held = meeting([
+        slot(1, 8, 0, 10, 0), // finit le plus tard
+        slot(2, 8, 30, 9, 0), // dernier de la liste, mais finit plus tôt
+      ]);
+
+      expect(endMinutesOf(held), 10 * 60);
+    });
+
+    test('a créneau whose courses end after its own declared span', () {
+      // L'étendue propre du créneau (9:00→9:10) ne compte pas quand il porte
+      // des courses : seules leurs fins comptent.
+      final held = meeting([
+        slot(1, 9, 0, 9, 10, runs: [run(11, 9, 20, 9, 30)]),
+      ]);
+
+      expect(endMinutesOf(held), 9 * 60 + 30);
+    });
+  });
+
   group('layOut', () {
     test('an empty réunion ends at its own start', () {
       final table = layOut(const [], 8 * 60);

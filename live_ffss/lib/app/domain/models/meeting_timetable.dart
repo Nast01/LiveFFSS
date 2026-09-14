@@ -1,3 +1,4 @@
+import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/slot.dart';
 
 /// Minutes depuis minuit, en ignorant la date portée par [t].
@@ -98,6 +99,31 @@ Timetable layOut(List<Slot> slots, int startMinutes) {
   }
 
   return Timetable(items: items, endMinutes: cursor);
+}
+
+/// La fin réelle de [meeting], en minutes depuis minuit : la plus tardive de
+/// ses fins d'item.
+///
+/// Un maximum et non une somme, et surtout pas la fin d'un recompactage : un
+/// arbre peut porter des trous — une réunion rédigée sur le site fédéral, ou
+/// laissée à moitié déplacée par un recompactage refusé — et en tirer une
+/// `fin` recompactée écrirait une fin antérieure au dernier item réel.
+///
+/// Une réunion sans item finit à sa propre heure de début.
+int endMinutesOf(Meeting meeting) {
+  var latest = minutesOf(meeting.beginHour);
+  for (final slot in meeting.slots) {
+    // Un créneau sans course est un item manuel : ses propres horaires sont
+    // tout ce qu'il y a, sinon il ne pèserait pas du tout sur la fin de la
+    // réunion.
+    final ends = slot.runs.isEmpty
+        ? [minutesOf(slot.endHour)]
+        : [for (final run in slot.runs) minutesOf(run.endTime)];
+    for (final end in ends) {
+      if (end > latest) latest = end;
+    }
+  }
+  return latest;
 }
 
 /// Une écriture à envoyer pour que FFSS corresponde à la cible.

@@ -581,9 +581,14 @@ class MeetingEditorController extends GetxController {
   }
 
   /// La fin actuelle de la réunion, en minutes depuis minuit : là où se pose
-  /// le prochain item. Une réunion sans item finit à son propre début.
-  int _endMinutes(Meeting held) =>
-      layOut(_ordered(held), minutesOf(held.beginHour)).endMinutes;
+  /// le prochain item.
+  ///
+  /// La vraie fin ([endMinutesOf]), pas celle d'un recompactage : l'arbre
+  /// peut porter des trous — `addManualItem` et `scheduleRound` ne
+  /// recompactent jamais, et `_repack` peut abandonner à mi-chemin sur un
+  /// mouvement refusé — et `layOut` sur un tel arbre rendrait une fin plus
+  /// tôt que le dernier item réel.
+  int _endMinutes(Meeting held) => endMinutesOf(held);
 
   List<Slot> _ordered(Meeting held) =>
       [...held.slots]..sort((a, b) => a.beginHour.compareTo(b.beginHour));

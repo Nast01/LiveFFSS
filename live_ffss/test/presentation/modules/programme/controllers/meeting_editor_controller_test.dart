@@ -243,6 +243,32 @@ void main() {
         )).called(1);
   });
 
+  test(
+      'addManualItem on a gapped réunion places the new item after the real '
+      'last item, not a packed end', () async {
+    // Un trou entre 8:10 et 9:00 : un recompactage depuis le début rendrait
+    // 8:30 (10 + 10 minutes bout à bout), alors que le dernier item réel
+    // finit à 9:10 — c'est là que le nouvel item doit atterrir.
+    await seed([
+      meeting(slots: [
+        slot(10, 'A', 8, 0, 8, 10),
+        slot(20, 'B', 9, 0, 9, 10),
+      ]),
+    ]);
+    stubWritesOk();
+
+    await controller.addManualItem('Pause');
+
+    verify(() => repo.submitSlot(
+          meetingId: 1,
+          name: 'Pause',
+          beginHour: onDay(9, 10),
+          endHour: onDay(9, 20),
+          raceFormatDetailId: null,
+          id: null,
+        )).called(1);
+  });
+
   test('a signed-out operator is refused before anything leaves the device',
       () async {
     // FFSS répondrait à une écriture anonyme par un « Invalid Token » nu qui
@@ -584,6 +610,16 @@ void main() {
           raceFormatDetailId: null,
           id: 20,
         )).called(1);
+    // Rien ne vérifiait jusqu'ici la fin poussée par un recompactage.
+    verify(() => repo.submitMeeting(
+          competitionId: 42,
+          name: 'Matin',
+          description: 'Plage',
+          date: day,
+          beginHour: onDay(8, 0),
+          endHour: onDay(8, 40),
+          id: 1,
+        )).called(1);
   });
 
   test('a duration below one minute is refused', () async {
@@ -637,11 +673,16 @@ void main() {
 
   test('a downward move accounts for the item leaving the list', () async {
     // Un déplacement vers le bas est rapporté contre la liste AVANT le
-    // retrait, donc l'index cible est trop haut d'un cran.
+    // retrait, donc l'index cible est trop haut d'un cran. Avec deux items
+    // seulement, `newIndex - 1` et `newIndex` retombent sur le même index une
+    // fois `clamp`é — il faut un troisième item pour que l'écart se voie :
+    // avec l'ajustement l'ordre devient [B, A, C], sans lui [B, C, A], et
+    // seul l'item du milieu diffère entre les deux.
     await seed([
       meeting(slots: [
         slot(10, 'A', 8, 0, 8, 10),
         slot(20, 'B', 8, 10, 8, 20),
+        slot(30, 'C', 8, 20, 8, 30),
       ]),
     ]);
     stubWritesOk();
@@ -650,11 +691,11 @@ void main() {
 
     verify(() => repo.submitSlot(
           meetingId: 1,
-          name: 'B',
-          beginHour: onDay(8, 0),
-          endHour: onDay(8, 10),
+          name: 'A',
+          beginHour: onDay(8, 10),
+          endHour: onDay(8, 20),
           raceFormatDetailId: null,
-          id: 20,
+          id: 10,
         )).called(1);
   });
 
