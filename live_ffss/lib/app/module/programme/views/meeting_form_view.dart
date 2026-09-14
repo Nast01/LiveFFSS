@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
+import 'package:live_ffss/app/core/utils/competition_days.dart';
 import 'package:live_ffss/app/module/programme/controllers/meeting_form_controller.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
@@ -41,11 +42,21 @@ class _MeetingFormViewState extends State<MeetingFormView> {
   Future<void> _pickDate() async {
     final days = _controller.days;
     if (days.isEmpty) return;
+    // Une réunion peut porter une date hors des jours de la compétition —
+    // FFSS en garde que cette appli n'a pas écrites elle-même, ou laissées
+    // là après un resserrement des dates de la compétition. showDatePicker
+    // plante si initialDate tombe hors de [firstDate, lastDate], donc un
+    // jour hors plage retombe sur le premier jour plutôt que d'essayer de
+    // l'approcher.
+    final current = _controller.date.value;
+    final initial = current != null && days.any((d) => sameDay(d, current))
+        ? current
+        : days.first;
     // Restreint aux jours de la compétition : une réunion hors de ses dates
     // n'aurait aucun sens sur le site fédéral.
     final picked = await showDatePicker(
       context: context,
-      initialDate: _controller.date.value ?? days.first,
+      initialDate: initial,
       firstDate: days.first,
       lastDate: days.last,
       selectableDayPredicate: (day) => days.any((d) =>
