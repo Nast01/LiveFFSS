@@ -96,7 +96,6 @@ final Map<String, String> enUS = {
   'date': 'Date',
   'cancel': 'Cancel',
   'create': 'Create',
-  'failed_to_create_meeting': 'Failed to create meeting',
   'delete': 'Supprimer',
   'success': 'Succès',
 
@@ -229,7 +228,6 @@ final Map<String, String> enUS = {
       'The levels, races and any heats already drawn for the @count events shown will be lost. Events hidden by the filters are left untouched.',
 
   // Programme scheduling
-  'site_all': 'All',
   'sites': 'Sites',
   'add_site': 'Add a site',
   'site_name': 'Site name',
@@ -247,12 +245,36 @@ final Map<String, String> enUS = {
   'schedule_day_range': '@begin → @end',
   'schedule_manual_items': 'General',
   'schedule_no_meeting': 'No FFSS réunion for this day yet',
-  'schedule_start_title': 'Day start time',
   'schedule_all_placed': 'Every round is placed',
-  'schedule_course_count': '@count race(s)',
   'schedule_place_round': 'Place on this day',
   'schedule_item_failed': 'FFSS did not save this item',
   'schedule_meeting_end_failed': "The new end of day wasn't saved",
+  'meeting_title_required': 'Give the réunion a title',
+  'meeting_site_required': 'Choose a site',
+  'meeting_save_failed': 'FFSS did not save this réunion',
+  'meeting_new': 'New réunion',
+  'meeting_edit': 'Edit réunion',
+  'meeting_title': 'Title',
+  'meeting_date': 'Date',
+  'meeting_start': 'Start',
+  'meeting_site': 'Site',
+  'meeting_delete_failed': 'FFSS did not delete the réunion',
+  'meeting_delete_title': 'Delete this réunion?',
+  'meeting_delete_body':
+      '"@name" and its @count item(s) will be removed from the FFSS server '
+          'for everyone. This cannot be undone.',
+  'meeting_item_count': '@count item(s)',
+  'meeting_pushing': 'Sending to FFSS…',
+  'no_meetings': 'No réunion yet — start by creating one',
+  'no_meeting_on_day': 'no réunion',
+  'meetings_off_dates': 'Outside the competition dates',
+  'unscheduled_round_count': '@count unscheduled round(s)',
+  'no_items': 'No item yet — add one or place a round',
+  'add_from_round': 'From a round',
+  'add_all_courses': 'Add all',
+  'course_placed_count': '@placed / @total placed',
+  'course_already_placed': 'placed',
+  'manage_sites': 'Manage',
   'add_manual_item': 'Add an item',
   'manual_label': 'Label',
   'edit_item': 'Edit',
@@ -263,6 +285,9 @@ final Map<String, String> enUS = {
   'schedule_delete_item_body':
       '"@item" will be removed from the FFSS server for everyone. '
           'This cannot be undone.',
+  'schedule_delete_round_body':
+      '"@item" and its @count race(s) will be removed from the FFSS server '
+          'for everyone. This cannot be undone.',
   'no_programme': 'No programme defined',
   'error_loading_programme': 'Could not load the programme',
   'no_structure_defined': 'No structure defined',

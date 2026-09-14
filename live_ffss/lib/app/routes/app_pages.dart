@@ -26,9 +26,15 @@ import 'package:live_ffss/app/module/favorites/bindings/favorites_binding.dart';
 import 'package:live_ffss/app/module/home/bindings/home_binding.dart';
 import 'package:live_ffss/app/module/main_shell/bindings/main_shell_binding.dart';
 import 'package:live_ffss/app/module/main_shell/views/main_shell_view.dart';
+import 'package:live_ffss/app/module/programme/bindings/meeting_editor_binding.dart';
+import 'package:live_ffss/app/module/programme/bindings/meeting_form_binding.dart';
 import 'package:live_ffss/app/module/programme/bindings/programme_binding.dart';
+import 'package:live_ffss/app/module/programme/bindings/sites_binding.dart';
 import 'package:live_ffss/app/module/programme/bindings/structure_editor_binding.dart';
+import 'package:live_ffss/app/module/programme/views/meeting_editor_view.dart';
+import 'package:live_ffss/app/module/programme/views/meeting_form_view.dart';
 import 'package:live_ffss/app/module/programme/views/programme_view.dart';
+import 'package:live_ffss/app/module/programme/views/sites_view.dart';
 import 'package:live_ffss/app/module/programme/views/structure_editor_view.dart';
 // Import other views and bindings as needed
 
@@ -72,6 +78,21 @@ class AppPages {
       name: Routes.structureEditor,
       page: () => const StructureEditorView(),
       binding: StructureEditorBinding(),
+    ),
+    GetPage(
+      name: Routes.programmeMeeting,
+      page: () => const MeetingEditorView(),
+      binding: MeetingEditorBinding(),
+    ),
+    GetPage(
+      name: Routes.programmeMeetingForm,
+      page: () => const MeetingFormView(),
+      binding: MeetingFormBinding(),
+    ),
+    GetPage(
+      name: Routes.programmeSites,
+      page: () => const SitesView(),
+      binding: SitesBinding(),
     ),
     GetPage(
       name: Routes.raceDetail,

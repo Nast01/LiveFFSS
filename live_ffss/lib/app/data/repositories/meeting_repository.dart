@@ -25,6 +25,9 @@ abstract class MeetingRepository {
     int? id,
   });
 
+  /// Supprime une réunion, ses créneaux et ses courses.
+  Future<bool> deleteMeeting(int meetingId);
+
   /// Creates a créneau of a réunion, or updates the one with the given [id].
   ///
   /// [raceFormatDetailId] is the round ("partie") this créneau schedules;
@@ -238,6 +241,10 @@ class MeetingRepositoryImpl implements MeetingRepository {
   Future<bool> deleteSlot(int slotId) => _dataSource.deleteSlot(slotId);
 
   @override
+  Future<bool> deleteMeeting(int meetingId) =>
+      _dataSource.deleteMeeting(meetingId);
+
+  @override
   Future<int> createDefaultLanes({
     required int runId,
     required int count,
@@ -246,7 +253,11 @@ class MeetingRepositoryImpl implements MeetingRepository {
     // Sequential on purpose: FFSS numbers nothing itself, so the spots are
     // ours to number, and a course carries a handful of them at most.
     for (var number = 1; number <= count; number++) {
-      final id = await _dataSource.submitLane(runId: runId, number: number);
+      final id = await _dataSource.submitLane(
+        runId: runId,
+        number: number,
+        engagement: '0',
+      );
       if (id != 0) created++;
     }
     return created;
@@ -288,7 +299,7 @@ class MeetingRepositoryImpl implements MeetingRepository {
       final id = await _dataSource.submitLane(
         runId: runId,
         number: i + 1,
-        entryId: entryIds[i],
+        engagement: entryIds[i].toString(),
         id: i < reusable.length ? reusable[i].id : null,
       );
       if (id != 0) synced++;

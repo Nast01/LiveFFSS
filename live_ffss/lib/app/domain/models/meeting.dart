@@ -19,3 +19,13 @@ class Meeting with _$Meeting {
   factory Meeting.fromJson(Map<String, dynamic> json) =>
       _$MeetingFromJson(json);
 }
+
+extension MeetingSite on Meeting {
+  /// FFSS ne porte aucun site sur une réunion : la description le transporte.
+  /// Toutes les courses de la réunion sont créées sur ce site.
+  ///
+  /// Dans le domaine et non dans une extension de présentation : c'est une
+  /// relecture sémantique d'un champ, pas un formatage, et un contrôleur en a
+  /// besoin pour créer ses courses.
+  String get site => description;
+}

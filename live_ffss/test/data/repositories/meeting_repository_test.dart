@@ -275,6 +275,7 @@ void main() {
       when(() => ds.submitLane(
           runId: any(named: 'runId'),
           number: any(named: 'number'),
+          engagement: any(named: 'engagement'),
           id: any(named: 'id'))).thenAnswer((_) async => 1);
     });
 
@@ -289,6 +290,7 @@ void main() {
       final numbers = verify(() => ds.submitLane(
           runId: 20,
           number: captureAny(named: 'number'),
+          engagement: any(named: 'engagement'),
           id: any(named: 'id'))).captured;
       expect(numbers, [1, 2, 3]);
     });
@@ -299,16 +301,36 @@ void main() {
       verifyNever(() => ds.submitLane(
           runId: any(named: 'runId'),
           number: any(named: 'number'),
+          engagement: any(named: 'engagement'),
           id: any(named: 'id')));
     });
 
     // Un refus isolé ne doit pas laisser la course à moitié équipée sans
     // qu'on le sache : les suivantes partent, et le compte rendu est exact.
     test('une place refusée n empêche pas les suivantes', () async {
-      when(() => ds.submitLane(runId: 20, number: 2, id: any(named: 'id')))
-          .thenAnswer((_) async => 0);
+      when(() => ds.submitLane(
+          runId: 20,
+          number: 2,
+          engagement: any(named: 'engagement'),
+          id: any(named: 'id'))).thenAnswer((_) async => 0);
 
       expect(await repo.createDefaultLanes(runId: 20, count: 3), 2);
+    });
+
+    test('createDefaultLanes opens each spot with engagement 0', () async {
+      when(() => ds.submitLane(
+            runId: any(named: 'runId'),
+            number: any(named: 'number'),
+            engagement: any(named: 'engagement'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 1);
+
+      await repo.createDefaultLanes(runId: 9, count: 2);
+
+      verify(() => ds.submitLane(runId: 9, number: 1, engagement: '0'))
+          .called(1);
+      verify(() => ds.submitLane(runId: 9, number: 2, engagement: '0'))
+          .called(1);
     });
   });
 
@@ -348,6 +370,15 @@ void main() {
     verify(() => ds.deleteRun(24)).called(1);
   });
 
+  group('deleteMeeting', () {
+    test('forwards to the data source', () async {
+      when(() => ds.deleteMeeting(77)).thenAnswer((_) async => true);
+
+      expect(await repo.deleteMeeting(77), isTrue);
+      verify(() => ds.deleteMeeting(77)).called(1);
+    });
+  });
+
   group('syncLanes', () {
     Lane lane(int id, int number) => Lane(id: id, number: number);
 
@@ -355,7 +386,7 @@ void main() {
       when(() => ds.submitLane(
             runId: any(named: 'runId'),
             number: any(named: 'number'),
-            entryId: any(named: 'entryId'),
+            engagement: any(named: 'engagement'),
             id: any(named: 'id'),
           )).thenAnswer((_) async => 1);
       when(() => ds.deleteLane(any())).thenAnswer((_) async => true);
@@ -372,11 +403,14 @@ void main() {
       );
 
       expect(synced, 3);
-      verify(() => ds.submitLane(runId: 24, number: 1, entryId: 101, id: 7))
+      verify(() =>
+              ds.submitLane(runId: 24, number: 1, engagement: '101', id: 7))
           .called(1);
-      verify(() => ds.submitLane(runId: 24, number: 2, entryId: 102, id: 8))
+      verify(() =>
+              ds.submitLane(runId: 24, number: 2, engagement: '102', id: 8))
           .called(1);
-      verify(() => ds.submitLane(runId: 24, number: 3, entryId: 103, id: null))
+      verify(() =>
+              ds.submitLane(runId: 24, number: 3, engagement: '103', id: null))
           .called(1);
       verifyNever(() => ds.deleteLane(any()));
     });
@@ -390,7 +424,8 @@ void main() {
         existing: [lane(7, 1), lane(8, 2), lane(9, 3)],
       );
 
-      verify(() => ds.submitLane(runId: 24, number: 1, entryId: 101, id: 7))
+      verify(() =>
+              ds.submitLane(runId: 24, number: 1, engagement: '101', id: 7))
           .called(1);
       verify(() => ds.deleteLane(8)).called(1);
       verify(() => ds.deleteLane(9)).called(1);
@@ -405,9 +440,11 @@ void main() {
         existing: [lane(9, 2), lane(7, 1)],
       );
 
-      verify(() => ds.submitLane(runId: 24, number: 1, entryId: 101, id: 7))
+      verify(() =>
+              ds.submitLane(runId: 24, number: 1, engagement: '101', id: 7))
           .called(1);
-      verify(() => ds.submitLane(runId: 24, number: 2, entryId: 102, id: 9))
+      verify(() =>
+              ds.submitLane(runId: 24, number: 2, engagement: '102', id: 9))
           .called(1);
     });
 
@@ -416,7 +453,7 @@ void main() {
       when(() => ds.submitLane(
             runId: 24,
             number: 2,
-            entryId: any(named: 'entryId'),
+            engagement: any(named: 'engagement'),
             id: any(named: 'id'),
           )).thenAnswer((_) async => 0);
 
@@ -427,6 +464,21 @@ void main() {
       );
 
       expect(synced, 2);
+    });
+
+    test('syncLanes seats an entry by id and never sends 0', () async {
+      when(() => ds.submitLane(
+            runId: any(named: 'runId'),
+            number: any(named: 'number'),
+            engagement: any(named: 'engagement'),
+            id: any(named: 'id'),
+          )).thenAnswer((_) async => 1);
+
+      await repo.syncLanes(runId: 9, entryIds: [51], existing: const []);
+
+      verify(() =>
+              ds.submitLane(runId: 9, number: 1, engagement: '51', id: null))
+          .called(1);
     });
   });
 

@@ -34,6 +34,9 @@ abstract class MeetingRemoteDataSource {
     int? id,
   });
 
+  /// Supprime une réunion. Emporte ses créneaux et ses courses côté serveur.
+  Future<bool> deleteMeeting(int meetingId);
+
   /// Creates a créneau of a réunion, or updates the one with the given [id].
   ///
   /// [raceFormatDetailId] is the round ("partie") this créneau schedules;
@@ -67,16 +70,18 @@ abstract class MeetingRemoteDataSource {
 
   Future<bool> deleteRun(int runId);
 
-  /// Creates a numbered spot on a course, or rewrites the one with the given
-  /// [id]. Returns the id FFSS assigned, or 0 when the call reported failure.
+  /// Crée une place numérotée sur une course, ou réécrit celle d'[id].
+  /// Rend l'id attribué par FFSS, ou 0 quand l'appel a signalé un échec.
   ///
-  /// [entryId] seats an engagement in the spot — the whole team for a relay,
-  /// FFSS resolves the athletes itself. Null leaves the spot free, and
-  /// explicitly frees it again on an update: the parameter is always sent.
+  /// [engagement] est envoyé tel quel, et ses trois valeurs ne sont pas
+  /// interchangeables : `'0'` pour une place créée sans engagement associé,
+  /// `''` pour LIBÉRER une place occupée (vérifié le 2026-09-03), l'id de
+  /// l'engagement pour l'y asseoir. Le paramètre part toujours, y compris
+  /// vide — c'est ce qui rend la libération possible.
   Future<int> submitLane({
     required int runId,
     required int number,
-    int? entryId,
+    required String engagement,
     int? id,
   });
 
@@ -221,10 +226,20 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
   }
 
   @override
+  Future<bool> deleteMeeting(int meetingId) async {
+    final endpoint = ApiEndpoints.replacePath(
+      ApiEndpoints.meetingDelete,
+      {'id': meetingId.toString()},
+    );
+    final body = await _http.post(endpoint);
+    return body['success'] == true;
+  }
+
+  @override
   Future<int> submitLane({
     required int runId,
     required int number,
-    int? entryId,
+    required String engagement,
     int? id,
   }) async {
     final endpoint = ApiEndpoints.replacePath(
@@ -232,12 +247,10 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       {'course': runId.toString()},
     );
     final body = await _http.post(endpoint, query: {
-      // Empty means "create"; a value means "update".
+      // Vide = « créer » ; une valeur = « mettre à jour ».
       'id': id?.toString() ?? '',
       'numero': number.toString(),
-      // Empty clears the seat server-side (verified 2026-09-03), so a
-      // reconciliation can free a spot as well as fill one.
-      'engagement': entryId?.toString() ?? '',
+      'engagement': engagement,
     });
     final assigned = body['id'];
     return assigned is int ? assigned : 0;

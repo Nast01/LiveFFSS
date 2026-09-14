@@ -11,9 +11,9 @@ import 'package:live_ffss/app/routes/app_pages.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Loads the locale date symbols every non-`en_US` `DateFormat` needs. Without
-  // it, a locale-parameterised format (the réunion name in ScheduleController)
-  // throws LocaleDataException — which is not an AppException, so nothing
-  // catches it.
+  // it, a locale-parameterised format (the day headers in the programme
+  // module) throws LocaleDataException — which is not an AppException, so
+  // nothing catches it.
   await initializeDateFormatting();
   await InitialBinding.register();
 

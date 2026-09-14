@@ -9,7 +9,9 @@ import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
+import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
+import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/domain/models/race_format_configuration.dart';
 import 'package:live_ffss/app/domain/models/race_format_detail.dart';
 import 'package:live_ffss/app/domain/models/structure_generator.dart';
@@ -23,6 +25,13 @@ enum StructureFilter { speciality, discipline, gender, category }
 
 /// One line of the structure overview: an épreuve × category, its entry count,
 /// and the structure defined for it (null if none yet).
+/// Epreuves dont les engagements sont demandes d'un meme lot.
+///
+/// Meme marche que `MeetingRepositoryImpl._runsBatchSize` : le fan-out est
+/// d'une requete par epreuve, et un championnat en compte assez pour epuiser
+/// le pool de connexions si elles partent toutes ensemble.
+const int entriesBatchSize = 8;
+
 class OverviewRow {
   const OverviewRow({
     required this.raceId,
@@ -238,13 +247,10 @@ class ProgrammeController extends GetxController {
       await _programme.load(comp.id);
       final races = await _raceRepo.getRaces(comp.id);
 
-      // One round trip per épreuve, awaited in turn, is what made opening the
-      // Structure tab slow: a programme with twenty épreuves paid twenty
-      // latencies end to end. They depend on nothing but their own race, and
-      // the déroulements depend on nothing at all, so all of it goes at once.
-      final entriesPerRace = Future.wait(
-        races.map((race) => _raceRepo.getEntries(race.id)),
-      );
+      // Les engagements partent par lots bornés, et les déroulements en
+      // parallèle : ceux-ci ne dépendent de rien, donc ils partent avec le
+      // premier lot plutôt qu'après le dernier.
+      final entriesPerRace = _loadEntriesInBatches(races);
       final formats = await _loadRaceFormats(comp.id);
       final entriesByRace = await entriesPerRace;
 
@@ -281,6 +287,30 @@ class ProgrammeController extends GetxController {
     } finally {
       if (!silent) isLoading.value = false;
     }
+  }
+
+  /// Les engagements de chaque épreuve, dans l'ordre de [races], demandés par
+  /// lots de [entriesBatchSize].
+  ///
+  /// Borné, et non pas tout d'un coup : une requête par épreuve lâchée
+  /// ensemble épuise le pool de connexions d'un championnat, et il suffit
+  /// qu'une socket décroche pour figer l'écran sur son indicateur de
+  /// chargement. Borné, et non pas une par une : un programme de vingt
+  /// épreuves paierait vingt latences bout à bout, ce que la version série
+  /// coûtait déjà.
+  ///
+  /// Le premier lot part avant que ce futur ne revienne — le corps s'exécute
+  /// jusqu'au premier `await` — ce qui laisse l'appelant enchaîner sur les
+  /// déroulements pendant que les engagements arrivent.
+  Future<List<List<Entry>>> _loadEntriesInBatches(List<Race> races) async {
+    final perRace = <List<Entry>>[];
+    for (var i = 0; i < races.length; i += entriesBatchSize) {
+      final batch = races.skip(i).take(entriesBatchSize);
+      perRace.addAll(
+        await Future.wait(batch.map((race) => _raceRepo.getEntries(race.id))),
+      );
+    }
+    return perRace;
   }
 
   /// Re-fetches races, entries and déroulements without blanking the list.

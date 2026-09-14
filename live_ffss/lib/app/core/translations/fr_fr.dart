@@ -97,7 +97,6 @@ final Map<String, String> frFR = {
   'date': 'Date',
   'cancel': 'Annuler',
   'create': 'Créer',
-  'failed_to_create_meeting': 'Échec de la création de la réunion',
   'delete': 'Supprimer',
   'success': 'Succès',
 
@@ -231,7 +230,6 @@ final Map<String, String> frFR = {
       'Les niveaux, les courses et les séries déjà tirées des @count épreuves affichées seront perdus. Les épreuves masquées par les filtres ne sont pas touchées.',
 
   // Programme scheduling
-  'site_all': 'Tous',
   'sites': 'Sites',
   'add_site': 'Ajouter un site',
   'site_name': 'Nom du site',
@@ -249,13 +247,37 @@ final Map<String, String> frFR = {
   'schedule_day_range': '@begin → @end',
   'schedule_manual_items': 'Général',
   'schedule_no_meeting': "Aucune réunion sur FFSS pour cette journée",
-  'schedule_start_title': "Heure de départ de la journée",
   'schedule_all_placed': 'Tous les tours sont placés',
-  'schedule_course_count': '@count course(s)',
   'schedule_place_round': 'Placer sur cette journée',
   'schedule_item_failed': "FFSS n'a pas enregistré cet item",
   'schedule_meeting_end_failed':
       "La nouvelle fin de journée n'a pas été enregistrée",
+  'meeting_title_required': 'Donne un titre à la réunion',
+  'meeting_site_required': 'Choisis un site',
+  'meeting_save_failed': "FFSS n'a pas enregistré cette réunion",
+  'meeting_new': 'Nouvelle réunion',
+  'meeting_edit': 'Modifier la réunion',
+  'meeting_title': 'Titre',
+  'meeting_date': 'Date',
+  'meeting_start': 'Début',
+  'meeting_site': 'Site',
+  'meeting_delete_failed': "FFSS n'a pas supprimé la réunion",
+  'meeting_delete_title': 'Supprimer cette réunion ?',
+  'meeting_delete_body':
+      '« @name » et ses @count item(s) seront supprimés du serveur FFSS '
+          'pour tout le monde. Cette action est irréversible.',
+  'meeting_item_count': '@count item(s)',
+  'meeting_pushing': 'Envoi vers FFSS…',
+  'no_meetings': 'Aucune réunion — commencez par en créer une',
+  'no_meeting_on_day': 'aucune réunion',
+  'meetings_off_dates': 'Hors des dates de la compétition',
+  'unscheduled_round_count': '@count tour(s) non planifié(s)',
+  'no_items': 'Aucun item — ajoutez-en un ou placez une épreuve',
+  'add_from_round': 'Depuis une épreuve',
+  'add_all_courses': 'Tout ajouter',
+  'course_placed_count': '@placed / @total posées',
+  'course_already_placed': 'posée',
+  'manage_sites': 'Gérer',
   'add_manual_item': 'Ajouter un item',
   'manual_label': 'Libellé',
   'edit_item': 'Modifier',
@@ -266,6 +288,9 @@ final Map<String, String> frFR = {
   'schedule_delete_item_body':
       '« @item » sera supprimé du serveur FFSS pour tout le monde. '
           'Cette action est irréversible.',
+  'schedule_delete_round_body':
+      '« @item » et ses @count course(s) seront supprimés du serveur FFSS '
+          'pour tout le monde. Cette action est irréversible.',
   'no_programme': 'Programme non défini',
   'error_loading_programme': 'Erreur lors du chargement du programme',
   'no_structure_defined': 'Structure non définie',

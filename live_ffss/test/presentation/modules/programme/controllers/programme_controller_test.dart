@@ -143,6 +143,36 @@ void main() {
     expect(controller.isLoading.value, isFalse);
   });
 
+  test(
+      'les engagements partent par lots bornes, pas toutes les epreuves '
+      'ensemble', () async {
+    // Une requete par epreuve lachee d'un coup epuise le pool de connexions
+    // sur une competition a beaucoup d'epreuves, et il suffit qu'une socket
+    // decroche pour figer l'ecran. Meme marche que
+    // `MeetingRepositoryImpl._runsBatchSize` : assez parallele pour ne pas
+    // payer une latence par epreuve, assez borne pour ne pas matraquer FFSS.
+    final races = [
+      for (var id = 100; id < 120; id++) race(id, 'E$id', [cadets]),
+    ];
+    when(() => raceRepo.getRaces(42)).thenAnswer((_) async => races);
+
+    var inFlight = 0;
+    var peak = 0;
+    when(() => raceRepo.getEntries(any())).thenAnswer((_) async {
+      inFlight++;
+      if (inFlight > peak) peak = inFlight;
+      // Tient la requete en vol le temps que tout son lot soit parti.
+      await Future<void>.delayed(const Duration(milliseconds: 1));
+      inFlight--;
+      return const <Entry>[];
+    });
+
+    await controller.load(competition);
+
+    expect(controller.rows.length, 20);
+    expect(peak, lessThanOrEqualTo(entriesBatchSize));
+  });
+
   group('genderForRace', () {
     test('reports the gender of the épreuve behind a structure', () async {
       when(() => raceRepo.getRaces(42)).thenAnswer((_) async => [
