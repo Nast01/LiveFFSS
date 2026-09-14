@@ -37,7 +37,8 @@ class CompetitionDetailPointsController extends GetxController {
       isLoading.value = true;
       hasError.value = false;
       final clubFuture = _rankingRepo.getClubRankings(competitionId);
-      final individualFuture = _rankingRepo.getIndividualRankings(competitionId);
+      final individualFuture =
+          _rankingRepo.getIndividualRankings(competitionId);
       final relayFuture = _rankingRepo.getRelayRankings(competitionId);
       clubRankings.value = await clubFuture;
       individualRankings.value = await individualFuture;

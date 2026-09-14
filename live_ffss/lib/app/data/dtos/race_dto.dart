@@ -15,7 +15,9 @@ class RaceDto with _$RaceDto {
     @Default(false)
     bool isEligibleToNationalRecord,
     @JsonKey(name: 'discipline') required RaceDisciplineDto discipline,
-    @JsonKey(name: 'categories') @Default(<CategoryDto>[]) List<CategoryDto> categories,
+    @JsonKey(name: 'categories')
+    @Default(<CategoryDto>[])
+    List<CategoryDto> categories,
   }) = _RaceDto;
 
   factory RaceDto.fromJson(Map<String, dynamic> json) =>

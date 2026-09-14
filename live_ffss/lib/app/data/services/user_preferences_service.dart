@@ -2,12 +2,18 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 
 class UserPreferencesService extends GetxService {
-  UserPreferencesService(this._storage);
+  UserPreferencesService(
+    this._storage, {
+    AppEnvironment environment = AppEnvironment.production,
+  })  : _favoritesKey = '${environment.storagePrefix}favorite_competitions',
+        _lastViewedKey = '${environment.storagePrefix}last_viewed_competitions';
 
-  static const _favoritesKey = 'favorite_competitions';
-  static const _lastViewedKey = 'last_viewed_competitions';
+  final String _favoritesKey;
+  final String _lastViewedKey;
+
   static const _lastViewedCap = 20;
 
   final FlutterSecureStorage _storage;

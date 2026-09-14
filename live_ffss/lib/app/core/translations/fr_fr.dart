@@ -7,8 +7,8 @@ final Map<String, String> frFR = {
   'clear_local_data': 'Effacer les données locales',
   'clear_local_data_body':
       'Supprime de cet appareil les structures, tirages, pointages et '
-      "favoris, et vous déconnecte. Ce qui a été envoyé sur FFSS n'est pas "
-      "touché et redescendra ; ce qui ne l'a pas été sera perdu.",
+          "favoris, et vous déconnecte. Ce qui a été envoyé sur FFSS n'est pas "
+          "touché et redescendra ; ce qui ne l'a pas été sera perdu.",
   'logout': 'Déconnexion',
 
   // Auth
@@ -262,7 +262,7 @@ final Map<String, String> frFR = {
   'schedule_delete_item_title': 'Supprimer cet item ?',
   'schedule_delete_course_body':
       "Supprimer « @item » ? Si c'est la dernière course de son créneau, "
-      'le créneau part avec elle.',
+          'le créneau part avec elle.',
   'schedule_delete_item_body':
       '« @item » sera supprimé du serveur FFSS pour tout le monde. '
           'Cette action est irréversible.',
@@ -314,7 +314,7 @@ final Map<String, String> frFR = {
   'heat_draw_saved_pushed': 'Séries enregistrées, places envoyées sur FFSS',
   'heat_draw_lanes_unplaced':
       "Séries enregistrées. Sans course au programme, leurs places ne "
-      'peuvent pas partir — placez le tour, puis réenregistrez.',
+          'peuvent pas partir — placez le tour, puis réenregistrez.',
   'heat_draw_lanes_failed':
       "Séries enregistrées, mais l'envoi des places a échoué",
   'heat_draw_move_to': 'Déplacer vers',
@@ -343,10 +343,10 @@ final Map<String, String> frFR = {
   'course_publish_failed': "L'envoi des résultats a échoué",
   'course_publish_unplaced':
       "Cette course n'est pas au programme FFSS : placez le tour, puis "
-      'réessayez.',
+          'réessayez.',
   'course_publish_no_lane':
       "Aucune place affectée sur cette course : enregistrez le tirage "
-      'avant de valider.',
+          'avant de valider.',
   'course_validate': 'Valider',
   'course_mode_automatic': 'Automatique',
   'course_mode_manual': 'Manuel',

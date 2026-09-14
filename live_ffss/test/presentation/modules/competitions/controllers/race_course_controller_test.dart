@@ -174,8 +174,9 @@ void main() {
             athletes: [for (final id in athleteIds) athlete(id)],
           ),
         ]);
-    final controller = RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-      ..applyArguments(arguments());
+    final controller =
+        RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
+          ..applyArguments(arguments());
     await controller.load();
     return controller;
   }
@@ -253,8 +254,9 @@ void main() {
       c.assign(c.athletes.first);
 
       // A second controller on the same programme sees the stored order.
-      final again = RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-        ..applyArguments(arguments());
+      final again =
+          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
+            ..applyArguments(arguments());
       await again.load();
 
       expect(again.placeOf(again.athletes.first), 1);
@@ -411,8 +413,9 @@ void main() {
               athletes: [athlete(10), athlete(11)],
             ),
           ]);
-      final c = RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-        ..applyArguments(arguments());
+      final c =
+          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
+            ..applyArguments(arguments());
       await c.load();
 
       // Identity, not equality: a rebuilt-but-value-equal structure would pass
@@ -744,11 +747,12 @@ void main() {
             link: any(named: 'link'),
           )).thenAnswer((_) async => 94369);
       when(() => meetingRepo.syncLanes(
-            runId: any(named: 'runId'),
-            entryIds: any(named: 'entryIds'),
-            existing: any(named: 'existing'),
-          )).thenAnswer((i) async =>
-          (i.namedArguments[const Symbol('entryIds')] as List<int>).length);
+                runId: any(named: 'runId'),
+                entryIds: any(named: 'entryIds'),
+                existing: any(named: 'existing'),
+              ))
+          .thenAnswer((i) async =>
+              (i.namedArguments[const Symbol('entryIds')] as List<int>).length);
 
       Get.arguments;
       final controller =
@@ -822,7 +826,8 @@ void main() {
       await controller.validate();
 
       expect(
-        capturedOutcomes().map((o) => (o.entryId, o.rank, o.status, o.complement)),
+        capturedOutcomes()
+            .map((o) => (o.entryId, o.rank, o.status, o.complement)),
         [
           (101, 1, 0, null),
           (102, null, 2, null),
@@ -866,8 +871,8 @@ void main() {
 
       await controller.validate();
 
-      final finale = programme.current.value!.structures.single.levels.last
-          .races.single;
+      final finale =
+          programme.current.value!.structures.single.levels.last.races.single;
       expect(finale.entryIds.toSet(), {101, 102, 201, 202});
       expect(finale.athleteIds.toSet(), {1, 2, 4, 5});
     });
@@ -916,8 +921,8 @@ void main() {
 
       await controller.validate();
 
-      final finale = programme.current.value!.structures.single.levels.last
-          .races.single;
+      final finale =
+          programme.current.value!.structures.single.levels.last.races.single;
       expect(finale.entryIds, [999]);
     });
 
@@ -934,7 +939,8 @@ void main() {
               categoryLabel: 'Senior',
               levels: [
                 RoundLevel(type: RoundType.demi, serverId: 39, races: [
-                  ProgrammeRace(id: programmeRaceId, number: 1, entryIds: [101]),
+                  ProgrammeRace(
+                      id: programmeRaceId, number: 1, entryIds: [101]),
                 ]),
               ],
             ),
@@ -955,7 +961,8 @@ void main() {
             heatId: any(named: 'heatId'),
             link: any(named: 'link'),
           ));
-      expect(controller.message.value!.translationKey, 'course_publish_unplaced');
+      expect(
+          controller.message.value!.translationKey, 'course_publish_unplaced');
     });
 
     // Revalider ne doit pas empiler les séries côté FFSS.

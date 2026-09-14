@@ -173,7 +173,8 @@ void main() {
     // Les tests continuent de decrire les donnees course par course et serie
     // par serie ; ces deux relais les rassemblent exactement comme le vrai
     // repository le fait — equivalence que ses propres tests verifient.
-    when(() => meetingRepo.getLaneSeatsByCourse(any())).thenAnswer((call) async {
+    when(() => meetingRepo.getLaneSeatsByCourse(any()))
+        .thenAnswer((call) async {
       final courses = call.positionalArguments.first as Iterable<Run>;
       return {
         for (final course in courses)
@@ -1467,12 +1468,17 @@ void main() {
       when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
             (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
           ]);
-      when(() => meetingRepo.getHeatResultsByHeat(any())).thenAnswer((_) async =>
-          const {
-            94369: [
-              (entryId: 101, rank: 1, isDisqualified: false, complement: null)
-            ]
-          });
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => const {
+                94369: [
+                  (
+                    entryId: 101,
+                    rank: 1,
+                    isDisqualified: false,
+                    complement: null
+                  )
+                ]
+              });
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
           clubRepo, meetingRepo, raceFormatRepo);
 

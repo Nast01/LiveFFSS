@@ -24,6 +24,7 @@ abstract class MeetingRepository {
     required DateTime endHour,
     int? id,
   });
+
   /// Creates a créneau of a réunion, or updates the one with the given [id].
   ///
   /// [raceFormatDetailId] is the round ("partie") this créneau schedules;

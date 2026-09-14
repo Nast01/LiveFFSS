@@ -67,14 +67,12 @@ void main() {
           .thenReturn(<Competition>[c(1), c(2), c(3)].obs);
       when(() => prefs.favoriteIds).thenReturn(<int>{1, 3}.obs);
 
-      final result =
-          controller.favoriteCompetitions.map((x) => x.id).toList();
+      final result = controller.favoriteCompetitions.map((x) => x.id).toList();
       expect(result, [1, 3]);
     });
 
     test('returns empty when no favorites', () {
-      when(() => home.competitions)
-          .thenReturn(<Competition>[c(1), c(2)].obs);
+      when(() => home.competitions).thenReturn(<Competition>[c(1), c(2)].obs);
       when(() => prefs.favoriteIds).thenReturn(<int>{}.obs);
 
       expect(controller.favoriteCompetitions, isEmpty);
@@ -91,8 +89,7 @@ void main() {
       when(() => home.competitions).thenReturn(<Competition>[c(1)].obs);
       when(() => prefs.favoriteIds).thenReturn(<int>{1, 99}.obs);
 
-      final result =
-          controller.favoriteCompetitions.map((x) => x.id).toList();
+      final result = controller.favoriteCompetitions.map((x) => x.id).toList();
       expect(result, [1]);
     });
   });

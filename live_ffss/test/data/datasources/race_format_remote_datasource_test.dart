@@ -168,8 +168,10 @@ void main() {
         categoryIds: const [10],
       );
 
-      final query = verify(() => http.post(any(),
-          query: captureAny(named: 'query'))).captured.single as Map;
+      final query =
+          verify(() => http.post(any(), query: captureAny(named: 'query')))
+              .captured
+              .single as Map;
       expect(query['id'], '512');
     });
 

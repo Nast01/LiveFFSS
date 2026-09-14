@@ -15,9 +15,11 @@ class ClubDto with _$ClubDto {
     @JsonKey(name: 'logo') String? logoUrl,
     @JsonKey(name: 'bonnet') String? capUrl,
     @JsonKey(name: 'athletes')
-    @Default(<AthleteDto>[]) List<AthleteDto> athletes,
+    @Default(<AthleteDto>[])
+    List<AthleteDto> athletes,
     @JsonKey(name: 'officiels')
-    @Default(<RefereeDto>[]) List<RefereeDto> referees,
+    @Default(<RefereeDto>[])
+    List<RefereeDto> referees,
   }) = _ClubDto;
 
   factory ClubDto.fromJson(Map<String, dynamic> json) =>

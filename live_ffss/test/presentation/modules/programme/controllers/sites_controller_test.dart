@@ -18,9 +18,9 @@ void main() {
     storage = _MockStorage();
     when(() => storage.read(key: any(named: 'key')))
         .thenAnswer((_) async => null);
-    when(() => storage.write(
-        key: any(named: 'key'),
-        value: any(named: 'value'))).thenAnswer((_) async {});
+    when(() =>
+            storage.write(key: any(named: 'key'), value: any(named: 'value')))
+        .thenAnswer((_) async {});
     service = ProgrammeService(storage);
     await service.load(42);
     controller = SitesController(service);
@@ -33,8 +33,8 @@ void main() {
     expect(controller.sites.single.name, 'Côtier 1');
     expect(controller.sites.single.type, SiteType.cotier);
     expect(controller.sites.single.id, 1); // first allocated id
-    verify(() => storage.write(
-        key: 'programme_42', value: any(named: 'value'))).called(1);
+    verify(() => storage.write(key: 'programme_42', value: any(named: 'value')))
+        .called(1);
   });
 
   test('addSite gives distinct ids', () async {

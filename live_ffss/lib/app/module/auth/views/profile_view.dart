@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/presentation/shared/language_selector.dart';
+import 'package:live_ffss/app/routes/app_pages.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -12,9 +14,19 @@ class ProfileView extends GetView<ProfileController> {
       appBar: AppBar(
         title: Text('profile'.tr),
         centerTitle: true,
-        actions: const [
-          LanguageSelector(),
-          SizedBox(width: 16),
+        // Non const : la liste est conditionnelle sur kDebugMode. Le
+        // sélecteur de langue sert tous les jours, l'icône de debug rarement —
+        // c'est donc elle qui va en dernier, sous le ruban « DEV » posé en
+        // haut à droite par DevEnvironmentBanner.
+        actions: [
+          const LanguageSelector(),
+          if (kDebugMode)
+            IconButton(
+              icon: const Icon(Icons.bug_report_outlined),
+              tooltip: 'Debug',
+              onPressed: () => Get.toNamed<void>(Routes.debug),
+            ),
+          const SizedBox(width: 16),
         ],
       ),
       body: Obx(() {

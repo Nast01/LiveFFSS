@@ -109,7 +109,8 @@ class _CardTrailing extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: isLive ? AppColors.statusError : competition.entryStatusColor,
+            color:
+                isLive ? AppColors.statusError : competition.entryStatusColor,
             borderRadius: AppRadius.pillRadius,
           ),
           child: Text(
@@ -125,9 +126,8 @@ class _CardTrailing extends StatelessWidget {
               onPressed: onToggleFavorite,
               icon: Icon(
                 isFavorite ? Icons.star : Icons.star_border,
-                color: isFavorite
-                    ? AppColors.statusWaiting
-                    : AppColors.textMuted,
+                color:
+                    isFavorite ? AppColors.statusWaiting : AppColors.textMuted,
                 size: 22,
               ),
               visualDensity: VisualDensity.compact,

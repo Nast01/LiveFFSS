@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
 import 'package:live_ffss/app/data/dtos/auth_token_dto.dart';
 import 'package:live_ffss/app/data/dtos/user_dto.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
+import 'package:live_ffss/app/domain/models/session_probe.dart';
 import 'package:live_ffss/app/domain/models/user.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -30,6 +34,64 @@ void main() {
       tokenStorage: tokens,
       secureStorage: secure,
     );
+  });
+
+  group('AuthRepository.probeSession', () {
+    test('un compte licencie est une session vivante', () async {
+      when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
+            label: 'Doe John',
+            type: 'licencie',
+            data: UserDtoData(role: 'user', lastName: 'Doe', firstName: 'John'),
+          ));
+
+      final probe = await repo.probeSession();
+
+      expect(probe.outcome, SessionProbeOutcome.signedIn);
+      expect(probe.label, 'Doe John');
+    });
+
+    test('un organisme est une session vivante', () async {
+      when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
+            label: 'SNS 42',
+            type: 'organisme',
+            data: UserDtoData(role: 'admin'),
+          ));
+
+      final probe = await repo.probeSession();
+
+      expect(probe.outcome, SessionProbeOutcome.signedIn);
+    });
+
+    test('tout autre type est l\'identite anonyme', () async {
+      when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
+            label: 'Utilisateur Anonyme',
+            type: 'anonyme',
+            data: UserDtoData(role: 'user'),
+          ));
+
+      final probe = await repo.probeSession();
+
+      expect(probe.outcome, SessionProbeOutcome.anonymous);
+      expect(probe.label, 'Utilisateur Anonyme');
+    });
+
+    test('une erreur API laisse la session indeterminee, pas morte', () async {
+      when(() => ds.getCurrentUser())
+          .thenThrow(const NetworkException('hors ligne'));
+
+      final probe = await repo.probeSession();
+
+      expect(probe.outcome, SessionProbeOutcome.unreachable);
+      expect(probe.message, 'hors ligne');
+    });
+
+    test('un timeout laisse la session indeterminee, pas morte', () async {
+      when(() => ds.getCurrentUser()).thenThrow(TimeoutException('trop long'));
+
+      final probe = await repo.probeSession();
+
+      expect(probe.outcome, SessionProbeOutcome.unreachable);
+    });
   });
 
   group('AuthRepository.login', () {
@@ -193,11 +255,10 @@ void main() {
 
     test('keeps the session rather than hanging on a silent network', () async {
       storedSession();
-      when(() => ds.getCurrentUser())
-          .thenAnswer((_) => Future<UserDto>.delayed(
-              const Duration(minutes: 1),
-              () => const UserDto(
-                  label: 'X', type: 'licencie', data: UserDtoData(role: 'user'))));
+      when(() => ds.getCurrentUser()).thenAnswer((_) => Future<UserDto>.delayed(
+          const Duration(minutes: 1),
+          () => const UserDto(
+              label: 'X', type: 'licencie', data: UserDtoData(role: 'user'))));
 
       // Startup must not wait on a socket that never answers.
       expect(await repo.restoreSession(), isNotNull);
@@ -214,6 +275,22 @@ void main() {
 
       expect(await repo.restoreSession(), isNull);
       verifyNever(() => ds.getCurrentUser());
+    });
+  });
+
+  group('AuthRepository cloisonne par environnement', () {
+    test('lit le profil sous la cle prefixee', () async {
+      final scoped = AuthRepositoryImpl(
+        dataSource: ds,
+        tokenStorage: tokens,
+        secureStorage: secure,
+        environment: AppEnvironment.development,
+      );
+      when(() => secure.read(key: 'dev_user')).thenAnswer((_) async => null);
+
+      await scoped.restoreSession();
+
+      verify(() => secure.read(key: 'dev_user')).called(1);
     });
   });
 }

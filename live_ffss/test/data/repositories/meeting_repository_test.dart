@@ -376,8 +376,7 @@ void main() {
           .called(1);
       verify(() => ds.submitLane(runId: 24, number: 2, entryId: 102, id: 8))
           .called(1);
-      verify(() =>
-              ds.submitLane(runId: 24, number: 3, entryId: 103, id: null))
+      verify(() => ds.submitLane(runId: 24, number: 3, entryId: 103, id: null))
           .called(1);
       verifyNever(() => ds.deleteLane(any()));
     });
@@ -503,9 +502,12 @@ void main() {
         );
 
     test('rend les sieges ranges sous leur course, tries par place', () async {
-      when(() => ds.getLaneDetail(7)).thenAnswer((_) async => occupied(7, 2, 102));
-      when(() => ds.getLaneDetail(8)).thenAnswer((_) async => occupied(8, 1, 101));
-      when(() => ds.getLaneDetail(9)).thenAnswer((_) async => occupied(9, 1, 201));
+      when(() => ds.getLaneDetail(7))
+          .thenAnswer((_) async => occupied(7, 2, 102));
+      when(() => ds.getLaneDetail(8))
+          .thenAnswer((_) async => occupied(8, 1, 101));
+      when(() => ds.getLaneDetail(9))
+          .thenAnswer((_) async => occupied(9, 1, 201));
 
       final byCourse = await repo.getLaneSeatsByCourse([
         course(25, [7, 8]),
@@ -523,10 +525,14 @@ void main() {
         () async {
       when(() => ds.getLaneDetail(7))
           .thenAnswer((_) async => const LaneDetailDto(id: 7, number: 1));
-      when(() => ds.getLaneDetail(8)).thenThrow(const NetworkException('coupe'));
-      when(() => ds.getLaneDetail(9)).thenAnswer((_) async => occupied(9, 3, 103));
+      when(() => ds.getLaneDetail(8))
+          .thenThrow(const NetworkException('coupe'));
+      when(() => ds.getLaneDetail(9))
+          .thenAnswer((_) async => occupied(9, 3, 103));
 
-      final byCourse = await repo.getLaneSeatsByCourse([course(25, [7, 8, 9])]);
+      final byCourse = await repo.getLaneSeatsByCourse([
+        course(25, [7, 8, 9])
+      ]);
 
       expect(byCourse[25]!.map((s) => s.entryId), [103]);
     });
@@ -554,8 +560,10 @@ void main() {
         );
 
     test('range les resultats sous leur serie', () async {
-      when(() => ds.getHeatResults(1)).thenAnswer((_) async => [outcome(101, 1)]);
-      when(() => ds.getHeatResults(2)).thenAnswer((_) async => [outcome(201, 2)]);
+      when(() => ds.getHeatResults(1))
+          .thenAnswer((_) async => [outcome(101, 1)]);
+      when(() => ds.getHeatResults(2))
+          .thenAnswer((_) async => [outcome(201, 2)]);
 
       final byHeat = await repo.getHeatResultsByHeat([1, 2]);
 
@@ -566,8 +574,10 @@ void main() {
     // Best-effort par serie : une serie illisible coute son classement, pas
     // celui des autres courses du tour.
     test('une serie illisible revient vide, les autres sont lues', () async {
-      when(() => ds.getHeatResults(1)).thenThrow(const NetworkException('coupe'));
-      when(() => ds.getHeatResults(2)).thenAnswer((_) async => [outcome(201, 2)]);
+      when(() => ds.getHeatResults(1))
+          .thenThrow(const NetworkException('coupe'));
+      when(() => ds.getHeatResults(2))
+          .thenAnswer((_) async => [outcome(201, 2)]);
 
       final byHeat = await repo.getHeatResultsByHeat([1, 2]);
 
@@ -576,7 +586,8 @@ void main() {
     });
 
     test('un id demande deux fois n est lu qu une fois', () async {
-      when(() => ds.getHeatResults(1)).thenAnswer((_) async => [outcome(101, 1)]);
+      when(() => ds.getHeatResults(1))
+          .thenAnswer((_) async => [outcome(101, 1)]);
 
       final byHeat = await repo.getHeatResultsByHeat([1, 1]);
 

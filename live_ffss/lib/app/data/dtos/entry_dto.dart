@@ -22,7 +22,9 @@ class EntryDto with _$EntryDto {
     @JsonKey(name: 'performance') @Default(0) int entryTime,
     @JsonKey(name: 'performanceLabel') @Default('') String entryTimeLabel,
     @JsonKey(name: 'forfait') @Default(false) bool isForfeit,
-    @JsonKey(name: 'athletes') @Default(<AthleteDto>[]) List<AthleteDto> athletes,
+    @JsonKey(name: 'athletes')
+    @Default(<AthleteDto>[])
+    List<AthleteDto> athletes,
   }) = _EntryDto;
 
   factory EntryDto.fromJson(Map<String, dynamic> json) =>

@@ -616,8 +616,7 @@ class _LaneRow extends StatelessWidget {
   /// One athlete reads as a name; a team reads as all of them, in order —
   /// « DUPONT Jean / MARTIN Luc / … » — because on a start line the lane is
   /// the team, not its first swimmer.
-  String get _label =>
-      entry.athletes.map((a) => a.displayName).join(' / ');
+  String get _label => entry.athletes.map((a) => a.displayName).join(' / ');
 
   /// The resolved club when the index reached this athlete, otherwise whatever
   /// label the entry carried — the same source `ClubAvatar` falls back on.

@@ -2,16 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:live_ffss/app/data/datasources/auth_remote_datasource.dart';
 import 'package:live_ffss/app/data/mappers/user_mapper.dart';
+import 'package:live_ffss/app/domain/models/session_probe.dart';
 import 'package:live_ffss/app/domain/models/user.dart';
 
 abstract class AuthRepository {
   Future<User> login({required String login, required String password});
   Future<void> logout();
   Future<User?> restoreSession();
+  Future<SessionProbe> probeSession();
   Stream<User?> get userStream;
 }
 
@@ -20,11 +23,13 @@ class AuthRepositoryImpl implements AuthRepository {
     required AuthRemoteDataSource dataSource,
     required TokenStorage tokenStorage,
     required FlutterSecureStorage secureStorage,
+    AppEnvironment environment = AppEnvironment.production,
   })  : _dataSource = dataSource,
         _tokenStorage = tokenStorage,
-        _secureStorage = secureStorage;
+        _secureStorage = secureStorage,
+        _userKey = '${environment.storagePrefix}user';
 
-  static const _userKey = 'user';
+  final String _userKey;
 
   final AuthRemoteDataSource _dataSource;
   final TokenStorage _tokenStorage;
@@ -100,17 +105,37 @@ class AuthRepositoryImpl implements AuthRepository {
   /// Anything other than a clear "you are nobody" keeps the session: being
   /// offline proves nothing, and the timeout is there so a socket that never
   /// answers cannot hold up application start.
-  Future<bool> _isStillSignedIn() async {
+  @override
+  Future<SessionProbe> probeSession() async {
     try {
       final me = await _dataSource
           .getCurrentUser()
           .timeout(const Duration(seconds: 4));
-      final type = me.toDomain(token: '', tokenExpiration: DateTime.now()).type;
-      return type == UserType.licensee || type == UserType.organisme;
-    } on AppException {
-      return true;
-    } on TimeoutException {
-      return true;
+      final user = me.toDomain(token: '', tokenExpiration: DateTime.now());
+      final signedIn =
+          user.type == UserType.licensee || user.type == UserType.organisme;
+      return SessionProbe(
+        outcome: signedIn
+            ? SessionProbeOutcome.signedIn
+            : SessionProbeOutcome.anonymous,
+        label: user.label,
+        type: user.type,
+      );
+    } on AppException catch (e) {
+      return SessionProbe(
+        outcome: SessionProbeOutcome.unreachable,
+        message: e.message,
+      );
+    } on TimeoutException catch (e) {
+      return SessionProbe(
+        outcome: SessionProbeOutcome.unreachable,
+        message: e.message ?? 'Pas de réponse en 4 s',
+      );
     }
   }
+
+  /// Seul un « vous n'êtes personne » explicite met fin à la session — voir
+  /// [probeSession].
+  Future<bool> _isStillSignedIn() async =>
+      (await probeSession()).outcome != SessionProbeOutcome.anonymous;
 }

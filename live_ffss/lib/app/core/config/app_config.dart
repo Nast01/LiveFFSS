@@ -1,33 +1,55 @@
+import 'package:flutter/foundation.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
+
 class AppConfig {
   const AppConfig({
     required this.baseUrl,
     required this.apiVersion,
+    this.environment = AppEnvironment.production,
   });
 
   const AppConfig.production()
       : baseUrl = 'https://ffss.fr',
-        apiVersion = 'api/v1.0';
+        apiVersion = 'api/v1.0',
+        environment = AppEnvironment.production;
 
-  factory AppConfig.fromEnv() {
-    const env = String.fromEnvironment('ENV', defaultValue: 'production');
-    return switch (env) {
-      'production' => const AppConfig.production(),
-      _ => const AppConfig.production(),
-    };
+  /// Construit une config directement depuis un [AppEnvironment], en
+  /// contournant `AppEnvironment.resolve` et donc sa garde `kDebugMode`.
+  /// Réservé à [fromEnv] et aux tests — n'appeler ceci ailleurs revient à
+  /// rendre l'environnement de développement joignable hors debug.
+  factory AppConfig.forEnvironment(AppEnvironment environment) => AppConfig(
+        baseUrl: environment.baseUrl,
+        apiVersion: environment.apiVersion,
+        environment: environment,
+      );
+
+  /// [stored] est le choix mémorisé par l'utilisateur, relu du secure storage
+  /// par `InitialBinding` avant que la config n'existe. Ignoré hors debug.
+  factory AppConfig.fromEnv({AppEnvironment? stored}) {
+    const dartDefine = String.fromEnvironment('ENV');
+    return AppConfig.forEnvironment(
+      AppEnvironment.resolve(
+        isDebug: kDebugMode,
+        stored: stored,
+        dartDefine: dartDefine.isEmpty ? null : dartDefine,
+      ),
+    );
   }
 
   final String baseUrl;
   final String apiVersion;
+  final AppEnvironment environment;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is AppConfig &&
           other.baseUrl == baseUrl &&
-          other.apiVersion == apiVersion;
+          other.apiVersion == apiVersion &&
+          other.environment == environment;
 
   @override
-  int get hashCode => Object.hash(baseUrl, apiVersion);
+  int get hashCode => Object.hash(baseUrl, apiVersion, environment);
 }
 
 class ApiEndpoints {

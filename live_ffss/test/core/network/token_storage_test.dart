@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -44,12 +45,21 @@ void main() {
     });
 
     test('clearToken deletes the "token" key', () async {
-      when(() => secureStorage.delete(key: 'token'))
-          .thenAnswer((_) async {});
+      when(() => secureStorage.delete(key: 'token')).thenAnswer((_) async {});
 
       await tokenStorage.clearToken();
 
       verify(() => secureStorage.delete(key: 'token')).called(1);
+    });
+
+    test('prefixe sa cle avec l\'environnement de developpement', () async {
+      final scoped =
+          TokenStorage(secureStorage, environment: AppEnvironment.development);
+      when(() => secureStorage.read(key: 'dev_token'))
+          .thenAnswer((_) async => 'abc');
+
+      expect(await scoped.getToken(), 'abc');
+      verify(() => secureStorage.read(key: 'dev_token')).called(1);
     });
   });
 }

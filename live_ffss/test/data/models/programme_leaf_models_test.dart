@@ -4,7 +4,8 @@ import 'package:live_ffss/app/domain/models/programme_site.dart';
 void main() {
   group('ProgrammeSite', () {
     test('round-trips through JSON with its enum', () {
-      const site = ProgrammeSite(id: 3, name: 'Côtier 1', type: SiteType.cotier);
+      const site =
+          ProgrammeSite(id: 3, name: 'Côtier 1', type: SiteType.cotier);
       final json = site.toJson();
       expect(ProgrammeSite.fromJson(json), site);
     });

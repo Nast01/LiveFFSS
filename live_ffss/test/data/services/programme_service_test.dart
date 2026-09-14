@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:mocktail/mocktail.dart';
@@ -113,21 +114,70 @@ void main() {
   });
 
   group('clearEverything', () {
-    // La porte de sortie quand le stockage d'un appareil a dérivé de FFSS :
-    // tout part, y compris les programmes des autres compétitions et le jeton.
-    test('vide le stockage et oublie le programme chargé', () async {
-      when(() => storage.deleteAll()).thenAnswer((_) async {});
+    // La porte de sortie quand le stockage d'un appareil a derive de FFSS.
+    // Depuis le cloisonnement par environnement, elle ne prend plus que les
+    // cles de l'environnement courant : effacer la production ne doit pas
+    // emporter le developpement, ni la langue, ni le choix d'endpoint.
+    test('ne supprime que les cles de la production', () async {
+      when(() => storage.readAll()).thenAnswer((_) async => {
+            'token': 'T',
+            'user': '{}',
+            'programme_42': '{}',
+            'dev_token': 'D',
+            'dev_programme_42': '{}',
+            'language': 'fr',
+            'api_environment': 'production',
+          });
+      when(() => storage.delete(key: any(named: 'key')))
+          .thenAnswer((_) async {});
       when(() => storage.read(key: any(named: 'key')))
           .thenAnswer((_) async => null);
       final service = ProgrammeService(storage);
       await service.load(42);
-      service.current.value =
-          const CompetitionProgramme(competitionId: 42);
 
       await service.clearEverything();
 
-      verify(() => storage.deleteAll()).called(1);
+      verify(() => storage.delete(key: 'token')).called(1);
+      verify(() => storage.delete(key: 'user')).called(1);
+      verify(() => storage.delete(key: 'programme_42')).called(1);
+      verifyNever(() => storage.delete(key: 'dev_token'));
+      verifyNever(() => storage.delete(key: 'dev_programme_42'));
+      verifyNever(() => storage.delete(key: 'language'));
+      verifyNever(() => storage.delete(key: 'api_environment'));
       expect(service.current.value, isNull);
+    });
+
+    test('ne supprime que les cles du developpement', () async {
+      when(() => storage.readAll()).thenAnswer((_) async => {
+            'token': 'T',
+            'dev_token': 'D',
+            'language': 'fr',
+          });
+      when(() => storage.delete(key: any(named: 'key')))
+          .thenAnswer((_) async {});
+      final service = ProgrammeService(
+        storage,
+        environment: AppEnvironment.development,
+      );
+
+      await service.clearEverything();
+
+      verify(() => storage.delete(key: 'dev_token')).called(1);
+      verifyNever(() => storage.delete(key: 'token'));
+      verifyNever(() => storage.delete(key: 'language'));
+    });
+
+    test('prefixe la cle du programme', () async {
+      when(() => storage.read(key: 'dev_programme_42'))
+          .thenAnswer((_) async => null);
+      final service = ProgrammeService(
+        storage,
+        environment: AppEnvironment.development,
+      );
+
+      await service.load(42);
+
+      verify(() => storage.read(key: 'dev_programme_42')).called(1);
     });
   });
 }

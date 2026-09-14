@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/data/services/user_preferences_service.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -56,12 +57,11 @@ void main() {
   });
 
   group('UserPreferencesService.toggleFavorite', () {
-    test('adds id when absent, removes when present, persists JSON',
-        () async {
+    test('adds id when absent, removes when present, persists JSON', () async {
       when(() => storage.read(key: any(named: 'key')))
           .thenAnswer((_) async => null);
-      when(() => storage.write(
-              key: any(named: 'key'), value: any(named: 'value')))
+      when(() =>
+              storage.write(key: any(named: 'key'), value: any(named: 'value')))
           .thenAnswer((_) async {});
       await prefs.init();
 
@@ -73,8 +73,7 @@ void main() {
       await prefs.toggleFavorite(7);
       expect(prefs.favoriteIds, isEmpty);
       verify(() => storage.write(
-          key: 'favorite_competitions',
-          value: jsonEncode(<int>[]))).called(1);
+          key: 'favorite_competitions', value: jsonEncode(<int>[]))).called(1);
     });
 
     test('isFavorite reflects in-memory state', () async {
@@ -93,8 +92,8 @@ void main() {
           .thenAnswer((_) async => null);
       when(() => storage.read(key: 'last_viewed_competitions'))
           .thenAnswer((_) async => '[3,1,2]');
-      when(() => storage.write(
-              key: any(named: 'key'), value: any(named: 'value')))
+      when(() =>
+              storage.write(key: any(named: 'key'), value: any(named: 'value')))
           .thenAnswer((_) async {});
       await prefs.init();
 
@@ -113,8 +112,8 @@ void main() {
       final initial = List.generate(20, (i) => 20 - i);
       when(() => storage.read(key: 'last_viewed_competitions'))
           .thenAnswer((_) async => jsonEncode(initial));
-      when(() => storage.write(
-              key: any(named: 'key'), value: any(named: 'value')))
+      when(() =>
+              storage.write(key: any(named: 'key'), value: any(named: 'value')))
           .thenAnswer((_) async {});
       await prefs.init();
 
@@ -123,6 +122,31 @@ void main() {
       expect(prefs.lastViewedIds.length, 20);
       expect(prefs.lastViewedIds.first, 99);
       expect(prefs.lastViewedIds.last, 2); // 1 dropped from the tail
+    });
+  });
+
+  group('UserPreferencesService cloisonne par environnement', () {
+    test('lit et ecrit sous les cles prefixees', () async {
+      final scoped = UserPreferencesService(
+        storage,
+        environment: AppEnvironment.development,
+      );
+      when(() => storage.read(key: 'dev_favorite_competitions'))
+          .thenAnswer((_) async => null);
+      when(() => storage.read(key: 'dev_last_viewed_competitions'))
+          .thenAnswer((_) async => null);
+      when(() => storage.write(
+            key: any(named: 'key'),
+            value: any(named: 'value'),
+          )).thenAnswer((_) async {});
+
+      await scoped.init();
+      await scoped.toggleFavorite(7);
+
+      verify(() => storage.write(
+            key: 'dev_favorite_competitions',
+            value: '[7]',
+          )).called(1);
     });
   });
 }

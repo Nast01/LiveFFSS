@@ -1096,7 +1096,8 @@ void main() {
               categoryIds: any(named: 'categoryIds'),
               id: any(named: 'id'),
             )).thenAnswer((_) async {
-          seen.add('${controller.pushDone.value}/${controller.pushTotal.value}');
+          seen.add(
+              '${controller.pushDone.value}/${controller.pushTotal.value}');
           return 5;
         });
 

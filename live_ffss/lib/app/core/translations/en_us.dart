@@ -7,8 +7,8 @@ final Map<String, String> enUS = {
   'clear_local_data': 'Clear local data',
   'clear_local_data_body':
       "Removes this device's structures, draws, attendance and "
-      'favourites, and signs you out. What was pushed to FFSS is '
-      'untouched and comes back; what was not is lost.',
+          'favourites, and signs you out. What was pushed to FFSS is '
+          'untouched and comes back; what was not is lost.',
   'logout': 'Logout',
 
   // Auth
@@ -259,7 +259,7 @@ final Map<String, String> enUS = {
   'schedule_delete_item_title': 'Delete this item?',
   'schedule_delete_course_body':
       'Delete "@item"? If it is the last course of its créneau, the '
-      'créneau goes with it.',
+          'créneau goes with it.',
   'schedule_delete_item_body':
       '"@item" will be removed from the FFSS server for everyone. '
           'This cannot be undone.',
@@ -311,7 +311,7 @@ final Map<String, String> enUS = {
   'heat_draw_saved_pushed': 'Heats saved, spots pushed to FFSS',
   'heat_draw_lanes_unplaced':
       'Heats saved. With no course on the programme their spots cannot '
-      'leave — place the round, then save again.',
+          'leave — place the round, then save again.',
   'heat_draw_lanes_failed': 'Heats saved, but pushing the spots failed',
   'heat_draw_move_to': 'Move to',
   'heat_draw_current': 'current heat',
@@ -339,7 +339,7 @@ final Map<String, String> enUS = {
   'course_publish_failed': 'Pushing the results failed',
   'course_publish_unplaced':
       'This course is not on the FFSS programme: place the round, then '
-      'try again.',
+          'try again.',
   'course_publish_no_lane':
       'No spot assigned on this course: save the draw before validating.',
   'course_validate': 'Validate',

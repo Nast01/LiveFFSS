@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:live_ffss/app/module/auth/bindings/auth_binding.dart';
 import 'package:live_ffss/app/module/auth/bindings/profile_binding.dart';
@@ -14,6 +15,13 @@ import 'package:live_ffss/app/module/competitions/views/heat_draw_view.dart';
 import 'package:live_ffss/app/module/competitions/views/race_course_view.dart';
 import 'package:live_ffss/app/module/competitions/views/race_detail_view.dart';
 import 'package:live_ffss/app/module/competitions/views/rfid_writer_view.dart';
+import 'package:live_ffss/app/module/debug/bindings/debug_binding.dart';
+import 'package:live_ffss/app/module/debug/bindings/http_log_binding.dart';
+import 'package:live_ffss/app/module/debug/bindings/storage_inspector_binding.dart';
+import 'package:live_ffss/app/module/debug/views/debug_view.dart';
+import 'package:live_ffss/app/module/debug/views/http_log_view.dart';
+import 'package:live_ffss/app/module/debug/views/restarting_view.dart';
+import 'package:live_ffss/app/module/debug/views/storage_inspector_view.dart';
 import 'package:live_ffss/app/module/favorites/bindings/favorites_binding.dart';
 import 'package:live_ffss/app/module/home/bindings/home_binding.dart';
 import 'package:live_ffss/app/module/main_shell/bindings/main_shell_binding.dart';
@@ -85,5 +93,31 @@ class AppPages {
       page: () => const HeatDrawView(),
       binding: HeatDrawBinding(),
     ),
+    // Les quatre routes de debug ne sont pas seulement cachées en release :
+    // elles ne sont pas déclarées, donc `Get.toNamed('/debug')` n'y mène nulle
+    // part.
+    if (kDebugMode)
+      GetPage(
+        name: Routes.restarting,
+        page: () => const RestartingView(),
+      ),
+    if (kDebugMode)
+      GetPage(
+        name: Routes.debug,
+        page: () => const DebugView(),
+        binding: DebugBinding(),
+      ),
+    if (kDebugMode)
+      GetPage(
+        name: Routes.debugStorage,
+        page: () => const StorageInspectorView(),
+        binding: StorageInspectorBinding(),
+      ),
+    if (kDebugMode)
+      GetPage(
+        name: Routes.debugHttp,
+        page: () => const HttpLogView(),
+        binding: HttpLogBinding(),
+      ),
   ];
 }

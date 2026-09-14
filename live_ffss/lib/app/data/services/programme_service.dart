@@ -2,15 +2,20 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 
 /// On-device store for a competition's authored programme. One JSON blob per
 /// competition, keyed `programme_<competitionId>`. The single source of truth
 /// while FFSS write endpoints are undocumented.
 class ProgrammeService extends GetxService {
-  ProgrammeService(this._storage);
+  ProgrammeService(
+    this._storage, {
+    AppEnvironment environment = AppEnvironment.production,
+  }) : _environment = environment;
 
   final FlutterSecureStorage _storage;
+  final AppEnvironment _environment;
   final Rxn<CompetitionProgramme> current = Rxn<CompetitionProgramme>();
 
   // Reads and writes of the one blob must not reorder: a load() re-reads
@@ -53,20 +58,30 @@ class ProgrammeService extends GetxService {
     return future;
   }
 
-  /// Wipes every key this device holds — programmes of every competition,
-  /// attendance, favourites, and the session token with them.
+  /// Wipes every key of the current environment — programmes of every
+  /// competition, attendance, favourites, and the session token with them.
   ///
   /// The escape hatch for a device whose stored programme has drifted from
   /// what FFSS holds: everything here is either re-fetched from the
   /// federation or re-entered, so losing it costs a reload, not work — with
   /// one exception the caller must warn about, a draw or a ranking not yet
   /// pushed, which exists nowhere else.
+  ///
+  /// Scopé à un environnement plutôt qu'un `deleteAll()` : effacer la
+  /// production ne doit pas emporter les données de développement, ni la
+  /// langue, ni le choix d'endpoint — qui, lui, décide du préfixe.
   Future<void> clearEverything() async {
-    await _storage.deleteAll();
+    final all = await _storage.readAll();
+    for (final key in all.keys) {
+      if (AppEnvironment.owner(key) == _environment) {
+        await _storage.delete(key: key);
+      }
+    }
     current.value = null;
   }
 
-  static String _key(int competitionId) => 'programme_$competitionId';
+  String _key(int competitionId) =>
+      '${_environment.storagePrefix}programme_$competitionId';
 
   Future<void> load(int competitionId) => _enqueue(() async {
         final raw = await _storage.read(key: _key(competitionId));

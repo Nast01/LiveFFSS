@@ -211,8 +211,12 @@ void main() {
       'Nom': 'BONNE',
       'Prenom': 'Maelle',
       'engagements': [
-        {'categorie': {'id': 13, 'label': 'Cadet'}},
-        {'categorie': {'id': 24, 'label': 'Open'}},
+        {
+          'categorie': {'id': 13, 'label': 'Cadet'}
+        },
+        {
+          'categorie': {'id': 24, 'label': 'Open'}
+        },
       ],
     }).toDomain();
 
@@ -227,9 +231,15 @@ void main() {
     final athlete = AthleteDto.fromJson(const {
       'Id': 1,
       'engagements': [
-        {'categorie': {'id': 13, 'label': 'Cadet'}},
-        {'categorie': {'id': 13, 'label': 'Cadet'}},
-        {'categorie': {'id': 24, 'label': 'Open'}},
+        {
+          'categorie': {'id': 13, 'label': 'Cadet'}
+        },
+        {
+          'categorie': {'id': 13, 'label': 'Cadet'}
+        },
+        {
+          'categorie': {'id': 24, 'label': 'Open'}
+        },
       ],
     }).toDomain();
 
@@ -249,7 +259,9 @@ void main() {
       'Id': 1,
       'engagements': [
         {'categorie': null},
-        {'categorie': {'id': 13, 'label': 'Cadet'}},
+        {
+          'categorie': {'id': 13, 'label': 'Cadet'}
+        },
       ],
     }).toDomain();
 

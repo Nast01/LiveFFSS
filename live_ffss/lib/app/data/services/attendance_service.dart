@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
 
 /// Marshalling presence, kept on the device only — the FFSS API has no
@@ -11,9 +12,12 @@ import 'package:live_ffss/app/domain/models/attendance_status.dart';
 /// Scoped per race: an athlete engaged in three races is pointed separately for
 /// each, which is how marshalling works (it happens before every race).
 class AttendanceService extends GetxService {
-  AttendanceService(this._storage);
+  AttendanceService(
+    this._storage, {
+    AppEnvironment environment = AppEnvironment.production,
+  }) : _key = '${environment.storagePrefix}race_attendance';
 
-  static const _key = 'race_attendance';
+  final String _key;
 
   /// Sliding cap. Races are held newest-touched first, so going past this drops
   /// the least recently pointed one.

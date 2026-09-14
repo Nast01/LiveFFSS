@@ -1,8 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import 'package:live_ffss/app/core/config/active_environment.dart';
 import 'package:live_ffss/app/core/config/app_config.dart';
+import 'package:live_ffss/app/core/config/app_environment.dart';
+import 'package:live_ffss/app/core/config/environment_storage.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
+import 'package:live_ffss/app/core/network/http_log.dart';
 import 'package:live_ffss/app/core/network/token_storage.dart';
 import 'package:live_ffss/app/core/rfid/nfc_rfid_writer_impl.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
@@ -35,16 +39,43 @@ class InitialBinding {
   InitialBinding._();
 
   static Future<void> register() async {
-    // 1. Config
-    Get.put<AppConfig>(AppConfig.fromEnv(), permanent: true);
-
-    // 2. Storage
+    // 1. Storage. Devant la config, qui dépend maintenant de lui : le choix
+    // d'endpoint est persisté, et il faut l'avoir relu pour construire
+    // AppConfig.
     Get.put<FlutterSecureStorage>(
       const FlutterSecureStorage(),
       permanent: true,
     );
+    Get.put<EnvironmentStorage>(
+      EnvironmentStorage(Get.find<FlutterSecureStorage>()),
+      permanent: true,
+    );
+
+    // 2. Config. Hors build debug, `fromEnv` ignore le choix mémorisé et
+    // renvoie la production — voir AppEnvironment.resolve. Inutile de lire le
+    // storage dans ce cas : on rend l'intention explicite plutôt que de payer
+    // une lecture secure storage à chaque démarrage à froid en release.
+    final config = AppConfig.fromEnv(
+      stored: kDebugMode ? await Get.find<EnvironmentStorage>().read() : null,
+    );
+    Get.put<AppConfig>(config, permanent: true);
+    final environment = config.environment;
+    activeEnvironment.value = environment;
+
+    // Restaure l'interrupteur du journal HTTP. Sans persistance, reproduire un
+    // bug qui demande de relancer l'application ferait perdre l'activation au
+    // pire moment.
+    if (kDebugMode) {
+      httpLog.enabled = await Get.find<FlutterSecureStorage>()
+              .read(key: AppEnvironment.httpLogKey) ==
+          'true';
+    }
+
     Get.put<TokenStorage>(
-      TokenStorage(Get.find<FlutterSecureStorage>()),
+      TokenStorage(
+        Get.find<FlutterSecureStorage>(),
+        environment: environment,
+      ),
       permanent: true,
     );
 
@@ -78,6 +109,7 @@ class InitialBinding {
         dataSource: Get.find<AuthRemoteDataSource>(),
         tokenStorage: Get.find<TokenStorage>(),
         secureStorage: Get.find<FlutterSecureStorage>(),
+        environment: environment,
       ),
       permanent: true,
     );
@@ -173,13 +205,20 @@ class InitialBinding {
     await Get.putAsync<UserPreferencesService>(
       () async => UserPreferencesService(
         Get.find<FlutterSecureStorage>(),
+        environment: environment,
       ).init(),
     );
     await Get.putAsync<ProgrammeService>(
-      () async => ProgrammeService(Get.find<FlutterSecureStorage>()),
+      () async => ProgrammeService(
+        Get.find<FlutterSecureStorage>(),
+        environment: environment,
+      ),
     );
     await Get.putAsync<AttendanceService>(
-      () async => AttendanceService(Get.find<FlutterSecureStorage>()).init(),
+      () async => AttendanceService(
+        Get.find<FlutterSecureStorage>(),
+        environment: environment,
+      ).init(),
     );
 
     // 9. Session expiration handling

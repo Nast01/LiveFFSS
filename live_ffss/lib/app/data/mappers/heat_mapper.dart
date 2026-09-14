@@ -14,8 +14,7 @@ extension HeatMapper on HeatDto {
         endDate: _parseDate(endDate),
         race: race?.toDomain(),
         // Drop the back-ref to the parent heat to avoid Heat <-> Result cycle.
-        results:
-            results.map((r) => r.toDomain(includeParents: false)).toList(),
+        results: results.map((r) => r.toDomain(includeParents: false)).toList(),
       );
 }
 

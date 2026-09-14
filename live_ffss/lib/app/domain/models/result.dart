@@ -33,6 +33,5 @@ class Result with _$Result {
     @Default(0) int liveTime3,
   }) = _Result;
 
-  factory Result.fromJson(Map<String, dynamic> json) =>
-      _$ResultFromJson(json);
+  factory Result.fromJson(Map<String, dynamic> json) => _$ResultFromJson(json);
 }
