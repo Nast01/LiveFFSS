@@ -485,6 +485,41 @@ void main() {
     expect(controller.message.value, isA<UiMessageError>());
   });
 
+  test('scheduleRound refuses a réunion with no site', () async {
+    // Une réunion migrée de l'ancien flow a une description vide : sans ce
+    // refus, ses courses atterriraient sur un site vide, invisible sur
+    // l'onglet Programme en lecture seule.
+    await seed([
+      Meeting(
+        id: 1,
+        name: 'Matin',
+        description: '',
+        date: day,
+        beginHour: onDay(8, 0),
+        endHour: onDay(8, 0),
+      ),
+    ]);
+    stubWritesOk();
+
+    await controller.scheduleRound(
+      partieId: 100,
+      name: 'Séries',
+      courseNames: const ['Série 1'],
+      spotsPerRace: 8,
+    );
+
+    expect(controller.message.value, isA<UiMessageError>());
+    expect((controller.message.value! as UiMessageError).translationKey,
+        'meeting_site_required');
+    verifyNever(() => repo.submitSlot(
+        meetingId: any(named: 'meetingId'),
+        name: any(named: 'name'),
+        beginHour: any(named: 'beginHour'),
+        endHour: any(named: 'endHour'),
+        raceFormatDetailId: any(named: 'raceFormatDetailId'),
+        id: any(named: 'id')));
+  });
+
   test('unscheduledRounds skips a round already placed in ANOTHER meeting',
       () async {
     // C'est la raison d'être de MeetingService.placedPartieIds : sans elle,
@@ -773,6 +808,26 @@ void main() {
     // Un seul appel : celui de seed(). Le refus n'a pas déclenché de
     // rechargement.
     verify(() => repo.getMeetings(any())).called(1);
+  });
+
+  test('a refused créneau deletion is reported, not swallowed', () async {
+    // La course part quand même : c'est le créneau désormais vide dont FFSS
+    // refuse la suppression, et ce refus doit atteindre l'opérateur plutôt
+    // que de laisser un créneau orphelin passer pour un succès muet.
+    await seed([
+      meeting(slots: [
+        slot(10, 'Séries', 8, 0, 8, 10,
+            detail: partie(100), runs: [run(11, 'Série 1', 8, 0, 8, 10)]),
+      ]),
+    ]);
+    stubWritesOk();
+    when(() => repo.deleteSlot(any())).thenAnswer((_) async => false);
+
+    await controller.removeRun(11);
+
+    verify(() => repo.deleteRun(11)).called(1);
+    verify(() => repo.deleteSlot(10)).called(1);
+    expect(controller.message.value, isA<UiMessageError>());
   });
 
   test('removeRun on an unknown course triggers no call', () async {

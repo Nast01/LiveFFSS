@@ -119,8 +119,11 @@ class MeetingFormController extends GetxController {
   }) async {
     final existing = editing.value;
     final slots = existing?.slots ?? const [];
-    // Les items partent d'abord et la réunion en dernier : un créneau refusé
-    // laisse la journée où elle était plutôt qu'à moitié déplacée.
+    // Les items partent d'abord et la réunion en dernier — mais un créneau
+    // refusé à mi-chemin ne fait pas machine arrière sur ceux déjà partis :
+    // la journée reste alors à moitié déplacée, comme `_repack` de l'éditeur
+    // l'assume déjà dans son propre commentaire plutôt que de promettre une
+    // atomicité qu'aucun des deux ne tient.
     //
     // Seule l'heure de début décale quoi que ce soit. Changer la date n'en
     // décale aucun : submitSlot et submitRun n'envoient que `HH:mm`, jamais

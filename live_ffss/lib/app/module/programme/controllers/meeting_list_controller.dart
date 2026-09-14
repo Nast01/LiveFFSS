@@ -67,6 +67,19 @@ class MeetingListController extends GetxController {
     return held;
   }
 
+  /// Les réunions dont la date ne correspond à aucun jour de la compétition
+  /// — FFSS en garde que cette appli n'a pas écrites, ou laissées là après un
+  /// resserrement des dates de la compétition. Sans ce groupe elles ne
+  /// seraient ni visibles, ni éditables, ni supprimables : une réunion que
+  /// personne ne peut atteindre est pire qu'une réunion mal rangée.
+  List<Meeting> get meetingsOffDates {
+    final held = [
+      for (final meeting in meetings)
+        if (!days.any((d) => sameDay(d, meeting.date))) meeting,
+    ]..sort((a, b) => a.beginHour.compareTo(b.beginHour));
+    return held;
+  }
+
   /// Combien de tours restent à placer. Informatif : placer un tour demande
   /// une réunion cible, geste qui n'a de sens que dans l'éditeur.
   ///

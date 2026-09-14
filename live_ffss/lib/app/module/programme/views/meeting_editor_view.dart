@@ -98,8 +98,7 @@ class _MeetingEditorViewState extends State<MeetingEditorView> {
 
   /// The chosen duration in minutes, or null when the operator backed out.
   ///
-  /// Reused verbatim from `schedule_view.dart`: a ±5-minute stepper with a
-  /// floor of 5, the same dialog the old planner used.
+  /// A ±5-minute stepper with a floor of 5.
   Future<int?> _askDuration(int currentMinutes) async {
     var minutes = currentMinutes;
     final ok = await showDialog<bool>(
@@ -155,14 +154,22 @@ class _MeetingEditorViewState extends State<MeetingEditorView> {
   /// the round editor uses. The delete icon also sits right next to the
   /// duration tap target, so a miss is easy.
   ///
-  /// Reused verbatim from `schedule_view.dart`.
-  Future<bool> _confirmRemoval(String label,
-      {String body = 'schedule_delete_item_body'}) async {
+  /// [count], when given, feeds `@count` alongside `@item` — only bodies
+  /// that need it (a round dragging its courses along) declare the
+  /// placeholder.
+  Future<bool> _confirmRemoval(
+    String label, {
+    String body = 'schedule_delete_item_body',
+    int? count,
+  }) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('schedule_delete_item_title'.tr),
-        content: Text(body.trParams({'item': label})),
+        content: Text(body.trParams({
+          'item': label,
+          if (count != null) 'count': '$count',
+        })),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -179,15 +186,22 @@ class _MeetingEditorViewState extends State<MeetingEditorView> {
     return confirmed == true;
   }
 
-  /// Reused verbatim from `schedule_view.dart`. Its contract expects a
-  /// [DayEntry] carrying exactly one of `slotId` / `runId` — matching how
-  /// `daySections` builds one — so the call sites below construct that shape
-  /// themselves rather than handing it a `meetingItems()` course entry, which
-  /// carries both (see `day_sections.dart`'s doc comment on `slotId`).
-  Future<void> _confirmRemove(DayEntry entry) async {
+  /// Its contract expects a [DayEntry] carrying exactly one of `slotId` /
+  /// `runId` — matching how `daySections` builds one — so the call sites
+  /// below construct that shape themselves rather than handing it a
+  /// `meetingItems()` course entry, which carries both (see
+  /// `day_sections.dart`'s doc comment on `slotId`).
+  ///
+  /// [body]/[count] override the slot branch's default — a round's courses
+  /// are named in the confirmation, a manual item is not.
+  Future<void> _confirmRemove(DayEntry entry,
+      {String? body, int? count}) async {
     final slotId = entry.slotId;
     if (slotId != null) {
-      if (await _confirmRemoval(entry.label)) _controller.removeSlot(slotId);
+      if (await _confirmRemoval(entry.label,
+          body: body ?? 'schedule_delete_item_body', count: count)) {
+        _controller.removeSlot(slotId);
+      }
       return;
     }
     final runId = entry.runId;
@@ -195,17 +209,23 @@ class _MeetingEditorViewState extends State<MeetingEditorView> {
     // Deleting a course can take its créneau with it — when it was the last
     // one — so the warning says so rather than letting the round vanish.
     if (await _confirmRemoval(entry.label,
-        body: 'schedule_delete_course_body')) {
+        body: body ?? 'schedule_delete_course_body')) {
       _controller.removeRun(runId);
     }
   }
 
-  Future<void> _deleteSlot(MeetingItem item) => _confirmRemove(DayEntry(
-        begin: item.begin,
-        end: item.end,
-        label: item.label,
-        slotId: item.slotId,
-      ));
+  /// A non-manual item carries its round's courses down with it — the
+  /// default body only names the créneau itself, so this names the count too.
+  Future<void> _deleteSlot(MeetingItem item) => _confirmRemove(
+        DayEntry(
+          begin: item.begin,
+          end: item.end,
+          label: item.label,
+          slotId: item.slotId,
+        ),
+        body: item.isManual ? null : 'schedule_delete_round_body',
+        count: item.isManual ? null : item.courses.length,
+      );
 
   Future<void> _deleteCourse(DayEntry course) => _confirmRemove(DayEntry(
         begin: course.begin,
@@ -237,11 +257,15 @@ class _MeetingEditorViewState extends State<MeetingEditorView> {
               overflow: TextOverflow.ellipsis,
             )),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: _openForm,
-            tooltip: 'meeting_edit'.tr,
-          ),
+          // Hidden rather than reachable with no réunion to edit — opening
+          // the form with a null `meeting` would create a second one.
+          Obx(() => _controller.meeting == null
+              ? const SizedBox.shrink()
+              : IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: _openForm,
+                  tooltip: 'meeting_edit'.tr,
+                )),
         ],
       ),
       body: Obx(() {
@@ -476,16 +500,15 @@ class _Actions extends StatelessWidget {
 }
 
 /// Height of the unscheduled palette. A share of the screen rather than a
-/// fixed number so a small phone keeps a usable item list above it. Reused
-/// verbatim from `schedule_view.dart`.
+/// fixed number so a small phone keeps a usable item list above it.
 double _paletteHeight(BuildContext context) =>
     (MediaQuery.sizeOf(context).height * 0.35).clamp(150.0, 320.0);
 
 /// The rounds still to place in this réunion, one collapsible row each.
 ///
-/// Reused from `schedule_view.dart`'s `_Palette`/`_RoundRow`, minus the site
-/// resolution (`_siteFor`) and the `day` parameter — the site and the day both
-/// come from the réunion itself here, not from a chip the operator picked.
+/// No site resolution (`_siteFor`) and no `day` parameter here — the site and
+/// the day both come from the réunion itself, not from a chip the operator
+/// picked.
 class _Palette extends StatelessWidget {
   const _Palette({
     required this.controller,

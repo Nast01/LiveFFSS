@@ -178,6 +178,14 @@ class MeetingEditorController extends GetxController {
     if (!_refuseWhenSignedOut()) return;
     final held = meeting;
     if (held == null) return;
+    // Une réunion migrée de l'ancien flow n'a pas de site (`description`
+    // vide) : une course sans site atterrit dans une colonne sans nom sur
+    // l'onglet Programme en lecture seule. Refuser ici, avant que quoi que
+    // ce soit ne quitte l'appareil — l'opérateur a le ✎ pour corriger.
+    if (held.site.isEmpty) {
+      message.trigger(const UiMessageError('meeting_site_required'));
+      return;
+    }
 
     isBusy.value = true;
     try {
@@ -401,7 +409,11 @@ class MeetingEditorController extends GetxController {
         message.trigger(const UiMessageError('schedule_item_failed'));
         return;
       }
-      if (owner.runs.length == 1) await _repo.deleteSlot(owner.id);
+      // Le run est parti ; un refus ici ne l'annule pas, il laisse juste le
+      // créneau vidé sur FFSS — à signaler, pas à avaler.
+      if (owner.runs.length == 1 && !await _repo.deleteSlot(owner.id)) {
+        message.trigger(const UiMessageError('schedule_item_failed'));
+      }
       await _reloadThenRepack();
     } on AppException catch (e) {
       message
@@ -446,6 +458,10 @@ class MeetingEditorController extends GetxController {
   /// Recompacté et pas seulement re-terminé : allonger un item le fait
   /// chevaucher le suivant, le raccourcir laisse le même trou qu'une
   /// suppression.
+  ///
+  /// [resize] rend `null` quand l'item ciblé n'existe plus (rien à
+  /// recompacter), `false` quand FFSS a refusé l'écriture (signalée et
+  /// arrêtée là), `true` sur un succès.
   Future<void> _resizeThenRepack(
     int minutes,
     Future<bool?> Function(Meeting held) resize,

@@ -14,6 +14,7 @@ import 'package:live_ffss/app/module/programme/controllers/programme_controller.
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
+import 'package:live_ffss/app/presentation/shared/progress_overlay.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
@@ -74,7 +75,8 @@ class _MeetingListViewState extends State<MeetingListView> {
 
   Future<void> _confirmDelete(Meeting meeting) async {
     // Le décompte compte les courses, pas les créneaux : c'est ce que
-    // l'opérateur voit dans l'éditeur, et donc ce qu'il croit perdre.
+    // l'opérateur perd en supprimant la réunion, même si l'éditeur les montre
+    // groupées sous leur créneau plutôt qu'à plat.
     final count = meeting.slots.fold<int>(
       0,
       (sum, slot) => sum + (slot.runs.isEmpty ? 1 : slot.runs.length),
@@ -105,71 +107,107 @@ class _MeetingListViewState extends State<MeetingListView> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (_controller.isLoading.value) return const LoadingIndicator();
-      if (_controller.hasError.value) {
-        return ErrorState(
+      Widget content;
+      if (_controller.isLoading.value) {
+        content = const LoadingIndicator();
+      } else if (_controller.hasError.value) {
+        content = ErrorState(
           message: 'error_occured'.tr,
           onRetry: _controller.reloadFromServer,
         );
+      } else if (_controller.days.isEmpty) {
+        content = EmptyState(icon: Icons.event_busy, title: 'no_days'.tr);
+      } else {
+        content = _list();
       }
-      final days = _controller.days;
-      if (days.isEmpty) {
-        return EmptyState(icon: Icons.event_busy, title: 'no_days'.tr);
-      }
-
-      final empty = _controller.meetings.isEmpty;
-      final unscheduled = _controller.unscheduledRoundCount;
-
-      return RefreshIndicator(
-        onRefresh: _controller.reloadFromServer,
-        child: ListView(
-          padding: AppSpacing.pageAll,
-          children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () => Get.toNamed<void>(Routes.programmeSites),
-                icon: const Icon(Icons.place_outlined, size: 18),
-                label: Text('${'sites'.tr} (${_controller.sites.length})'),
-              ),
-            ),
-            // Informatif et non cliquable : placer un tour demande une réunion
-            // cible, geste qui n'a de sens que dans l'éditeur.
-            if (unscheduled > 0)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: Row(
-                  children: [
-                    const Icon(Icons.warning_amber_rounded,
-                        size: 18, color: AppColors.statusWaiting),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      'unscheduled_round_count'
-                          .trParams({'count': '$unscheduled'}),
-                      style: AppTypography.caption,
-                    ),
-                  ],
-                ),
-              ),
-            if (empty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                child: EmptyState(
-                  icon: Icons.event_note_outlined,
-                  title: 'no_meetings'.tr,
-                ),
-              ),
-            for (final day in days) ..._daySection(day),
-            const SizedBox(height: AppSpacing.md),
-            FilledButton.icon(
-              onPressed: () => _openForm(),
-              icon: const Icon(Icons.add),
-              label: Text('meeting_new'.tr),
-            ),
-          ],
-        ),
+      return Stack(
+        children: [
+          content,
+          if (_controller.isDeleting.value)
+            ProgressOverlay(message: 'meeting_pushing'.tr),
+        ],
       );
     });
+  }
+
+  Widget _list() {
+    final days = _controller.days;
+    final empty = _controller.meetings.isEmpty;
+    final unscheduled = _controller.unscheduledRoundCount;
+    final offDates = _controller.meetingsOffDates;
+
+    return RefreshIndicator(
+      onRefresh: _controller.reloadFromServer,
+      child: ListView(
+        padding: AppSpacing.pageAll,
+        children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => Get.toNamed<void>(Routes.programmeSites),
+              icon: const Icon(Icons.place_outlined, size: 18),
+              label: Text('${'sites'.tr} (${_controller.sites.length})'),
+            ),
+          ),
+          // Informatif et non cliquable : placer un tour demande une réunion
+          // cible, geste qui n'a de sens que dans l'éditeur.
+          if (unscheduled > 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded,
+                      size: 18, color: AppColors.statusWaiting),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    'unscheduled_round_count'
+                        .trParams({'count': '$unscheduled'}),
+                    style: AppTypography.caption,
+                  ),
+                ],
+              ),
+            ),
+          if (empty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+              child: EmptyState(
+                icon: Icons.event_note_outlined,
+                title: 'no_meetings'.tr,
+              ),
+            ),
+          for (final day in days) ..._daySection(day),
+          if (offDates.isNotEmpty) ..._offDatesSection(offDates),
+          const SizedBox(height: AppSpacing.md),
+          FilledButton.icon(
+            onPressed: () => _openForm(),
+            icon: const Icon(Icons.add),
+            label: Text('meeting_new'.tr),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// FFSS peut porter des réunions que la compétition n'annonce plus dans ses
+  /// dates : sans ce groupe, elles ne seraient ni visibles, ni éditables, ni
+  /// supprimables.
+  List<Widget> _offDatesSection(List<Meeting> meetings) {
+    return [
+      Padding(
+        padding:
+            const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.xs),
+        child: Text(
+          'meetings_off_dates'.tr.toUpperCase(),
+          style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+        ),
+      ),
+      for (final meeting in meetings)
+        _MeetingCard(
+            meeting: meeting,
+            onTap: () => _openEditor(meeting),
+            onEdit: () => _openForm(meeting: meeting),
+            onDelete: () => _confirmDelete(meeting)),
+    ];
   }
 
   List<Widget> _daySection(DateTime day) {

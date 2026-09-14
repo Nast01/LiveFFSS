@@ -268,6 +268,7 @@ final Map<String, String> enUS = {
   'meeting_pushing': 'Sending to FFSS…',
   'no_meetings': 'No réunion yet — start by creating one',
   'no_meeting_on_day': 'no réunion',
+  'meetings_off_dates': 'Outside the competition dates',
   'unscheduled_round_count': '@count unscheduled round(s)',
   'no_items': 'No item yet — add one or place a round',
   'add_from_round': 'From a round',
@@ -282,6 +283,9 @@ final Map<String, String> enUS = {
   'schedule_delete_item_body':
       '"@item" will be removed from the FFSS server for everyone. '
           'This cannot be undone.',
+  'schedule_delete_round_body':
+      '"@item" and its @count race(s) will be removed from the FFSS server '
+          'for everyone. This cannot be undone.',
   'no_programme': 'No programme defined',
   'error_loading_programme': 'Could not load the programme',
   'no_structure_defined': 'No structure defined',

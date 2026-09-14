@@ -271,6 +271,7 @@ final Map<String, String> frFR = {
   'meeting_pushing': 'Envoi vers FFSS…',
   'no_meetings': 'Aucune réunion — commencez par en créer une',
   'no_meeting_on_day': 'aucune réunion',
+  'meetings_off_dates': 'Hors des dates de la compétition',
   'unscheduled_round_count': '@count tour(s) non planifié(s)',
   'no_items': 'Aucun item — ajoutez-en un ou placez une épreuve',
   'add_from_round': 'Depuis une épreuve',
@@ -285,6 +286,9 @@ final Map<String, String> frFR = {
   'schedule_delete_item_body':
       '« @item » sera supprimé du serveur FFSS pour tout le monde. '
           'Cette action est irréversible.',
+  'schedule_delete_round_body':
+      '« @item » et ses @count course(s) seront supprimés du serveur FFSS '
+          'pour tout le monde. Cette action est irréversible.',
   'no_programme': 'Programme non défini',
   'error_loading_programme': 'Erreur lors du chargement du programme',
   'no_structure_defined': 'Structure non définie',

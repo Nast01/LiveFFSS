@@ -126,6 +126,32 @@ void main() {
     expect(controller.meetingsOn(DateTime(2026, 9, 13)), isEmpty);
   });
 
+  test(
+      'meetingsOffDates surfaces a réunion whose date falls outside the '
+      'competition days', () async {
+    // FFSS peut porter une réunion que cette app n'a pas écrite, ou laissée
+    // là après un resserrement des dates de la compétition — sans ce groupe
+    // elle ne serait ni visible, ni éditable, ni supprimable.
+    when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+          meeting(1, DateTime(2026, 9, 12)),
+          meeting(2, DateTime(2026, 9, 20)),
+        ]);
+    await controller.setCompetition(comp);
+
+    expect(controller.meetingsOffDates.map((m) => m.id), [2]);
+  });
+
+  test('meetingsOffDates is empty when every réunion falls on a known day',
+      () async {
+    when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
+          meeting(1, DateTime(2026, 9, 12)),
+          meeting(2, DateTime(2026, 9, 13)),
+        ]);
+    await controller.setCompetition(comp);
+
+    expect(controller.meetingsOffDates, isEmpty);
+  });
+
   test('unscheduledRoundCount ignores rounds with no serverId', () async {
     // Un tour sans serverId ne peut porter aucun créneau côté FFSS :
     // l'annoncer ne vaudrait à l'opérateur qu'un refus qu'il ne peut pas
