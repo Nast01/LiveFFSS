@@ -35,7 +35,8 @@ L'objectif est un flow explicite en quatre temps — réunion, sites, créneaux,
 | Où vit le site | Dans la **`description` de la réunion** — donc partagé entre appareils |
 | Source de l'épreuve | La **palette des parties déjà poussées** depuis l'onglet Structure. Inchangé |
 | Horaires | **Durées libres, heures calculées.** L'invariant bout-à-bout est conservé |
-| `engagement` | **`'0'`** sur une place créée libre |
+| `engagement` | **`'0'`** à la création d'une place sans engagement associé ; `''` continue de libérer une place occupée |
+| Suppression d'une réunion | `competition/reunion/:id/delete`, route documentée |
 
 ### Pourquoi une liste et pas un assistant
 
@@ -238,18 +239,32 @@ réunion doit rester juste à tout instant.
 | Créer une réunion | `reunion/submit` — `nom`=titre, `jour`=date, `debut`=heure saisie, `fin`=`debut`, `description`=site |
 | Éditer titre / site | `reunion/submit` avec `id` |
 | Éditer date / heure de début | `reunion/submit` + un `creneau/submit` et un `course/submit` par item décalé (`moves`) |
-| Supprimer une réunion | `reunion/:id/delete` — **à sonder**, voir limites |
+| Supprimer une réunion | `competition/reunion/:id/delete` |
 | + item manuel | `creneau/submit` sans `partie` → `reunion/submit` (fin) |
 | + épreuve | `creneau/submit` avec `partie` → *n* × `course/submit` (`site` = celui de la réunion) → *n* × `spotsPerRace` × `place/submit` avec **`engagement: '0'`** → `reunion/submit` (fin) |
 | Durée d'un item | `creneau/submit` ou `course/submit` → `moves` → `reunion/submit` |
 | Réordonner | `moves` seulement → `reunion/submit` |
 | Supprimer un item | `…/delete` → `moves` → `reunion/submit` |
 
+### Supprimer une réunion
+
+La route est documentée et prend la forme des autres suppressions — `token` et
+`id`, réponse `success` / `message`. Trois ajouts mécaniques :
+
+```dart
+// ApiEndpoints, aux côtés de meetingSubmit et meetingList
+static const String meetingDelete = 'competition/reunion/:id/delete';
+
+// MeetingRemoteDataSource, puis MeetingRepository — même forme que deleteSlot
+Future<bool> deleteMeeting(int meetingId);
+```
+
 ### `engagement` : trois valeurs, pas deux
 
-Le passage à `'0'` demande de séparer deux intentions que `submitLane` confond
-derrière un seul `int? entryId`, où `null` signifie à la fois « place créée
-libre » et « libérer cette place » :
+Une place **créée sans engagement associé** part avec `'0'`. La chaîne vide garde
+son rôle : elle **libère** une place occupée (vérifié le 2026-09-03). Ce sont donc
+deux intentions distinctes, que `submitLane` confond aujourd'hui derrière un seul
+`int? entryId` où `null` signifie les deux à la fois :
 
 ```dart
 Future<int> submitLane({
@@ -335,20 +350,19 @@ Convention du projet : mocktail, pas de test de widget.
 | `test/data/services/meeting_service_test.dart` | `load`, rechargement, état après échec |
 | `test/presentation/modules/programme/controllers/meeting_list_controller_test.dart` | groupement par jour, N réunions le même jour, jour sans réunion, création / édition / suppression |
 | `test/presentation/modules/programme/controllers/meeting_editor_controller_test.dart` | item manuel ; `scheduleRound` → **site hérité de la réunion** et **`engagement: '0'`** sur chaque place ; durée → `moves` ; suppression du dernier item d'un créneau |
-| `test/data/repositories/meeting_repository_test.dart` (étendu) | `createDefaultLanes` envoie `'0'`, `syncLanes` envoie `''` pour libérer |
-| `test/data/datasources/meeting_remote_datasource_test.dart` (étendu) | `submitLane` transmet `engagement` tel quel |
+| `test/data/repositories/meeting_repository_test.dart` (étendu) | `createDefaultLanes` envoie `'0'`, `syncLanes` envoie `''` pour libérer, `deleteMeeting` rend le booléen de `success` |
+| `test/data/datasources/meeting_remote_datasource_test.dart` (étendu) | `submitLane` transmet `engagement` tel quel ; `deleteMeeting` construit `competition/reunion/:id/delete` |
 
 `schedule_controller_test.dart` disparaît avec son contrôleur ; ses cas utiles
 migrent vers les deux nouveaux fichiers.
 
 ## Limites connues (documentées, pas des bugs)
 
-- **Pas de suppression de réunion** tant que la route n'est pas confirmée.
-  `ApiEndpoints` ne porte que `meetingSubmit` et `meetingList` ; par symétrie avec
-  `creneau/:id/delete`, la route serait `competition/reunion/:id/delete`, mais rien
-  ne le confirme. **Première tâche du plan** : la sonder sur l'environnement de
-  développement, journal HTTP à l'appui. Si elle répond, on la câble ; sinon la
-  liste n'offre pas de suppression et cette limite reste.
+- **Supprimer une réunion supprime ses créneaux et ses courses côté serveur**, sans
+  que la réponse le détaille. La liste demande donc confirmation, en nommant le
+  nombre d'items perdus. Les tirages locaux qui pointaient ces courses gardent un
+  `runId` orphelin : le même comportement qu'une course supprimée seule
+  aujourd'hui, et pas une régression de ce design.
 - **La liste des sites reste locale** : deux appareils ne proposent pas les mêmes
   choix. Seul le site *retenu* est partagé, via la description.
 - **Une réunion issue de l'ancien flow n'a pas de site** jusqu'à ce qu'on l'édite,
