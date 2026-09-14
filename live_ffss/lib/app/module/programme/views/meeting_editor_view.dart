@@ -51,14 +51,16 @@ class _MeetingEditorViewState extends State<MeetingEditorView> {
   /// Un nom par course, en ordre de passage : « Demie 1 - Surfski -
   /// Messieurs - Junior ». Le rang tombe quand le tour ne court qu'une course
   /// — « Finale 1 » ne nomme rien de plus que « Finale ».
-  List<String> _courseNamesFor(UnscheduledRound round, Gender gender) {
-    final tail =
-        '${round.raceLabel} - ${gender.label} - ${round.categoryLabel}';
-    return [
-      for (var i = 0; i < round.courseCount; i++)
-        '${heatName(round.type, i, round.courseCount)} - $tail',
-    ];
-  }
+  /// Nomme la course en position [index] du tour : « Demie 1 - Surfski -
+  /// Messieurs - Junior ».
+  ///
+  /// Par position et non par rang de pose : l'opérateur peut poser la
+  /// troisième course seule, et elle doit garder son nom de troisième. Le
+  /// rang tombe quand le tour ne court qu'une course — « Finale 1 » ne nomme
+  /// rien de plus que « Finale ».
+  String _courseNameAt(UnscheduledRound round, Gender gender, int index) =>
+      '${heatName(round.type, index, round.courseCount)} - '
+      '${round.raceLabel} - ${gender.label} - ${round.categoryLabel}';
 
   Future<void> _addManualItem() async {
     // Le libellé seulement : l'horaire de l'item n'est pas au choix de
@@ -314,7 +316,7 @@ class _MeetingEditorViewState extends State<MeetingEditorView> {
                   _Palette(
                     controller: _controller,
                     nameFor: _nameFor,
-                    courseNamesFor: _courseNamesFor,
+                    nameAt: _courseNameAt,
                     genderOf: _programme.genderForRace,
                   ),
               ],
@@ -504,7 +506,11 @@ class _Actions extends StatelessWidget {
 double _paletteHeight(BuildContext context) =>
     (MediaQuery.sizeOf(context).height * 0.35).clamp(150.0, 320.0);
 
-/// The rounds still to place in this réunion, one collapsible row each.
+/// Les tours dont au moins une course reste à poser dans cette réunion.
+///
+/// Chaque tour montre ses courses, les posées grisées : l'opérateur pose
+/// tout d'un coup depuis l'en-tête, ou une course à la fois depuis sa
+/// ligne.
 ///
 /// No site resolution (`_siteFor`) and no `day` parameter here — the site and
 /// the day both come from the réunion itself, not from a chip the operator
@@ -513,14 +519,14 @@ class _Palette extends StatelessWidget {
   const _Palette({
     required this.controller,
     required this.nameFor,
-    required this.courseNamesFor,
+    required this.nameAt,
     required this.genderOf,
   });
 
   final MeetingEditorController controller;
   final String Function(UnscheduledRound round, Gender gender) nameFor;
-  final List<String> Function(UnscheduledRound round, Gender gender)
-      courseNamesFor;
+  final String Function(UnscheduledRound round, Gender gender, int index)
+      nameAt;
   final Gender Function(int raceId) genderOf;
 
   @override
@@ -560,10 +566,17 @@ class _Palette extends StatelessWidget {
                         return _RoundRow(
                           round: round,
                           gender: gender,
-                          onAdd: () => controller.scheduleRound(
+                          nameAt: (index) => nameAt(round, gender, index),
+                          onAdd: (indexes) => controller.scheduleRound(
                             partieId: round.partieId,
                             name: nameFor(round, gender),
-                            courseNames: courseNamesFor(round, gender),
+                            courses: [
+                              for (final index in indexes)
+                                (
+                                  index: index,
+                                  name: nameAt(round, gender, index),
+                                ),
+                            ],
                             spotsPerRace: round.spotsPerRace,
                           ),
                         );
@@ -581,52 +594,131 @@ class _RoundRow extends StatelessWidget {
   const _RoundRow({
     required this.round,
     required this.gender,
+    required this.nameAt,
     required this.onAdd,
   });
 
   final UnscheduledRound round;
   final Gender gender;
+  final String Function(int index) nameAt;
+
+  /// Reçoit les positions à poser : toutes celles qui restent depuis
+  /// l'en-tête, une seule depuis une sous-ligne.
+  final void Function(List<int> indexes) onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final placed = round.courseCount - round.pendingIndexes.length;
+    return Padding(
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              GenderBadge(gender: gender),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${round.type.labelKey.tr} · ${round.raceLabel}',
+                      style: AppTypography.body,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      round.courseCount == 0
+                          ? round.categoryLabel
+                          : '${round.categoryLabel} · '
+                              '${'course_placed_count'.trParams({
+                                  'placed': '$placed',
+                                  'total': '${round.courseCount}',
+                                })}',
+                      style: AppTypography.caption
+                          .copyWith(color: AppColors.textSecondary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              // Un tour sans heat tiré n'a que son créneau à poser : le bouton
+              // d'en-tête part alors avec une sélection vide, ce que
+              // `scheduleRound` traite comme « le créneau seul ».
+              IconButton(
+                onPressed: () => onAdd(round.pendingIndexes),
+                icon: const Icon(Icons.playlist_add_check),
+                color: AppColors.primary,
+                tooltip: round.courseCount == 0
+                    ? 'schedule_place_round'.tr
+                    : 'add_all_courses'.tr,
+              ),
+            ],
+          ),
+          // Toutes les courses, pas seulement celles qui restent : voir sa
+          // progression vaut mieux qu'une liste qui rétrécit sans dire
+          // pourquoi.
+          for (var index = 0; index < round.courseCount; index++)
+            _CourseRow(
+              label: nameAt(index),
+              placed: !round.pendingIndexes.contains(index),
+              onAdd: () => onAdd([index]),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Une course d'un tour de la palette : posable, ou déjà posée et grisée.
+class _CourseRow extends StatelessWidget {
+  const _CourseRow({
+    required this.label,
+    required this.placed,
+    required this.onAdd,
+  });
+
+  final String label;
+  final bool placed;
   final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+      padding: const EdgeInsets.only(left: 36, bottom: 2),
       child: Row(
         children: [
-          GenderBadge(gender: gender),
-          const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${round.type.labelKey.tr} · ${round.raceLabel}',
-                  style: AppTypography.body,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  '${round.categoryLabel} · '
-                  '${'schedule_course_count'.trParams({
-                        'count': '${round.courseCount}'
-                      })}',
-                  style: AppTypography.caption
-                      .copyWith(color: AppColors.textSecondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            child: Text(
+              label,
+              style: AppTypography.caption.copyWith(
+                color: placed ? AppColors.textMuted : AppColors.textSecondary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          IconButton(
-            onPressed: onAdd,
-            icon: const Icon(Icons.add_circle_outline),
-            color: AppColors.primary,
-            tooltip: 'schedule_place_round'.tr,
-          ),
+          if (placed)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+              child: Text(
+                'course_already_placed'.tr,
+                style:
+                    AppTypography.caption.copyWith(color: AppColors.textMuted),
+              ),
+            )
+          else
+            IconButton(
+              onPressed: onAdd,
+              icon: const Icon(Icons.add_circle_outline, size: 20),
+              color: AppColors.primary,
+              tooltip: 'schedule_place_round'.tr,
+              visualDensity: VisualDensity.compact,
+            ),
         ],
       ),
     );

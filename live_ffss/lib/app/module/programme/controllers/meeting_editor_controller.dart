@@ -15,11 +15,13 @@ import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 /// Durée d'un item nouvellement ajouté.
 const int defaultItemMinutes = 10;
 
-/// Un tour dont FFSS porte une `partie` et qu'aucun créneau ne pointe encore —
-/// une ligne de la palette.
+/// Un tour dont FFSS porte une `partie` et dont au moins une course reste à
+/// poser — une ligne de la palette.
 ///
-/// L'unité est le tour, pas la course : un créneau pointe une partie, donc
-/// c'est un tour entier qui se pose d'un coup.
+/// L'unité posée est la **course**, pas le tour : l'opérateur pose tout d'un
+/// coup ou course par course. Le créneau, lui, reste unique par partie — c'est
+/// ce que `Creneau.partie` impose — donc les courses d'un tour atterrissent
+/// toutes dans le même.
 class UnscheduledRound {
   const UnscheduledRound({
     required this.partieId,
@@ -29,6 +31,7 @@ class UnscheduledRound {
     required this.categoryLabel,
     required this.type,
     required this.courseCount,
+    required this.pendingIndexes,
     required this.spotsPerRace,
   });
 
@@ -39,7 +42,15 @@ class UnscheduledRound {
   final String raceLabel;
   final String categoryLabel;
   final RoundType type;
+
+  /// Nombre total de courses du tour. Nécessaire en plus de
+  /// [pendingIndexes] : nommer une course demande sa position ET le total,
+  /// « Série 2 » ne se dit pas sans savoir qu'il y en a trois.
   final int courseCount;
+
+  /// Positions, dans l'ordre du tirage, dont la course reste à poser. Vide
+  /// pour un tour sans heat tiré, dont seul le créneau se pose.
+  final List<int> pendingIndexes;
   final int spotsPerRace;
 }
 
@@ -96,12 +107,42 @@ class MeetingEditorController extends GetxController {
   /// qu'il ne peut pas corriger d'ici. Pousser le déroulement depuis l'onglet
   /// Structure est ce qui le fait entrer dans cette liste.
   List<UnscheduledRound> get unscheduledRounds {
-    final placed = _meetings.placedPartieIds;
+    final held = meeting;
+    if (held == null) return const [];
+    final live = _meetings.liveRunIds;
+    // Les parties qu'un créneau de CETTE réunion porte déjà : y ajouter une
+    // course est légitime, elle rejoint ce créneau. Celles que porte une
+    // autre réunion ne le sont pas — un tour étalé sur deux réunions
+    // courrait sur deux sites et deux jours, et son tirage n'aurait plus de
+    // sens.
+    final here = <int>{
+      for (final slot in held.slots)
+        if (slot.raceFormatDetail != null) slot.raceFormatDetail!.id,
+    };
+    final elsewhere = _meetings.placedPartieIds.difference(here);
+
     final rounds = <UnscheduledRound>[];
     for (final structure
         in _programme.current.value?.structures ?? const <EventStructure>[]) {
       for (final level in structure.levels) {
-        if (level.serverId <= 0 || placed.contains(level.serverId)) continue;
+        if (level.serverId <= 0 || elsewhere.contains(level.serverId)) continue;
+
+        final pending = <int>[];
+        if (level.races.isEmpty) {
+          // Rien à suivre par course : l'état du tour reste celui de sa
+          // partie, sinon on ne pourrait plus poser son créneau seul.
+          if (here.contains(level.serverId)) continue;
+        } else {
+          for (var i = 0; i < level.races.length; i++) {
+            final runId = level.races[i].runId;
+            // 0 : jamais posée. Absente de [live] : sa course a été
+            // supprimée — ici, sur un autre appareil ou sur le site fédéral
+            // — donc elle est à reposer.
+            if (runId == 0 || !live.contains(runId)) pending.add(i);
+          }
+          if (pending.isEmpty) continue;
+        }
+
         rounds.add(UnscheduledRound(
           partieId: level.serverId,
           raceId: structure.raceId,
@@ -110,6 +151,7 @@ class MeetingEditorController extends GetxController {
           categoryLabel: structure.categoryLabel,
           type: level.type,
           courseCount: level.races.length,
+          pendingIndexes: pending,
           spotsPerRace: structure.spotsForLevel(level),
         ));
       }
@@ -154,25 +196,29 @@ class MeetingEditorController extends GetxController {
     }
   }
 
-  /// Place un tour : son créneau, puis les courses dedans, puis les places de
-  /// départ de chaque course.
+  /// Pose les [courses] d'un tour : son créneau au besoin, puis les courses
+  /// dedans, puis les places de départ de chacune.
   ///
-  /// Le créneau dure [defaultItemMinutes] par course et les courses le
-  /// remplissent bout à bout — un tour de trois séries prend trois fois la
-  /// place d'un tour d'une. L'opérateur ajuste ensuite, mais la journée est
-  /// d'abord à peu près juste.
+  /// [courses] est la **sélection** à poser, pas forcément tout le tour :
+  /// l'opérateur pose tout d'un coup ou course par course, et les deux gestes
+  /// passent par ici. Chaque entrée porte sa position dans le tour, qui est ce
+  /// qui relie la course au heat tiré — voir [_linkRunsToRound]. Une liste
+  /// vide pose le créneau seul, ce dont un tour sans heat tiré a besoin.
   ///
-  /// [name] et [courseNames] sont composés par la vue : nommer un tour demande
-  /// le genre, et un genre est un mot traduit que ce contrôleur n'a pas à
-  /// résoudre. [courseNames] compte une entrée par course. [spotsPerRace] est
-  /// ce que le tour déclare ; 0 ouvre les courses vides.
+  /// Un créneau créé dure [defaultItemMinutes] par course posée ; un créneau
+  /// déjà là s'allonge, et le recompactage qui suit rend sa vraie étendue.
+  ///
+  /// [name] et les noms de [courses] sont composés par la vue : nommer un tour
+  /// demande le genre, et un genre est un mot traduit que ce contrôleur n'a pas
+  /// à résoudre. [spotsPerRace] est ce que le tour déclare ; 0 ouvre les
+  /// courses vides.
   ///
   /// Le site n'est pas un paramètre : il vient de la réunion, et toutes ses
   /// courses en héritent.
   Future<void> scheduleRound({
     required int partieId,
     required String name,
-    required List<String> courseNames,
+    required List<({int index, String name})> courses,
     required int spotsPerRace,
   }) async {
     if (!_refuseWhenSignedOut()) return;
@@ -189,42 +235,59 @@ class MeetingEditorController extends GetxController {
 
     isBusy.value = true;
     try {
-      final begin = _endMinutes(held);
-      final courseCount = courseNames.length;
-      // Au moins la place d'une course : un créneau de longueur nulle serait
-      // invisible sur la frise et laisserait l'item suivant démarrer à la
-      // même minute.
-      final duration = defaultItemMinutes * (courseCount < 1 ? 1 : courseCount);
+      // Un créneau par partie — `Creneau.partie` n'en pointe qu'une — donc
+      // une course posée plus tard rejoint celui qui existe déjà plutôt que
+      // d'en ouvrir un second, qui couperait le tour en deux sur la frise.
+      final existing = _slotOfPartie(held, partieId);
+      final int slotId;
+      final int begin;
 
-      final slotId = await _repo.submitSlot(
-        meetingId: held.id,
-        name: name,
-        beginHour: _atMinutes(held.date, begin),
-        endHour: _atMinutes(held.date, begin + duration),
-        raceFormatDetailId: partieId,
-      );
-      if (slotId <= 0) {
-        message.trigger(const UiMessageError('schedule_item_failed'));
-        return;
+      if (existing == null) {
+        begin = _endMinutes(held);
+        // Au moins la place d'une course : un créneau de longueur nulle
+        // serait invisible sur la frise et laisserait l'item suivant démarrer
+        // à la même minute.
+        final duration =
+            defaultItemMinutes * (courses.isEmpty ? 1 : courses.length);
+        slotId = await _repo.submitSlot(
+          meetingId: held.id,
+          name: name,
+          beginHour: _atMinutes(held.date, begin),
+          endHour: _atMinutes(held.date, begin + duration),
+          raceFormatDetailId: partieId,
+        );
+        if (slotId <= 0) {
+          message.trigger(const UiMessageError('schedule_item_failed'));
+          return;
+        }
+      } else {
+        slotId = existing.id;
+        // Après les courses déjà en place : `layOut` ordonne un créneau par
+        // les heures de ses courses, donc une course qui commencerait avant
+        // elles passerait devant et le tour se courrait à l'envers.
+        begin = existing.runs.fold<int>(
+          minutesOf(existing.beginHour),
+          (latest, run) =>
+              minutesOf(run.endTime) > latest ? minutesOf(run.endTime) : latest,
+        );
       }
 
       final created = await _createRoundCourses(
         slotId: slotId,
-        courseNames: courseNames,
+        courses: courses,
         spotsPerRace: spotsPerRace,
         day: held.date,
         beginMinutes: begin,
       );
-      await _linkRunsToRound(partieId, created.runIds);
+      await _linkRunsToRound(partieId, created.runIdByIndex);
 
-      if (!await _meetings.reload()) {
-        message.trigger(const UiMessageError('schedule_meeting_end_failed'));
-        return;
-      }
-      await _pushEnd();
+      // Recompacté et pas seulement re-terminé : une course ajoutée à un
+      // créneau existant l'allonge — un créneau dure la somme de ses courses
+      // — donc tout ce qui suit dans la journée décale.
+      await _reloadThenRepack();
 
-      // Signalé après le rechargement, pour que l'opérateur voie le tour qui
-      // a bien atterri à côté de l'avertissement, plutôt qu'un échec nu
+      // Signalé après le rechargement, pour que l'opérateur voie ce qui a
+      // bien atterri à côté de l'avertissement, plutôt qu'un échec nu
       // au-dessus d'une réunion vide.
       if (created.refused != null) {
         message.trigger(UiMessageError('schedule_courses_failed',
@@ -238,63 +301,76 @@ class MeetingEditorController extends GetxController {
     }
   }
 
+  /// Le créneau de [held] qui porte [partieId], s'il y en a un.
+  Slot? _slotOfPartie(Meeting held, int partieId) {
+    for (final slot in held.slots) {
+      if (slot.raceFormatDetail?.id == partieId) return slot;
+    }
+    return null;
+  }
+
   /// Crée les courses du tour bout à bout dans son créneau, chacune ouvrant
   /// avec [spotsPerRace] places de départ.
   ///
   /// Un refus sur une course n'arrête pas les autres : une demi-manche sur le
   /// site est mauvaise, une demi-manche que l'opérateur croit complète est
   /// pire.
-  Future<({List<int> runIds, String? refused})> _createRoundCourses({
+  Future<({Map<int, int> runIdByIndex, String? refused})> _createRoundCourses({
     required int slotId,
-    required List<String> courseNames,
+    required List<({int index, String name})> courses,
     required int spotsPerRace,
     required DateTime day,
     required int beginMinutes,
   }) async {
     final failures = <String>[];
-    // Une case par nom, portant 0 pour celles qui n'ont jamais atterri : un
-    // refus ne doit pas faire glisser les heats d'après sur la mauvaise
-    // course.
-    final runIds = List<int>.filled(courseNames.length, 0);
+    // Indexé par position dans le tour, pas par rang dans cette pose : une
+    // course refusée, ou une pose partielle, ne doit pas faire glisser les
+    // heats sur la mauvaise course.
+    final runIdByIndex = <int, int>{};
 
-    for (var i = 0; i < courseNames.length; i++) {
+    for (var i = 0; i < courses.length; i++) {
+      final course = courses[i];
       final begin = beginMinutes + i * defaultItemMinutes;
       try {
         final runId = await _repo.submitRun(
           slotId: slotId,
-          name: courseNames[i],
+          name: course.name,
           beginHour: _atMinutes(day, begin),
           endHour: _atMinutes(day, begin + defaultItemMinutes),
           site: site,
         );
         if (runId <= 0) {
-          failures.add(courseNames[i]);
+          failures.add(course.name);
           continue;
         }
-        runIds[i] = runId;
+        runIdByIndex[course.index] = runId;
         if (spotsPerRace > 0) {
           await _repo.createDefaultLanes(runId: runId, count: spotsPerRace);
         }
       } on AppException catch (e) {
-        failures.add('${courseNames[i]} (${e.detail})');
+        failures.add('${course.name} (${e.detail})');
       }
     }
 
     return (
-      runIds: runIds,
+      runIdByIndex: runIdByIndex,
       refused: failures.isEmpty ? null : failures.join(', '),
     );
   }
 
-  /// Enregistre sur chaque heat tiré la course qu'il court, position par
-  /// position : la n-ième course du tour a été créée depuis le n-ième heat,
-  /// donc ils se correspondent par construction ici — ce qui est exactement
+  /// Enregistre sur chaque heat tiré la course qu'il court, à la position que
+  /// [runIdByIndex] désigne.
+  ///
+  /// La position est portée explicitement et non déduite du rang de l'appel :
+  /// l'opérateur peut poser la troisième course seule, et une correspondance
+  /// par ordre d'arrivée la collerait alors au premier heat. C'est aussi
   /// pourquoi l'id est stocké maintenant plutôt que re-dérivé plus tard, une
   /// fois que des suppressions auront tout décalé.
   ///
-  /// Une course refusée laisse l'id de son heat à 0 plutôt que de lui donner
-  /// la course suivante.
-  Future<void> _linkRunsToRound(int partieId, List<int> runIds) async {
+  /// Une position absente de la table, ou portant 0, laisse son heat
+  /// intact — une course refusée ne prend pas la place d'une autre.
+  Future<void> _linkRunsToRound(
+      int partieId, Map<int, int> runIdByIndex) async {
     final programme = _programme.current.value;
     if (programme == null) return;
     var touched = false;
@@ -307,8 +383,8 @@ class MeetingEditorController extends GetxController {
                 touched = true;
                 return level.copyWith(races: [
                   for (var i = 0; i < level.races.length; i++)
-                    if (i < runIds.length && runIds[i] != 0)
-                      level.races[i].copyWith(runId: runIds[i])
+                    if ((runIdByIndex[i] ?? 0) != 0)
+                      level.races[i].copyWith(runId: runIdByIndex[i]!)
                     else
                       level.races[i],
                 ]);

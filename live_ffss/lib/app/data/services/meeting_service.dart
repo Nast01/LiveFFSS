@@ -104,6 +104,20 @@ class MeetingService extends GetxService {
     return null;
   }
 
+  /// Les ids de course que l'arbre porte encore, toutes réunions confondues.
+  ///
+  /// Ce qui rend « posé » vérifiable côté serveur plutôt que sur parole du
+  /// blob local : un `ProgrammeRace.runId` que cet ensemble ne contient plus
+  /// désigne une course supprimée — depuis cette app, depuis une autre, ou
+  /// sur le site fédéral — donc un heat qu'il faut pouvoir reposer. Sans ça,
+  /// supprimer une course condamnerait son heat à passer pour placé jusqu'à
+  /// la fin des temps.
+  Set<int> get liveRunIds => {
+        for (final meeting in meetings)
+          for (final slot in meeting.slots)
+            for (final run in slot.runs) run.id,
+      };
+
   /// Les parties qu'un créneau porte déjà, toutes réunions confondues. Un
   /// créneau sans partie est un item manuel et n'en place aucune.
   Set<int> get placedPartieIds => {

@@ -6,6 +6,7 @@ import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
 import 'package:live_ffss/app/domain/models/race_format_detail.dart';
+import 'package:live_ffss/app/domain/models/run.dart';
 import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -44,12 +45,26 @@ void main() {
         slots: slots,
       );
 
-  Slot slot(int id, {RaceFormatDetail? detail}) => Slot(
+  Run run(int id) => Run(
+        id: id,
+        name: 'c$id',
+        label: '',
+        fullLabel: '',
+        status: RunStatus.waiting,
+        statusLabel: '',
+        site: 'Plage',
+        beginTime: DateTime(1970, 1, 1, 8),
+        endTime: DateTime(1970, 1, 1, 8, 10),
+      );
+
+  Slot slot(int id, {RaceFormatDetail? detail, List<Run> runs = const []}) =>
+      Slot(
         id: id,
         name: 's$id',
         beginHour: DateTime(1970, 1, 1, 8),
         endHour: DateTime(1970, 1, 1, 8, 10),
         raceFormatDetail: detail,
+        runs: runs,
       );
 
   test('load fills meetings and lowers the loading flag', () async {
@@ -174,5 +189,26 @@ void main() {
     await service.load(42);
 
     expect(service.competitionId, 42);
+  });
+
+  test('liveRunIds spans every course of every meeting', () async {
+    // Ce qui rend « posé » vérifiable côté serveur plutôt que sur parole du
+    // blob local : un runId que l'arbre ne porte plus est un heat à reposer.
+    when(() => repo.getMeetings(42)).thenAnswer((_) async => [
+          meeting(1, slots: [
+            slot(10, runs: [run(101), run(102)])
+          ]),
+          meeting(2, slots: [
+            slot(20, runs: [run(201)]),
+            slot(21),
+          ]),
+        ]);
+    await service.load(42);
+
+    expect(service.liveRunIds, {101, 102, 201});
+  });
+
+  test('liveRunIds is empty before anything is loaded', () {
+    expect(service.liveRunIds, isEmpty);
   });
 }

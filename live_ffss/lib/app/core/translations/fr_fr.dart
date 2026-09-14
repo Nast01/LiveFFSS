@@ -248,7 +248,6 @@ final Map<String, String> frFR = {
   'schedule_manual_items': 'Général',
   'schedule_no_meeting': "Aucune réunion sur FFSS pour cette journée",
   'schedule_all_placed': 'Tous les tours sont placés',
-  'schedule_course_count': '@count course(s)',
   'schedule_place_round': 'Placer sur cette journée',
   'schedule_item_failed': "FFSS n'a pas enregistré cet item",
   'schedule_meeting_end_failed':
@@ -275,6 +274,9 @@ final Map<String, String> frFR = {
   'unscheduled_round_count': '@count tour(s) non planifié(s)',
   'no_items': 'Aucun item — ajoutez-en un ou placez une épreuve',
   'add_from_round': 'Depuis une épreuve',
+  'add_all_courses': 'Tout ajouter',
+  'course_placed_count': '@placed / @total posées',
+  'course_already_placed': 'posée',
   'manage_sites': 'Gérer',
   'add_manual_item': 'Ajouter un item',
   'manual_label': 'Libellé',

@@ -295,7 +295,7 @@ void main() {
     await controller.scheduleRound(
       partieId: 100,
       name: 'Séries - Surfski - Dames - Junior',
-      courseNames: const ['Série 1', 'Série 2'],
+      courses: const [(index: 0, name: 'Série 1'), (index: 1, name: 'Série 2')],
       spotsPerRace: 8,
     );
 
@@ -324,7 +324,7 @@ void main() {
     await controller.scheduleRound(
       partieId: 100,
       name: 'Séries',
-      courseNames: const ['Série 1', 'Série 2'],
+      courses: const [(index: 0, name: 'Série 1'), (index: 1, name: 'Série 2')],
       spotsPerRace: 8,
     );
 
@@ -347,7 +347,7 @@ void main() {
     await controller.scheduleRound(
       partieId: 100,
       name: 'Séries',
-      courseNames: const [],
+      courses: const [],
       spotsPerRace: 0,
     );
 
@@ -369,7 +369,7 @@ void main() {
     await controller.scheduleRound(
       partieId: 100,
       name: 'Séries',
-      courseNames: const ['Série 1'],
+      courses: const [(index: 0, name: 'Série 1')],
       spotsPerRace: 8,
     );
 
@@ -383,7 +383,7 @@ void main() {
     await controller.scheduleRound(
       partieId: 100,
       name: 'Séries',
-      courseNames: const ['Série 1'],
+      courses: const [(index: 0, name: 'Série 1')],
       spotsPerRace: 0,
     );
 
@@ -427,7 +427,7 @@ void main() {
     await controller.scheduleRound(
       partieId: 100,
       name: 'Séries',
-      courseNames: const ['Série 1', 'Série 2'],
+      courses: const [(index: 0, name: 'Série 1'), (index: 1, name: 'Série 2')],
       spotsPerRace: 0,
     );
 
@@ -474,7 +474,7 @@ void main() {
     await controller.scheduleRound(
       partieId: 100,
       name: 'Séries',
-      courseNames: const ['Série 1', 'Série 2'],
+      courses: const [(index: 0, name: 'Série 1'), (index: 1, name: 'Série 2')],
       spotsPerRace: 0,
     );
 
@@ -504,7 +504,7 @@ void main() {
     await controller.scheduleRound(
       partieId: 100,
       name: 'Séries',
-      courseNames: const ['Série 1'],
+      courses: const [(index: 0, name: 'Série 1')],
       spotsPerRace: 8,
     );
 
@@ -518,6 +518,119 @@ void main() {
         endHour: any(named: 'endHour'),
         raceFormatDetailId: any(named: 'raceFormatDetailId'),
         id: any(named: 'id')));
+  });
+
+  test(
+      'poser une seule course ne soumet que celle-la et ecrit son runId a '
+      'sa position', () async {
+    // Le heat 2 est pose seul : les heats 0 et 1 doivent rester a 0, sans
+    // quoi une suppression ferait glisser chaque heat suivant sur un depart
+    // qui n'est pas le sien.
+    await programme.save(const CompetitionProgramme(
+      competitionId: 42,
+      structures: [
+        EventStructure(
+          raceId: 1,
+          categoryId: 2,
+          raceLabel: 'Surfski',
+          categoryLabel: 'Junior',
+          levels: [
+            RoundLevel(type: RoundType.serie, serverId: 100, races: [
+              ProgrammeRace(id: 1, number: 1),
+              ProgrammeRace(id: 2, number: 2),
+              ProgrammeRace(id: 3, number: 3),
+            ]),
+          ],
+        ),
+      ],
+    ));
+    await seed([meeting()]);
+    stubWritesOk();
+
+    await controller.scheduleRound(
+      partieId: 100,
+      name: 'Series',
+      courses: const [(index: 2, name: 'Serie 3')],
+      spotsPerRace: 0,
+    );
+
+    verify(() => repo.submitRun(
+          slotId: any(named: 'slotId'),
+          name: 'Serie 3',
+          beginHour: any(named: 'beginHour'),
+          endHour: any(named: 'endHour'),
+          site: any(named: 'site'),
+          id: any(named: 'id'),
+        )).called(1);
+    verifyNever(() => repo.submitRun(
+          slotId: any(named: 'slotId'),
+          name: 'Serie 1',
+          beginHour: any(named: 'beginHour'),
+          endHour: any(named: 'endHour'),
+          site: any(named: 'site'),
+          id: any(named: 'id'),
+        ));
+    final races =
+        programme.current.value!.structures.single.levels.single.races;
+    expect(races[0].runId, 0);
+    expect(races[1].runId, 0);
+    expect(races[2].runId, 11);
+  });
+
+  test(
+      "poser une course de plus reutilise le creneau de la partie au lieu "
+      "d'en creer un second", () async {
+    // `Creneau.partie` n'en pointe qu'une : deux creneaux pour un meme tour
+    // le couperaient en deux sur la frise.
+    await programme.save(const CompetitionProgramme(
+      competitionId: 42,
+      structures: [
+        EventStructure(
+          raceId: 1,
+          categoryId: 2,
+          raceLabel: 'Surfski',
+          categoryLabel: 'Junior',
+          levels: [
+            RoundLevel(type: RoundType.serie, serverId: 100, races: [
+              ProgrammeRace(id: 1, number: 1, runId: 11),
+              ProgrammeRace(id: 2, number: 2),
+            ]),
+          ],
+        ),
+      ],
+    ));
+    await seed([
+      meeting(slots: [
+        slot(10, 'Series', 8, 0, 8, 10,
+            detail: partie(100), runs: [run(11, 'Serie 1', 8, 0, 8, 10)]),
+      ]),
+    ]);
+    stubWritesOk();
+
+    await controller.scheduleRound(
+      partieId: 100,
+      name: 'Series',
+      courses: const [(index: 1, name: 'Serie 2')],
+      spotsPerRace: 0,
+    );
+
+    // La course rejoint le creneau 10, et aucun nouveau creneau ne part.
+    verify(() => repo.submitRun(
+          slotId: 10,
+          name: 'Serie 2',
+          beginHour: any(named: 'beginHour'),
+          endHour: any(named: 'endHour'),
+          site: any(named: 'site'),
+          id: any(named: 'id'),
+        )).called(1);
+    verifyNever(() => repo.submitSlot(
+          meetingId: any(named: 'meetingId'),
+          name: any(named: 'name'),
+          beginHour: any(named: 'beginHour'),
+          endHour: any(named: 'endHour'),
+          raceFormatDetailId: 100,
+          id: null,
+        ));
   });
 
   test('unscheduledRounds skips a round already placed in ANOTHER meeting',
@@ -553,6 +666,122 @@ void main() {
     ]);
 
     expect(controller.unscheduledRounds.map((r) => r.partieId), [200]);
+  });
+
+  test(
+      "un tour dont une course est posee n'offre que les positions "
+      "restantes", () async {
+    // Le heat 0 porte une course que l'arbre porte encore : il est pose.
+    await programme.save(const CompetitionProgramme(
+      competitionId: 42,
+      structures: [
+        EventStructure(
+          raceId: 1,
+          categoryId: 2,
+          raceLabel: 'Surfski',
+          categoryLabel: 'Junior',
+          levels: [
+            RoundLevel(type: RoundType.serie, serverId: 100, races: [
+              ProgrammeRace(id: 1, number: 1, runId: 11),
+              ProgrammeRace(id: 2, number: 2),
+              ProgrammeRace(id: 3, number: 3),
+            ]),
+          ],
+        ),
+      ],
+    ));
+    await seed([
+      meeting(slots: [
+        slot(10, 'Series', 8, 0, 8, 10,
+            detail: partie(100), runs: [run(11, 'Serie 1', 8, 0, 8, 10)]),
+      ]),
+    ]);
+
+    final round = controller.unscheduledRounds.single;
+    expect(round.partieId, 100);
+    expect(round.courseCount, 3);
+    expect(round.pendingIndexes, [1, 2]);
+  });
+
+  test('un heat dont la course a ete supprimee redevient offert', () async {
+    // runId 999 ne figure dans aucune course chargee : la course a ete
+    // supprimee, ici ou ailleurs, donc le heat est a reposer. C'est
+    // l'auto-cicatrisation qui evite la porte a sens unique.
+    await programme.save(const CompetitionProgramme(
+      competitionId: 42,
+      structures: [
+        EventStructure(
+          raceId: 1,
+          categoryId: 2,
+          raceLabel: 'Surfski',
+          categoryLabel: 'Junior',
+          levels: [
+            RoundLevel(type: RoundType.serie, serverId: 100, races: [
+              ProgrammeRace(id: 1, number: 1, runId: 999),
+              ProgrammeRace(id: 2, number: 2, runId: 11),
+            ]),
+          ],
+        ),
+      ],
+    ));
+    await seed([
+      meeting(slots: [
+        slot(10, 'Series', 8, 0, 8, 10,
+            detail: partie(100), runs: [run(11, 'Serie 2', 8, 0, 8, 10)]),
+      ]),
+    ]);
+
+    expect(controller.unscheduledRounds.single.pendingIndexes, [0]);
+  });
+
+  test('un tour dont toutes les courses sont posees disparait', () async {
+    await programme.save(const CompetitionProgramme(
+      competitionId: 42,
+      structures: [
+        EventStructure(
+          raceId: 1,
+          categoryId: 2,
+          raceLabel: 'Surfski',
+          categoryLabel: 'Junior',
+          levels: [
+            RoundLevel(type: RoundType.serie, serverId: 100, races: [
+              ProgrammeRace(id: 1, number: 1, runId: 11),
+            ]),
+          ],
+        ),
+      ],
+    ));
+    await seed([
+      meeting(slots: [
+        slot(10, 'Series', 8, 0, 8, 10,
+            detail: partie(100), runs: [run(11, 'Serie 1', 8, 0, 8, 10)]),
+      ]),
+    ]);
+
+    expect(controller.unscheduledRounds, isEmpty);
+  });
+
+  test('un tour sans heat tire reste offert, et suit la regle de partie',
+      () async {
+    // Rien a suivre par course, donc son etat reste celui de sa partie —
+    // sinon il ne serait plus jamais offert et l'on ne pourrait plus poser
+    // son creneau seul.
+    await programme.save(const CompetitionProgramme(
+      competitionId: 42,
+      structures: [
+        EventStructure(
+          raceId: 1,
+          categoryId: 2,
+          raceLabel: 'Surfski',
+          categoryLabel: 'Junior',
+          levels: [RoundLevel(type: RoundType.finale, serverId: 200)],
+        ),
+      ],
+    ));
+    await seed([meeting()]);
+
+    expect(controller.unscheduledRounds.single.partieId, 200);
+    expect(controller.unscheduledRounds.single.pendingIndexes, isEmpty);
   });
 
   test('unscheduledRounds skips a round with no serverId', () async {
