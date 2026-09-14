@@ -21,10 +21,20 @@ class MeetingService extends GetxService {
 
   int? _competitionId;
 
+  // Le service est `permanent` mais les contrôleurs qui l'appellent sont
+  // recréés à chaque entrée de route : un load() lancé par un écran déjà
+  // quitté peut donc encore être en vol quand un load() plus récent, pour une
+  // autre compétition, a déjà répondu. Ce compteur donne à chaque appel un
+  // jeton ; un appel dont le jeton n'est plus le dernier en date sait que sa
+  // réponse a été dépassée et n'écrit rien.
+  int _requestToken = 0;
+
   /// Rend si [meetings] reflète bien FFSS. Un appelant qui enchaîne sur une
   /// écriture dérivée de la liste doit le savoir : calculer une fin de réunion
   /// depuis une liste que le rechargement n'a pas pu rafraîchir pousserait une
-  /// `fin` d'avant l'écriture, et la signalerait comme un succès.
+  /// `fin` d'avant l'écriture, et la signalerait comme un succès. Un appel
+  /// dépassé par un load() plus récent rend aussi `false`, pour la même
+  /// raison : sa réponse n'a été écrite nulle part.
   ///
   /// Un échec lève [hasError] plutôt qu'un message one-shot : un opérateur qui
   /// ne voit pas pourquoi sa journée est vide a besoin d'un état que la vue
@@ -34,20 +44,26 @@ class MeetingService extends GetxService {
   /// [silent] garde [isLoading] baissé pour qu'un tiré-pour-rafraîchir ne
   /// remplace pas la liste par un spinner sous le doigt de l'opérateur.
   Future<bool> load(int competitionId, {bool silent = false}) async {
+    final token = ++_requestToken;
     // Changer de compétition vide d'abord : les réunions de la précédente
-    // s'afficheraient sous la nouvelle si le chargement échouait.
+    // s'afficheraient sous la nouvelle si le chargement échouait. Ceci est
+    // synchrone — pas d'await avant, donc pas de jeton à vérifier ici : aucun
+    // autre appel ne peut s'intercaler.
     if (_competitionId != competitionId) meetings.clear();
     _competitionId = competitionId;
     try {
       if (!silent) isLoading.value = true;
       hasError.value = false;
-      meetings.value = await _repo.getMeetings(competitionId);
+      final result = await _repo.getMeetings(competitionId);
+      if (token != _requestToken) return false;
+      meetings.value = result;
       return true;
     } on AppException {
+      if (token != _requestToken) return false;
       hasError.value = true;
       return false;
     } finally {
-      if (!silent) isLoading.value = false;
+      if (!silent && token == _requestToken) isLoading.value = false;
     }
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
@@ -104,6 +106,29 @@ void main() {
 
     expect(service.byId(7)?.id, 7);
     expect(service.byId(8), isNull);
+  });
+
+  test(
+      'a load superseded by a newer competition is discarded, not '
+      'merely overwritten', () async {
+    final pendingFor42 = Completer<List<Meeting>>();
+    when(() => repo.getMeetings(42)).thenAnswer((_) => pendingFor42.future);
+    when(() => repo.getMeetings(43)).thenAnswer((_) async => [meeting(2)]);
+
+    // load(42) suspends on the unresolved completer before load(43) starts —
+    // the same shape as a controller torn down mid-request by a route change.
+    final first = service.load(42);
+    final second = service.load(43);
+
+    expect(await second, isTrue);
+    expect(service.meetings.single.id, 2);
+
+    pendingFor42.complete([meeting(1)]);
+    expect(await first, isFalse);
+
+    // The stale response must not have clobbered competition 43's list.
+    expect(service.meetings.single.id, 2);
+    expect(service.isLoading.value, isFalse);
   });
 
   test('placedPartieIds spans every meeting and skips manual items', () async {
