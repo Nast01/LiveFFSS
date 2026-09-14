@@ -54,7 +54,7 @@ Ces règles viennent du `CLAUDE.md` du projet et du spec. **Elles s'appliquent i
 | `lib/app/data/datasources/meeting_remote_datasource.dart` | + `deleteMeeting`, `submitLane` prend `engagement` en `String` |
 | `lib/app/data/repositories/meeting_repository.dart` | + `deleteMeeting`, `createDefaultLanes` envoie `'0'`, `syncLanes` envoie `''`/id |
 | `lib/app/domain/models/meeting.dart` | + `extension MeetingSite` |
-| `lib/app/presentation/modules/programme/day_sections.dart` | `DaySection`/`daySections` → `meetingEntries` |
+| `lib/app/presentation/modules/programme/day_sections.dart` | `meetingItems` s'ajoute à côté de `daySections`, qui est **conservé** (ruling R12) |
 | `lib/app/core/di/initial_binding.dart` | + `MeetingService` en 4b |
 | `lib/app/module/programme/bindings/programme_binding.dart` | `ScheduleController` → `MeetingListController` |
 | `lib/app/module/programme/views/programme_view.dart` | `ScheduleView` → `MeetingListView` |
@@ -1183,7 +1183,7 @@ EOF
 
 **Files:**
 - Modify: `lib/app/presentation/modules/programme/day_sections.dart`
-- Test: `test/presentation/modules/programme/day_sections_test.dart` (créer si absent — vérifier d'abord)
+- Test: `test/presentation/modules/programme/day_sections_test.dart` (**existe déjà** — les nouveaux cas s'ajoutent aux anciens, ruling R7 et R12)
 
 **Interfaces:**
 - Consumes: `Meeting`, `Slot`, `Run`
@@ -1192,7 +1192,9 @@ EOF
   - `class MeetingItem { int slotId; String label; DateTime begin; DateTime end; List<DayEntry> courses; }`
   - `List<MeetingItem> meetingItems(Meeting? meeting)` — **pas** `meetingEntries`
 
-`DaySection` et `daySections` disparaissent : le regroupement par site n'a plus d'objet, une réunion n'en a qu'un. Ce qui les remplace est une liste **ordonnée de créneaux**, chacun portant ses courses — parce que l'unité qui se déplace est le créneau, pas la course.
+**Correction apportée en cours d'exécution — ruling R12.** Ce plan affirmait ici que `DaySection` et `daySections` disparaissaient. C'était faux : `CompetitionDetailProgrammeView`, un écran livré et routé, les consomme pour son filtre par site. La règle « une réunion = un site » contraint les réunions que cette app **rédige** ; cet écran-là est en lecture seule sur ce que FFSS porte, y compris des réunions qui mélangent des sites. **Les deux fonctions cohabitent.**
+
+Ce qui s'ajoute à côté est une liste **ordonnée de créneaux**, chacun portant ses courses — parce que l'unité qui se déplace est le créneau, pas la course.
 
 - [ ] **Step 1 : écrire les tests qui échouent**
 
@@ -1291,7 +1293,7 @@ Expected: FAIL — `meetingItems` non défini.
 
 - [ ] **Step 3 : réécrire `day_sections.dart`**
 
-Remplacer intégralement le contenu de `lib/app/presentation/modules/programme/day_sections.dart` par :
+**Ajouter** ce qui suit à `lib/app/presentation/modules/programme/day_sections.dart`, en laissant `DaySection`, `daySections` et leur comparateur `_byBegin` en place (ruling R12) :
 
 ```dart
 import 'package:live_ffss/app/domain/models/meeting.dart';
@@ -4565,10 +4567,13 @@ EOF
 - [ ] **Step 1 : vérifier qu'il ne reste aucun appelant**
 
 ```bash
-grep -rn "ScheduleController\|ScheduleView\|daySections\|DaySection\|selectedSite\|UnscheduledRound" lib/ test/
+grep -rn "ScheduleController\|ScheduleView\|selectedSite\|UnscheduledRound" lib/ test/
+grep -rn "daySections\|DaySection" lib/ test/
 ```
 
-Seuls `meeting_editor_controller.dart` et `meeting_editor_view.dart` doivent ressortir, pour `UnscheduledRound`. Si autre chose apparaît, le migrer **avant** de supprimer.
+Le premier grep ne doit ressortir que `meeting_editor_controller.dart` et `meeting_editor_view.dart`, pour `UnscheduledRound`. Si autre chose apparaît, le migrer **avant** de supprimer.
+
+Le second **doit** ressortir `day_sections.dart` et les trois fichiers `competition_detail_programme` — contrôleur, vue et test. C'est attendu : ruling R12 conserve `daySections` pour cet écran en lecture seule. **N'y supprimer rien.** Seules les références portées par `schedule_view.dart` disparaissent, avec le fichier.
 
 - [ ] **Step 2 : supprimer les trois fichiers**
 

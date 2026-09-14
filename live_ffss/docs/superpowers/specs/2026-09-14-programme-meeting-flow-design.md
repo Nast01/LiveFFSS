@@ -313,7 +313,7 @@ est déjà tenue ; seul `engagement` change.
 | `_DayChips`, `_DayRangeHeader` | les en-têtes de jour de la liste |
 | `_ensureMeeting` | la création explicite |
 | `meetingFor(day)`, `endMinutesOfDay(day)` | leurs équivalents par réunion |
-| `DaySection` et le regroupement par site de `day_sections.dart` | `DayEntry` survit seul — l'éditeur liste les items dans l'ordre |
+| ~~`DaySection` et le regroupement par site~~ | **rien — conservés.** `CompetitionDetailProgrammeView`, en lecture seule sur ce que FFSS porte, s'en sert encore pour son filtre par site : « une réunion = un site » contraint ce que cette app rédige, pas ce qu'elle affiche. `MeetingItem`/`meetingItems` s'ajoutent à côté |
 
 `SitesController` et `SitesView`, eux, ne changent pas d'une ligne : ils sont
 simplement routés.
