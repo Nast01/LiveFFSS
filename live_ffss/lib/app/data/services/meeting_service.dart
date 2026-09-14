@@ -29,6 +29,15 @@ class MeetingService extends GetxService {
   // réponse a été dépassée et n'écrit rien.
   int _requestToken = 0;
 
+  // Le jeton répond à « ma réponse compte-t-elle encore ? » ; il ne peut pas
+  // aussi répondre à « quelqu'un charge-t-il encore ? ». Un appel dépassé a
+  // quand même levé [isLoading] à son tour et doit le rendre en le baissant à
+  // sa sortie, sans quoi un rafraîchissement silencieux qui répond avant lui
+  // laisserait le drapeau levé pour toujours. Compte les appels non
+  // silencieux encore en vol ; [isLoading] ne redescend que lorsqu'il n'en
+  // reste aucun.
+  int _loadingCalls = 0;
+
   /// Rend si [meetings] reflète bien FFSS. Un appelant qui enchaîne sur une
   /// écriture dérivée de la liste doit le savoir : calculer une fin de réunion
   /// depuis une liste que le rechargement n'a pas pu rafraîchir pousserait une
@@ -52,7 +61,10 @@ class MeetingService extends GetxService {
     if (_competitionId != competitionId) meetings.clear();
     _competitionId = competitionId;
     try {
-      if (!silent) isLoading.value = true;
+      if (!silent) {
+        _loadingCalls++;
+        isLoading.value = true;
+      }
       hasError.value = false;
       final result = await _repo.getMeetings(competitionId);
       if (token != _requestToken) return false;
@@ -63,7 +75,13 @@ class MeetingService extends GetxService {
       hasError.value = true;
       return false;
     } finally {
-      if (!silent && token == _requestToken) isLoading.value = false;
+      // Inconditionnel sur le jeton : cet appel a levé le drapeau, à lui de
+      // le rendre même dépassé — seul le compte d'appels encore en vol décide
+      // si [isLoading] doit redescendre.
+      if (!silent) {
+        _loadingCalls--;
+        isLoading.value = _loadingCalls > 0;
+      }
     }
   }
 

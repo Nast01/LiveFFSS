@@ -131,6 +131,32 @@ void main() {
     expect(service.isLoading.value, isFalse);
   });
 
+  test(
+      'a slow non-silent load still lowers isLoading after a silent '
+      'refresh resolves first', () async {
+    final firstCall = Completer<List<Meeting>>();
+    final silentCall = Completer<List<Meeting>>();
+    final calls = [firstCall, silentCall];
+    var callIndex = 0;
+    when(() => repo.getMeetings(42))
+        .thenAnswer((_) => calls[callIndex++].future);
+
+    final firstLoad = service.load(42);
+    expect(service.isLoading.value, isTrue);
+
+    final silentReload = service.reload(silent: true);
+
+    silentCall.complete([meeting(1)]);
+    expect(await silentReload, isTrue);
+    // Le silencieux a fini, mais le premier appel — celui qui a levé le
+    // drapeau — est toujours en vol.
+    expect(service.isLoading.value, isTrue);
+
+    firstCall.complete([meeting(1)]);
+    expect(await firstLoad, isFalse);
+    expect(service.isLoading.value, isFalse);
+  });
+
   test('placedPartieIds spans every meeting and skips manual items', () async {
     when(() => repo.getMeetings(42)).thenAnswer((_) async => [
           meeting(1, slots: [slot(10, detail: partie(100)), slot(11)]),
