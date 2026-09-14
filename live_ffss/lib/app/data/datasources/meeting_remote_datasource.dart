@@ -34,6 +34,9 @@ abstract class MeetingRemoteDataSource {
     int? id,
   });
 
+  /// Supprime une réunion. Emporte ses créneaux et ses courses côté serveur.
+  Future<bool> deleteMeeting(int meetingId);
+
   /// Creates a créneau of a réunion, or updates the one with the given [id].
   ///
   /// [raceFormatDetailId] is the round ("partie") this créneau schedules;
@@ -215,6 +218,16 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
     final endpoint = ApiEndpoints.replacePath(
       ApiEndpoints.slotDelete,
       {'id': slotId.toString()},
+    );
+    final body = await _http.post(endpoint);
+    return body['success'] == true;
+  }
+
+  @override
+  Future<bool> deleteMeeting(int meetingId) async {
+    final endpoint = ApiEndpoints.replacePath(
+      ApiEndpoints.meetingDelete,
+      {'id': meetingId.toString()},
     );
     final body = await _http.post(endpoint);
     return body['success'] == true;

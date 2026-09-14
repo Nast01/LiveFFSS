@@ -348,6 +348,15 @@ void main() {
     verify(() => ds.deleteRun(24)).called(1);
   });
 
+  group('deleteMeeting', () {
+    test('forwards to the data source', () async {
+      when(() => ds.deleteMeeting(77)).thenAnswer((_) async => true);
+
+      expect(await repo.deleteMeeting(77), isTrue);
+      verify(() => ds.deleteMeeting(77)).called(1);
+    });
+  });
+
   group('syncLanes', () {
     Lane lane(int id, int number) => Lane(id: id, number: number);
 

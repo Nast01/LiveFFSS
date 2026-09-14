@@ -25,6 +25,9 @@ abstract class MeetingRepository {
     int? id,
   });
 
+  /// Supprime une réunion, ses créneaux et ses courses.
+  Future<bool> deleteMeeting(int meetingId);
+
   /// Creates a créneau of a réunion, or updates the one with the given [id].
   ///
   /// [raceFormatDetailId] is the round ("partie") this créneau schedules;
@@ -236,6 +239,10 @@ class MeetingRepositoryImpl implements MeetingRepository {
 
   @override
   Future<bool> deleteSlot(int slotId) => _dataSource.deleteSlot(slotId);
+
+  @override
+  Future<bool> deleteMeeting(int meetingId) =>
+      _dataSource.deleteMeeting(meetingId);
 
   @override
   Future<int> createDefaultLanes({

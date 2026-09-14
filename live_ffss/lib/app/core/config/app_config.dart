@@ -66,6 +66,9 @@ class ApiEndpoints {
   static const String clubDetail = 'organisme/:id';
   static const String meetingSubmit = 'competition/:competition/reunion/submit';
   static const String meetingList = 'competition/:id/reunion';
+  // Supprime la réunion ET, côté serveur, ses créneaux et ses courses — la
+  // réponse ne le détaille pas.
+  static const String meetingDelete = 'competition/reunion/:id/delete';
   // Cassé côté FFSS au 2026-08-31, comme `runSubmit` : tout GET répond
   // `success: false, filterByCreneau() only accepts arguments of type Creneau`.
   // Le repository retombe sur les courses déjà portées par la réponse

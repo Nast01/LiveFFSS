@@ -519,4 +519,24 @@ void main() {
           query: any(named: 'query'))).called(1);
     });
   });
+
+  group('deleteMeeting', () {
+    test('posts to competition/reunion/:id/delete and returns success',
+        () async {
+      when(() => http.post('competition/reunion/77/delete'))
+          .thenAnswer((_) async => {'success': true});
+
+      final deleted = await ds.deleteMeeting(77);
+
+      expect(deleted, isTrue);
+      verify(() => http.post('competition/reunion/77/delete')).called(1);
+    });
+
+    test('returns false when FFSS reports a failure', () async {
+      when(() => http.post(any()))
+          .thenAnswer((_) async => {'success': false, 'message': 'Nope'});
+
+      expect(await ds.deleteMeeting(77), isFalse);
+    });
+  });
 }
