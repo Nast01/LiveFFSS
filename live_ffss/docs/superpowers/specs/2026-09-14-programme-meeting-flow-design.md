@@ -148,8 +148,9 @@ de site liste les `ProgrammeSite` locaux ; vide, il renvoie vers ④.
    sam. 12 sept. · 08:00 → 11:20
 ─────────────────────────────────────────────
  ≡ 08:00  Accueil des clubs        10′   🗑
- ≡ 08:10  Séries 1 · Surfski D Junior 10′ 🗑
- ≡ 08:20  Séries 2 · Surfski D Junior 10′ 🗑
+ ≡ 08:10  Séries · Surfski · D · Junior     🗑
+      08:10  Série 1              10′   🗑
+      08:20  Série 2              10′   🗑
    + Item manuel        + Depuis une épreuve
 ─────────────────────────────────────────────
  NON PLANIFIÉ (12)                        ⌃
@@ -160,6 +161,11 @@ de site liste les `ProgrammeSite` locaux ; vide, il renvoie vers ④.
 Les heures de la colonne de gauche sont **calculées, jamais saisies**. Seules la
 durée et l'ordre (glisser-déposer) s'éditent ; `✎` ouvre ② pour le titre, la date,
 le site et l'heure de début.
+
+**L'unité qui se déplace est le créneau**, pas la course : c'est lui que FFSS
+positionne dans la journée, et ses courses le suivent. Un créneau portant un tour
+se déplie donc en autant de sous-lignes, chacune gardant sa propre durée et sa
+propre suppression.
 
 ### ④ Sites — `/programme/sites`
 
@@ -175,7 +181,8 @@ site vide renvoie vers ④) → ③ vide → « Aucun item, ajoute un item ou un
 ## Découpage
 
 `ScheduleController` porte aujourd'hui l'arbre serveur, la palette, la frise, les
-écritures et le repacking — 912 lignes. Il éclate en quatre pièces.
+écritures et le repacking — 912 lignes. Il éclate en cinq pièces, chacune à une
+seule responsabilité.
 
 ### `MeetingService` — `lib/app/data/services/`
 
@@ -195,7 +202,18 @@ Enregistré `permanent: true` en `InitialBinding`, **étape 4b**, après
 ### `MeetingListController`
 
 L'onglet Programme. Groupe `meetings` par jour, expose les jours de la
-compétition, compte les tours non planifiés, crée / édite / supprime une réunion.
+compétition, compte les tours non planifiés, supprime une réunion.
+
+### `MeetingFormController`
+
+Créer ou éditer une réunion : titre, date, heure de début, site. Séparé de la
+liste parce que le formulaire s'ouvre des **deux** écrans — le `+` de la liste et
+le `✎` de l'éditeur — et qu'un contrôleur par responsabilité vaut mieux qu'un
+contrôleur de liste qui saurait aussi écrire.
+
+Un point d'API décisif y vit : `creneau/submit` et `course/submit` n'envoient que
+`HH:mm`, **jamais le jour**. Changer la date d'une réunion ne demande donc qu'un
+`reunion/submit` ; seul un changement d'**heure de début** décale ses items.
 
 ### `MeetingEditorController`
 
@@ -290,7 +308,7 @@ est déjà tenue ; seul `engagement` change.
 | Supprimé | Remplacé par |
 |---|---|
 | `ScheduleView` (843 l.) | `MeetingListView` + `MeetingEditorView` + `MeetingFormView` |
-| `ScheduleController` (912 l.) | `MeetingService` + `MeetingListController` + `MeetingEditorController` + `meeting_timetable.dart` |
+| `ScheduleController` (912 l.) | `MeetingService` + `MeetingListController` + `MeetingFormController` + `MeetingEditorController` + `meeting_timetable.dart` |
 | `_SiteChips`, `_SiteChip`, `selectedSite`, `showsSite`, `siteNamesFor`, `_knownSiteNames`, `_ensureValidSite` et son `Worker` | rien — **une réunion = un site** fait tomber tout le filtrage par site |
 | `_DayChips`, `_DayRangeHeader` | les en-têtes de jour de la liste |
 | `_ensureMeeting` | la création explicite |
@@ -348,7 +366,8 @@ Convention du projet : mocktail, pas de test de widget.
 |---|---|
 | `test/data/models/meeting_timetable_test.dart` | bout-à-bout depuis l'heure de début ; durée d'un créneau à courses = somme de ses courses ; réunion vide finissant à son propre début ; `moves` ne renvoyant **que** les items déplacés |
 | `test/data/services/meeting_service_test.dart` | `load`, rechargement, état après échec |
-| `test/presentation/modules/programme/controllers/meeting_list_controller_test.dart` | groupement par jour, N réunions le même jour, jour sans réunion, création / édition / suppression |
+| `test/presentation/modules/programme/controllers/meeting_list_controller_test.dart` | groupement par jour, N réunions le même jour, jour sans réunion, suppression |
+| `.../controllers/meeting_form_controller_test.dart` | création (fin = début, `description` = site), édition, refus d'un titre ou d'un site vide ; changer la date ne décale aucun item, changer l'heure de début les décale tous |
 | `test/presentation/modules/programme/controllers/meeting_editor_controller_test.dart` | item manuel ; `scheduleRound` → **site hérité de la réunion** et **`engagement: '0'`** sur chaque place ; durée → `moves` ; suppression du dernier item d'un créneau |
 | `test/data/repositories/meeting_repository_test.dart` (étendu) | `createDefaultLanes` envoie `'0'`, `syncLanes` envoie `''` pour libérer, `deleteMeeting` rend le booléen de `success` |
 | `test/data/datasources/meeting_remote_datasource_test.dart` (étendu) | `submitLane` transmet `engagement` tel quel ; `deleteMeeting` construit `competition/reunion/:id/delete` |
