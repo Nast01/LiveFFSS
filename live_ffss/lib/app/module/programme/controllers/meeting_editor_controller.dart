@@ -19,9 +19,10 @@ const int defaultItemMinutes = 10;
 /// poser — une ligne de la palette.
 ///
 /// L'unité posée est la **course**, pas le tour : l'opérateur pose tout d'un
-/// coup ou course par course. Le créneau, lui, reste unique par partie — c'est
-/// ce que `Creneau.partie` impose — donc les courses d'un tour atterrissent
-/// toutes dans le même.
+/// coup ou course par course, et rien ne l'oblige à tout poser dans la même
+/// réunion. Chaque réunion qui reçoit des courses d'un tour ouvre son propre
+/// créneau pour sa partie — une course porte le site et le jour de la réunion
+/// qui l'héberge, donc elle doit vivre dans un créneau d'ici.
 class UnscheduledRound {
   const UnscheduledRound({
     required this.partieId,
@@ -110,28 +111,20 @@ class MeetingEditorController extends GetxController {
     final held = meeting;
     if (held == null) return const [];
     final live = _meetings.liveRunIds;
-    // Les parties qu'un créneau de CETTE réunion porte déjà : y ajouter une
-    // course est légitime, elle rejoint ce créneau. Celles que porte une
-    // autre réunion ne le sont pas — un tour étalé sur deux réunions
-    // courrait sur deux sites et deux jours, et son tirage n'aurait plus de
-    // sens.
-    final here = <int>{
-      for (final slot in held.slots)
-        if (slot.raceFormatDetail != null) slot.raceFormatDetail!.id,
-    };
-    final elsewhere = _meetings.placedPartieIds.difference(here);
 
     final rounds = <UnscheduledRound>[];
     for (final structure
         in _programme.current.value?.structures ?? const <EventStructure>[]) {
       for (final level in structure.levels) {
-        if (level.serverId <= 0 || elsewhere.contains(level.serverId)) continue;
+        if (level.serverId <= 0) continue;
 
         final pending = <int>[];
         if (level.races.isEmpty) {
-          // Rien à suivre par course : l'état du tour reste celui de sa
-          // partie, sinon on ne pourrait plus poser son créneau seul.
-          if (here.contains(level.serverId)) continue;
+          // Rien à suivre par course : l'état d'un tour sans heat tiré reste
+          // porté par sa partie. Son créneau créé, où que ce soit, il ne
+          // reste rien à poser — donc il sort de toutes les palettes, sans
+          // quoi on le reposerait dans chaque réunion.
+          if (_meetings.placedPartieIds.contains(level.serverId)) continue;
         } else {
           for (var i = 0; i < level.races.length; i++) {
             final runId = level.races[i].runId;
@@ -235,9 +228,11 @@ class MeetingEditorController extends GetxController {
 
     isBusy.value = true;
     try {
-      // Un créneau par partie — `Creneau.partie` n'en pointe qu'une — donc
-      // une course posée plus tard rejoint celui qui existe déjà plutôt que
-      // d'en ouvrir un second, qui couperait le tour en deux sur la frise.
+      // Un créneau par partie et **par réunion** : une course posée plus tard
+      // rejoint le créneau que cette réunion porte déjà pour cette partie,
+      // et n'en ouvre un second que si elle n'en a aucun. Chercher dans les
+      // autres réunions serait faux — la course y prendrait leur site et leur
+      // jour, et l'écriture serait invisible depuis cet écran.
       final existing = _slotOfPartie(held, partieId);
       final int slotId;
       final int begin;
@@ -302,6 +297,9 @@ class MeetingEditorController extends GetxController {
   }
 
   /// Le créneau de [held] qui porte [partieId], s'il y en a un.
+  ///
+  /// Volontairement limité à cette réunion : un tour peut en occuper
+  /// plusieurs, chacune avec son créneau.
   Slot? _slotOfPartie(Meeting held, int partieId) {
     for (final slot in held.slots) {
       if (slot.raceFormatDetail?.id == partieId) return slot;

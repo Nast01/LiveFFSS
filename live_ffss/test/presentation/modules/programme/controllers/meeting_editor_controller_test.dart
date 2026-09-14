@@ -633,10 +633,130 @@ void main() {
         ));
   });
 
-  test('unscheduledRounds skips a round already placed in ANOTHER meeting',
+  test(
+      'un tour entame dans une autre reunion reste offert ici avec ses '
+      'courses restantes', () async {
+    // La reunion 2 porte le creneau du tour et sa premiere course. Les deux
+    // autres courses restent a poser, et rien n'oblige a les poser dans la
+    // meme reunion : chaque course porte son propre site et son propre jour.
+    await programme.save(const CompetitionProgramme(
+      competitionId: 42,
+      structures: [
+        EventStructure(
+          raceId: 1,
+          categoryId: 2,
+          raceLabel: 'Surfski',
+          categoryLabel: 'Junior',
+          levels: [
+            RoundLevel(type: RoundType.serie, serverId: 100, races: [
+              ProgrammeRace(id: 1, number: 1, runId: 11),
+              ProgrammeRace(id: 2, number: 2),
+              ProgrammeRace(id: 3, number: 3),
+            ]),
+          ],
+        ),
+      ],
+    ));
+    await seed([
+      meeting(),
+      Meeting(
+        id: 2,
+        name: 'Apres-midi',
+        description: 'Bassin',
+        date: day,
+        beginHour: onDay(14, 0),
+        endHour: onDay(14, 0),
+        slots: [
+          slot(20, 'Series', 14, 0, 14, 10,
+              detail: partie(100), runs: [run(11, 'Serie 1', 14, 0, 14, 10)]),
+        ],
+      ),
+    ]);
+
+    final round = controller.unscheduledRounds.single;
+    expect(round.partieId, 100);
+    expect(round.pendingIndexes, [1, 2]);
+  });
+
+  test('poser une course depuis une autre reunion cree son propre creneau',
       () async {
-    // C'est la raison d'être de MeetingService.placedPartieIds : sans elle,
-    // le même tour serait proposé deux fois.
+    // Ecrire dans le creneau de la reunion voisine serait invisible depuis
+    // ici, et la course y prendrait le site et le jour de l'autre reunion.
+    await programme.save(const CompetitionProgramme(
+      competitionId: 42,
+      structures: [
+        EventStructure(
+          raceId: 1,
+          categoryId: 2,
+          raceLabel: 'Surfski',
+          categoryLabel: 'Junior',
+          levels: [
+            RoundLevel(type: RoundType.serie, serverId: 100, races: [
+              ProgrammeRace(id: 1, number: 1, runId: 11),
+              ProgrammeRace(id: 2, number: 2),
+            ]),
+          ],
+        ),
+      ],
+    ));
+    await seed([
+      meeting(),
+      Meeting(
+        id: 2,
+        name: 'Apres-midi',
+        description: 'Bassin',
+        date: day,
+        beginHour: onDay(14, 0),
+        endHour: onDay(14, 0),
+        slots: [
+          slot(20, 'Series', 14, 0, 14, 10,
+              detail: partie(100), runs: [run(11, 'Serie 1', 14, 0, 14, 10)]),
+        ],
+      ),
+    ]);
+    stubWritesOk();
+
+    await controller.scheduleRound(
+      partieId: 100,
+      name: 'Series',
+      courses: const [(index: 1, name: 'Serie 2')],
+      spotsPerRace: 0,
+    );
+
+    // Un creneau neuf, dans CETTE reunion, pointant la meme partie.
+    verify(() => repo.submitSlot(
+          meetingId: 1,
+          name: 'Series',
+          beginHour: any(named: 'beginHour'),
+          endHour: any(named: 'endHour'),
+          raceFormatDetailId: 100,
+          id: null,
+        )).called(1);
+    // Et la course y atterrit, pas dans le creneau 20 de la reunion voisine.
+    verify(() => repo.submitRun(
+          slotId: 10,
+          name: 'Serie 2',
+          beginHour: any(named: 'beginHour'),
+          endHour: any(named: 'endHour'),
+          site: any(named: 'site'),
+          id: any(named: 'id'),
+        )).called(1);
+    verifyNever(() => repo.submitRun(
+          slotId: 20,
+          name: any(named: 'name'),
+          beginHour: any(named: 'beginHour'),
+          endHour: any(named: 'endHour'),
+          site: any(named: 'site'),
+          id: any(named: 'id'),
+        ));
+  });
+
+  test('un tour sans heat tire, deja pose ailleurs, est ecarte partout',
+      () async {
+    // Un tour sans heat tire n'a que son creneau a poser : une fois ce
+    // creneau cree, ou qu'il soit, il ne reste plus rien a faire et le tour
+    // doit sortir de toutes les palettes. C'est le seul cas ou l'etat reste
+    // porte par la partie et non par les courses.
     await programme.save(const CompetitionProgramme(
       competitionId: 42,
       structures: [
