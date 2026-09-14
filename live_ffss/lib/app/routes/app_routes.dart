@@ -9,6 +9,9 @@ abstract class Routes {
   static const rfidWriter = '/rfid-writer';
   static const programme = '/programme';
   static const structureEditor = '/structure-editor';
+  static const programmeMeeting = '/programme/meeting';
+  static const programmeMeetingForm = '/programme/meeting-form';
+  static const programmeSites = '/programme/sites';
   static const raceCourse = '/race-course';
   static const heatDraw = '/heat-draw';
   static const debug = '/debug';
