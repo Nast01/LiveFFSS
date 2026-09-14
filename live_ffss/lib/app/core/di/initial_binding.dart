@@ -31,6 +31,7 @@ import 'package:live_ffss/app/data/repositories/ranking_repository.dart';
 import 'package:live_ffss/app/data/repositories/result_repository.dart';
 import 'package:live_ffss/app/data/repositories/programme_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
+import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/user_preferences_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
@@ -162,6 +163,14 @@ class InitialBinding {
     );
     Get.put<MeetingRepository>(
       MeetingRepositoryImpl(Get.find<MeetingRemoteDataSource>()),
+      permanent: true,
+    );
+
+    // 5d bis. Owner of the réunion tree, shared by the three programme
+    // controllers. Synchronous — it reads no storage at construction, unlike
+    // ProgrammeService.
+    Get.put<MeetingService>(
+      MeetingService(Get.find<MeetingRepository>()),
       permanent: true,
     );
 
