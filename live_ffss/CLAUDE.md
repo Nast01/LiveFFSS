@@ -142,6 +142,18 @@ All `permanent: true`. Per-route bindings (under `lib/app/module/<feature>/bindi
 
 ## Known gaps (documented, not bugs)
 
+- **`getEntries` ne demande aucune fenêtre, et la liste des engagés est
+  peut-être tronquée en silence.** `RaceRemoteDataSource.getEntries` envoie
+  `{'epreuve': raceId}` sans `start` ni `length`, alors que FFSS sert **30
+  lignes** par défaut sur les routes en forme DataTables — c'est ce que
+  `deroulement` faisait, et ce que `MeetingRepositoryImpl._pageSize = 100`
+  existe pour contourner. **Non vérifié sur `engagement`** : la route peut
+  très bien tout renvoyer. Si elle plafonne, le compte d'engagés, le tri des
+  éligibles et les tirages reposent tous sur une liste incomplète, sans
+  aucun signe à l'écran. À vérifier avec le journal HTTP sur une épreuve de
+  plus de 30 engagés — ne pas « corriger » avant de savoir : ajouter une
+  pagination là où il n'en faut pas coûte un aller-retour par épreuve.
+
 - **Live results / mutations:** `getRunResults`, `updateBeachRankings`, `updateSwimmingTimes`, `withdrawAthlete` throw `UnimplementedError`. The FFSS endpoints aren't documented. `ResultRepository` is the typed seam — registered in `InitialBinding` with no consumer since the `slot` module was deleted; wire when backend confirmed. Note that a course's `Lane`s (FFSS « places ») now arrive embedded in the réunion tree, so a future results screen can read them from `Run.lanes` rather than the stub.
 - **`Lane.entry` / `Lane.result` are never populated in the réunion tree** — FFSS masks them there even when set. Who sits in a place is served ONLY by the place detail route, with lower-case keys that are neither `EntryDto`'s nor `LaneDto`'s: that shape is modelled in `LaneDetailDto`, and `MeetingRepository.getLaneSeats` reads it one place at a time (this is what syncs a draw between devices). `Lane.result` and `remplacants` remain unseen populated — don't guess their shape.
 - **Default lanes are created, never reconciled.** `MeetingRepository.createDefaultLanes` opens a course with 1..n spots, and `scheduleRound` calls it for every course it creates. Nothing yet detects a course whose lane count later drifted from its round's `spotsPerRace`, nor fills in the courses of a créneau created before this landed.
