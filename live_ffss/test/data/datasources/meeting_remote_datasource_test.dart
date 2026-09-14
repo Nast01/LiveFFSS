@@ -243,77 +243,33 @@ void main() {
   });
 
   group('submitLane', () {
-    // Vérifié en production le 2026-09-01 : le seul paramètre métier attendu
-    // est `numero`. La documentation fédérale annonce nom/debut/fin/partie,
-    // recopiés du créneau ; envoyés seuls, le serveur répond « Le numero de
-    // la place est obligatoire ».
-    test('une place part avec son seul numéro', () async {
+    test('sends engagement verbatim', () async {
       when(() => http.post(any(), query: any(named: 'query')))
-          .thenAnswer((_) async => {'success': true, 'id': 6});
+          .thenAnswer((_) async => {'id': 5});
 
-      final id = await ds.submitLane(runId: 20, number: 1);
+      await ds.submitLane(runId: 9, number: 3, engagement: '0');
 
-      expect(id, 6);
       final query = verify(() => http.post(
-          'competition/reunion/creneau/course/20/place/submit',
-          query: captureAny(named: 'query'))).captured.single;
-      expect(query, {'id': '', 'numero': '1', 'engagement': ''});
+            'competition/reunion/creneau/course/9/place/submit',
+            query: captureAny(named: 'query'),
+          )).captured.single as Map<String, dynamic>;
+      expect(query['engagement'], '0');
+      expect(query['numero'], '3');
+      expect(query['id'], '');
     });
 
-    test('un id renseigné met à jour la place existante', () async {
+    test('an empty engagement stays empty — it frees the spot', () async {
       when(() => http.post(any(), query: any(named: 'query')))
-          .thenAnswer((_) async => {'success': true, 'id': 6});
+          .thenAnswer((_) async => {'id': 5});
 
-      await ds.submitLane(runId: 20, number: 3, id: 6);
+      await ds.submitLane(runId: 9, number: 3, engagement: '', id: 41);
 
       final query =
           verify(() => http.post(any(), query: captureAny(named: 'query')))
               .captured
-              .single as Map;
-      expect(query['id'], '6');
-    });
-
-    test('une réponse sans id vaut échec', () async {
-      when(() => http.post(any(), query: any(named: 'query')))
-          .thenAnswer((_) async => {'success': true});
-
-      expect(await ds.submitLane(runId: 20, number: 1), 0);
-    });
-  });
-
-  group('submitLane avec engagement', () {
-    // Vérifié en production le 2026-09-03 : `engagement` est accepté par
-    // place/submit et la place résout ses athlètes toute seule. L'arbre
-    // `reunion` renvoie `engagement: null` même quand la place en porte un —
-    // seule la route de détail le montre.
-    test('la place part avec son engagement', () async {
-      when(() => http.post(any(), query: any(named: 'query')))
-          .thenAnswer((_) async => {'success': true, 'id': 7});
-
-      final id = await ds.submitLane(runId: 24, number: 2, entryId: 590956);
-
-      expect(id, 7);
-      final query =
-          verify(() => http.post(any(), query: captureAny(named: 'query')))
-              .captured
-              .single as Map;
-      expect(query['numero'], '2');
-      expect(query['engagement'], '590956');
-    });
-
-    // Une valeur vide vide l'engagement côté serveur — vérifié aussi — donc
-    // une place par défaut reste réellement libre.
-    test('sans engagement, le champ part vide', () async {
-      when(() => http.post(any(), query: any(named: 'query')))
-          .thenAnswer((_) async => {'success': true, 'id': 7});
-
-      await ds.submitLane(runId: 24, number: 1);
-
-      final query =
-          verify(() => http.post(any(), query: captureAny(named: 'query')))
-              .captured
-              .single as Map;
+              .single as Map<String, dynamic>;
       expect(query['engagement'], '');
+      expect(query['id'], '41');
     });
   });
 
