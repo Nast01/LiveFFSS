@@ -256,6 +256,9 @@ final Map<String, String> frFR = {
   'schedule_item_failed': "FFSS n'a pas enregistré cet item",
   'schedule_meeting_end_failed':
       "La nouvelle fin de journée n'a pas été enregistrée",
+  'meeting_title_required': 'Donne un titre à la réunion',
+  'meeting_site_required': 'Choisis un site',
+  'meeting_save_failed': "FFSS n'a pas enregistré cette réunion",
   'add_manual_item': 'Ajouter un item',
   'manual_label': 'Libellé',
   'edit_item': 'Modifier',
