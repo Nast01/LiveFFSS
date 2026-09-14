@@ -21,6 +21,10 @@ class MeetingService extends GetxService {
 
   int? _competitionId;
 
+  /// La compétition chargée. Exposée pour les écritures qui l'exigent sans
+  /// que le modèle `Meeting` la porte — `reunion/submit` en tête.
+  int? get competitionId => _competitionId;
+
   // Le service est `permanent` mais les contrôleurs qui l'appellent sont
   // recréés à chaque entrée de route : un load() lancé par un écran déjà
   // quitté peut donc encore être en vol quand un load() plus récent, pour une

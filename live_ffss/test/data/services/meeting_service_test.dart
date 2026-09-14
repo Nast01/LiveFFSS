@@ -166,4 +166,13 @@ void main() {
 
     expect(service.placedPartieIds, {100, 200});
   });
+
+  test('competitionId remembers the loaded competition', () async {
+    expect(service.competitionId, isNull);
+    when(() => repo.getMeetings(42)).thenAnswer((_) async => []);
+
+    await service.load(42);
+
+    expect(service.competitionId, 42);
+  });
 }
