@@ -1,9 +1,6 @@
 import 'package:live_ffss/app/domain/models/meeting.dart';
-import 'package:live_ffss/app/domain/models/run.dart';
 
-/// A single item on the day's réunion: either a course (a [Slot]'s [Run]) or,
-/// when a créneau carries no course, the créneau itself — a manual item shown
-/// at its own `beginHour`/`endHour`.
+/// Une course d'un créneau, telle que l'éditeur l'affiche.
 class DayEntry {
   const DayEntry({
     required this.begin,
@@ -17,69 +14,63 @@ class DayEntry {
   final DateTime end;
   final String label;
 
-  /// The créneau backing this row, set only for a manual item — the only kind
-  /// the editor can resize. A course's duration comes from its round.
+  /// Le créneau qui porte cette ligne.
   final int? slotId;
 
-  /// The course backing this row, set only for a course entry.
+  /// La course qui porte cette ligne.
   final int? runId;
 }
 
-/// A group of [DayEntry]s sharing a site — [Run.site] for course entries, or
-/// the générique bucket for manual (course-less) créneaux, which carry no site
-/// of their own.
-class DaySection {
-  const DaySection({
-    required this.title,
-    required this.items,
-    this.isManual = false,
+/// Un item de la réunion : un créneau, avec ses courses s'il en porte.
+///
+/// Le créneau est l'unité, pas la course : c'est lui que FFSS positionne dans
+/// la journée — il ne porte aucun rang, son heure de début EST sa place — et
+/// ses courses le suivent.
+class MeetingItem {
+  const MeetingItem({
+    required this.slotId,
+    required this.label,
+    required this.begin,
+    required this.end,
+    required this.courses,
   });
 
-  /// The site name, empty for the manual bucket: naming that one is a display
-  /// concern, and keeping it out leaves this file free of translations.
-  final String title;
-  final List<DayEntry> items;
+  final int slotId;
+  final String label;
+  final DateTime begin;
+  final DateTime end;
 
-  /// The créneaux with no course. They belong to no site — a lunch break or a
-  /// prize-giving concerns the whole day — so a site filter never hides them.
-  final bool isManual;
+  /// Les courses du créneau, en ordre de passage. Vide pour un item manuel.
+  final List<DayEntry> courses;
+
+  bool get isManual => courses.isEmpty;
 }
 
-/// Splits the réunion's créneaux into per-[Run.site] sections. Sections are
-/// ordered by their earliest item so the day reads top to bottom.
-List<DaySection> daySections(Meeting? meeting) {
+/// Les items d'une réunion, ordonnés par leur heure de début.
+List<MeetingItem> meetingItems(Meeting? meeting) {
   if (meeting == null) return const [];
 
-  final bySite = <String, List<DayEntry>>{};
-  final manual = <DayEntry>[];
+  final items = <MeetingItem>[];
   for (final slot in meeting.slots) {
-    if (slot.runs.isEmpty) {
-      manual.add(DayEntry(
-        begin: slot.beginHour,
-        end: slot.endHour,
-        label: slot.name,
-        slotId: slot.id,
-      ));
-      continue;
-    }
-    for (final run in slot.runs) {
-      (bySite[run.site] ??= []).add(DayEntry(
-        begin: run.beginTime,
-        end: run.endTime,
-        label: run.fullLabel,
-        runId: run.id,
-      ));
-    }
+    final ordered = [...slot.runs]
+      ..sort((a, b) => a.beginTime.compareTo(b.beginTime));
+    items.add(MeetingItem(
+      slotId: slot.id,
+      label: slot.name,
+      begin: slot.beginHour,
+      end: slot.endHour,
+      courses: [
+        for (final run in ordered)
+          DayEntry(
+            begin: run.beginTime,
+            end: run.endTime,
+            label: run.fullLabel,
+            slotId: slot.id,
+            runId: run.id,
+          ),
+      ],
+    ));
   }
-
-  final sections = [
-    for (final entry in bySite.entries)
-      DaySection(title: entry.key, items: entry.value..sort(_byBegin)),
-    if (manual.isNotEmpty)
-      DaySection(title: '', items: manual..sort(_byBegin), isManual: true),
-  ];
-  sections.sort((a, b) => a.items.first.begin.compareTo(b.items.first.begin));
-  return sections;
+  items.sort((a, b) => a.begin.compareTo(b.begin));
+  return items;
 }
-
-int _byBegin(DayEntry a, DayEntry b) => a.begin.compareTo(b.begin);
