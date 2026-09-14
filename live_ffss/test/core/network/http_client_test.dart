@@ -680,4 +680,45 @@ void main() {
       expect(httpLog.entries.single.statusCode, isNull);
     });
   });
+
+  group('delai de requete', () {
+    test(
+        'une requete que le serveur ne repond jamais devient une '
+        'NetworkException', () async {
+      // Une socket laissee en suspens : sans delai arme, ce future ne se
+      // resout jamais et l'ecran appelant tourne en rond pour toujours. C'est
+      // le mecanisme qui transformait un incident reseau en spinner eternel
+      // sur l'onglet Structure d'une grosse competition.
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) => Completer<http.Response>().future);
+      client = HttpClient(
+        config: config,
+        tokenStorage: tokens,
+        inner: httpMock,
+        requestTimeout: const Duration(milliseconds: 50),
+      );
+
+      await expectLater(
+        client.get('competition/1/epreuve'),
+        throwsA(isA<NetworkException>()),
+      );
+    });
+
+    test('une reponse arrivee dans le delai passe normalement', () async {
+      // Garde-fou : le delai ne doit pas transformer une requete saine en
+      // echec.
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => responseWith('{"success": true}', 200));
+      client = HttpClient(
+        config: config,
+        tokenStorage: tokens,
+        inner: httpMock,
+        requestTimeout: const Duration(seconds: 5),
+      );
+
+      final body = await client.get('competition/1/epreuve');
+
+      expect(body['success'], isTrue);
+    });
+  });
 }

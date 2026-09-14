@@ -13,13 +13,19 @@ class HttpClient {
     required AppConfig config,
     required TokenStorage tokenStorage,
     http.Client? inner,
+    Duration requestTimeout = defaultRequestTimeout,
   })  : _config = config,
         _tokenStorage = tokenStorage,
-        _inner = inner ?? http.Client();
+        _inner = inner ?? http.Client(),
+        _requestTimeout = requestTimeout;
+
+  /// Delai au-dela duquel une requete FFSS est declaree perdue.
+  static const Duration defaultRequestTimeout = Duration(seconds: 30);
 
   final AppConfig _config;
   final TokenStorage _tokenStorage;
   final http.Client _inner;
+  final Duration _requestTimeout;
 
   Future<void> Function()? _onAuthFailure;
 
@@ -76,7 +82,12 @@ class HttpClient {
     try {
       final token = await _tokenStorage.getToken();
       uri = _buildUri(path, query, token);
-      final response = await send(uri, _buildHeaders(token));
+      // Arme le delai que le `catch` ci-dessous attrape. Sans lui ce `catch`
+      // etait inatteignable : `http` n'en pose aucun, donc une socket que le
+      // serveur laisse pendre ne revenait jamais et l'ecran appelant tournait
+      // en rond pour toujours, sans erreur a afficher.
+      final response =
+          await send(uri, _buildHeaders(token)).timeout(_requestTimeout);
       _record(started, method, uri, body, response: response);
       return _decode(response,
           authenticated: token != null && token.isNotEmpty);
