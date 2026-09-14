@@ -52,8 +52,10 @@ class MeetingListController extends GetxController {
     if (comp != null) await _meetings.load(comp.id);
   }
 
-  @override
-  Future<void> refresh() => _meetings.reload(silent: true);
+  // Not named `refresh`: GetxController already inherits one from GetX's
+  // ListNotifierMixin, whose contract is "notify listeners to rebuild" — a
+  // caller expecting that would fire a network reload instead.
+  Future<void> reloadFromServer() => _meetings.reload(silent: true);
 
   /// Les réunions de [day], la plus matinale d'abord. Comparées par date
   /// civile : [Meeting.date] porte le vrai jour, ses créneaux non.
