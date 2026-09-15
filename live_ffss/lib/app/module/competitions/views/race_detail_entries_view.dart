@@ -40,6 +40,9 @@ class _RaceDetailEntriesViewState extends State<RaceDetailEntriesView> {
   }
 
   String _subtitleOf(Entry entry) {
+    // No athletes, no year, no club, no roster: an empty subtitle is the
+    // honest answer — same guard as teamAttendance and the trailing-chip pick.
+    if (entry.athletes.isEmpty) return '';
     if (!isTeamEntry(entry)) {
       final athlete = entry.athletes.first;
       return [

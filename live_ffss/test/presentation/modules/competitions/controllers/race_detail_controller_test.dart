@@ -653,6 +653,39 @@ void main() {
       expect([for (final e in controller.sortedEntries) e.id], [2, 1]);
     });
 
+    test('sortMode club ordonne une liste mixte individuel et equipe',
+        () async {
+      final controller = await loadWith([
+        entry(1, [athlete(11, clubLabel: 'Nice')]),
+        entry(2, [
+          athlete(21, clubLabel: 'Antibes'),
+          athlete(22, clubLabel: 'Antibes'),
+        ]),
+      ]);
+
+      controller.setSortMode(CompetitorSortMode.club);
+
+      // "Antibes" (the team) sorts before "Nice" (the solo entry).
+      expect([for (final e in controller.sortedEntries) e.id], [2, 1]);
+    });
+
+    test('sortMode attendance ordonne une liste mixte individuel et equipe',
+        () async {
+      final controller = await loadWith([
+        entry(1, [athlete(11)]),
+        entry(2, [athlete(21), athlete(22)]),
+      ]);
+      controller.setAttendance(athlete(11), AttendanceStatus.absent);
+      controller.setAttendance(athlete(21), AttendanceStatus.present);
+      // athlete(22) stays waiting, so the team's own aggregate reads waiting.
+
+      controller.setSortMode(CompetitorSortMode.attendance);
+
+      // The team, waiting (index 0), sorts before the solo entry, absent
+      // (index 2) — teamAttendance reads the solo athlete's real status.
+      expect([for (final e in controller.sortedEntries) e.id], [2, 1]);
+    });
+
     test('deplier et replier une equipe', () async {
       final controller = await loadWith([
         entry(1, [athlete(11), athlete(12)]),
