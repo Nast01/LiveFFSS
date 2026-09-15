@@ -94,10 +94,14 @@ participants, et à ne pas « corriger » avant de savoir.
 `ParticipantService` — `permanent`, sur la forme de `MeetingService` :
 
 ```dart
-Future<bool> ensureLoaded(int competitionId, {bool silent = false});
-Future<bool> reload({bool silent = false});
+Future<bool> ensureLoaded(int competitionId);
+Future<bool> reload();
 int orderNumberOf(int athleteId);   // 0 quand inconnu
 ```
+
+Pas de drapeau `silent` ici, contrairement à `MeetingService` : celui-ci sert à
+taire un `isLoading` que ce service n'a pas — les écrans ont le leur, et le
+dossard n'est jamais ce qu'ils attendent pour s'afficher.
 
 Il ne lit aucun stockage à la construction, donc un `Get.put` synchrone, enregistré
 à côté de `MeetingService`.
