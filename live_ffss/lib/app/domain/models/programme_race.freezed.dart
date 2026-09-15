@@ -40,8 +40,8 @@ mixin _$ProgrammeRace {
 // predating the rename.
   @JsonKey(name: 'finishOrder')
   List<List<int>> get competitorOrder =>
-      throw _privateConstructorUsedError; // Athletes out of the ranking. They take no place, so the athletes after
-// them number as though they had not started.
+      throw _privateConstructorUsedError; // Competitors out of the ranking. They take no place, so the competitors
+// after them number as though they had not started.
   List<CoursePenalty> get penalties =>
       throw _privateConstructorUsedError; // The FFSS course this heat runs as, 0 while it has none. The draw lives
 // on the device and the timetable on the server: without this id nothing
@@ -306,11 +306,11 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
     return EqualUnmodifiableListView(_competitorOrder);
   }
 
-// Athletes out of the ranking. They take no place, so the athletes after
-// them number as though they had not started.
+// Competitors out of the ranking. They take no place, so the competitors
+// after them number as though they had not started.
   final List<CoursePenalty> _penalties;
-// Athletes out of the ranking. They take no place, so the athletes after
-// them number as though they had not started.
+// Competitors out of the ranking. They take no place, so the competitors
+// after them number as though they had not started.
   @override
   @JsonKey()
   List<CoursePenalty> get penalties {
@@ -421,8 +421,8 @@ abstract class _ProgrammeRace implements ProgrammeRace {
   @override
   @JsonKey(name: 'finishOrder')
   List<List<int>>
-      get competitorOrder; // Athletes out of the ranking. They take no place, so the athletes after
-// them number as though they had not started.
+      get competitorOrder; // Competitors out of the ranking. They take no place, so the competitors
+// after them number as though they had not started.
   @override
   List<CoursePenalty>
       get penalties; // The FFSS course this heat runs as, 0 while it has none. The draw lives
