@@ -4,17 +4,16 @@ import 'package:live_ffss/app/core/theme/app_colors.dart';
 import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
-import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/heat_draw_controller.dart';
 import 'package:live_ffss/app/module/competitions/views/heat_structure_dialog.dart';
 import 'package:live_ffss/app/module/programme/controllers/structure_editor_controller.dart';
-import 'package:live_ffss/app/presentation/modules/competitions/athlete_formatting.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/entry_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/race_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
-import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
+import 'package:live_ffss/app/presentation/shared/entry_group_tile.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
@@ -586,11 +585,24 @@ class _HeatCard extends StatelessWidget {
             ),
           ),
           for (var lane = 0; lane < entries.length; lane++)
-            _LaneRow(
-              lane: lane + 1,
-              entry: entries[lane],
-              onTap: () => onTapEntry(entries[lane]),
-            ),
+            Builder(builder: (_) {
+              final entry = entries[lane];
+              final ctrl = Get.find<HeatDrawController>();
+              return Obx(() => EntryGroupTile(
+                    key: ValueKey(entry.id),
+                    entry: entry,
+                    title: entryTitle(entry),
+                    subtitle: entrySubtitle(entry),
+                    leading: _LaneNumber(lane: lane + 1),
+                    trailing: const Icon(Icons.swap_horiz,
+                        size: 18, color: AppColors.textMuted),
+                    expanded: ctrl.isEntryExpanded(entry),
+                    onToggle: () => ctrl.toggleEntry(entry),
+                    onTap: () => onTapEntry(entry),
+                    onSubstitute: ctrl.requestSubstitution,
+                    avatarSize: 28,
+                  ));
+            }),
           const SizedBox(height: AppSpacing.xs),
         ],
       ),
@@ -598,88 +610,24 @@ class _HeatCard extends StatelessWidget {
   }
 }
 
-class _LaneRow extends StatelessWidget {
-  const _LaneRow({
-    required this.lane,
-    required this.entry,
-    required this.onTap,
-  });
+class _LaneNumber extends StatelessWidget {
+  const _LaneNumber({required this.lane});
 
   final int lane;
-  final Entry entry;
-  final VoidCallback onTap;
-
-  /// A team's athletes share the entry's club, so the first one speaks for
-  /// the lane — the same athlete the avatar reads.
-  Athlete? get _lead => entry.athletes.isNotEmpty ? entry.athletes.first : null;
-
-  /// One athlete reads as a name; a team reads as all of them, in order —
-  /// « DUPONT Jean / MARTIN Luc / … » — because on a start line the lane is
-  /// the team, not its first swimmer.
-  String get _label => entry.athletes.map((a) => a.displayName).join(' / ');
-
-  /// The resolved club when the index reached this athlete, otherwise whatever
-  /// label the entry carried — the same source `ClubAvatar` falls back on.
-  String get _clubName => _lead?.club?.name.isNotEmpty == true
-      ? _lead!.club!.name
-      : (_lead?.clubLabel ?? '');
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-        child: Row(
-          children: [
-            Container(
-              width: 28,
-              height: 28,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                borderRadius: AppRadius.smRadius,
-              ),
-              child: Text('$lane',
-                  style: AppTypography.caption.copyWith(
-                      fontWeight: FontWeight.w800, color: AppColors.primary)),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            ClubAvatar(
-              club: _lead?.club,
-              size: 28,
-              shape: ClubAvatarShape.circle,
-              fallbackLabel: _lead?.clubLabel ?? '',
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _label,
-                    style: AppTypography.body.copyWith(fontSize: 13),
-                    // Two lines: a relay team of four does not fit on one, and
-                    // truncating its last members would hide who swims.
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (_clubName.isNotEmpty)
-                    Text(
-                      _clubName,
-                      style: AppTypography.caption.copyWith(fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                ],
-              ),
-            ),
-            const Icon(Icons.swap_horiz, size: 18, color: AppColors.textMuted),
-          ],
-        ),
+    return Container(
+      width: 28,
+      height: 28,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.12),
+        borderRadius: AppRadius.smRadius,
       ),
+      child: Text('$lane',
+          style: AppTypography.caption
+              .copyWith(fontWeight: FontWeight.w800, color: AppColors.primary)),
     );
   }
 }

@@ -543,6 +543,20 @@ class HeatDrawController extends GetxController {
             ),
       ];
 
+  final RxSet<int> expandedEntries = <int>{}.obs;
+
+  bool isEntryExpanded(Entry entry) => expandedEntries.contains(entry.id);
+
+  void toggleEntry(Entry entry) {
+    if (!expandedEntries.remove(entry.id)) expandedEntries.add(entry.id);
+  }
+
+  /// Substituting a member isn't wired to FFSS yet; the screen shows the
+  /// button so the gesture exists, and says the rest is coming.
+  void requestSubstitution(Entry entry, Athlete athlete) {
+    message.trigger(const UiMessageError('relay_substitute_coming_soon'));
+  }
+
   RoundLevel? _levelOf(RoundType? type) {
     if (type == null) return null;
     for (final level in structure?.levels ?? const <RoundLevel>[]) {
