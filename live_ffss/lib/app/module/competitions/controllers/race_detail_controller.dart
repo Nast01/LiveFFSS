@@ -13,6 +13,8 @@ import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/entry_formatting.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 
 class RaceDetailController extends GetxController {
   RaceDetailController(
@@ -48,8 +50,8 @@ class RaceDetailController extends GetxController {
   /// the marshaller has done since.
   bool _attendanceRestored = false;
 
-  /// How the flat athlete list is ordered. Drives [sortedAthletes].
-  final Rx<AthleteSortMode> sortMode = AthleteSortMode.name.obs;
+  /// How the engagement list is ordered. Drives [sortedEntries].
+  final Rx<CompetitorSortMode> sortMode = CompetitorSortMode.name.obs;
 
   final RxBool isScanning = false.obs;
   final RxList<ScanResult> scanLog = <ScanResult>[].obs;
@@ -151,39 +153,100 @@ class RaceDetailController extends GetxController {
     }
   }
 
-  /// Flat list of every engaged athlete, ordered per [sortMode]. Reads
-  /// [entries] and [sortMode] (and [attendance] when sorting by presence) so it
-  /// recomputes reactively inside `Obx`.
-  List<Athlete> get sortedAthletes {
-    final all = entries.expand((e) => e.athletes).toList();
+  /// The engagements, ordered per [sortMode]. Reads [entries], [sortMode] and
+  /// — when sorting by presence — [attendance], so it recomputes reactively
+  /// inside `Obx`.
+  List<Entry> get sortedEntries {
+    final all = entries.toList();
     all.sort(switch (sortMode.value) {
-      AthleteSortMode.name => _byName,
-      AthleteSortMode.club => (a, b) {
-          final byClub =
-              a.clubLabel.toLowerCase().compareTo(b.clubLabel.toLowerCase());
-          return byClub != 0 ? byClub : _byName(a, b);
+      CompetitorSortMode.name => _byTitle,
+      CompetitorSortMode.club => (a, b) {
+          final byClub = _clubOf(a).compareTo(_clubOf(b));
+          return byClub != 0 ? byClub : _byTitle(a, b);
         },
-      AthleteSortMode.attendance => (a, b) {
-          final byStatus =
-              attendanceOf(a).index.compareTo(attendanceOf(b).index);
-          return byStatus != 0 ? byStatus : _byName(a, b);
+      CompetitorSortMode.attendance => (a, b) {
+          final byStatus = teamAttendance(a).index.compareTo(
+                teamAttendance(b).index,
+              );
+          return byStatus != 0 ? byStatus : _byTitle(a, b);
         },
     });
     return all;
   }
 
-  int _byName(Athlete a, Athlete b) {
-    final byLast = a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase());
-    if (byLast != 0) return byLast;
-    return a.firstName.toLowerCase().compareTo(b.firstName.toLowerCase());
+  int _byTitle(Entry a, Entry b) =>
+      entryTitle(a).toLowerCase().compareTo(entryTitle(b).toLowerCase());
+
+  String _clubOf(Entry entry) => entryClubLabel(entry).toLowerCase();
+
+  void setSortMode(CompetitorSortMode mode) => sortMode.value = mode;
+
+  /// What the collapsed row announces: present when the whole team is, waiting
+  /// otherwise. Never "absent" — a missing member doesn't absent the team, it
+  /// only keeps it from being ready, which the row's athlete count already
+  /// says.
+  AttendanceStatus teamAttendance(Entry entry) {
+    if (entry.athletes.isEmpty) return AttendanceStatus.waiting;
+    for (final athlete in entry.athletes) {
+      if (attendanceOf(athlete) != AttendanceStatus.present) {
+        return AttendanceStatus.waiting;
+      }
+    }
+    return AttendanceStatus.present;
   }
 
-  void setSortMode(AthleteSortMode mode) => sortMode.value = mode;
+  /// Points the whole team at once: all present → all absent → all waiting.
+  /// The cycle reads the real statuses rather than [teamAttendance], which
+  /// never reads "absent" and would stall the rotation.
+  void cycleTeamAttendance(Entry entry) {
+    final statuses = {for (final a in entry.athletes) attendanceOf(a)};
+    final next = switch (statuses) {
+      _
+          when statuses.length == 1 &&
+              statuses.first == AttendanceStatus.present =>
+        AttendanceStatus.absent,
+      _
+          when statuses.length == 1 &&
+              statuses.first == AttendanceStatus.absent =>
+        AttendanceStatus.waiting,
+      _ => AttendanceStatus.present,
+    };
+    for (final athlete in entry.athletes) {
+      attendance[athlete.id] = next;
+    }
+    _persistAttendance();
+  }
 
-  /// Presence tally over the engaged athletes, in the same flattening as
-  /// [sortedAthletes] — an athlete entered twice counts twice, so the total
-  /// always matches the number of rows in the list. Reads [entries] and
-  /// [attendance], so it recomputes reactively inside `Obx`.
+  /// Teams whose every athlete is pointed present, over the total — what the
+  /// draw will require of them to start.
+  ({int complete, int total}) get teamCounts {
+    var complete = 0;
+    for (final entry in entries) {
+      if (teamAttendance(entry) == AttendanceStatus.present) complete++;
+    }
+    return (complete: complete, total: entries.length);
+  }
+
+  final RxSet<int> expandedEntries = <int>{}.obs;
+
+  bool isEntryExpanded(Entry entry) => expandedEntries.contains(entry.id);
+
+  void toggleEntry(Entry entry) {
+    if (!expandedEntries.remove(entry.id)) expandedEntries.add(entry.id);
+  }
+
+  final Rxn<UiMessage> message = Rxn<UiMessage>();
+
+  /// Substituting a member isn't wired to FFSS yet; the screen shows the
+  /// button so the gesture exists, and says the rest is coming.
+  void requestSubstitution(Entry entry, Athlete athlete) {
+    message.trigger(const UiMessageError('relay_substitute_coming_soon'));
+  }
+
+  /// Presence tally over every engaged athlete, flattened across [entries] —
+  /// an athlete entered twice counts twice, so the total always matches the
+  /// number of athlete rows on screen. Reads [entries] and [attendance], so it
+  /// recomputes reactively inside `Obx`.
   ({int waiting, int present, int absent, int total}) get attendanceCounts {
     var waiting = 0;
     var present = 0;
@@ -310,4 +373,4 @@ class ScanResult {
   final ScanOutcome outcome;
 }
 
-enum AthleteSortMode { name, club, attendance }
+enum CompetitorSortMode { name, club, attendance }

@@ -6,29 +6,66 @@ import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
+import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_detail_controller.dart';
-import 'package:live_ffss/app/presentation/modules/competitions/athlete_formatting.dart';
-import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/entry_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
+import 'package:live_ffss/app/presentation/shared/entry_group_tile.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
 
-class RaceDetailEntriesView extends GetView<RaceDetailController> {
+class RaceDetailEntriesView extends StatefulWidget {
   const RaceDetailEntriesView({super.key});
+
+  @override
+  State<RaceDetailEntriesView> createState() => _RaceDetailEntriesViewState();
+}
+
+class _RaceDetailEntriesViewState extends State<RaceDetailEntriesView> {
+  late final RaceDetailController _ctrl;
+  late final Worker _worker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = Get.find<RaceDetailController>();
+    _worker = showUiMessages(_ctrl.message);
+  }
+
+  @override
+  void dispose() {
+    _worker.dispose();
+    super.dispose();
+  }
+
+  String _subtitleOf(Entry entry) {
+    if (!isTeamEntry(entry)) {
+      final athlete = entry.athletes.first;
+      return [
+        if (athlete.year > 0) '${athlete.year}',
+        if (athlete.clubLabel.isNotEmpty) athlete.clubLabel,
+      ].join(' • ');
+    }
+    final present = entry.athletes
+        .where((a) => _ctrl.attendanceOf(a) == AttendanceStatus.present)
+        .length;
+    return '${entrySubtitle(entry)} · $present/${entry.athletes.length}';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.entriesLoading.value) {
+      if (_ctrl.entriesLoading.value) {
         return const LoadingIndicator();
       }
-      if (controller.entriesError.value != null) {
+      if (_ctrl.entriesError.value != null) {
         return ErrorState(
           message: 'error_occured'.tr,
-          onRetry: controller.loadEntries,
+          onRetry: _ctrl.loadEntries,
         );
       }
-      final athletes = controller.sortedAthletes;
+      final competitors = _ctrl.sortedEntries;
       return Column(
         children: [
           Padding(
@@ -40,11 +77,11 @@ class RaceDetailEntriesView extends GetView<RaceDetailController> {
             ),
             child: Column(
               children: [
-                if (controller.canScanBracelets) ...[
+                if (_ctrl.canScanBracelets) ...[
                   _ScanButton(onPressed: () => _openScanSheet(context)),
                   const SizedBox(height: AppSpacing.xs),
                 ],
-                if (athletes.isNotEmpty) ...[
+                if (competitors.isNotEmpty) ...[
                   const _AttendanceSummary(),
                   const SizedBox(height: AppSpacing.xs),
                 ],
@@ -62,13 +99,13 @@ class RaceDetailEntriesView extends GetView<RaceDetailController> {
             ),
           ),
           Expanded(
-            child: athletes.isEmpty
+            child: competitors.isEmpty
                 ? EmptyState(
                     icon: Icons.list_alt_outlined,
                     title: 'no_entries_yet'.tr,
                   )
                 : RefreshIndicator(
-                    onRefresh: controller.loadEntries,
+                    onRefresh: _ctrl.loadEntries,
                     child: ListView.separated(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.sm,
@@ -76,10 +113,25 @@ class RaceDetailEntriesView extends GetView<RaceDetailController> {
                         AppSpacing.sm,
                         AppSpacing.lg,
                       ),
-                      itemCount: athletes.length,
+                      itemCount: competitors.length,
                       separatorBuilder: (_, __) =>
                           const SizedBox(height: AppSpacing.sm),
-                      itemBuilder: (_, i) => _AthleteRow(athlete: athletes[i]),
+                      itemBuilder: (_, i) {
+                        final entry = competitors[i];
+                        return EntryGroupTile(
+                          key: ValueKey(entry.id),
+                          entry: entry,
+                          title: entryTitle(entry),
+                          subtitle: _subtitleOf(entry),
+                          expanded: _ctrl.isEntryExpanded(entry),
+                          onToggle: () => _ctrl.toggleEntry(entry),
+                          trailing: _TeamStatusChip(entry: entry),
+                          athleteTrailing: (athlete) =>
+                              _AthleteStatusChip(athlete: athlete),
+                          onSubstitute: _ctrl.requestSubstitution,
+                          avatarSize: 40,
+                        );
+                      },
                     ),
                   ),
           ),
@@ -89,12 +141,12 @@ class RaceDetailEntriesView extends GetView<RaceDetailController> {
   }
 
   void _openScanSheet(BuildContext context) {
-    controller.startScan();
+    _ctrl.startScan();
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppColors.surface,
       builder: (_) => const _ScanSheet(),
-    ).whenComplete(controller.stopScan);
+    ).whenComplete(_ctrl.stopScan);
   }
 }
 
@@ -135,6 +187,9 @@ class _AttendanceSummary extends GetView<RaceDetailController> {
         (counts.absent, AppColors.statusError),
         (counts.waiting, AppColors.statusWaiting),
       ];
+      // The team tally would just repeat the head-count gauge when every
+      // engagement is individual, so it only shows up once a relay is entered.
+      final hasTeams = controller.entries.any(isTeamEntry);
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,6 +244,14 @@ class _AttendanceSummary extends GetView<RaceDetailController> {
               ),
             ],
           ),
+          if (hasTeams) ...[
+            const SizedBox(height: 4),
+            Text(
+              '${controller.teamCounts.complete}/${controller.teamCounts.total}'
+              ' ${'teams_complete'.tr}',
+              style: AppTypography.caption.copyWith(fontSize: 12),
+            ),
+          ],
         ],
       );
     });
@@ -237,16 +300,16 @@ class _LegendEntry extends StatelessWidget {
 class _SortDropdown extends GetView<RaceDetailController> {
   const _SortDropdown();
 
-  static String _labelOf(AthleteSortMode mode) => switch (mode) {
-        AthleteSortMode.name => 'sort_name'.tr,
-        AthleteSortMode.club => 'sort_club'.tr,
-        AthleteSortMode.attendance => 'sort_status'.tr,
+  static String _labelOf(CompetitorSortMode mode) => switch (mode) {
+        CompetitorSortMode.name => 'sort_name'.tr,
+        CompetitorSortMode.club => 'sort_club'.tr,
+        CompetitorSortMode.attendance => 'sort_status'.tr,
       };
 
   @override
   Widget build(BuildContext context) {
     return Obx(
-      () => DropdownButton<AthleteSortMode>(
+      () => DropdownButton<CompetitorSortMode>(
         value: controller.sortMode.value,
         isDense: true,
         borderRadius: AppRadius.smRadius,
@@ -260,7 +323,7 @@ class _SortDropdown extends GetView<RaceDetailController> {
           if (mode != null) controller.setSortMode(mode);
         },
         items: [
-          for (final mode in AthleteSortMode.values)
+          for (final mode in CompetitorSortMode.values)
             DropdownMenuItem(value: mode, child: Text(_labelOf(mode))),
         ],
       ),
@@ -268,100 +331,24 @@ class _SortDropdown extends GetView<RaceDetailController> {
   }
 }
 
-class _AthleteRow extends StatelessWidget {
-  const _AthleteRow({required this.athlete});
+Color _attendanceColor(AttendanceStatus status) => switch (status) {
+      AttendanceStatus.waiting => AppColors.statusWaiting,
+      AttendanceStatus.present => AppColors.statusFinished,
+      AttendanceStatus.absent => AppColors.statusError,
+    };
+
+String _attendanceLabel(AttendanceStatus status) => switch (status) {
+      AttendanceStatus.waiting => 'attendance_waiting'.tr,
+      AttendanceStatus.present => 'attendance_present'.tr,
+      AttendanceStatus.absent => 'attendance_absent'.tr,
+    };
+
+/// One athlete's status: tap to cycle, long-press to pick directly — the part
+/// an RFID scan doesn't yet replace.
+class _AthleteStatusChip extends GetView<RaceDetailController> {
+  const _AthleteStatusChip({required this.athlete});
 
   final Athlete athlete;
-
-  @override
-  Widget build(BuildContext context) {
-    final name = athlete.displayName;
-    final subtitle = _subtitle();
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.mdRadius,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.sm,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ClubAvatar(
-            club: athlete.club,
-            size: 40,
-            shape: ClubAvatarShape.circle,
-            fallbackLabel: athlete.clubLabel,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  name,
-                  style: AppTypography.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: AppTypography.caption.copyWith(fontSize: 12),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          _StatusChip(athlete: athlete),
-        ],
-      ),
-    );
-  }
-
-  String _subtitle() {
-    final parts = <String>[
-      if (athlete.year > 0) '${athlete.year}',
-      if (athlete.clubLabel.isNotEmpty) athlete.clubLabel,
-    ];
-    return parts.join(' • ');
-  }
-}
-
-class _StatusChip extends GetView<RaceDetailController> {
-  const _StatusChip({required this.athlete});
-
-  final Athlete athlete;
-
-  static Color _colorOf(AttendanceStatus status) => switch (status) {
-        AttendanceStatus.waiting => AppColors.statusWaiting,
-        AttendanceStatus.present => AppColors.statusFinished,
-        AttendanceStatus.absent => AppColors.statusError,
-      };
-
-  static String _labelOf(AttendanceStatus status) => switch (status) {
-        AttendanceStatus.waiting => 'attendance_waiting'.tr,
-        AttendanceStatus.present => 'attendance_present'.tr,
-        AttendanceStatus.absent => 'attendance_absent'.tr,
-      };
 
   Future<void> _pickStatus(BuildContext context, Offset globalPosition) async {
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
@@ -381,12 +368,12 @@ class _StatusChip extends GetView<RaceDetailController> {
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
-                    color: _colorOf(status),
+                    color: _attendanceColor(status),
                     shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                Text(_labelOf(status)),
+                Text(_attendanceLabel(status)),
               ],
             ),
           ),
@@ -409,11 +396,44 @@ class _StatusChip extends GetView<RaceDetailController> {
             vertical: 6,
           ),
           decoration: BoxDecoration(
-            color: _colorOf(status),
+            color: _attendanceColor(status),
             borderRadius: AppRadius.pillRadius,
           ),
           child: Text(
-            _labelOf(status),
+            _attendanceLabel(status),
+            style: AppTypography.badge.copyWith(fontSize: 11),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+/// The engagement's aggregated status: one tap points the whole team at once.
+/// No menu — a team status isn't picked by hand, it's derived from its
+/// athletes.
+class _TeamStatusChip extends GetView<RaceDetailController> {
+  const _TeamStatusChip({required this.entry});
+
+  final Entry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final status = controller.teamAttendance(entry);
+      return GestureDetector(
+        onTap: () => controller.cycleTeamAttendance(entry),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
+            color: _attendanceColor(status),
+            borderRadius: AppRadius.pillRadius,
+          ),
+          child: Text(
+            _attendanceLabel(status),
             style: AppTypography.badge.copyWith(fontSize: 11),
           ),
         ),

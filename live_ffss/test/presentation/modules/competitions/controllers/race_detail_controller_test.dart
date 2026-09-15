@@ -269,64 +269,49 @@ void main() {
           athletes: athletes,
         );
 
-    test('sortedAthletes flattens every entry and orders by last then first',
-        () {
-      controller.entries.value = [
-        entryWithAthletes(1, [
-          makeAthlete(id: 1, firstName: 'Zoe', lastName: 'Martin'),
-          makeAthlete(id: 2, firstName: 'Anna', lastName: 'Dupont'),
-        ]),
-        entryWithAthletes(2, [
-          makeAthlete(id: 3, firstName: 'Bob', lastName: 'Dupont'),
-        ]),
-      ];
-
-      expect(
-        controller.sortedAthletes.map((a) => a.id),
-        // Dupont/Anna, Dupont/Bob, Martin/Zoe
-        [2, 3, 1],
-      );
-    });
-
     test('defaults to sorting by name', () {
-      expect(controller.sortMode.value, AthleteSortMode.name);
+      expect(controller.sortMode.value, CompetitorSortMode.name);
     });
 
-    test('sortMode club orders by club then name', () {
+    test('sortMode club orders individual entries by club then name', () {
       controller.entries.value = [
         entryWithAthletes(1, [
           makeAthlete(
               id: 1, firstName: 'Zoe', lastName: 'Aaa', clubLabel: 'Nice'),
+        ]),
+        entryWithAthletes(2, [
           makeAthlete(
               id: 2, firstName: 'Anna', lastName: 'Bbb', clubLabel: 'Antibes'),
+        ]),
+        entryWithAthletes(3, [
           makeAthlete(
               id: 3, firstName: 'Bob', lastName: 'Aaa', clubLabel: 'Antibes'),
         ]),
       ];
 
-      controller.setSortMode(AthleteSortMode.club);
+      controller.setSortMode(CompetitorSortMode.club);
 
       expect(
-        controller.sortedAthletes.map((a) => a.id),
+        controller.sortedEntries.map((e) => e.id),
         // Antibes/Aaa/Bob, Antibes/Bbb/Anna, Nice/Aaa/Zoe
         [3, 2, 1],
       );
     });
 
-    test('sortMode attendance groups by status then name', () {
-      final present = makeAthlete(id: 1, firstName: 'A', lastName: 'Zzz');
-      final waiting = makeAthlete(id: 2, firstName: 'B', lastName: 'Yyy');
-      final absent = makeAthlete(id: 3, firstName: 'C', lastName: 'Xxx');
+    test('sortMode attendance orders individual entries by status then name',
+        () {
       controller.entries.value = [
-        entryWithAthletes(1, [present, waiting, absent]),
+        entryWithAthletes(
+            1, [makeAthlete(id: 1, firstName: 'A', lastName: 'Zzz')]),
+        entryWithAthletes(
+            2, [makeAthlete(id: 2, firstName: 'B', lastName: 'Yyy')]),
       ];
       controller.attendance[1] = AttendanceStatus.present;
-      controller.attendance[3] = AttendanceStatus.absent;
 
-      controller.setSortMode(AthleteSortMode.attendance);
+      controller.setSortMode(CompetitorSortMode.attendance);
 
-      // waiting (index 0), present (index 1), absent (index 2)
-      expect(controller.sortedAthletes.map((a) => a.id), [2, 1, 3]);
+      // waiting (index 0) before present (index 1)
+      expect(controller.sortedEntries.map((e) => e.id), [2, 1]);
     });
 
     test('athletes default to waiting', () {
@@ -546,6 +531,115 @@ void main() {
       await pumpEventQueue();
 
       verifyNever(() => attendanceService.save(any(), any()));
+    });
+  });
+
+  group('RaceDetailController relais', () {
+    Athlete athlete(int id, {String lastName = 'Nom', String clubLabel = ''}) =>
+        Athlete(
+          id: id,
+          licenseeNumber: 'L$id',
+          firstName: 'P$id',
+          lastName: lastName,
+          gender: Gender.female,
+          year: 2000,
+          nationalityCode: '',
+          nationality: '',
+          isValid: true,
+          clubLabel: clubLabel,
+        );
+
+    Entry entry(int id, List<Athlete> athletes) => Entry(
+          id: id,
+          category: const Category(id: 1, name: 'Senior'),
+          status: 1,
+          statusLabel: 'Engagé',
+          athletes: athletes,
+        );
+
+    Future<RaceDetailController> loadWith(List<Entry> entries) async {
+      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => entries);
+      await controller.loadEntries();
+      return controller;
+    }
+
+    test('une equipe est en attente tant qu elle n est pas complete', () async {
+      final controller = await loadWith([
+        entry(1, [athlete(11), athlete(12)]),
+      ]);
+
+      expect(controller.teamAttendance(controller.entries.single),
+          AttendanceStatus.waiting);
+
+      controller.setAttendance(athlete(11), AttendanceStatus.present);
+      expect(controller.teamAttendance(controller.entries.single),
+          AttendanceStatus.waiting);
+
+      controller.setAttendance(athlete(12), AttendanceStatus.present);
+      expect(controller.teamAttendance(controller.entries.single),
+          AttendanceStatus.present);
+    });
+
+    // The aggregated status never reads "absent": the cycle is read off the
+    // team's real statuses, not off what the row displays.
+    test('le cycle groupe passe par absent puis revient en attente', () async {
+      final controller = await loadWith([
+        entry(1, [athlete(11), athlete(12)]),
+      ]);
+      final team = controller.entries.single;
+
+      controller.cycleTeamAttendance(team);
+      expect(controller.attendanceOf(athlete(11)), AttendanceStatus.present);
+      expect(controller.attendanceOf(athlete(12)), AttendanceStatus.present);
+
+      controller.cycleTeamAttendance(team);
+      expect(controller.attendanceOf(athlete(11)), AttendanceStatus.absent);
+
+      controller.cycleTeamAttendance(team);
+      expect(controller.attendanceOf(athlete(11)), AttendanceStatus.waiting);
+    });
+
+    test('la jauge compte des tetes, le compteur d equipes des equipes',
+        () async {
+      final controller = await loadWith([
+        entry(1, [athlete(11), athlete(12)]),
+        entry(2, [athlete(21)]),
+      ]);
+
+      controller.setAttendance(athlete(11), AttendanceStatus.present);
+      controller.setAttendance(athlete(21), AttendanceStatus.present);
+
+      expect(controller.attendanceCounts.present, 2);
+      expect(controller.attendanceCounts.total, 3);
+      expect(controller.teamCounts, (complete: 1, total: 2));
+    });
+
+    test('le tri par nom suit le libelle affiche', () async {
+      final controller = await loadWith([
+        entry(1, [athlete(11, lastName: 'Zola')]),
+        entry(2, [
+          athlete(21, lastName: 'Adam', clubLabel: 'Antibes'),
+          athlete(22, lastName: 'Bic', clubLabel: 'Antibes'),
+        ]),
+      ]);
+
+      controller.setSortMode(CompetitorSortMode.name);
+
+      // "Antibes" (the team's club) sorts before "ZOLA".
+      expect([for (final e in controller.sortedEntries) e.id], [2, 1]);
+    });
+
+    test('deplier et replier une equipe', () async {
+      final controller = await loadWith([
+        entry(1, [athlete(11), athlete(12)]),
+      ]);
+      final team = controller.entries.single;
+
+      expect(controller.isEntryExpanded(team), isFalse);
+      controller.toggleEntry(team);
+      expect(controller.isEntryExpanded(team), isTrue);
+      controller.toggleEntry(team);
+      expect(controller.isEntryExpanded(team), isFalse);
     });
   });
 
