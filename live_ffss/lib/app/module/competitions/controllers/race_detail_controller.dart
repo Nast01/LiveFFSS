@@ -7,6 +7,7 @@ import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
+import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
@@ -22,12 +23,14 @@ class RaceDetailController extends GetxController {
     this._clubRepo,
     this._rfidWriter,
     this._attendance,
+    this._participants,
   );
 
   final RaceRepository _raceRepo;
   final ClubRepository _clubRepo;
   final RfidWriter _rfidWriter;
   final AttendanceService _attendance;
+  final ParticipantService _participants;
 
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
@@ -112,21 +115,24 @@ class RaceDetailController extends GetxController {
     }
   }
 
-  /// Copies the resolved club onto every engaged athlete. Athletes the
-  /// resolution did not reach keep whatever club they arrived with, which is
-  /// normally none — [ClubAvatar] then falls back to the club initial.
-  List<Entry> _withClubs(List<Entry> loaded) {
-    if (_clubs.isEmpty) return loaded;
-    return [
-      for (final entry in loaded)
-        entry.copyWith(
-          athletes: [
-            for (final athlete in entry.athletes)
-              athlete.copyWith(club: _clubs[athlete.id] ?? athlete.club),
-          ],
-        ),
-    ];
-  }
+  /// Copies the resolved club and bib onto every engaged athlete. An athlete
+  /// neither resolution reached keeps what they arrived with, which is
+  /// normally no club — [ClubAvatar] then falls back to the club initial — and
+  /// no bib.
+  List<Entry> _withClubs(List<Entry> loaded) => [
+        for (final entry in loaded)
+          entry.copyWith(
+            athletes: [
+              for (final athlete in entry.athletes)
+                athlete.copyWith(
+                  club: _clubs[athlete.id] ?? athlete.club,
+                  orderNumber: _participants.orderNumberOf(athlete.id) > 0
+                      ? _participants.orderNumberOf(athlete.id)
+                      : athlete.orderNumber,
+                ),
+            ],
+          ),
+      ];
 
   /// Resolves every engaged athlete's club once, then patches the rows already
   /// on screen. Concurrent callers share the in-flight resolution; on failure
@@ -143,8 +149,11 @@ class RaceDetailController extends GetxController {
         for (final entry in entries) ...entry.athletes,
       ];
       if (competitionId == null || athletes.isEmpty) return;
+      // The bib comes from another route than the engagements: it loads here,
+      // in the same pass as the clubs, and demands nothing — a read that
+      // fails simply leaves the badges empty.
+      await _participants.ensureLoaded(competitionId);
       _clubs = await _clubRepo.getAthleteClubs(competitionId, athletes);
-      if (_clubs.isEmpty) return;
       entries.value = _withClubs(entries);
     } on AppException {
       // Best-effort: every row keeps the club initial rather than an image.

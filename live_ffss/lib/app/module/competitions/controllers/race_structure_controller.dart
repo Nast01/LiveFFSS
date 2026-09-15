@@ -7,6 +7,7 @@ import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/meeting_service.dart';
+import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
@@ -64,6 +65,7 @@ class RaceStructureController extends GetxController {
     this._meetings,
     this._raceFormatRepo,
     this._meetingTree,
+    this._participants,
   );
 
   final ProgrammeService _programme;
@@ -76,6 +78,9 @@ class RaceStructureController extends GetxController {
   /// responsable : il s'en remet à ce que le service détient plutôt que de
   /// redemander une requête par créneau de la compétition à chaque ouverture.
   final MeetingService _meetingTree;
+
+  /// Les dossards de la compétition, que les engagements ne servent pas.
+  final ParticipantService _participants;
 
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
@@ -431,15 +436,19 @@ class RaceStructureController extends GetxController {
   /// sans refaire l'arbre des réunions.
   int heatIdOf(ProgrammeRace race) => _courseHeatIds[race.id] ?? 0;
 
-  /// Indexes the engaged athletes and resolves their clubs. Best-effort on the
-  /// clubs: without them the rows still read, only the logos fall back to the
-  /// club initial.
+  /// Indexe les engagés, leur club résolu et leur dossard posés dessus.
+  ///
+  /// Au mieux des deux : sans les clubs les lignes se lisent quand même, seuls
+  /// les logos retombent sur l'initiale ; sans les dossards les pastilles
+  /// restent vides. Le dossard vient d'une autre route que les engagements et
+  /// se charge ici, dans le même passage que les clubs.
   Future<Map<int, Athlete>> _indexAthletes(
     List<Entry> entries,
     int competitionId,
   ) async {
     final athletes = [for (final entry in entries) ...entry.athletes];
     if (athletes.isEmpty) return const {};
+    await _participants.ensureLoaded(competitionId);
     Map<int, Club> clubs;
     try {
       clubs = await _clubRepo.getAthleteClubs(competitionId, athletes);
@@ -448,7 +457,12 @@ class RaceStructureController extends GetxController {
     }
     return {
       for (final athlete in athletes)
-        athlete.id: athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
+        athlete.id: athlete.copyWith(
+          club: clubs[athlete.id] ?? athlete.club,
+          orderNumber: _participants.orderNumberOf(athlete.id) > 0
+              ? _participants.orderNumberOf(athlete.id)
+              : athlete.orderNumber,
+        ),
     };
   }
 

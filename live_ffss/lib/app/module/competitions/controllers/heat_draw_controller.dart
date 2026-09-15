@@ -6,6 +6,7 @@ import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
+import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
@@ -33,7 +34,8 @@ class HeatDrawController extends GetxController {
     this._clubRepo,
     this._attendance,
     this._programme,
-    this._meetings, {
+    this._meetings,
+    this._participants, {
     Random? random,
   }) : _random = random ?? Random();
 
@@ -45,6 +47,9 @@ class HeatDrawController extends GetxController {
   /// For the FFSS spots: the drawn line-up is pushed onto each heat's course
   /// when the draw is saved — the spots are what results are entered against.
   final MeetingRepository _meetings;
+
+  /// The bibs of the competition, for the drawn athletes' badges.
+  final ParticipantService _participants;
   final Random _random;
 
   final Rxn<Race> race = Rxn<Race>();
@@ -227,17 +232,25 @@ class HeatDrawController extends GetxController {
             entry,
       ];
 
+      // The bib comes from another route than the engagements: it loads here,
+      // in the same pass as the clubs, and demands nothing — a read that fails
+      // simply leaves the badges empty. Patching runs even with no club
+      // resolved, since the bibs may well have arrived on their own.
+      await _participants.ensureLoaded(competitionId);
       final clubs = await _clubIndex(
           competitionId, [for (final e in present) ...e.athletes]);
-      presentEntries.value = clubs.isEmpty
-          ? present
-          : [
-              for (final entry in present)
-                entry.copyWith(athletes: [
-                  for (final athlete in entry.athletes)
-                    athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
-                ]),
-            ];
+      presentEntries.value = [
+        for (final entry in present)
+          entry.copyWith(athletes: [
+            for (final athlete in entry.athletes)
+              athlete.copyWith(
+                club: clubs[athlete.id] ?? athlete.club,
+                orderNumber: _participants.orderNumberOf(athlete.id) > 0
+                    ? _participants.orderNumberOf(athlete.id)
+                    : athlete.orderNumber,
+              ),
+          ]),
+      ];
     } on AppException catch (e) {
       error.value = e;
     } finally {

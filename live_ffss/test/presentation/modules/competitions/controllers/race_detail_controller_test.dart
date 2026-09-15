@@ -7,6 +7,7 @@ import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
+import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
@@ -25,11 +26,14 @@ class _MockRfidWriter extends Mock implements RfidWriter {}
 
 class _MockAttendanceService extends Mock implements AttendanceService {}
 
+class _MockParticipantService extends Mock implements ParticipantService {}
+
 void main() {
   late _MockRaceRepo raceRepo;
   late _MockClubRepo clubRepo;
   late _MockRfidWriter rfidWriter;
   late _MockAttendanceService attendanceService;
+  late _MockParticipantService participants;
   late RaceDetailController controller;
 
   setUpAll(() {
@@ -77,14 +81,22 @@ void main() {
     clubRepo = _MockClubRepo();
     rfidWriter = _MockRfidWriter();
     attendanceService = _MockAttendanceService();
+    participants = _MockParticipantService();
+    when(() => participants.ensureLoaded(any())).thenAnswer((_) async => true);
+    when(() => participants.orderNumberOf(any())).thenReturn(0);
     when(() => raceRepo.getEntries(any())).thenAnswer((_) async => const []);
     when(() => clubRepo.getAthleteClubs(any(), any()))
         .thenAnswer((_) async => const <int, Club>{});
     when(() => attendanceService.forRace(any()))
         .thenReturn(const <int, AttendanceStatus>{});
     when(() => attendanceService.save(any(), any())).thenAnswer((_) async {});
-    controller =
-        RaceDetailController(raceRepo, clubRepo, rfidWriter, attendanceService);
+    controller = RaceDetailController(
+      raceRepo,
+      clubRepo,
+      rfidWriter,
+      attendanceService,
+      participants,
+    );
     controller.race.value = makeRace(10);
     controller.competition.value = makeCompetition(99);
   });
@@ -562,6 +574,20 @@ void main() {
       await controller.loadEntries();
       return controller;
     }
+
+    test('les athletes affiches portent leur dossard', () async {
+      when(() => participants.ensureLoaded(any()))
+          .thenAnswer((_) async => true);
+      when(() => participants.orderNumberOf(11)).thenReturn(12);
+
+      final controller = await loadWith([
+        entry(1, [athlete(11)]),
+      ]);
+
+      expect(controller.entries.single.athletes.single.orderNumber, 12);
+      await pumpEventQueue();
+      verify(() => participants.ensureLoaded(99)).called(1);
+    });
 
     test('une equipe est en attente tant qu elle n est pas complete', () async {
       final controller = await loadWith([

@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
+import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
@@ -36,6 +37,8 @@ class _MockAttendance extends Mock implements AttendanceService {}
 class _MockClubRepo extends Mock implements ClubRepository {}
 
 class _MockMeetingRepo extends Mock implements MeetingRepository {}
+
+class _MockParticipants extends Mock implements ParticipantService {}
 
 /// Real store semantics without secure storage: `save` keeps the programme in
 /// memory so the controller's read-modify-write can be asserted end to end.
@@ -79,6 +82,7 @@ void main() {
   late _MockClubRepo clubRepo;
   late _MockMeetingRepo meetingRepo;
   late _FakeProgrammeService programme;
+  late _MockParticipants participants;
 
   Athlete athlete(int id, {int clubId = 0}) => Athlete(
         id: id,
@@ -167,6 +171,7 @@ void main() {
       attendance,
       programme,
       meetingRepo,
+      participants,
       random: Random(7),
     )
       ..race.value = makeRace()
@@ -201,6 +206,9 @@ void main() {
         .thenAnswer((_) async => const <int, Club>{});
     programme = _FakeProgrammeService(programmeWith());
     meetingRepo = _MockMeetingRepo();
+    participants = _MockParticipants();
+    when(() => participants.ensureLoaded(any())).thenAnswer((_) async => true);
+    when(() => participants.orderNumberOf(any())).thenReturn(0);
     when(() => meetingRepo.getMeetings(any()))
         .thenAnswer((_) async => const []);
     when(() => meetingRepo.syncLanes(
@@ -320,6 +328,39 @@ void main() {
       final lead = controller.presentEntries.single.athletes.single;
       expect(lead.club?.name, 'Nice');
       expect(lead.club?.logoUrl, 'https://logo/7.png');
+    });
+
+    test('the present athletes carry their bib', () async {
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(11)]),
+          ]);
+      when(() => attendance.forRace(raceId))
+          .thenReturn({11: AttendanceStatus.present});
+      when(() => participants.orderNumberOf(11)).thenReturn(12);
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.presentEntries.single.athletes.single.orderNumber, 12);
+      verify(() => participants.ensureLoaded(competitionId)).called(1);
+    });
+
+    // The bib does not hang off the clubs: a competition whose clubs come back
+    // empty still shows it.
+    test('the bib lands even when no club resolves', () async {
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(11)]),
+          ]);
+      when(() => attendance.forRace(raceId))
+          .thenReturn({11: AttendanceStatus.present});
+      when(() => clubRepo.getAthleteClubs(any(), any()))
+          .thenAnswer((_) async => const <int, Club>{});
+      when(() => participants.orderNumberOf(11)).thenReturn(12);
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.presentEntries.single.athletes.single.orderNumber, 12);
     });
 
     test('a club fetch failure still loads the athletes, without clubs',
@@ -613,6 +654,7 @@ void main() {
         attendance,
         programme,
         meetingRepo,
+        participants,
         random: Random(7),
       )
         ..race.value = makeRace(speciality: 'Eau-plate')
@@ -842,6 +884,7 @@ void main() {
         attendance,
         programme,
         meetingRepo,
+        participants,
         random: Random(7),
       )
         ..race.value = makeRace(speciality: speciality)
@@ -1071,6 +1114,7 @@ void main() {
         attendance,
         programme,
         meetingRepo,
+        participants,
         random: Random(7),
       )
         ..race.value = makeRace(speciality: speciality)

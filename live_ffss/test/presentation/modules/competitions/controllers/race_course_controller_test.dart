@@ -8,6 +8,7 @@ import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/category.dart';
@@ -35,6 +36,8 @@ class _MockClubRepo extends Mock implements ClubRepository {}
 class _MockRfidWriter extends Mock implements RfidWriter {}
 
 class _MockMeetingRepo extends Mock implements MeetingRepository {}
+
+class _MockParticipants extends Mock implements ParticipantService {}
 
 /// Keeps the programme in memory so the controller's read-modify-write can be
 /// asserted end to end, without secure storage.
@@ -76,6 +79,7 @@ void main() {
   late _FakeProgrammeService programme;
   late _MockRfidWriter rfid;
   late _MockMeetingRepo meetingRepo;
+  late _MockParticipants participants;
 
   setUpAll(() {
     registerFallbackValue(const <Athlete>[]);
@@ -260,9 +264,9 @@ void main() {
               athletes: [for (final id in e.athleteIds) athlete(id)],
             ),
         ]);
-    final controller =
-        RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-          ..applyArguments(arguments(heatId: heatId));
+    final controller = RaceCourseController(
+        programme, raceRepo, clubRepo, rfid, meetingRepo, participants)
+      ..applyArguments(arguments(heatId: heatId));
     await controller.load();
     return controller;
   }
@@ -276,6 +280,9 @@ void main() {
   setUp(() {
     rfid = _MockRfidWriter();
     meetingRepo = _MockMeetingRepo();
+    participants = _MockParticipants();
+    when(() => participants.ensureLoaded(any())).thenAnswer((_) async => true);
+    when(() => participants.orderNumberOf(any())).thenReturn(0);
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
     when(() => clubRepo.getAthleteClubs(any(), any()))
@@ -293,6 +300,7 @@ void main() {
         clubRepo,
         rfid,
         meetingRepo,
+        participants,
       );
       controller.applyArguments({
         'race': makeRace(),
@@ -321,6 +329,7 @@ void main() {
         clubRepo,
         rfid,
         meetingRepo,
+        participants,
       );
       controller.applyArguments(null);
 
@@ -354,6 +363,17 @@ void main() {
       expect(c.competitors.single.athletes.single.club?.name, 'SNS Nice');
     });
 
+    // Le dossard n'arrive pas davantage sur l'engagement : il vient d'une
+    // autre route, recopiée dans le même passage que le club.
+    test('les athletes des engagements portent leur dossard', () async {
+      when(() => participants.orderNumberOf(10)).thenReturn(12);
+
+      final c = await loadWith([10]);
+
+      expect(c.competitors.single.athletes.single.orderNumber, 12);
+      verify(() => participants.ensureLoaded(competitionId)).called(1);
+    });
+
     // Un relais fait tomber chaque athlete dans son propre club : patcher
     // l'engagement ne doit pas rabattre toute l'equipe sur un seul.
     test('chaque relayeur porte son propre club resolu', () async {
@@ -379,9 +399,9 @@ void main() {
       c.assign(c.competitors.first);
 
       // A second controller on the same programme sees the stored order.
-      final again =
-          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-            ..applyArguments(arguments());
+      final again = RaceCourseController(
+          programme, raceRepo, clubRepo, rfid, meetingRepo, participants)
+        ..applyArguments(arguments());
       await again.load();
 
       expect(again.placeOf(again.competitors.first), 1);
@@ -538,9 +558,9 @@ void main() {
               athletes: [athlete(10), athlete(11)],
             ),
           ]);
-      final c =
-          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-            ..applyArguments(arguments());
+      final c = RaceCourseController(
+          programme, raceRepo, clubRepo, rfid, meetingRepo, participants)
+        ..applyArguments(arguments());
       await c.load();
 
       // Identity, not equality: a rebuilt-but-value-equal structure would pass
@@ -841,15 +861,15 @@ void main() {
               (i.namedArguments[const Symbol('entryIds')] as List<int>).length);
 
       Get.arguments;
-      final controller =
-          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-            ..race.value = makeRace()
-            ..competition.value = makeCompetition()
-            ..categoryId = categoryId
-            ..categoryLabel = 'Senior'
-            ..roundType = RoundType.demi
-            ..raceNumber = 1
-            ..programmeRaceId = programmeRaceId;
+      final controller = RaceCourseController(
+          programme, raceRepo, clubRepo, rfid, meetingRepo, participants)
+        ..race.value = makeRace()
+        ..competition.value = makeCompetition()
+        ..categoryId = categoryId
+        ..categoryLabel = 'Senior'
+        ..roundType = RoundType.demi
+        ..raceNumber = 1
+        ..programmeRaceId = programmeRaceId;
       await controller.load();
       return controller;
     }
@@ -1707,9 +1727,9 @@ void main() {
               athletes: [athlete(101)],
             ),
           ]);
-      final controller =
-          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-            ..applyArguments(arguments());
+      final controller = RaceCourseController(
+          programme, raceRepo, clubRepo, rfid, meetingRepo, participants)
+        ..applyArguments(arguments());
       await controller.load();
 
       expect(controller.penalties.map((p) => p.competitorId), [10]);
