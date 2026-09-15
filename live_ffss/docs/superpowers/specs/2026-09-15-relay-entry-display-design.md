@@ -38,6 +38,7 @@ mauvais engagements.
 | Question | Décision |
 |---|---|
 | Périmètre | Les **quatre** écrans, saisie des places comprise |
+| Unité de classement | **L'engagement**, en individuel comme en relais |
 | Libellé de la ligne | `Entry.organisme` si renseigné, sinon club du **premier athlète** — la règle de `entryClubId` |
 | Pointage marshalling | **Par athlète** ; la ligne d'équipe agrège et un appui dessus pointe toute l'équipe |
 | Statut agrégé | **Présent ssi tous présents, en attente sinon.** Jamais « absent » agrégé |
@@ -47,33 +48,36 @@ mauvais engagements.
 | Pénalités | Au niveau de **l'engagement seulement** |
 | Remplacement d'un membre | **Placeholder inerte + seam** : bouton sur chaque athlète déplié, message « bientôt disponible » |
 | Épreuves individuelles | **Même composant**, sans chevron ni bouton de remplacement |
+| Classements locaux hérités | **Pas de migration** : ils sont écartés, et l'écran de saisie apprend à relire les résultats publiés sur FFSS |
 
-## La clé « compétiteur » : le premier athlète de l'engagement
+## Le compétiteur est l'engagement
 
-`ProgrammeRace.finishOrder` et `CoursePenalty` sont indexés par id d'athlète.
-Trois faits rendent toute migration inutile :
+`ProgrammeRace.finishOrder` et `CoursePenalty` sont aujourd'hui indexés par id
+d'athlète. Ils passent à l'**id d'engagement**. Un engagement porte un athlète ou
+quatre, mais il reste la seule chose qui prend une place, et FFSS le dit déjà à
+sa façon : `submitResult` veut un `engagement`, `HeatResult` en porte un.
 
-- `_outcomesFor` balaie **tous** les athlètes d'une place pour y trouver un rang
-  ou une pénalité — « a team races as one, so any of its athletes speaks for it » ;
-- à l'import, `_serverResults` recopie le résultat FFSS de l'engagement **sur
-  chacun de ses athlètes**
-  ([race_structure_controller.dart:470](../../../lib/app/module/competitions/controllers/race_structure_controller.dart#L470)) ;
-- `placesOf`, `withFinisher`, `withPlace` et `withoutAthlete` sont agnostiques de
-  ce que l'id désigne.
+Côté Dart les champs se renomment pour dire ce qu'ils contiennent —
+`ProgrammeRace.competitorOrder`, `CoursePenalty.competitorId` — en gardant leurs
+clés JSON (`finishOrder`, `athleteId`) : rien à réécrire dans le stockage, et la
+règle de lecture ci-dessous rend l'ancienne donnée inoffensive.
 
-Donc : **un engagement est représenté dans le classement par l'id de son premier
-athlète** — son chef de file. Pas de changement de schéma, pas de migration, et
-les épreuves individuelles restent identiques au bit près, un athlète étant son
-propre chef de file. La publication FFSS marche telle quelle.
+Ce que ça simplifie, en plus de rendre le relais saisissable :
 
-La règle vit dans `lib/app/domain/models/competitor.dart`, en fonctions pures
-testées sans mock, à côté de `course_ranking.dart` :
+| | aujourd'hui | avec l'engagement |
+|---|---|---|
+| `_outcomesFor` | balaie les athlètes d'une place pour y trouver rang et pénalité | `places[seat.entryId]`, direct |
+| `_serverResults` | recopie le résultat FFSS sur **chaque** athlète du siège | indexé par engagement, plus de fan-out |
+| `_rankedEntriesOf` | reconstruit athlète → engagement, faux en relais | l'ordre **est** une liste d'engagements : la fonction disparaît |
+
+Les fonctions de `course_ranking.dart` (`placesOf`, `withFinisher`, `withPlace`,
+`withoutAthlete`) sont agnostiques de ce que l'id désigne : seuls leurs noms de
+paramètres changent (`athleteId` → `competitorId`).
+
+Un module `lib/app/domain/models/competitor.dart` porte ce que l'affichage
+réclame, en fonctions pures testées sans mock, à côté de `course_ranking.dart` :
 
 ```dart
-/// L'athlète qui représente l'engagement dans un classement, 0 s'il n'en
-/// porte aucun.
-int leadAthleteId(Entry entry);
-
 /// Les engagements d'une course tirée, dans l'ordre des couloirs.
 ///
 /// Reconstruits depuis `entryIds` ; quand il est vide — un tirage antérieur au
@@ -81,23 +85,47 @@ int leadAthleteId(Entry entry);
 /// redonne exactement le comportement individuel d'avant.
 List<Entry> competitorsOf(ProgrammeRace race, Map<int, Entry> byId);
 
-/// Un `finishOrder` où chaque engagement n'apparaît qu'une fois, par son chef
-/// de file.
-List<List<int>> normalizedOrder(List<List<int>> order, List<Entry> competitors);
+/// Vrai quand l'ordre stocké est bien une liste d'engagements de cette course.
+///
+/// Un ordre hérité contient des ids d'athlètes : aucun n'appartient à
+/// `entryIds`, ce qui le rend reconnaissable sans drapeau de version.
+bool isCompetitorOrder(ProgrammeRace race);
 ```
 
-Deux corollaires :
+## Les classements hérités : écartés, puis relus depuis FFSS
 
-- **`_rankedEntriesOf` est réparé** : le découpage se fait par la taille réelle
-  de chaque engagement, plus par un curseur qui avance d'un athlète par
-  engagement.
-- **Normalisation au chargement** : un `finishOrder` de relais écrit par le code
-  actuel classe les quatre membres l'un derrière l'autre (1, 2, 3, 4 puis 5…).
-  `normalizedOrder` ne garde que le premier athlète rencontré de chaque
-  engagement, et le classement se redense de lui-même — l'équipe arrivée
-  deuxième passe de la place 5 à la place 2. **Risque assumé** : cela réécrit un
-  classement déjà saisi, au chargement, sans le dire. C'est voulu — l'ancien
-  était faux — mais c'est silencieux.
+Un `finishOrder` déjà stocké contient des ids d'athlètes, et rien dans le JSON
+ne dit lequel des deux sens il porte. **Il n'est pas converti** : `isCompetitorOrder`
+le reconnaît — ses ids n'appartiennent pas à `entryIds` — et il est écarté à la
+lecture, puis remplacé à la première écriture.
+
+Pour que l'opérateur ne retrouve pas une course validée affichée vide, l'écran de
+saisie **relit ce que FFSS détient** :
+
+1. `stored.runId` → la course dans l'arbre des réunions (`_locate`, déjà écrit
+   pour la validation) → `run.heat?.id` ;
+2. `getHeatResultsByHeat({heatId})` → un `HeatResult` par engagement ;
+3. l'ordre se reconstitue par rang croissant, les engagements sans rang
+   deviennent des pénalités.
+
+Trois précisions :
+
+- **Priorité** : la saisie locale gagne quand elle existe et qu'elle est bien un
+  ordre d'engagements. La relecture ne sert que si le local est vide ou hérité —
+  on ne réécrit jamais par-dessus ce que l'opérateur est en train de saisir.
+- **`HeatResult` gagne son `status`.** Le DTO porte `Statut` (0 classé, 1
+  disqualifié, 2 forfait) et le mapper le jette. Sans lui, un forfait relu
+  devient indiscernable d'un « pas encore classé » — c'est d'ailleurs déjà le cas
+  aujourd'hui dans `RaceStructureController.penaltyInRace`, qui ne sait
+  reconstruire qu'une disqualification.
+- **Le trajet évite un aller-retour** quand il peut : l'onglet Séries est le seul
+  appelant de `Routes.raceCourse` et connaît déjà l'id de série et ses résultats.
+  Il les passe en argument ; la résolution par `getMeetings` n'est que le repli.
+
+**Défaut corrigé en chemin** : `_heatId` repart à 0 à chaque ouverture de
+l'écran, et `submitHeat(id: null)` **crée** une série. Revalider une course après
+avoir rouvert l'écran empile aujourd'hui une seconde série sur FFSS. La relecture
+retrouve la série existante et la revalidation la réécrit.
 
 ## Le composant partagé
 
@@ -153,7 +181,9 @@ contrôleur :
 - `teamCounts` — `(complete, total)` pour la mention « n/m équipes complètes ».
 
 `attendanceCounts` et le scan RFID ne bougent pas : la jauge compte des têtes, et
-un bracelet pointe son porteur, qu'il soit seul ou en équipe.
+un bracelet pointe son porteur, qu'il soit seul ou en équipe. La présence reste
+stockée **par athlète** dans `AttendanceService` : c'est ce que le bracelet
+pointe, et l'éligibilité au tirage (« tous présents ») s'en déduit.
 
 ### Tirage des séries
 
@@ -167,17 +197,17 @@ change pas.
 
 `athletesOf(ProgrammeRace)` est doublé d'un `entriesOf(ProgrammeRace)` bâti sur
 `competitorsOf`, avec un index `_entriesById` rempli au même endroit que
-`_athletesById`. Place et pénalité se lisent sur le chef de file
-(`placeInRace(race, leadAthleteId(entry))`). Le filtre de recherche fait mouche
-si **un** athlète de l'engagement correspond, et déplie alors l'équipe. Le
-compteur de la tuile reste en têtes (`race.athleteIds.length`).
+`_athletesById`. `placeInRace` et `penaltyInRace` prennent un id d'engagement, et
+`_serverResults` cesse de recopier chaque résultat sur les athlètes du siège. Le
+filtre de recherche fait mouche si **un** athlète de l'engagement correspond, et
+déplie alors l'équipe. Le compteur de la tuile reste en têtes
+(`race.athleteIds.length`).
 
 ### Saisie des places
 
 Le vrai chantier. `athletes` devient `competitors` (des `Entry`),
 `orderedAthletes` devient `orderedCompetitors`, et `assign`, `remove`,
-`setPlace`, `setPenalty`, `clearPenalty` prennent un engagement et écrivent sur
-son chef de file. Conséquences :
+`setPlace`, `setPenalty`, `clearPenalty` prennent un engagement. Conséquences :
 
 - le scan résout bracelet → athlète → son engagement, puis classe l'équipe ; un
   coéquipier lu ensuite retombe sur `course_athlete_already_ranked`, le message
@@ -187,7 +217,8 @@ son chef de file. Conséquences :
 - `_PlaceField` s'accroche à la ligne d'équipe, pas aux athlètes dépliés ;
 - le menu contextuel (forfait, DSQ, retrait) ne s'ouvre que sur la ligne
   d'équipe ;
-- `_outcomesFor` et la publication FFSS ne changent pas.
+- `load()` gagne la relecture serveur décrite plus haut ;
+- `_outcomesFor` se simplifie, la publication FFSS ne change pas de forme.
 
 ## Le seam de remplacement
 
@@ -203,17 +234,20 @@ issus de l'endpoint engagement, et `withdrawAthlete` est toujours
 
 ## Tests
 
-- `test/data/models/competitor_test.dart` — chef de file, reconstruction depuis
-  un `ProgrammeRace`, repli quand `entryIds` est vide, normalisation d'un
-  `finishOrder` relais hérité.
+- `test/data/models/competitor_test.dart` — reconstruction des engagements depuis
+  un `ProgrammeRace`, repli quand `entryIds` est vide, reconnaissance d'un ordre
+  hérité.
+- `race_course_controller_test.dart` — une équipe classée au premier bracelet, le
+  coéquipier lu ensuite signalé comme doublon, `isComplete` en équipes, ordre
+  hérité écarté, relecture serveur qui reconstitue rangs **et** forfaits, et
+  local qui l'emporte sur le serveur.
 - `race_detail_controller_test.dart` — agrégation du statut d'équipe, cycle de
   présence groupée, `teamCounts`, tri sur le libellé affiché.
-- `race_course_controller_test.dart` — une équipe classée au premier bracelet, le
-  coéquipier lu ensuite signalé comme doublon, `isComplete` en équipes,
-  `_rankedEntriesOf` sur des engagements à quatre athlètes.
 - `heat_draw_controller_test.dart` — déplié/replié.
 - `race_structure_controller_test.dart` — `entriesOf`, repli sans `entryIds`,
-  filtre qui déplie l'équipe.
+  filtre qui déplie l'équipe, place et pénalité lues par engagement.
+- `test/data/repositories/meeting_repository_test.dart` — `status` remonté dans
+  `HeatResult`.
 
 Pas de test de widget, conformément au dépôt : vérification à l'écran par
 `flutter run`, et le parcours sur appareil revient à l'utilisateur.
