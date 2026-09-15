@@ -105,9 +105,9 @@ class RaceDetailController extends GetxController {
       final loaded = await _raceRepo.getEntries(raceId);
       entries.value = _withClubs(loaded);
       // Progressive enhancement: the list is on screen already, so resolving
-      // the clubs (a list call plus one per club) happens behind it and patches
-      // the rows when it lands.
-      unawaited(_ensureClubs());
+      // the badges (a list call plus one per club) happens behind it and
+      // patches the rows when it lands.
+      unawaited(_resolveBadges());
     } on AppException catch (e) {
       entriesError.value = e;
     } finally {
@@ -134,25 +134,37 @@ class RaceDetailController extends GetxController {
           ),
       ];
 
-  /// Resolves every engaged athlete's club once, then patches the rows already
-  /// on screen. Concurrent callers share the in-flight resolution; on failure
-  /// the future is cleared so a pull-to-refresh retries.
-  Future<void> _ensureClubs() {
-    if (_clubs.isNotEmpty) return Future.value();
-    return _clubsFuture ??= _resolveClubs();
+  /// Fills in what the engagement list does not carry — the bib, then the
+  /// clubs — and patches the rows already on screen.
+  ///
+  /// The bib comes from another route than the engagements and demands
+  /// nothing: a read that fails simply leaves the badges empty, and must not
+  /// skip the clubs that follow. It runs on every load rather than behind the
+  /// clubs' de-duplication, because [ParticipantService] caches per
+  /// competition on its own — it answers at once for one already held, and
+  /// retries one whose read failed. A pull-to-refresh is the only retry this
+  /// screen has.
+  Future<void> _resolveBadges() async {
+    final competitionId = competition.value?.id;
+    final athletes = [
+      for (final entry in entries) ...entry.athletes,
+    ];
+    if (competitionId == null || athletes.isEmpty) return;
+    await _participants.ensureLoaded(competitionId);
+    entries.value = _withClubs(entries);
+    await _ensureClubs(competitionId, athletes);
   }
 
-  Future<void> _resolveClubs() async {
+  /// Resolves every engaged athlete's club once, then patches the rows again.
+  /// Concurrent callers share the in-flight resolution; on failure the future
+  /// is cleared so a pull-to-refresh retries.
+  Future<void> _ensureClubs(int competitionId, List<Athlete> athletes) {
+    if (_clubs.isNotEmpty) return Future.value();
+    return _clubsFuture ??= _resolveClubs(competitionId, athletes);
+  }
+
+  Future<void> _resolveClubs(int competitionId, List<Athlete> athletes) async {
     try {
-      final competitionId = competition.value?.id;
-      final athletes = [
-        for (final entry in entries) ...entry.athletes,
-      ];
-      if (competitionId == null || athletes.isEmpty) return;
-      // The bib comes from another route than the engagements: it loads here,
-      // in the same pass as the clubs, and demands nothing — a read that
-      // fails simply leaves the badges empty.
-      await _participants.ensureLoaded(competitionId);
       _clubs = await _clubRepo.getAthleteClubs(competitionId, athletes);
       entries.value = _withClubs(entries);
     } on AppException {

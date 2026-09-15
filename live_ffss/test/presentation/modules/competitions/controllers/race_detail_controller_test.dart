@@ -218,6 +218,40 @@ void main() {
       verify(() => clubRepo.getAthleteClubs(any(), any())).called(1);
     });
 
+    test('a reload retries a bib read that failed, clubs already resolved',
+        () async {
+      // The clubs resolve on the first load and are never asked for again;
+      // the bib read must not ride on that guard, or a marshaller whose first
+      // read failed would have no way to retry short of leaving the screen.
+      var attempt = 0;
+      var known = 0;
+      when(() => participants.ensureLoaded(any())).thenAnswer((_) async {
+        attempt++;
+        // The service only knows a bib once a read has landed. Here the first
+        // one fails and the second succeeds.
+        if (attempt >= 2) known = 12;
+        return attempt >= 2;
+      });
+      when(() => participants.orderNumberOf(11)).thenAnswer((_) => known);
+      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
+            makeEntry(id: 1, clubName: 'X', athletes: [athlete(11, clubId: 7)]),
+          ]);
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => const {11: Club(id: 7, name: 'Nice', logoUrl: 'l')},
+      );
+
+      await controller.loadEntries();
+      await pumpEventQueue();
+      expect(controller.entries.single.athletes.single.orderNumber, 0);
+
+      await controller.loadEntries();
+      await pumpEventQueue();
+
+      expect(controller.entries.single.athletes.single.orderNumber, 12);
+      expect(controller.entries.single.athletes.single.club?.logoUrl, 'l');
+      verify(() => clubRepo.getAthleteClubs(any(), any())).called(1);
+    });
+
     test('renders entries even if the club resolution fails', () async {
       when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
             makeEntry(id: 1, clubName: 'Nice', athletes: [athlete(42)]),
