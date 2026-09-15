@@ -14,6 +14,8 @@ import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
+import 'package:live_ffss/app/domain/models/competitor.dart'
+    show competitorsOf, isCompetitorOrder;
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/course_ranking.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
@@ -75,15 +77,16 @@ class RaceCourseController extends GetxController {
 
   final RxBool isLoading = true.obs;
 
-  /// The line-up, in the order the draw left it.
-  final RxList<Athlete> athletes = <Athlete>[].obs;
+  /// The line-up, in the order the draw left it. One row per engagement: a
+  /// relay team takes a single place, whichever of its members touches home.
+  final RxList<Entry> competitors = <Entry>[].obs;
 
   /// Finishing groups, in order. A group of several is a declared tie.
   final RxList<List<int>> competitorOrder = <List<int>>[].obs;
 
-  /// Athletes out of the ranking. Kept apart from [competitorOrder] precisely
-  /// so they take no place — the athletes after them number as though they
-  /// had not started.
+  /// Engagements out of the ranking. Kept apart from [competitorOrder]
+  /// precisely so they take no place — the competitors after them number as
+  /// though they had not started.
   final RxList<CoursePenalty> penalties = <CoursePenalty>[].obs;
 
   final RxBool isScanning = false.obs;
@@ -137,38 +140,50 @@ class RaceCourseController extends GetxController {
     try {
       await _programme.load(competitionIdValue);
       final stored = _storedRace();
-      competitorOrder.value = [
-        for (final group in stored?.competitorOrder ?? const <List<int>>[])
-          [...group],
-      ];
-      penalties.value = [...?stored?.penalties];
 
       final entries = await _raceRepo.getEntries(raceIdValue);
-      final byId = <int, Athlete>{
+      final byEntry = {for (final entry in entries) entry.id: entry};
+      final byAthlete = <int, Athlete>{
         for (final entry in entries)
           for (final athlete in entry.athletes) athlete.id: athlete,
       };
-      // The draw's order is the line-up's order; an id no entry accounts for is
-      // an athlete withdrawn since, and is dropped rather than shown blank.
-      final lineUp = [
-        for (final id in stored?.athleteIds ?? const <int>[])
-          if (byId[id] case final Athlete athlete) athlete,
-      ];
+      final lineUp = competitorsOf(
+        stored ?? const ProgrammeRace(id: 0, number: 0),
+        entries: byEntry,
+        athletes: byAthlete,
+      );
 
+      final storedOrder = [
+        for (final group in stored?.competitorOrder ?? const <List<int>>[])
+          [...group],
+      ];
+      // An order written when the competitor was the athlete names no
+      // engagement of this course: reading it back would invent places.
+      final kept = isCompetitorOrder(storedOrder, lineUp);
+      competitorOrder.value = kept ? storedOrder : const [];
+      penalties.value = kept ? [...?stored?.penalties] : const [];
+
+      // Entries arrive with no club on their athletes — the mappers never set
+      // one — and that club is what every row shows.
+      final drawnAthletes = [for (final entry in lineUp) ...entry.athletes];
       Map<int, Club> clubs;
       try {
-        clubs = await _clubRepo.getAthleteClubs(competitionIdValue, lineUp);
+        clubs =
+            await _clubRepo.getAthleteClubs(competitionIdValue, drawnAthletes);
       } on AppException {
         clubs = const {};
       }
-      athletes.value = [
-        for (final athlete in lineUp)
-          athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
+      competitors.value = [
+        for (final entry in lineUp)
+          entry.copyWith(athletes: [
+            for (final athlete in entry.athletes)
+              athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
+          ]),
       ];
     } on AppException {
       // The line-up is unavailable; the screen shows an empty course rather
       // than failing outright, and reopening it retries.
-      athletes.clear();
+      competitors.clear();
     } finally {
       isLoading.value = false;
     }
@@ -176,69 +191,83 @@ class RaceCourseController extends GetxController {
 
   int get nextPlaceValue => nextPlace(competitorOrder);
 
-  int? placeOf(Athlete athlete) => placesOf(competitorOrder)[athlete.id];
+  int? placeOf(Entry entry) => placesOf(competitorOrder)[entry.id];
 
-  /// Ranked athletes first in place order, then those still to come in the
+  /// Ranked engagements first in place order, then those still to come in the
   /// order the draw left them. The finished screen is the result itself, which
   /// is why there is no separate recap to build or to keep in step.
-  List<Athlete> get orderedAthletes {
+  List<Entry> get orderedCompetitors {
     final places = placesOf(competitorOrder);
     final ranked = [
-      for (final athlete in athletes)
-        if (places.containsKey(athlete.id)) athlete,
+      for (final entry in competitors)
+        if (places.containsKey(entry.id)) entry,
     ]..sort((a, b) => places[a.id]!.compareTo(places[b.id]!));
     return [
       ...ranked,
-      for (final athlete in athletes)
-        if (!places.containsKey(athlete.id) && penaltyOf(athlete) == null)
-          athlete,
-      for (final athlete in athletes)
-        if (penaltyOf(athlete) != null) athlete,
+      for (final entry in competitors)
+        if (!places.containsKey(entry.id) && penaltyOf(entry) == null) entry,
+      for (final entry in competitors)
+        if (penaltyOf(entry) != null) entry,
     ];
   }
 
-  void assign(Athlete athlete) {
+  final RxSet<int> expandedEntries = <int>{}.obs;
+
+  bool isEntryExpanded(Entry entry) => expandedEntries.contains(entry.id);
+
+  void toggleEntry(Entry entry) {
+    if (!expandedEntries.remove(entry.id)) expandedEntries.add(entry.id);
+  }
+
+  /// Substituting a member isn't wired to FFSS yet; the screen shows the
+  /// button so the gesture exists, and says the rest is coming.
+  void requestSubstitution(Entry entry, Athlete athlete) {
+    message.trigger(const UiMessageError('relay_substitute_coming_soon'));
+  }
+
+  void assign(Entry entry) {
     // A withdrawal takes no place: ranking a forfeit or a disqualification
     // here would corrupt every place after it, exactly the invariant
-    // setPenalty protects when a ranked athlete is withdrawn. Reinstating is
-    // a deliberate act — clearPenalty, offered from the row menu — not
+    // setPenalty protects when a ranked engagement is withdrawn. Reinstating
+    // is a deliberate act — clearPenalty, offered from the row menu — not
     // something a scan should do as a side effect.
-    if (penaltyOf(athlete) != null) {
+    if (penaltyOf(entry) != null) {
       message.trigger(const UiMessageError('course_athlete_withdrawn'));
       return;
     }
-    // A bracelet read twice, or a row tapped twice, must report rather than
-    // silently re-persist the same order — the operator has no other way to
-    // tell a good read from a duplicate.
-    if (placeOf(athlete) != null) {
+    // A bracelet read twice, a teammate's bracelet read after the first, or a
+    // row tapped twice, must report rather than silently re-persist the same
+    // order — the operator has no other way to tell a good read from a
+    // duplicate.
+    if (placeOf(entry) != null) {
       message.trigger(const UiMessageError('course_athlete_already_ranked'));
       return;
     }
     competitorOrder.value =
-        withFinisher(competitorOrder, athlete.id, tied: tieLock.value);
+        withFinisher(competitorOrder, entry.id, tied: tieLock.value);
     _persist();
   }
 
-  /// Puts [athlete] at [place], or takes them out of the ranking when [place]
-  /// is not a place — an emptied field.
+  /// Puts [entry] at [place], or takes it out of the ranking when [place] is
+  /// not a place — an emptied field.
   ///
   /// Sharing a rank with someone declares a tie, and the places after it shift
   /// accordingly; see [withPlace].
-  void setPlace(Athlete athlete, int place) {
+  void setPlace(Entry entry, int place) {
     // Same invariant `assign` protects: a withdrawal takes no place, and
     // ranking one here would falsify every place behind it.
-    if (penaltyOf(athlete) != null) {
+    if (penaltyOf(entry) != null) {
       message.trigger(const UiMessageError('course_athlete_withdrawn'));
       return;
     }
     competitorOrder.value = place < 1
-        ? withoutCompetitor(competitorOrder, athlete.id)
-        : withPlace(competitorOrder, athlete.id, place);
+        ? withoutCompetitor(competitorOrder, entry.id)
+        : withPlace(competitorOrder, entry.id, place);
     _persist();
   }
 
-  void remove(Athlete athlete) {
-    competitorOrder.value = withoutCompetitor(competitorOrder, athlete.id);
+  void remove(Entry entry) {
+    competitorOrder.value = withoutCompetitor(competitorOrder, entry.id);
     _persist();
   }
 
@@ -249,53 +278,55 @@ class RaceCourseController extends GetxController {
 
   void toggleTieLock() => tieLock.value = !tieLock.value;
 
-  CoursePenalty? penaltyOf(Athlete athlete) {
+  CoursePenalty? penaltyOf(Entry entry) {
     for (final penalty in penalties) {
-      if (penalty.competitorId == athlete.id) return penalty;
+      if (penalty.competitorId == entry.id) return penalty;
     }
     return null;
   }
 
-  /// Marks an athlete out of the ranking, pulling them out of the order first:
-  /// a disqualified swimmer who had already been placed must not keep a place.
+  /// Marks an engagement out of the ranking, pulling it out of the order
+  /// first: a disqualified team that had already been placed must not keep a
+  /// place. A relay is withdrawn whole — the penalty is the team's, not one
+  /// leg's.
   void setPenalty(
-    Athlete athlete,
+    Entry entry,
     CoursePenaltyKind kind, {
     String code = '',
   }) {
-    competitorOrder.value = withoutCompetitor(competitorOrder, athlete.id);
+    competitorOrder.value = withoutCompetitor(competitorOrder, entry.id);
     penalties.value = [
       for (final penalty in penalties)
-        if (penalty.competitorId != athlete.id) penalty,
-      CoursePenalty(competitorId: athlete.id, kind: kind, code: code),
+        if (penalty.competitorId != entry.id) penalty,
+      CoursePenalty(competitorId: entry.id, kind: kind, code: code),
     ];
     _persist();
   }
 
-  void clearPenalty(Athlete athlete) {
+  void clearPenalty(Entry entry) {
     penalties.value = [
       for (final penalty in penalties)
-        if (penalty.competitorId != athlete.id) penalty,
+        if (penalty.competitorId != entry.id) penalty,
     ];
     _persist();
   }
 
-  /// Whether every athlete is accounted for — placed or withdrawn. This is what
-  /// ends a scanning session, and why the highest place a course hands out is
-  /// its line-up minus its withdrawals.
+  /// Whether every engagement is accounted for — placed or withdrawn. This is
+  /// what ends a scanning session, and why the highest place a course hands
+  /// out is its number of teams minus its withdrawals.
   bool get isComplete {
     final places = placesOf(competitorOrder);
-    return athletes.every(
-      (a) => places.containsKey(a.id) || penaltyOf(a) != null,
+    return competitors.every(
+      (e) => places.containsKey(e.id) || penaltyOf(e) != null,
     );
   }
 
   bool get canScan => _rfid.isSupported;
 
   /// Opens a continuous read session. Each bracelet whose licence matches an
-  /// athlete of this course takes the next place, tie lock included — the same
-  /// procedure as a tap, which is the whole reason the lock is a mode rather
-  /// than a gesture.
+  /// athlete of this course ranks that athlete's engagement at the next place,
+  /// tie lock included — the same procedure as a tap, which is the whole
+  /// reason the lock is a mode rather than a gesture.
   void startScan() {
     if (isScanning.value || isComplete) return;
     isScanning.value = true;
@@ -317,10 +348,10 @@ class RaceCourseController extends GetxController {
 
   void _onBracelet(String payload) {
     final licence = parseBraceletLicence(payload);
-    Athlete? match;
-    for (final athlete in athletes) {
-      if (athlete.licenseeNumber == licence) {
-        match = athlete;
+    Entry? match;
+    for (final entry in competitors) {
+      if (entry.athletes.any((a) => a.licenseeNumber == licence)) {
+        match = entry;
         break;
       }
     }
@@ -328,6 +359,8 @@ class RaceCourseController extends GetxController {
       message.trigger(const UiMessageError('course_bracelet_not_in_race'));
       return;
     }
+    // A team crosses the line once: a teammate's bracelet read afterwards
+    // falls onto the duplicate `assign` already reports.
     assign(match);
     // Nothing left to place: holding the hardware open would only invite a
     // stray read.
@@ -500,12 +533,7 @@ class RaceCourseController extends GetxController {
     return [
       for (final seat in seats)
         () {
-          CoursePenalty? penalty;
-          int? place;
-          for (final athleteId in seat.athleteIds) {
-            penalty ??= penaltyOf[athleteId];
-            place ??= places[athleteId];
-          }
+          final penalty = penaltyOf[seat.entryId];
           final status = switch (penalty?.kind) {
             CoursePenaltyKind.disqualified => 1,
             CoursePenaltyKind.forfeit => 2,
@@ -520,7 +548,7 @@ class RaceCourseController extends GetxController {
             laneId: seat.laneId,
             // Out of the ranking takes no place: sending one would put them
             // back in the classification.
-            rank: penalty == null ? place : null,
+            rank: penalty == null ? places[seat.entryId] : null,
             status: status,
             complement: (penalty?.code.isEmpty ?? true) ? null : penalty!.code,
           );
@@ -620,26 +648,12 @@ class RaceCourseController extends GetxController {
           ]
         : stored.competitorOrder;
     final applied = mine ? penalties.toList() : stored.penalties;
-    if (order.isEmpty || stored.entryIds.isEmpty) return const [];
     final penalised = {for (final p in applied) p.competitorId};
-    // The draw wrote both lists in lane order, so an entry's athletes are
-    // found by walking them together.
-    final entryOfAthlete = <int, int>{};
-    var cursor = 0;
-    for (final entryId in stored.entryIds) {
-      if (cursor >= stored.athleteIds.length) break;
-      entryOfAthlete[stored.athleteIds[cursor]] = entryId;
-      cursor++;
-    }
-    final ranked = <int>[];
-    for (final group in order) {
-      for (final athleteId in group) {
-        if (penalised.contains(athleteId)) continue;
-        final entryId = entryOfAthlete[athleteId];
-        if (entryId != null && !ranked.contains(entryId)) ranked.add(entryId);
-      }
-    }
-    return ranked;
+    return [
+      for (final group in order)
+        for (final id in group)
+          if (!penalised.contains(id)) id,
+    ];
   }
 
   Future<Map<int, Entry>> _entriesById() async {

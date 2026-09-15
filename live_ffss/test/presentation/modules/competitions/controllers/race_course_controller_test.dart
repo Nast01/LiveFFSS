@@ -161,18 +161,26 @@ void main() {
         'programmeRaceId': programmeRaceId,
       };
 
-  Future<RaceCourseController> loadWith(List<int> athleteIds) async {
-    programme = _FakeProgrammeService(programmeWith(
-      ProgrammeRace(id: programmeRaceId, number: 1, athleteIds: athleteIds),
-    ));
+  Future<RaceCourseController> loadWithEntries(
+    List<({int entryId, List<int> athleteIds})> spec, {
+    List<List<int>> competitorOrder = const [],
+  }) async {
+    programme = _FakeProgrammeService(programmeWith(ProgrammeRace(
+      id: programmeRaceId,
+      number: 1,
+      entryIds: [for (final e in spec) e.entryId],
+      athleteIds: [for (final e in spec) ...e.athleteIds],
+      competitorOrder: competitorOrder,
+    )));
     when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
-          Entry(
-            id: 1,
-            category: const Category(id: categoryId, name: 'Senior'),
-            status: 1,
-            statusLabel: 'Engagé',
-            athletes: [for (final id in athleteIds) athlete(id)],
-          ),
+          for (final e in spec)
+            Entry(
+              id: e.entryId,
+              category: const Category(id: categoryId, name: 'Senior'),
+              status: 1,
+              statusLabel: 'Engagé',
+              athletes: [for (final id in e.athleteIds) athlete(id)],
+            ),
         ]);
     final controller =
         RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
@@ -180,6 +188,12 @@ void main() {
     await controller.load();
     return controller;
   }
+
+  /// Un engagement par athlète : l'épreuve individuelle ordinaire.
+  Future<RaceCourseController> loadWith(List<int> athleteIds) =>
+      loadWithEntries([
+        for (final id in athleteIds) (entryId: id * 10, athleteIds: [id]),
+      ]);
 
   setUp(() {
     rfid = _MockRfidWriter();
@@ -242,16 +256,29 @@ void main() {
   });
 
   group('RaceCourseController.load', () {
-    test('lists the athletes the draw put in this race', () async {
+    test('lists the engagements the draw put in this race', () async {
       final c = await loadWith([10, 11, 12]);
 
-      expect(c.athletes.map((a) => a.id), [10, 11, 12]);
+      expect(c.competitors.map((e) => e.id), [100, 110, 120]);
       expect(c.isLoading.value, isFalse);
+    });
+
+    // Le club n'arrive jamais sur `Entry.athletes[].club` : il est résolu à
+    // part. Sans ce raccord, chaque ClubAvatar de l'écran retomberait sur
+    // l'initiale du club.
+    test('les athlètes des engagements portent leur club résolu', () async {
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => const {10: Club(id: 3, name: 'SNS Nice')},
+      );
+
+      final c = await loadWith([10]);
+
+      expect(c.competitors.single.athletes.single.club?.name, 'SNS Nice');
     });
 
     test('reopens on the order already recorded', () async {
       final c = await loadWith([10, 11]);
-      c.assign(c.athletes.first);
+      c.assign(c.competitors.first);
 
       // A second controller on the same programme sees the stored order.
       final again =
@@ -259,44 +286,44 @@ void main() {
             ..applyArguments(arguments());
       await again.load();
 
-      expect(again.placeOf(again.athletes.first), 1);
+      expect(again.placeOf(again.competitors.first), 1);
     });
   });
 
   group('RaceCourseController entry', () {
-    test('the first athlete entered takes the first place', () async {
+    test('the first competitor entered takes the first place', () async {
       final c = await loadWith([10, 11]);
 
-      c.assign(c.athletes.first);
+      c.assign(c.competitors.first);
 
-      expect(c.placeOf(c.athletes.first), 1);
+      expect(c.placeOf(c.competitors.first), 1);
       expect(c.nextPlaceValue, 2);
     });
 
     test('the tie lock gives the same place until it is released', () async {
       final c = await loadWith([10, 11, 12]);
 
-      c.assign(c.athletes[0]);
+      c.assign(c.competitors[0]);
       c.toggleTieLock();
-      c.assign(c.athletes[1]);
+      c.assign(c.competitors[1]);
       c.toggleTieLock();
-      c.assign(c.athletes[2]);
+      c.assign(c.competitors[2]);
 
-      expect(c.placeOf(c.athletes[0]), 1);
-      expect(c.placeOf(c.athletes[1]), 1);
-      // Two firsts consume two places; the third athlete is third.
-      expect(c.placeOf(c.athletes[2]), 3);
+      expect(c.placeOf(c.competitors[0]), 1);
+      expect(c.placeOf(c.competitors[1]), 1);
+      // Two firsts consume two places; the third competitor is third.
+      expect(c.placeOf(c.competitors[2]), 3);
     });
 
     test('undo takes back the last entry', () async {
       final c = await loadWith([10, 11]);
-      c.assign(c.athletes[0]);
-      c.assign(c.athletes[1]);
+      c.assign(c.competitors[0]);
+      c.assign(c.competitors[1]);
 
       c.undo();
 
-      expect(c.placeOf(c.athletes[1]), isNull);
-      expect(c.placeOf(c.athletes[0]), 1);
+      expect(c.placeOf(c.competitors[1]), isNull);
+      expect(c.placeOf(c.competitors[0]), 1);
     });
 
     test('undo on a freshly loaded course does nothing and does not throw',
@@ -308,39 +335,39 @@ void main() {
     });
 
     test(
-        'assigning an already-ranked athlete again reports and does not '
+        'assigning an already-ranked competitor again reports and does not '
         're-persist', () async {
       final c = await loadWith([10, 11]);
-      c.assign(c.athletes.first);
+      c.assign(c.competitors.first);
 
-      c.assign(c.athletes.first);
+      c.assign(c.competitors.first);
 
       expect(c.competitorOrder, [
-        [10],
+        [100],
       ]);
       expect(c.message.value, isA<UiMessageError>());
     });
 
-    test('removing an athlete renumbers the ones after', () async {
+    test('removing a competitor renumbers the ones after', () async {
       final c = await loadWith([10, 11, 12]);
-      c.assign(c.athletes[0]);
-      c.assign(c.athletes[1]);
-      c.assign(c.athletes[2]);
+      c.assign(c.competitors[0]);
+      c.assign(c.competitors[1]);
+      c.assign(c.competitors[2]);
 
-      c.remove(c.athletes[1]);
+      c.remove(c.competitors[1]);
 
-      expect(c.placeOf(c.athletes[0]), 1);
-      expect(c.placeOf(c.athletes[1]), isNull);
-      expect(c.placeOf(c.athletes[2]), 2);
+      expect(c.placeOf(c.competitors[0]), 1);
+      expect(c.placeOf(c.competitors[1]), isNull);
+      expect(c.placeOf(c.competitors[2]), 2);
     });
 
     test('every entry is persisted as it happens', () async {
       final c = await loadWith([10, 11]);
 
-      c.assign(c.athletes.first);
+      c.assign(c.competitors.first);
 
       expect(saved().competitorOrder, [
-        [10],
+        [100],
       ]);
     });
 
@@ -348,9 +375,9 @@ void main() {
         () async {
       final c = await loadWith([10, 11, 12]);
 
-      c.assign(c.athletes[2]);
+      c.assign(c.competitors[2]);
 
-      expect(c.orderedAthletes.map((a) => a.id), [12, 10, 11]);
+      expect(c.orderedCompetitors.map((e) => e.id), [120, 100, 110]);
     });
 
     test(
@@ -422,7 +449,7 @@ void main() {
       // an equality check and hide exactly the bug this guards against.
       final juniorStructureBefore = programme.current.value!.structures[1];
 
-      c.assign(c.athletes.first);
+      c.assign(c.competitors.first);
 
       final juniorStructureAfter = programme.current.value!.structures[1];
       expect(identical(juniorStructureBefore, juniorStructureAfter), isTrue);
@@ -433,69 +460,71 @@ void main() {
     test('a forfeit takes no place and the others close the gap', () async {
       final c = await loadWith([10, 11, 12]);
 
-      c.assign(c.athletes[0]);
-      c.setPenalty(c.athletes[1], CoursePenaltyKind.forfeit);
-      c.assign(c.athletes[2]);
+      c.assign(c.competitors[0]);
+      c.setPenalty(c.competitors[1], CoursePenaltyKind.forfeit);
+      c.assign(c.competitors[2]);
 
-      expect(c.placeOf(c.athletes[2]), 2);
-      expect(c.penaltyOf(c.athletes[1])?.kind, CoursePenaltyKind.forfeit);
+      expect(c.placeOf(c.competitors[2]), 2);
+      expect(c.penaltyOf(c.competitors[1])?.kind, CoursePenaltyKind.forfeit);
     });
 
     test('a disqualification carries its code', () async {
       final c = await loadWith([10, 11]);
 
-      c.setPenalty(c.athletes[0], CoursePenaltyKind.disqualified, code: '4.7');
+      c.setPenalty(c.competitors[0], CoursePenaltyKind.disqualified,
+          code: '4.7');
 
-      expect(c.penaltyOf(c.athletes[0])?.code, '4.7');
+      expect(c.penaltyOf(c.competitors[0])?.code, '4.7');
       expect(saved().penalties.single.code, '4.7');
     });
 
-    test('penalising a ranked athlete pulls them out of the ranking', () async {
+    test('penalising a ranked competitor pulls them out of the ranking',
+        () async {
       final c = await loadWith([10, 11]);
-      c.assign(c.athletes[0]);
-      c.assign(c.athletes[1]);
+      c.assign(c.competitors[0]);
+      c.assign(c.competitors[1]);
 
-      c.setPenalty(c.athletes[0], CoursePenaltyKind.disqualified, code: 'x');
+      c.setPenalty(c.competitors[0], CoursePenaltyKind.disqualified, code: 'x');
 
-      expect(c.placeOf(c.athletes[0]), isNull);
-      expect(c.placeOf(c.athletes[1]), 1);
+      expect(c.placeOf(c.competitors[0]), isNull);
+      expect(c.placeOf(c.competitors[1]), 1);
     });
 
-    test('clearing a penalty puts the athlete back among those to come',
+    test('clearing a penalty puts the competitor back among those to come',
         () async {
       final c = await loadWith([10]);
-      c.setPenalty(c.athletes[0], CoursePenaltyKind.forfeit);
+      c.setPenalty(c.competitors[0], CoursePenaltyKind.forfeit);
 
-      c.clearPenalty(c.athletes[0]);
+      c.clearPenalty(c.competitors[0]);
 
-      expect(c.penaltyOf(c.athletes[0]), isNull);
+      expect(c.penaltyOf(c.competitors[0]), isNull);
       expect(c.isComplete, isFalse);
     });
 
     test('the course is complete when nobody is left to place', () async {
       final c = await loadWith([10, 11]);
-      c.assign(c.athletes[0]);
+      c.assign(c.competitors[0]);
       expect(c.isComplete, isFalse);
 
-      c.setPenalty(c.athletes[1], CoursePenaltyKind.forfeit);
+      c.setPenalty(c.competitors[1], CoursePenaltyKind.forfeit);
 
       expect(c.isComplete, isTrue);
     });
 
-    test('a withdrawn athlete sinks below those still to come', () async {
+    test('a withdrawn competitor sinks below those still to come', () async {
       final c = await loadWith([10, 11]);
 
-      c.setPenalty(c.athletes[0], CoursePenaltyKind.forfeit);
+      c.setPenalty(c.competitors[0], CoursePenaltyKind.forfeit);
 
-      expect(c.orderedAthletes.map((a) => a.id), [11, 10]);
+      expect(c.orderedCompetitors.map((e) => e.id), [110, 100]);
     });
 
-    test('assigning a withdrawn athlete leaves the ranking untouched',
+    test('assigning a withdrawn competitor leaves the ranking untouched',
         () async {
       final c = await loadWith([10, 11]);
-      c.setPenalty(c.athletes[0], CoursePenaltyKind.disqualified, code: 'x');
+      c.setPenalty(c.competitors[0], CoursePenaltyKind.disqualified, code: 'x');
 
-      c.assign(c.athletes[0]);
+      c.assign(c.competitors[0]);
 
       expect(c.competitorOrder, isEmpty);
       expect(c.message.value, isA<UiMessageError>());
@@ -524,7 +553,7 @@ void main() {
       stream.add('L10;B10');
       await pumpEventQueue();
 
-      expect(c.placeOf(c.athletes[0]), 1);
+      expect(c.placeOf(c.competitors[0]), 1);
       c.stopScan();
     });
 
@@ -538,7 +567,7 @@ void main() {
       stream.add('L11;B11');
       await pumpEventQueue();
 
-      expect(c.placeOf(c.athletes[1]), 1);
+      expect(c.placeOf(c.competitors[1]), 1);
       c.stopScan();
     });
 
@@ -556,18 +585,18 @@ void main() {
     });
 
     test(
-        'scanning a withdrawn athlete\'s bracelet reports and leaves everyone\'s place alone',
+        'scanning a withdrawn competitor\'s bracelet reports and leaves everyone\'s place alone',
         () async {
       final c = await loadWith([10, 11, 12]);
-      c.assign(c.athletes[1]);
-      c.setPenalty(c.athletes[0], CoursePenaltyKind.forfeit);
+      c.assign(c.competitors[1]);
+      c.setPenalty(c.competitors[0], CoursePenaltyKind.forfeit);
       c.startScan();
 
       stream.add('L10;B10');
       await pumpEventQueue();
 
-      expect(c.placeOf(c.athletes[0]), isNull);
-      expect(c.placeOf(c.athletes[1]), 1);
+      expect(c.placeOf(c.competitors[0]), isNull);
+      expect(c.placeOf(c.competitors[1]), 1);
       expect(c.message.value, isA<UiMessageError>());
       c.stopScan();
     });
@@ -582,7 +611,7 @@ void main() {
       await pumpEventQueue();
 
       expect(c.competitorOrder, [
-        [10],
+        [100],
       ]);
       // A re-read must be told apart from a good one: the operator has no
       // other way to know the second scan changed nothing.
@@ -687,8 +716,8 @@ void main() {
                       entryIds: [201, 202],
                       athleteIds: [4, 5],
                       competitorOrder: [
-                        [4],
-                        [5]
+                        [201],
+                        [202]
                       ],
                     ),
                   ],
@@ -781,9 +810,9 @@ void main() {
     test('publie un résultat par couloir, rang compris', () async {
       final controller = await ready();
       controller.competitorOrder.value = [
-        [2],
-        [1],
-        [3]
+        [102],
+        [101],
+        [103]
       ];
 
       await controller.validate();
@@ -801,8 +830,8 @@ void main() {
     test('un ex-aequo partage son rang', () async {
       final controller = await ready();
       controller.competitorOrder.value = [
-        [1, 2],
-        [3]
+        [101, 102],
+        [103]
       ];
 
       await controller.validate();
@@ -815,12 +844,14 @@ void main() {
     test('un forfait et un disqualifié partent sans rang', () async {
       final controller = await ready();
       controller.competitorOrder.value = [
-        [1]
+        [101]
       ];
       controller.penalties.value = const [
-        CoursePenalty(competitorId: 2, kind: CoursePenaltyKind.forfeit),
+        CoursePenalty(competitorId: 102, kind: CoursePenaltyKind.forfeit),
         CoursePenalty(
-            competitorId: 3, kind: CoursePenaltyKind.disqualified, code: 'DSQ'),
+            competitorId: 103,
+            kind: CoursePenaltyKind.disqualified,
+            code: 'DSQ'),
       ];
 
       await controller.validate();
@@ -839,7 +870,7 @@ void main() {
     test('la course est rattachée à sa série', () async {
       final controller = await ready();
       controller.competitorOrder.value = [
-        [1]
+        [101]
       ];
 
       await controller.validate();
@@ -864,9 +895,9 @@ void main() {
         () async {
       final controller = await ready();
       controller.competitorOrder.value = [
-        [1],
-        [2],
-        [3]
+        [101],
+        [102],
+        [103]
       ];
 
       await controller.validate();
@@ -880,9 +911,9 @@ void main() {
     test('les places de la finale sont poussées sur FFSS', () async {
       final controller = await ready();
       controller.competitorOrder.value = [
-        [1],
-        [2],
-        [3]
+        [101],
+        [102],
+        [103]
       ];
 
       await controller.validate();
@@ -914,9 +945,9 @@ void main() {
         ]),
       );
       controller.competitorOrder.value = [
-        [1],
-        [2],
-        [3]
+        [101],
+        [102],
+        [103]
       ];
 
       await controller.validate();
@@ -948,7 +979,7 @@ void main() {
         ),
       );
       controller.competitorOrder.value = [
-        [1]
+        [101]
       ];
 
       await controller.validate();
@@ -970,7 +1001,7 @@ void main() {
         () async {
       final controller = await ready();
       controller.competitorOrder.value = [
-        [1]
+        [101]
       ];
 
       await controller.validate();
@@ -1009,13 +1040,13 @@ void main() {
     // corriger, pas pour recommencer.
     test('changer de mode conserve le classement', () async {
       final controller = await loadWith([1, 2, 3]);
-      controller.assign(athlete(1));
-      controller.assign(athlete(2));
+      controller.assign(controller.competitors[0]);
+      controller.assign(controller.competitors[1]);
 
       controller.setEntryMode(CourseEntryMode.manual);
 
-      expect(controller.placeOf(athlete(1)), 1);
-      expect(controller.placeOf(athlete(2)), 2);
+      expect(controller.placeOf(controller.competitors[0]), 1);
+      expect(controller.placeOf(controller.competitors[1]), 2);
     });
   });
 
@@ -1023,47 +1054,161 @@ void main() {
     test('affecte le rang saisi', () async {
       final controller = await loadWith([1, 2, 3]);
 
-      controller.setPlace(athlete(2), 1);
+      controller.setPlace(controller.competitors[1], 1);
 
-      expect(controller.placeOf(athlete(2)), 1);
+      expect(controller.placeOf(controller.competitors[1]), 1);
       expect(saved().competitorOrder, [
-        [2]
+        [20]
       ]);
     });
 
     test('un rang déjà pris crée un ex-aequo et décale la suite', () async {
       final controller = await loadWith([1, 2, 3]);
-      controller.assign(athlete(1));
-      controller.assign(athlete(2));
+      controller.assign(controller.competitors[0]);
+      controller.assign(controller.competitors[1]);
 
-      controller.setPlace(athlete(3), 1);
+      controller.setPlace(controller.competitors[2], 1);
 
-      expect(controller.placeOf(athlete(1)), 1);
-      expect(controller.placeOf(athlete(3)), 1);
-      expect(controller.placeOf(athlete(2)), 3);
+      expect(controller.placeOf(controller.competitors[0]), 1);
+      expect(controller.placeOf(controller.competitors[2]), 1);
+      expect(controller.placeOf(controller.competitors[1]), 3);
     });
 
-    test('un rang vidé sort l athlète du classement', () async {
+    test('un rang vidé sort l engagement du classement', () async {
       final controller = await loadWith([1, 2, 3]);
-      controller.assign(athlete(1));
-      controller.assign(athlete(2));
+      controller.assign(controller.competitors[0]);
+      controller.assign(controller.competitors[1]);
 
-      controller.setPlace(athlete(1), 0);
+      controller.setPlace(controller.competitors[0], 0);
 
-      expect(controller.placeOf(athlete(1)), isNull);
-      expect(controller.placeOf(athlete(2)), 1);
+      expect(controller.placeOf(controller.competitors[0]), isNull);
+      expect(controller.placeOf(controller.competitors[1]), 1);
     });
 
     // Même invariant que `assign` : un forfait ne prend pas de place, sans
     // quoi tous les rangs suivants seraient faux.
-    test('un athlète pénalisé ne peut pas être classé à la main', () async {
+    test('un engagement pénalisé ne peut pas être classé à la main', () async {
       final controller = await loadWith([1, 2, 3]);
-      controller.setPenalty(athlete(2), CoursePenaltyKind.forfeit);
+      controller.setPenalty(
+          controller.competitors[1], CoursePenaltyKind.forfeit);
 
-      controller.setPlace(athlete(2), 1);
+      controller.setPlace(controller.competitors[1], 1);
 
-      expect(controller.placeOf(athlete(2)), isNull);
+      expect(controller.placeOf(controller.competitors[1]), isNull);
       expect(controller.message.value, isA<UiMessageError>());
+    });
+  });
+
+  group('RaceCourseController relais', () {
+    late StreamController<String> stream;
+
+    setUp(() {
+      stream = StreamController<String>();
+      when(() => rfid.readBracelets()).thenAnswer((_) => stream.stream);
+      when(() => rfid.isSupported).thenReturn(true);
+    });
+
+    tearDown(() {
+      if (!stream.isClosed) stream.close();
+    });
+
+    test('une equipe prend une seule place', () async {
+      final controller = await loadWithEntries([
+        (entryId: 10, athleteIds: [101, 102]),
+        (entryId: 20, athleteIds: [201, 202]),
+      ]);
+
+      controller.assign(controller.competitors.first);
+      controller.assign(controller.competitors.last);
+
+      expect(controller.placeOf(controller.competitors.first), 1);
+      expect(controller.placeOf(controller.competitors.last), 2);
+    });
+
+    test('le premier bracelet lu classe l equipe', () async {
+      final controller = await loadWithEntries([
+        (entryId: 10, athleteIds: [101, 102]),
+      ]);
+      // Le deuxieme relayeur franchit la ligne : c'est l'equipe qui est classee.
+      controller.startScan();
+      stream.add('L102;B102');
+      await pumpEventQueue();
+
+      expect(controller.placeOf(controller.competitors.single), 1);
+    });
+
+    test('un coequipier lu ensuite est un doublon', () async {
+      final controller = await loadWithEntries([
+        (entryId: 10, athleteIds: [101, 102]),
+        (entryId: 20, athleteIds: [201]),
+      ]);
+      controller.startScan();
+      stream.add('L101;B101');
+      await pumpEventQueue();
+      stream.add('L102;B102');
+      await pumpEventQueue();
+
+      expect(controller.message.value,
+          const UiMessageError('course_athlete_already_ranked'));
+      expect(controller.competitorOrder.length, 1);
+    });
+
+    test('la course est complete quand toutes les equipes sont placees',
+        () async {
+      final controller = await loadWithEntries([
+        (entryId: 10, athleteIds: [101, 102]),
+        (entryId: 20, athleteIds: [201, 202]),
+      ]);
+
+      controller.assign(controller.competitors.first);
+      expect(controller.isComplete, isFalse);
+      controller.assign(controller.competitors.last);
+      expect(controller.isComplete, isTrue);
+    });
+
+    test('un forfait sort toute l equipe du classement', () async {
+      final controller = await loadWithEntries([
+        (entryId: 10, athleteIds: [101, 102]),
+        (entryId: 20, athleteIds: [201]),
+      ]);
+
+      controller.setPenalty(
+          controller.competitors.first, CoursePenaltyKind.forfeit);
+      controller.assign(controller.competitors.last);
+
+      expect(controller.placeOf(controller.competitors.last), 1);
+      expect(saved().penalties.single.competitorId, 10);
+    });
+
+    // Le classement stocke par l'ancien code nomme des athletes : il ne nomme
+    // aucun engagement de la course, donc il est ecarte plutot que mal relu.
+    test('un classement herite de relais est ecarte au chargement', () async {
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101, 102]),
+        ],
+        competitorOrder: const [
+          [101],
+          [102]
+        ],
+      );
+
+      expect(controller.competitorOrder, isEmpty);
+    });
+
+    test('un classement d engagements est relu tel quel', () async {
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101, 102]),
+          (entryId: 20, athleteIds: [201]),
+        ],
+        competitorOrder: const [
+          [20],
+          [10]
+        ],
+      );
+
+      expect(controller.placeOf(controller.competitors.last), 1);
     });
   });
 }
