@@ -580,6 +580,30 @@ void main() {
           AttendanceStatus.present);
     });
 
+    // The "never absent" aggregation only applies to a team: a solo
+    // engagement renders exactly as it did before this task, absent included.
+    test('un engagement individuel pointe absent renvoie absent', () async {
+      final controller = await loadWith([
+        entry(1, [athlete(11)]),
+      ]);
+      final solo = controller.entries.single;
+
+      controller.setAttendance(athlete(11), AttendanceStatus.absent);
+
+      expect(controller.teamAttendance(solo), AttendanceStatus.absent);
+    });
+
+    test('un engagement individuel present compte comme une equipe complete',
+        () async {
+      final controller = await loadWith([
+        entry(1, [athlete(11)]),
+      ]);
+
+      controller.setAttendance(athlete(11), AttendanceStatus.present);
+
+      expect(controller.teamCounts, (complete: 1, total: 1));
+    });
+
     // The aggregated status never reads "absent": the cycle is read off the
     // team's real statuses, not off what the row displays.
     test('le cycle groupe passe par absent puis revient en attente', () async {

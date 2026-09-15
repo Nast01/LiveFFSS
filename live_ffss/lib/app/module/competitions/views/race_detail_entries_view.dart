@@ -118,6 +118,16 @@ class _RaceDetailEntriesViewState extends State<RaceDetailEntriesView> {
                           const SizedBox(height: AppSpacing.sm),
                       itemBuilder: (_, i) {
                         final entry = competitors[i];
+                        // A solo engagement keeps today's chip verbatim — tap
+                        // to cycle, long-press for the explicit menu — since
+                        // there is only one athlete to point. A team's
+                        // aggregated status isn't picked by hand, so it only
+                        // gets the tap-to-cycle chip.
+                        final trailing =
+                            isTeamEntry(entry) || entry.athletes.isEmpty
+                                ? _TeamStatusChip(entry: entry)
+                                : _AthleteStatusChip(
+                                    athlete: entry.athletes.single);
                         return EntryGroupTile(
                           key: ValueKey(entry.id),
                           entry: entry,
@@ -125,7 +135,7 @@ class _RaceDetailEntriesViewState extends State<RaceDetailEntriesView> {
                           subtitle: _subtitleOf(entry),
                           expanded: _ctrl.isEntryExpanded(entry),
                           onToggle: () => _ctrl.toggleEntry(entry),
-                          trailing: _TeamStatusChip(entry: entry),
+                          trailing: trailing,
                           athleteTrailing: (athlete) =>
                               _AthleteStatusChip(athlete: athlete),
                           onSubstitute: _ctrl.requestSubstitution,

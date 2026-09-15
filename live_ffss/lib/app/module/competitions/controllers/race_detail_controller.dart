@@ -181,12 +181,14 @@ class RaceDetailController extends GetxController {
 
   void setSortMode(CompetitorSortMode mode) => sortMode.value = mode;
 
-  /// What the collapsed row announces: present when the whole team is, waiting
-  /// otherwise. Never "absent" — a missing member doesn't absent the team, it
-  /// only keeps it from being ready, which the row's athlete count already
-  /// says.
+  /// What the collapsed row announces. An individual engagement shows its
+  /// athlete's own status, absent included. A team's status hides "absent" —
+  /// a missing member doesn't absent the team, it only keeps it from being
+  /// ready, which the row's athlete count already says — so that reading
+  /// only applies when [isTeamEntry] is true.
   AttendanceStatus teamAttendance(Entry entry) {
     if (entry.athletes.isEmpty) return AttendanceStatus.waiting;
+    if (!isTeamEntry(entry)) return attendanceOf(entry.athletes.single);
     for (final athlete in entry.athletes) {
       if (attendanceOf(athlete) != AttendanceStatus.present) {
         return AttendanceStatus.waiting;
