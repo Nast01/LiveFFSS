@@ -19,6 +19,19 @@ class ParticipantService extends GetxService {
 
   int? _competitionId;
 
+  /// Distinct de `_byAthlete.isNotEmpty` : une lecture réussie peut ne
+  /// rapporter aucun dossard (FFSS n'en a encore assigné aucun), et ce
+  /// résultat vide doit rester tenu pour acquis au lieu d'être relu par
+  /// chaque écran qui appelle [ensureLoaded].
+  bool _loaded = false;
+
+  // Les quatre écrans peuvent appeler [ensureLoaded] au montage pour une
+  // compétition pas encore tenue, dans le même tick. La lecture en vol est
+  // partagée plutôt que dupliquée ; elle est effacée dès qu'elle se
+  // termine, succès ou échec, pour qu'un échec reste rejouable.
+  int? _loadingCompetitionId;
+  Future<bool>? _loadFuture;
+
   int? get competitionId => _competitionId;
 
   /// Le dossard de cet athlète, 0 quand l'index ne le connaît pas — athlète
@@ -29,23 +42,37 @@ class ParticipantService extends GetxService {
   ///
   /// Qui a besoin de fraîcheur appelle [reload] ; un dossard ne change pas en
   /// cours de compétition, donc les écrans se contentent de celui-ci.
-  Future<bool> ensureLoaded(int competitionId) async {
-    if (_competitionId == competitionId && _byAthlete.isNotEmpty) return true;
+  Future<bool> ensureLoaded(int competitionId) {
+    if (_competitionId == competitionId && _loaded) return Future.value(true);
     return _load(competitionId);
   }
 
   /// Relit la compétition déjà chargée. Sans appel préalable à [ensureLoaded],
   /// il n'y a aucune compétition à relire.
-  Future<bool> reload() async {
+  Future<bool> reload() {
     final id = _competitionId;
-    if (id == null) return false;
+    if (id == null) return Future.value(false);
     return _load(id);
   }
 
-  Future<bool> _load(int competitionId) async {
-    // Vider d'abord : les dossards de la compétition précédente désigneraient
-    // les mauvais athlètes sous celle-ci.
-    if (_competitionId != competitionId) _byAthlete.clear();
+  Future<bool> _load(int competitionId) {
+    if (_loadingCompetitionId == competitionId) return _loadFuture!;
+    final future = _doLoad(competitionId);
+    _loadingCompetitionId = competitionId;
+    _loadFuture = future;
+    return future;
+  }
+
+  Future<bool> _doLoad(int competitionId) async {
+    // Vider d'abord : les dossards de la compétition précédente
+    // désigneraient les mauvais athlètes sous celle-ci. Une relecture de la
+    // même compétition (reload, ou après un échec) garde les siens jusqu'à
+    // ce qu'une nouvelle lecture réussisse — le dernier résultat connu vaut
+    // mieux qu'un index vidé sous le pied de l'écran qui le lit.
+    if (_competitionId != competitionId) {
+      _byAthlete.clear();
+      _loaded = false;
+    }
     _competitionId = competitionId;
     try {
       final participants = await _repo.getParticipants(competitionId);
@@ -56,10 +83,15 @@ class ParticipantService extends GetxService {
             if (participant.orderNumber > 0)
               MapEntry(participant.id, participant.orderNumber),
         ]);
+      _loaded = true;
       return true;
     } on AppException {
-      // Best-effort : l'écran s'affiche sans dossards plutôt que pas du tout.
+      // Best-effort : l'écran s'affiche sans dossards plutôt que pas du
+      // tout.
       return false;
+    } finally {
+      _loadingCompetitionId = null;
+      _loadFuture = null;
     }
   }
 }

@@ -72,6 +72,36 @@ void main() {
     verifyNever(() => repo.getParticipants(any()));
   });
 
+  // Une competition sans aucun dossard assigne reste une lecture reussie :
+  // elle ne doit pas etre reprise a chaque appel sous pretexte que l'index
+  // est vide.
+  test('une competition chargee sans aucun dossard n est pas relue', () async {
+    when(() => repo.getParticipants(any())).thenAnswer((_) async => []);
+
+    await service.ensureLoaded(42);
+    await service.ensureLoaded(42);
+
+    verify(() => repo.getParticipants(42)).called(1);
+  });
+
+  test('deux appels concurrents ne declenchent qu une seule lecture', () async {
+    final f1 = service.ensureLoaded(42);
+    final f2 = service.ensureLoaded(42);
+
+    await Future.wait([f1, f2]);
+
+    verify(() => repo.getParticipants(42)).called(1);
+  });
+
+  test('un reload qui echoue garde les dossards deja tenus', () async {
+    await service.ensureLoaded(42);
+    when(() => repo.getParticipants(any()))
+        .thenThrow(const NetworkException('coupe'));
+
+    expect(await service.reload(), isFalse);
+    expect(service.orderNumberOf(7), 12);
+  });
+
   // Le dossard est un repere, pas une condition : une lecture qui echoue
   // laisse l'ecran entier lisible, dossards en moins.
   test('une lecture qui echoue rend false et ne jette pas', () async {
