@@ -34,10 +34,12 @@ mixin _$ProgrammeRace {
 // all its members here while holding a single slot in `entryIds`. What
 // the result and display code reads.
   List<int> get athleteIds =>
-      throw _privateConstructorUsedError; // The order this race was crossed in — one entry per finishing group, a
-// group of several being a declared tie. Places are computed from this
-// and never stored: that is what makes a removal renumber for free.
-  List<List<int>> get finishOrder =>
+      throw _privateConstructorUsedError; // Les compétiteurs dans l'ordre où ils ont franchi la ligne, un groupe par
+// arrivée — un groupe de plusieurs étant un ex-aequo déclaré. Des
+// engagements : voir `competitor.dart`. La clé JSON reste `finishOrder`,
+// le stockage étant antérieur au renommage.
+  @JsonKey(name: 'finishOrder')
+  List<List<int>> get competitorOrder =>
       throw _privateConstructorUsedError; // Athletes out of the ranking. They take no place, so the athletes after
 // them number as though they had not started.
   List<CoursePenalty> get penalties =>
@@ -71,7 +73,7 @@ abstract class $ProgrammeRaceCopyWith<$Res> {
       List<int> sourceRaceIds,
       List<int> entryIds,
       List<int> athleteIds,
-      List<List<int>> finishOrder,
+      @JsonKey(name: 'finishOrder') List<List<int>> competitorOrder,
       List<CoursePenalty> penalties,
       int runId});
 }
@@ -96,7 +98,7 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
     Object? sourceRaceIds = null,
     Object? entryIds = null,
     Object? athleteIds = null,
-    Object? finishOrder = null,
+    Object? competitorOrder = null,
     Object? penalties = null,
     Object? runId = null,
   }) {
@@ -121,9 +123,9 @@ class _$ProgrammeRaceCopyWithImpl<$Res, $Val extends ProgrammeRace>
           ? _value.athleteIds
           : athleteIds // ignore: cast_nullable_to_non_nullable
               as List<int>,
-      finishOrder: null == finishOrder
-          ? _value.finishOrder
-          : finishOrder // ignore: cast_nullable_to_non_nullable
+      competitorOrder: null == competitorOrder
+          ? _value.competitorOrder
+          : competitorOrder // ignore: cast_nullable_to_non_nullable
               as List<List<int>>,
       penalties: null == penalties
           ? _value.penalties
@@ -151,7 +153,7 @@ abstract class _$$ProgrammeRaceImplCopyWith<$Res>
       List<int> sourceRaceIds,
       List<int> entryIds,
       List<int> athleteIds,
-      List<List<int>> finishOrder,
+      @JsonKey(name: 'finishOrder') List<List<int>> competitorOrder,
       List<CoursePenalty> penalties,
       int runId});
 }
@@ -174,7 +176,7 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
     Object? sourceRaceIds = null,
     Object? entryIds = null,
     Object? athleteIds = null,
-    Object? finishOrder = null,
+    Object? competitorOrder = null,
     Object? penalties = null,
     Object? runId = null,
   }) {
@@ -199,9 +201,9 @@ class __$$ProgrammeRaceImplCopyWithImpl<$Res>
           ? _value._athleteIds
           : athleteIds // ignore: cast_nullable_to_non_nullable
               as List<int>,
-      finishOrder: null == finishOrder
-          ? _value._finishOrder
-          : finishOrder // ignore: cast_nullable_to_non_nullable
+      competitorOrder: null == competitorOrder
+          ? _value._competitorOrder
+          : competitorOrder // ignore: cast_nullable_to_non_nullable
               as List<List<int>>,
       penalties: null == penalties
           ? _value._penalties
@@ -225,13 +227,14 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
       final List<int> sourceRaceIds = const <int>[],
       final List<int> entryIds = const <int>[],
       final List<int> athleteIds = const <int>[],
-      final List<List<int>> finishOrder = const <List<int>>[],
+      @JsonKey(name: 'finishOrder')
+      final List<List<int>> competitorOrder = const <List<int>>[],
       final List<CoursePenalty> penalties = const <CoursePenalty>[],
       this.runId = 0})
       : _sourceRaceIds = sourceRaceIds,
         _entryIds = entryIds,
         _athleteIds = athleteIds,
-        _finishOrder = finishOrder,
+        _competitorOrder = competitorOrder,
         _penalties = penalties;
 
   factory _$ProgrammeRaceImpl.fromJson(Map<String, dynamic> json) =>
@@ -286,19 +289,21 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
     return EqualUnmodifiableListView(_athleteIds);
   }
 
-// The order this race was crossed in — one entry per finishing group, a
-// group of several being a declared tie. Places are computed from this
-// and never stored: that is what makes a removal renumber for free.
-  final List<List<int>> _finishOrder;
-// The order this race was crossed in — one entry per finishing group, a
-// group of several being a declared tie. Places are computed from this
-// and never stored: that is what makes a removal renumber for free.
+// Les compétiteurs dans l'ordre où ils ont franchi la ligne, un groupe par
+// arrivée — un groupe de plusieurs étant un ex-aequo déclaré. Des
+// engagements : voir `competitor.dart`. La clé JSON reste `finishOrder`,
+// le stockage étant antérieur au renommage.
+  final List<List<int>> _competitorOrder;
+// Les compétiteurs dans l'ordre où ils ont franchi la ligne, un groupe par
+// arrivée — un groupe de plusieurs étant un ex-aequo déclaré. Des
+// engagements : voir `competitor.dart`. La clé JSON reste `finishOrder`,
+// le stockage étant antérieur au renommage.
   @override
-  @JsonKey()
-  List<List<int>> get finishOrder {
-    if (_finishOrder is EqualUnmodifiableListView) return _finishOrder;
+  @JsonKey(name: 'finishOrder')
+  List<List<int>> get competitorOrder {
+    if (_competitorOrder is EqualUnmodifiableListView) return _competitorOrder;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_finishOrder);
+    return EqualUnmodifiableListView(_competitorOrder);
   }
 
 // Athletes out of the ranking. They take no place, so the athletes after
@@ -326,7 +331,7 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
 
   @override
   String toString() {
-    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds, entryIds: $entryIds, athleteIds: $athleteIds, finishOrder: $finishOrder, penalties: $penalties, runId: $runId)';
+    return 'ProgrammeRace(id: $id, number: $number, sourceRaceIds: $sourceRaceIds, entryIds: $entryIds, athleteIds: $athleteIds, competitorOrder: $competitorOrder, penalties: $penalties, runId: $runId)';
   }
 
   @override
@@ -342,7 +347,7 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
             const DeepCollectionEquality()
                 .equals(other._athleteIds, _athleteIds) &&
             const DeepCollectionEquality()
-                .equals(other._finishOrder, _finishOrder) &&
+                .equals(other._competitorOrder, _competitorOrder) &&
             const DeepCollectionEquality()
                 .equals(other._penalties, _penalties) &&
             (identical(other.runId, runId) || other.runId == runId));
@@ -357,7 +362,7 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
       const DeepCollectionEquality().hash(_sourceRaceIds),
       const DeepCollectionEquality().hash(_entryIds),
       const DeepCollectionEquality().hash(_athleteIds),
-      const DeepCollectionEquality().hash(_finishOrder),
+      const DeepCollectionEquality().hash(_competitorOrder),
       const DeepCollectionEquality().hash(_penalties),
       runId);
 
@@ -384,7 +389,7 @@ abstract class _ProgrammeRace implements ProgrammeRace {
       final List<int> sourceRaceIds,
       final List<int> entryIds,
       final List<int> athleteIds,
-      final List<List<int>> finishOrder,
+      @JsonKey(name: 'finishOrder') final List<List<int>> competitorOrder,
       final List<CoursePenalty> penalties,
       final int runId}) = _$ProgrammeRaceImpl;
 
@@ -409,12 +414,14 @@ abstract class _ProgrammeRace implements ProgrammeRace {
 // the result and display code reads.
   @override
   List<int>
-      get athleteIds; // The order this race was crossed in — one entry per finishing group, a
-// group of several being a declared tie. Places are computed from this
-// and never stored: that is what makes a removal renumber for free.
+      get athleteIds; // Les compétiteurs dans l'ordre où ils ont franchi la ligne, un groupe par
+// arrivée — un groupe de plusieurs étant un ex-aequo déclaré. Des
+// engagements : voir `competitor.dart`. La clé JSON reste `finishOrder`,
+// le stockage étant antérieur au renommage.
   @override
+  @JsonKey(name: 'finishOrder')
   List<List<int>>
-      get finishOrder; // Athletes out of the ranking. They take no place, so the athletes after
+      get competitorOrder; // Athletes out of the ranking. They take no place, so the athletes after
 // them number as though they had not started.
   @override
   List<CoursePenalty>

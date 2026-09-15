@@ -79,11 +79,11 @@ class RaceCourseController extends GetxController {
   final RxList<Athlete> athletes = <Athlete>[].obs;
 
   /// Finishing groups, in order. A group of several is a declared tie.
-  final RxList<List<int>> finishOrder = <List<int>>[].obs;
+  final RxList<List<int>> competitorOrder = <List<int>>[].obs;
 
-  /// Athletes out of the ranking. Kept apart from [finishOrder] precisely so
-  /// they take no place — the athletes after them number as though they had
-  /// not started.
+  /// Athletes out of the ranking. Kept apart from [competitorOrder] precisely
+  /// so they take no place — the athletes after them number as though they
+  /// had not started.
   final RxList<CoursePenalty> penalties = <CoursePenalty>[].obs;
 
   final RxBool isScanning = false.obs;
@@ -137,8 +137,8 @@ class RaceCourseController extends GetxController {
     try {
       await _programme.load(competitionIdValue);
       final stored = _storedRace();
-      finishOrder.value = [
-        for (final group in stored?.finishOrder ?? const <List<int>>[])
+      competitorOrder.value = [
+        for (final group in stored?.competitorOrder ?? const <List<int>>[])
           [...group],
       ];
       penalties.value = [...?stored?.penalties];
@@ -174,15 +174,15 @@ class RaceCourseController extends GetxController {
     }
   }
 
-  int get nextPlaceValue => nextPlace(finishOrder);
+  int get nextPlaceValue => nextPlace(competitorOrder);
 
-  int? placeOf(Athlete athlete) => placesOf(finishOrder)[athlete.id];
+  int? placeOf(Athlete athlete) => placesOf(competitorOrder)[athlete.id];
 
   /// Ranked athletes first in place order, then those still to come in the
   /// order the draw left them. The finished screen is the result itself, which
   /// is why there is no separate recap to build or to keep in step.
   List<Athlete> get orderedAthletes {
-    final places = placesOf(finishOrder);
+    final places = placesOf(competitorOrder);
     final ranked = [
       for (final athlete in athletes)
         if (places.containsKey(athlete.id)) athlete,
@@ -214,8 +214,8 @@ class RaceCourseController extends GetxController {
       message.trigger(const UiMessageError('course_athlete_already_ranked'));
       return;
     }
-    finishOrder.value =
-        withFinisher(finishOrder, athlete.id, tied: tieLock.value);
+    competitorOrder.value =
+        withFinisher(competitorOrder, athlete.id, tied: tieLock.value);
     _persist();
   }
 
@@ -231,19 +231,19 @@ class RaceCourseController extends GetxController {
       message.trigger(const UiMessageError('course_athlete_withdrawn'));
       return;
     }
-    finishOrder.value = place < 1
-        ? withoutAthlete(finishOrder, athlete.id)
-        : withPlace(finishOrder, athlete.id, place);
+    competitorOrder.value = place < 1
+        ? withoutCompetitor(competitorOrder, athlete.id)
+        : withPlace(competitorOrder, athlete.id, place);
     _persist();
   }
 
   void remove(Athlete athlete) {
-    finishOrder.value = withoutAthlete(finishOrder, athlete.id);
+    competitorOrder.value = withoutCompetitor(competitorOrder, athlete.id);
     _persist();
   }
 
   void undo() {
-    finishOrder.value = withoutLastFinisher(finishOrder);
+    competitorOrder.value = withoutLastFinisher(competitorOrder);
     _persist();
   }
 
@@ -251,7 +251,7 @@ class RaceCourseController extends GetxController {
 
   CoursePenalty? penaltyOf(Athlete athlete) {
     for (final penalty in penalties) {
-      if (penalty.athleteId == athlete.id) return penalty;
+      if (penalty.competitorId == athlete.id) return penalty;
     }
     return null;
   }
@@ -263,11 +263,11 @@ class RaceCourseController extends GetxController {
     CoursePenaltyKind kind, {
     String code = '',
   }) {
-    finishOrder.value = withoutAthlete(finishOrder, athlete.id);
+    competitorOrder.value = withoutCompetitor(competitorOrder, athlete.id);
     penalties.value = [
       for (final penalty in penalties)
-        if (penalty.athleteId != athlete.id) penalty,
-      CoursePenalty(athleteId: athlete.id, kind: kind, code: code),
+        if (penalty.competitorId != athlete.id) penalty,
+      CoursePenalty(competitorId: athlete.id, kind: kind, code: code),
     ];
     _persist();
   }
@@ -275,7 +275,7 @@ class RaceCourseController extends GetxController {
   void clearPenalty(Athlete athlete) {
     penalties.value = [
       for (final penalty in penalties)
-        if (penalty.athleteId != athlete.id) penalty,
+        if (penalty.competitorId != athlete.id) penalty,
     ];
     _persist();
   }
@@ -284,7 +284,7 @@ class RaceCourseController extends GetxController {
   /// ends a scanning session, and why the highest place a course hands out is
   /// its line-up minus its withdrawals.
   bool get isComplete {
-    final places = placesOf(finishOrder);
+    final places = placesOf(competitorOrder);
     return athletes.every(
       (a) => places.containsKey(a.id) || penaltyOf(a) != null,
     );
@@ -385,8 +385,8 @@ class RaceCourseController extends GetxController {
                       for (final stored in level.races)
                         if (stored.id == programmeRaceId)
                           stored.copyWith(
-                            finishOrder: [
-                              for (final group in finishOrder) [...group],
+                            competitorOrder: [
+                              for (final group in competitorOrder) [...group],
                             ],
                             penalties: [...penalties],
                           )
@@ -493,9 +493,9 @@ class RaceCourseController extends GetxController {
   /// One outcome per seated engagement: its rank when it finished, its status
   /// otherwise. A team races as one, so any of its athletes speaks for it.
   List<CourseOutcome> _outcomesFor(List<LaneSeat> seats) {
-    final places = placesOf(finishOrder);
+    final places = placesOf(competitorOrder);
     final penaltyOf = <int, CoursePenalty>{
-      for (final penalty in penalties) penalty.athleteId: penalty,
+      for (final penalty in penalties) penalty.competitorId: penalty,
     };
     return [
       for (final seat in seats)
@@ -566,7 +566,7 @@ class RaceCourseController extends GetxController {
     final seeded = <ProgrammeRace>[];
     for (var i = 0; i < next.races.length; i++) {
       final target = next.races[i];
-      if (target.finishOrder.isNotEmpty || target.penalties.isNotEmpty) {
+      if (target.competitorOrder.isNotEmpty || target.penalties.isNotEmpty) {
         seeded.add(target);
         continue;
       }
@@ -616,12 +616,12 @@ class RaceCourseController extends GetxController {
     final mine = stored.id == programmeRaceId;
     final order = mine
         ? [
-            for (final group in finishOrder) [...group],
+            for (final group in competitorOrder) [...group],
           ]
-        : stored.finishOrder;
+        : stored.competitorOrder;
     final applied = mine ? penalties.toList() : stored.penalties;
     if (order.isEmpty || stored.entryIds.isEmpty) return const [];
-    final penalised = {for (final p in applied) p.athleteId};
+    final penalised = {for (final p in applied) p.competitorId};
     // The draw wrote both lists in lane order, so an entry's athletes are
     // found by walking them together.
     final entryOfAthlete = <int, int>{};

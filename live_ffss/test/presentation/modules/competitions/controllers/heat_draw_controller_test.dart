@@ -636,7 +636,8 @@ void main() {
       expect(controller.hasExistingComposition, isFalse);
     });
 
-    test('a redraw clears the finishOrder and penalties of the race it reuses',
+    test(
+        'a redraw clears the competitorOrder and penalties of the race it reuses',
         () async {
       final controller = await drawn(
         4,
@@ -646,11 +647,12 @@ void main() {
               id: 1,
               number: 1,
               athleteIds: [99],
-              finishOrder: [
+              competitorOrder: [
                 [99],
               ],
               penalties: [
-                CoursePenalty(athleteId: 99, kind: CoursePenaltyKind.forfeit),
+                CoursePenalty(
+                    competitorId: 99, kind: CoursePenaltyKind.forfeit),
               ],
             ),
           ]),
@@ -660,7 +662,7 @@ void main() {
       await controller.save();
 
       final reused = savedRaces(RoundType.serie).first;
-      expect(reused.finishOrder, isEmpty);
+      expect(reused.competitorOrder, isEmpty);
       expect(reused.penalties, isEmpty);
     });
 

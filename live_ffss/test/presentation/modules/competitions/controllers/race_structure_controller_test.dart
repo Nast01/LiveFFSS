@@ -518,7 +518,7 @@ void main() {
         id: 1,
         number: 1,
         athleteIds: [31, 32],
-        finishOrder: [
+        competitorOrder: [
           [32],
           [31],
         ],
@@ -548,7 +548,7 @@ void main() {
         athleteIds: [31],
         penalties: [
           CoursePenalty(
-            athleteId: 31,
+            competitorId: 31,
             kind: CoursePenaltyKind.disqualified,
             code: '4.7',
           ),
@@ -950,7 +950,7 @@ void main() {
                   number: 1,
                   entryIds: [999],
                   athleteIds: [99],
-                  finishOrder: [
+                  competitorOrder: [
                     [99]
                   ],
                 ),
@@ -1360,7 +1360,7 @@ void main() {
                     runId: 25,
                     entryIds: [101, 102],
                     athleteIds: [11, 12],
-                    finishOrder: [
+                    competitorOrder: [
                       [11],
                       [12]
                     ],

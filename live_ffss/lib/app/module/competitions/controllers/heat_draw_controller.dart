@@ -529,7 +529,7 @@ class HeatDrawController extends GetxController {
               // athletes who crossed the line no longer match who is seated
               // here. The confirmation dialog above this call is what makes
               // discarding it safe.
-              finishOrder: const [],
+              competitorOrder: const [],
               penalties: const [],
             )
           else

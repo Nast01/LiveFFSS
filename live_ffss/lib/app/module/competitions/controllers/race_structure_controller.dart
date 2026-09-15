@@ -282,7 +282,7 @@ class RaceStructureController extends GetxController {
   int? placeInRace(ProgrammeRace race, int athleteId) {
     final server = _serverResults[race.id];
     if (server != null) return server[athleteId]?.rank;
-    return placesOf(race.finishOrder)[athleteId];
+    return placesOf(race.competitorOrder)[athleteId];
   }
 
   /// The withdrawal this athlete carries in a scored race, if any.
@@ -300,13 +300,13 @@ class RaceStructureController extends GetxController {
       final result = server[athleteId];
       if (result == null || !result.isDisqualified) return null;
       return CoursePenalty(
-        athleteId: athleteId,
+        competitorId: athleteId,
         kind: CoursePenaltyKind.disqualified,
         code: result.complement ?? '',
       );
     }
     for (final penalty in race.penalties) {
-      if (penalty.athleteId == athleteId) return penalty;
+      if (penalty.competitorId == athleteId) return penalty;
     }
     return null;
   }
@@ -588,7 +588,8 @@ class RaceStructureController extends GetxController {
     var changed = false;
     for (final (at, course) in pairs) {
       final race = races[at];
-      if (race.finishOrder.isNotEmpty || race.penalties.isNotEmpty) continue;
+      if (race.competitorOrder.isNotEmpty || race.penalties.isNotEmpty)
+        continue;
       if (course.lanes.isEmpty) continue;
       final seats = await _seatsOf(course);
       if (seats.isEmpty) continue;

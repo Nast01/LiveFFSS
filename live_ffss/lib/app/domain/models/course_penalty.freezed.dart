@@ -20,7 +20,9 @@ CoursePenalty _$CoursePenaltyFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CoursePenalty {
-  int get athleteId => throw _privateConstructorUsedError;
+// Un engagement (voir `competitor.dart`). Clé JSON héritée.
+  @JsonKey(name: 'athleteId')
+  int get competitorId => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: CoursePenaltyKind.unknown)
   CoursePenaltyKind get kind => throw _privateConstructorUsedError;
   String get code => throw _privateConstructorUsedError;
@@ -42,7 +44,7 @@ abstract class $CoursePenaltyCopyWith<$Res> {
       _$CoursePenaltyCopyWithImpl<$Res, CoursePenalty>;
   @useResult
   $Res call(
-      {int athleteId,
+      {@JsonKey(name: 'athleteId') int competitorId,
       @JsonKey(unknownEnumValue: CoursePenaltyKind.unknown)
       CoursePenaltyKind kind,
       String code});
@@ -63,14 +65,14 @@ class _$CoursePenaltyCopyWithImpl<$Res, $Val extends CoursePenalty>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? athleteId = null,
+    Object? competitorId = null,
     Object? kind = null,
     Object? code = null,
   }) {
     return _then(_value.copyWith(
-      athleteId: null == athleteId
-          ? _value.athleteId
-          : athleteId // ignore: cast_nullable_to_non_nullable
+      competitorId: null == competitorId
+          ? _value.competitorId
+          : competitorId // ignore: cast_nullable_to_non_nullable
               as int,
       kind: null == kind
           ? _value.kind
@@ -93,7 +95,7 @@ abstract class _$$CoursePenaltyImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int athleteId,
+      {@JsonKey(name: 'athleteId') int competitorId,
       @JsonKey(unknownEnumValue: CoursePenaltyKind.unknown)
       CoursePenaltyKind kind,
       String code});
@@ -112,14 +114,14 @@ class __$$CoursePenaltyImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? athleteId = null,
+    Object? competitorId = null,
     Object? kind = null,
     Object? code = null,
   }) {
     return _then(_$CoursePenaltyImpl(
-      athleteId: null == athleteId
-          ? _value.athleteId
-          : athleteId // ignore: cast_nullable_to_non_nullable
+      competitorId: null == competitorId
+          ? _value.competitorId
+          : competitorId // ignore: cast_nullable_to_non_nullable
               as int,
       kind: null == kind
           ? _value.kind
@@ -137,15 +139,17 @@ class __$$CoursePenaltyImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CoursePenaltyImpl implements _CoursePenalty {
   const _$CoursePenaltyImpl(
-      {required this.athleteId,
+      {@JsonKey(name: 'athleteId') required this.competitorId,
       @JsonKey(unknownEnumValue: CoursePenaltyKind.unknown) required this.kind,
       this.code = ''});
 
   factory _$CoursePenaltyImpl.fromJson(Map<String, dynamic> json) =>
       _$$CoursePenaltyImplFromJson(json);
 
+// Un engagement (voir `competitor.dart`). Clé JSON héritée.
   @override
-  final int athleteId;
+  @JsonKey(name: 'athleteId')
+  final int competitorId;
   @override
   @JsonKey(unknownEnumValue: CoursePenaltyKind.unknown)
   final CoursePenaltyKind kind;
@@ -155,7 +159,7 @@ class _$CoursePenaltyImpl implements _CoursePenalty {
 
   @override
   String toString() {
-    return 'CoursePenalty(athleteId: $athleteId, kind: $kind, code: $code)';
+    return 'CoursePenalty(competitorId: $competitorId, kind: $kind, code: $code)';
   }
 
   @override
@@ -163,15 +167,15 @@ class _$CoursePenaltyImpl implements _CoursePenalty {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CoursePenaltyImpl &&
-            (identical(other.athleteId, athleteId) ||
-                other.athleteId == athleteId) &&
+            (identical(other.competitorId, competitorId) ||
+                other.competitorId == competitorId) &&
             (identical(other.kind, kind) || other.kind == kind) &&
             (identical(other.code, code) || other.code == code));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, athleteId, kind, code);
+  int get hashCode => Object.hash(runtimeType, competitorId, kind, code);
 
   /// Create a copy of CoursePenalty
   /// with the given fields replaced by the non-null parameter values.
@@ -191,7 +195,7 @@ class _$CoursePenaltyImpl implements _CoursePenalty {
 
 abstract class _CoursePenalty implements CoursePenalty {
   const factory _CoursePenalty(
-      {required final int athleteId,
+      {@JsonKey(name: 'athleteId') required final int competitorId,
       @JsonKey(unknownEnumValue: CoursePenaltyKind.unknown)
       required final CoursePenaltyKind kind,
       final String code}) = _$CoursePenaltyImpl;
@@ -199,8 +203,10 @@ abstract class _CoursePenalty implements CoursePenalty {
   factory _CoursePenalty.fromJson(Map<String, dynamic> json) =
       _$CoursePenaltyImpl.fromJson;
 
+// Un engagement (voir `competitor.dart`). Clé JSON héritée.
   @override
-  int get athleteId;
+  @JsonKey(name: 'athleteId')
+  int get competitorId;
   @override
   @JsonKey(unknownEnumValue: CoursePenaltyKind.unknown)
   CoursePenaltyKind get kind;

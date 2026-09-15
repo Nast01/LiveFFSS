@@ -341,8 +341,9 @@ class _EntryBar extends GetView<RaceCourseController> {
                   onSelected: (_) => controller.toggleTieLock(),
                 ),
                 IconButton(
-                  onPressed:
-                      controller.finishOrder.isEmpty ? null : controller.undo,
+                  onPressed: controller.competitorOrder.isEmpty
+                      ? null
+                      : controller.undo,
                   icon: const Icon(Icons.undo),
                   tooltip: 'course_undo'.tr,
                 ),

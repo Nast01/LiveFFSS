@@ -304,7 +304,7 @@ void main() {
       final c = await loadWith([10, 11]);
 
       expect(() => c.undo(), returnsNormally);
-      expect(c.finishOrder, isEmpty);
+      expect(c.competitorOrder, isEmpty);
     });
 
     test(
@@ -315,7 +315,7 @@ void main() {
 
       c.assign(c.athletes.first);
 
-      expect(c.finishOrder, [
+      expect(c.competitorOrder, [
         [10],
       ]);
       expect(c.message.value, isA<UiMessageError>());
@@ -339,7 +339,7 @@ void main() {
 
       c.assign(c.athletes.first);
 
-      expect(saved().finishOrder, [
+      expect(saved().competitorOrder, [
         [10],
       ]);
     });
@@ -497,7 +497,7 @@ void main() {
 
       c.assign(c.athletes[0]);
 
-      expect(c.finishOrder, isEmpty);
+      expect(c.competitorOrder, isEmpty);
       expect(c.message.value, isA<UiMessageError>());
     });
   });
@@ -550,7 +550,7 @@ void main() {
       stream.add('L999;NOBODY');
       await pumpEventQueue();
 
-      expect(c.finishOrder, isEmpty);
+      expect(c.competitorOrder, isEmpty);
       expect(c.message.value, isA<UiMessageError>());
       c.stopScan();
     });
@@ -581,7 +581,7 @@ void main() {
       stream.add('L10;B10');
       await pumpEventQueue();
 
-      expect(c.finishOrder, [
+      expect(c.competitorOrder, [
         [10],
       ]);
       // A re-read must be told apart from a good one: the operator has no
@@ -686,7 +686,7 @@ void main() {
                       runId: 26,
                       entryIds: [201, 202],
                       athleteIds: [4, 5],
-                      finishOrder: [
+                      competitorOrder: [
                         [4],
                         [5]
                       ],
@@ -780,7 +780,7 @@ void main() {
 
     test('publie un résultat par couloir, rang compris', () async {
       final controller = await ready();
-      controller.finishOrder.value = [
+      controller.competitorOrder.value = [
         [2],
         [1],
         [3]
@@ -800,7 +800,7 @@ void main() {
     // laissent personne deuxième.
     test('un ex-aequo partage son rang', () async {
       final controller = await ready();
-      controller.finishOrder.value = [
+      controller.competitorOrder.value = [
         [1, 2],
         [3]
       ];
@@ -814,13 +814,13 @@ void main() {
     // pas de rang, sinon il apparaîtrait au classement.
     test('un forfait et un disqualifié partent sans rang', () async {
       final controller = await ready();
-      controller.finishOrder.value = [
+      controller.competitorOrder.value = [
         [1]
       ];
       controller.penalties.value = const [
-        CoursePenalty(athleteId: 2, kind: CoursePenaltyKind.forfeit),
+        CoursePenalty(competitorId: 2, kind: CoursePenaltyKind.forfeit),
         CoursePenalty(
-            athleteId: 3, kind: CoursePenaltyKind.disqualified, code: 'DSQ'),
+            competitorId: 3, kind: CoursePenaltyKind.disqualified, code: 'DSQ'),
       ];
 
       await controller.validate();
@@ -838,7 +838,7 @@ void main() {
 
     test('la course est rattachée à sa série', () async {
       final controller = await ready();
-      controller.finishOrder.value = [
+      controller.competitorOrder.value = [
         [1]
       ];
 
@@ -863,7 +863,7 @@ void main() {
     test('la finale reçoit les qualifiés de toutes les demies courues',
         () async {
       final controller = await ready();
-      controller.finishOrder.value = [
+      controller.competitorOrder.value = [
         [1],
         [2],
         [3]
@@ -879,7 +879,7 @@ void main() {
 
     test('les places de la finale sont poussées sur FFSS', () async {
       final controller = await ready();
-      controller.finishOrder.value = [
+      controller.competitorOrder.value = [
         [1],
         [2],
         [3]
@@ -907,13 +907,13 @@ void main() {
             runId: 30,
             entryIds: [999],
             athleteIds: [9],
-            finishOrder: [
+            competitorOrder: [
               [9]
             ],
           ),
         ]),
       );
-      controller.finishOrder.value = [
+      controller.competitorOrder.value = [
         [1],
         [2],
         [3]
@@ -947,7 +947,7 @@ void main() {
           ],
         ),
       );
-      controller.finishOrder.value = [
+      controller.competitorOrder.value = [
         [1]
       ];
 
@@ -969,7 +969,7 @@ void main() {
     test('la série créée est retenue et réutilisée à la revalidation',
         () async {
       final controller = await ready();
-      controller.finishOrder.value = [
+      controller.competitorOrder.value = [
         [1]
       ];
 
@@ -1026,7 +1026,7 @@ void main() {
       controller.setPlace(athlete(2), 1);
 
       expect(controller.placeOf(athlete(2)), 1);
-      expect(saved().finishOrder, [
+      expect(saved().competitorOrder, [
         [2]
       ]);
     });

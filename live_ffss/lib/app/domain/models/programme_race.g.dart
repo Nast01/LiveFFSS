@@ -22,7 +22,7 @@ _$ProgrammeRaceImpl _$$ProgrammeRaceImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => (e as num).toInt())
               .toList() ??
           const <int>[],
-      finishOrder: (json['finishOrder'] as List<dynamic>?)
+      competitorOrder: (json['finishOrder'] as List<dynamic>?)
               ?.map((e) =>
                   (e as List<dynamic>).map((e) => (e as num).toInt()).toList())
               .toList() ??
@@ -41,7 +41,7 @@ Map<String, dynamic> _$$ProgrammeRaceImplToJson(_$ProgrammeRaceImpl instance) =>
       'sourceRaceIds': instance.sourceRaceIds,
       'entryIds': instance.entryIds,
       'athleteIds': instance.athleteIds,
-      'finishOrder': instance.finishOrder,
+      'finishOrder': instance.competitorOrder,
       'penalties': instance.penalties.map((e) => e.toJson()).toList(),
       'runId': instance.runId,
     };
