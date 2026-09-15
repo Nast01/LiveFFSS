@@ -37,10 +37,10 @@ class AthleteDto with _$AthleteDto {
     @JsonKey(name: 'engagements')
     @Default(<AthleteEntryDto>[])
     List<AthleteEntryDto> entries,
-    // Le dossard : unique pour un athlète sur une compétition. FFSS le type en
-    // String ; il est lu en entier pour que deux dossards se comparent comme
-    // des nombres. Présent sur les charges utiles de forme Participant
-    // (`participants`, `organismes`), absent de `engagement`.
+    // The bib number: unique for an athlete within one competition. FFSS
+    // types it as a String; it is read as an int so two bibs compare as
+    // numbers. Present on Participant-shaped payloads (`participants`,
+    // `organismes`), absent from `engagement`.
     @JsonKey(name: 'Dossard', readValue: _readOrderNumber)
     @Default(0)
     int orderNumber,

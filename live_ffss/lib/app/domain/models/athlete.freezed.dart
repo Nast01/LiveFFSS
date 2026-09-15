@@ -39,8 +39,8 @@ mixin _$Athlete {
   String get clubLabel => throw _privateConstructorUsedError;
   bool get isSubstitute => throw _privateConstructorUsedError;
 
-  /// Le dossard que l'athlète porte sur cette compétition, 0 quand il n'en a
-  /// pas — ou quand il vient d'une route qui ne le sert pas.
+  /// The bib number this athlete wears in this competition, 0 when they
+  /// have none — or when it came from a route that doesn't serve it.
   int get orderNumber => throw _privateConstructorUsedError;
 
   /// The categories this athlete is entered in, distinct and in the order
@@ -436,8 +436,8 @@ class _$AthleteImpl implements _Athlete {
   @JsonKey()
   final bool isSubstitute;
 
-  /// Le dossard que l'athlète porte sur cette compétition, 0 quand il n'en a
-  /// pas — ou quand il vient d'une route qui ne le sert pas.
+  /// The bib number this athlete wears in this competition, 0 when they
+  /// have none — or when it came from a route that doesn't serve it.
   @override
   @JsonKey()
   final int orderNumber;
@@ -608,8 +608,8 @@ abstract class _Athlete implements Athlete {
   @override
   bool get isSubstitute;
 
-  /// Le dossard que l'athlète porte sur cette compétition, 0 quand il n'en a
-  /// pas — ou quand il vient d'une route qui ne le sert pas.
+  /// The bib number this athlete wears in this competition, 0 when they
+  /// have none — or when it came from a route that doesn't serve it.
   @override
   int get orderNumber;
 

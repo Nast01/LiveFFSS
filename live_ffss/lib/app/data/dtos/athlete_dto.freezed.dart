@@ -63,10 +63,10 @@ mixin _$AthleteDto {
 // brackets for a master, which names nothing they actually race.
   @JsonKey(name: 'engagements')
   List<AthleteEntryDto> get entries =>
-      throw _privateConstructorUsedError; // Le dossard : unique pour un athlète sur une compétition. FFSS le type en
-// String ; il est lu en entier pour que deux dossards se comparent comme
-// des nombres. Présent sur les charges utiles de forme Participant
-// (`participants`, `organismes`), absent de `engagement`.
+      throw _privateConstructorUsedError; // The bib number: unique for an athlete within one competition. FFSS
+// types it as a String; it is read as an int so two bibs compare as
+// numbers. Present on Participant-shaped payloads (`participants`,
+// `organismes`), absent from `engagement`.
   @JsonKey(name: 'Dossard', readValue: _readOrderNumber)
   int get orderNumber => throw _privateConstructorUsedError;
 
@@ -469,10 +469,10 @@ class _$AthleteDtoImpl implements _AthleteDto {
     return EqualUnmodifiableListView(_entries);
   }
 
-// Le dossard : unique pour un athlète sur une compétition. FFSS le type en
-// String ; il est lu en entier pour que deux dossards se comparent comme
-// des nombres. Présent sur les charges utiles de forme Participant
-// (`participants`, `organismes`), absent de `engagement`.
+// The bib number: unique for an athlete within one competition. FFSS
+// types it as a String; it is read as an int so two bibs compare as
+// numbers. Present on Participant-shaped payloads (`participants`,
+// `organismes`), absent from `engagement`.
   @override
   @JsonKey(name: 'Dossard', readValue: _readOrderNumber)
   final int orderNumber;
@@ -647,10 +647,10 @@ abstract class _AthleteDto implements AthleteDto {
   @override
   @JsonKey(name: 'engagements')
   List<AthleteEntryDto>
-      get entries; // Le dossard : unique pour un athlète sur une compétition. FFSS le type en
-// String ; il est lu en entier pour que deux dossards se comparent comme
-// des nombres. Présent sur les charges utiles de forme Participant
-// (`participants`, `organismes`), absent de `engagement`.
+      get entries; // The bib number: unique for an athlete within one competition. FFSS
+// types it as a String; it is read as an int so two bibs compare as
+// numbers. Present on Participant-shaped payloads (`participants`,
+// `organismes`), absent from `engagement`.
   @override
   @JsonKey(name: 'Dossard', readValue: _readOrderNumber)
   int get orderNumber;

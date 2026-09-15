@@ -30,8 +30,8 @@ class Athlete with _$Athlete {
     @Default('') String clubLabel,
     @Default(false) bool isSubstitute,
 
-    /// Le dossard que l'athlète porte sur cette compétition, 0 quand il n'en a
-    /// pas — ou quand il vient d'une route qui ne le sert pas.
+    /// The bib number this athlete wears in this competition, 0 when they
+    /// have none — or when it came from a route that doesn't serve it.
     @Default(0) int orderNumber,
 
     /// The categories this athlete is entered in, distinct and in the order
