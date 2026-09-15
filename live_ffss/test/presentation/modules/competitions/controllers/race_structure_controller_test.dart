@@ -2022,4 +2022,116 @@ void main() {
       verify(() => meetingRepo.getMeetings(competition.id + 1)).called(1);
     });
   });
+
+  group('les places ne sont lues que pour le tour affiche', () {
+    DateTime hhmm(String v) => DateFormat('HH:mm').parse(v);
+
+    Run course(int id, int laneId, String at) => Run(
+          id: id,
+          name: 'Course',
+          label: '',
+          fullLabel: '',
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: 'OCEAN 1',
+          beginTime: hhmm(at),
+          endTime: hhmm(at),
+          lanes: [Lane(id: laneId, number: 1)],
+        );
+
+    Slot slotOf(int partieId, Run run) => Slot(
+          id: partieId,
+          name: 'Créneau',
+          beginHour: run.beginTime,
+          endHour: run.endTime,
+          raceFormatDetail: RaceFormatDetail(
+            id: partieId,
+            order: 1,
+            label: '',
+            fullLabel: '',
+            levelLabel: '',
+            level: 'heat',
+            numberOfRun: 1,
+            qualificationMethod: 'none',
+            qualificationMethodLabel: '',
+            spotsPerRace: 8,
+            qualifyingSpots: 0,
+          ),
+          runs: [run],
+        );
+
+    const local = CompetitionProgramme(
+      competitionId: 42,
+      structures: [
+        EventStructure(
+          raceId: 500,
+          categoryId: 7,
+          raceLabel: '100m',
+          categoryLabel: 'Cadets',
+          levels: [
+            RoundLevel(
+                type: RoundType.serie,
+                serverId: 39,
+                races: [ProgrammeRace(id: 10, number: 1)]),
+            RoundLevel(
+                type: RoundType.finale,
+                serverId: 40,
+                races: [ProgrammeRace(id: 12, number: 1)]),
+          ],
+        ),
+      ],
+    );
+
+    late RaceStructureController controller;
+
+    setUp(() async {
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(local.toJson()));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      when(() => meetingRepo.getMeetings(any())).thenAnswer((_) async => [
+            Meeting(
+              id: 78,
+              name: 'Réunion',
+              description: '',
+              date: DateTime(2026, 6, 13),
+              beginHour: DateTime(2026, 6, 13, 8),
+              endHour: DateTime(2026, 6, 13, 18),
+              slots: [
+                slotOf(39, course(1, 71, '08:00')),
+                slotOf(40, course(2, 72, '09:00')),
+              ],
+            )
+          ]);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
+      await controller.load(race(500), competition);
+    });
+
+    // Le poste le plus cher du chargement etait une requete par place, pour
+    // tous les tours a la fois — alors que l'ecran n'en affiche qu'un.
+    test('l ouverture ne lit que les places du premier tour', () {
+      verify(() => meetingRepo.getLaneSeats([71])).called(1);
+      verifyNever(() => meetingRepo.getLaneSeats([72]));
+    });
+
+    test('ouvrir la finale lit ses places a ce moment-la', () async {
+      controller.selectTab(1);
+      await pumpEventQueue();
+
+      verify(() => meetingRepo.getLaneSeats([72])).called(1);
+    });
+
+    test('revenir sur un tour deja lu ne le relit pas', () async {
+      controller.selectTab(1);
+      await pumpEventQueue();
+      clearInteractions(meetingRepo);
+
+      controller.selectTab(0);
+      await pumpEventQueue();
+      controller.selectTab(1);
+      await pumpEventQueue();
+
+      verifyNever(() => meetingRepo.getLaneSeats(any()));
+    });
+  });
 }

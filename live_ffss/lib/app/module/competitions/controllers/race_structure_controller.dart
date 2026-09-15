@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
@@ -111,6 +113,13 @@ class RaceStructureController extends GetxController {
   /// rechargement doit justement relire ce que le serveur a change depuis.
   final Map<int, List<LaneSeat>> _seatsByCourse = {};
 
+  /// Tours deja alignes sur FFSS pendant cette visite, par cle de tour.
+  ///
+  /// Un tour se synchronise quand on l'ouvre, pas avant : lire les places de
+  /// tous les tours coutait une requete par place — le poste le plus cher du
+  /// chargement — pour des tours que l'operateur n'ouvrira peut-etre jamais.
+  final Set<String> _syncedRounds = {};
+
   /// Athlete id -> athlete, built from the entries this race already fetches,
   /// with clubs resolved. It is what turns a drawn race's `athleteIds` back
   /// into rows the operator can read.
@@ -164,6 +173,7 @@ class RaceStructureController extends GetxController {
     this.competition.value = competition;
     _seatsByCourse.clear();
     _courseHeatIds.clear();
+    _syncedRounds.clear();
     if (!silent) isLoading.value = true;
     try {
       await _programme.load(competition.id);
@@ -187,16 +197,34 @@ class RaceStructureController extends GetxController {
           tabCount == 0 ? 0 : selectedTabIndex.value.clamp(0, tabCount - 1);
       // The draw a first device pushed lives in the FFSS places: this is what
       // makes it visible on every other device.
-      try {
-        await _prefetchSeats(race);
-        await _importCompositions(race);
-        await _importResults(race);
-        structures.value = _structuresOf(race);
-      } on AppException {
-        // The local composition stands.
-      }
+      await _syncRound(race, selectedTab);
     } finally {
       if (!silent) isLoading.value = false;
+    }
+  }
+
+  String _roundKey(RoundTab tab) => '${tab.categoryId}:${tab.levelIndex}';
+
+  /// Aligne un tour sur ce que FFSS detient : les places de ses courses, puis
+  /// les classements de ses series.
+  ///
+  /// Par tour et non par epreuve, parce que l'ecran n'en affiche qu'un a la
+  /// fois. Un tour deja synchronise pendant cette visite ne l'est pas deux
+  /// fois ; un tour dont la lecture echoue redevient synchronisable, sans quoi
+  /// une coupure passagere le condamnerait a la copie locale jusqu'a la
+  /// sortie de l'ecran.
+  Future<void> _syncRound(Race race, RoundTab? tab) async {
+    if (tab == null) return;
+    final key = _roundKey(tab);
+    if (!_syncedRounds.add(key)) return;
+    try {
+      await _prefetchSeats(tab.level);
+      await _importCompositions(race, tab);
+      await _importResults(race, tab);
+      structures.value = _structuresOf(race);
+    } on AppException {
+      // The local composition stands.
+      _syncedRounds.remove(key);
     }
   }
 
@@ -537,26 +565,39 @@ class RaceStructureController extends GetxController {
   /// A course with no `serie` has never been validated: nothing is read, and
   /// the local order stays in charge. Best-effort per course — one unreadable
   /// heat costs its own ranking, not the screen.
-  Future<void> _importResults(Race race) async {
-    _serverResults.clear();
+  Future<void> _importResults(Race race, RoundTab tab) async {
     final programme = _programme.current.value;
     if (programme == null) return;
 
-    // Une seule lecture groupee pour toute l'epreuve, avant la boucle : lire
-    // serie par serie faisait payer une latence a chaque course validee.
+    // Une seule lecture groupee pour le tour, avant la boucle : lire serie par
+    // serie faisait payer une latence a chaque course validee.
     final resultsByHeat = await _meetings.getHeatResultsByHeat({
       for (final structure in programme.structures)
-        if (structure.raceId == race.id)
-          for (final level in structure.levels)
-            for (final course in coursesOfLevel(level))
-              if ((course.heat?.id ?? 0) != 0) course.heat!.id,
+        if (structure.raceId == race.id &&
+            structure.categoryId == tab.categoryId)
+          for (var i = 0; i < structure.levels.length; i++)
+            if (i == tab.levelIndex)
+              for (final course in coursesOfLevel(structure.levels[i]))
+                if ((course.heat?.id ?? 0) != 0) course.heat!.id,
     });
 
     for (final structure in programme.structures) {
-      if (structure.raceId != race.id) continue;
-      for (final level in structure.levels) {
+      if (structure.raceId != race.id ||
+          structure.categoryId != tab.categoryId) {
+        continue;
+      }
+      for (var levelIndex = 0;
+          levelIndex < structure.levels.length;
+          levelIndex++) {
+        if (levelIndex != tab.levelIndex) continue;
+        final level = structure.levels[levelIndex];
         final courses = coursesOfLevel(level);
         if (courses.isEmpty) continue;
+        // Vide ce tour-ci et lui seul : les classements des autres tours deja
+        // ouverts restent lisibles.
+        for (final stored in level.races) {
+          _serverResults.remove(stored.id);
+        }
         for (final stored in level.races) {
           final course = _courseOf(courses, stored);
           final heatId = course?.heat?.id ?? 0;
@@ -572,25 +613,17 @@ class RaceStructureController extends GetxController {
     }
   }
 
-  /// Remplit le memo pour toutes les courses de l'epreuve, en une lecture
-  /// groupee.
+  /// Remplit le memo pour les courses d'un tour, en une lecture groupee.
   ///
   /// Sans lui, les deux passes d'import lisaient course par course, en file :
   /// un tour de huit courses payait huit latences bout a bout la ou il en paie
-  /// une. Ce qui n'est pas prechargé — rien, en pratique — retombe sur la
-  /// lecture unitaire de [_seatsOf].
-  Future<void> _prefetchSeats(Race race) async {
-    final programme = _programme.current.value;
-    if (programme == null) return;
-    final courses = <int, Run>{};
-    for (final structure in programme.structures) {
-      if (structure.raceId != race.id) continue;
-      for (final level in structure.levels) {
-        for (final course in coursesOfLevel(level)) {
-          if (course.lanes.isNotEmpty) courses[course.id] = course;
-        }
-      }
-    }
+  /// une. Ce qui n'est pas prechargé retombe sur la lecture unitaire de
+  /// [_seatsOf].
+  Future<void> _prefetchSeats(RoundLevel level) async {
+    final courses = <int, Run>{
+      for (final course in coursesOfLevel(level))
+        if (course.lanes.isNotEmpty) course.id: course,
+    };
     if (courses.isEmpty) return;
     _seatsByCourse.addAll(await _meetings.getLaneSeatsByCourse(courses.values));
   }
@@ -619,19 +652,29 @@ class RaceStructureController extends GetxController {
   /// results is never overwritten, whatever the server says — losing a finish
   /// order to a sync would be worse than any stale seating. Empty seats adopt
   /// nothing either: a freshly placed round says nothing about the draw.
-  Future<void> _importCompositions(Race race) async {
+  Future<void> _importCompositions(Race race, RoundTab tab) async {
     final programme = _programme.current.value;
     if (programme == null) return;
 
     var changed = false;
     final updated = <EventStructure>[];
     for (final structure in programme.structures) {
-      if (structure.raceId != race.id) {
+      // Le tour affiche, et lui seul : les autres passent tels quels, et
+      // seront importes quand on les ouvrira. L'appariement se fait par
+      // categorie et par rang du tour, jamais par identite — une sauvegarde
+      // intermediaire a pu remplacer les objets depuis.
+      if (structure.raceId != race.id ||
+          structure.categoryId != tab.categoryId) {
         updated.add(structure);
         continue;
       }
       final levels = <RoundLevel>[];
-      for (final level in structure.levels) {
+      for (var i = 0; i < structure.levels.length; i++) {
+        final level = structure.levels[i];
+        if (i != tab.levelIndex) {
+          levels.add(level);
+          continue;
+        }
         final imported = await _importLevel(level);
         if (!identical(imported, level)) changed = true;
         levels.add(imported);
@@ -832,6 +875,11 @@ class RaceStructureController extends GetxController {
   void selectTab(int index) {
     if (index < 0 || index >= tabs.length) return;
     selectedTabIndex.value = index;
+    // Le tour qu'on ouvre va chercher ses places maintenant. Non attendu : la
+    // pastille doit basculer sous le doigt, et les lignes se completent quand
+    // FFSS repond.
+    final race = this.race.value;
+    unawaited(race == null ? Future.value() : _syncRound(race, selectedTab));
   }
 }
 
