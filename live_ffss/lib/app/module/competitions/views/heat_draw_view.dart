@@ -558,6 +558,11 @@ class _HeatCard extends StatelessWidget {
   /// « Série 2 », « Finale A ».
   final String name;
 
+  /// Heads, not lanes: eight relay lanes are thirty-two athletes, and the
+  /// Séries tile counts the same way.
+  int get _athleteCount =>
+      entries.fold(0, (total, entry) => total + entry.athletes.length);
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -579,7 +584,7 @@ class _HeatCard extends StatelessWidget {
                     style: AppTypography.body
                         .copyWith(fontWeight: FontWeight.w800)),
                 const Spacer(),
-                Text('${entries.length} ${'athletes_lower'.tr}',
+                Text('$_athleteCount ${'athletes_lower'.tr}',
                     style: AppTypography.caption),
               ],
             ),

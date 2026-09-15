@@ -131,18 +131,37 @@ class _RaceDetailEntriesViewState extends State<RaceDetailEntriesView> {
                                 ? _TeamStatusChip(entry: entry)
                                 : _AthleteStatusChip(
                                     athlete: entry.athletes.single);
-                        return EntryGroupTile(
+                        // The card is painted here, not in EntryGroupTile: the
+                        // draw and Séries screens render their tiles flat
+                        // inside a card of their own, and chrome in the shared
+                        // widget would double it there.
+                        return Container(
                           key: ValueKey(entry.id),
-                          entry: entry,
-                          title: entryTitle(entry),
-                          subtitle: _subtitleOf(entry),
-                          expanded: _ctrl.isEntryExpanded(entry),
-                          onToggle: () => _ctrl.toggleEntry(entry),
-                          trailing: trailing,
-                          athleteTrailing: (athlete) =>
-                              _AthleteStatusChip(athlete: athlete),
-                          onSubstitute: _ctrl.requestSubstitution,
-                          avatarSize: 40,
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: AppRadius.mdRadius,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.xs),
+                          child: EntryGroupTile(
+                            entry: entry,
+                            title: entryTitle(entry),
+                            subtitle: _subtitleOf(entry),
+                            expanded: _ctrl.isEntryExpanded(entry),
+                            onToggle: () => _ctrl.toggleEntry(entry),
+                            trailing: trailing,
+                            athleteTrailing: (athlete) =>
+                                _AthleteStatusChip(athlete: athlete),
+                            onSubstitute: _ctrl.requestSubstitution,
+                            avatarSize: 40,
+                          ),
                         );
                       },
                     ),

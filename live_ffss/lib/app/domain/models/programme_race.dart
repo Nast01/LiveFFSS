@@ -30,8 +30,8 @@ class ProgrammeRace with _$ProgrammeRace {
     @JsonKey(name: 'finishOrder')
     @Default(<List<int>>[])
     List<List<int>> competitorOrder,
-    // Athletes out of the ranking. They take no place, so the athletes after
-    // them number as though they had not started.
+    // Competitors out of the ranking. They take no place, so the competitors
+    // after them number as though they had not started.
     @Default(<CoursePenalty>[]) List<CoursePenalty> penalties,
     // The FFSS course this heat runs as, 0 while it has none. The draw lives
     // on the device and the timetable on the server: without this id nothing
