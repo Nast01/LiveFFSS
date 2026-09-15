@@ -33,6 +33,7 @@ class EntryGroupTile extends StatelessWidget {
     this.onSubstitute,
     this.highlight = false,
     this.avatarSize = 32,
+    this.titleMaxLines = 1,
   });
 
   final Entry entry;
@@ -58,6 +59,11 @@ class EntryGroupTile extends StatelessWidget {
 
   final bool highlight;
   final double avatarSize;
+
+  /// Lignes accordées au titre avant l'ellipse. Un relais y porte le nom de
+  /// son club, qui ne tient pas toujours entre l'avatar et ce que l'écran
+  /// accroche à droite — d'où le réglage, écran par écran.
+  final int titleMaxLines;
 
   bool get _isTeam => isTeamEntry(entry);
 
@@ -88,7 +94,7 @@ class EntryGroupTile extends StatelessWidget {
                   title,
                   style: AppTypography.body
                       .copyWith(fontSize: 13, fontWeight: FontWeight.w600),
-                  maxLines: 1,
+                  maxLines: titleMaxLines,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (subtitle?.isNotEmpty == true)

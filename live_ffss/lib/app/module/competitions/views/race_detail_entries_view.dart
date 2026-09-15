@@ -131,37 +131,50 @@ class _RaceDetailEntriesViewState extends State<RaceDetailEntriesView> {
                                 ? _TeamStatusChip(entry: entry)
                                 : _AthleteStatusChip(
                                     athlete: entry.athletes.single);
-                        // The card is painted here, not in EntryGroupTile: the
-                        // draw and Séries screens render their tiles flat
-                        // inside a card of their own, and chrome in the shared
-                        // widget would double it there.
-                        return Container(
+                        // One Obx per row: a ListView's itemBuilder runs during
+                        // layout, outside the screen-level Obx's build, so a
+                        // read of expandedEntries made here would never be
+                        // registered as a dependency and the chevron would fold
+                        // nothing. The draw and Séries screens wrap their tiles
+                        // the same way.
+                        //
+                        // The card is painted here, not in EntryGroupTile: those
+                        // two screens render their tiles flat inside a card of
+                        // their own, and chrome in the shared widget would
+                        // double it there.
+                        return Obx(
+                          () => Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: AppRadius.mdRadius,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: AppSpacing.xs),
+                            child: EntryGroupTile(
+                              entry: entry,
+                              title: entryTitle(entry),
+                              subtitle: _subtitleOf(entry),
+                              expanded: _ctrl.isEntryExpanded(entry),
+                              onToggle: () => _ctrl.toggleEntry(entry),
+                              trailing: trailing,
+                              athleteTrailing: (athlete) =>
+                                  _AthleteStatusChip(athlete: athlete),
+                              onSubstitute: _ctrl.requestSubstitution,
+                              avatarSize: 40,
+                              // A relay's row is titled by its club, and a club
+                              // name rarely fits on one line between a 40px
+                              // avatar and a status chip.
+                              titleMaxLines: 2,
+                            ),
+                          ),
                           key: ValueKey(entry.id),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: AppRadius.mdRadius,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: AppSpacing.xs),
-                          child: EntryGroupTile(
-                            entry: entry,
-                            title: entryTitle(entry),
-                            subtitle: _subtitleOf(entry),
-                            expanded: _ctrl.isEntryExpanded(entry),
-                            onToggle: () => _ctrl.toggleEntry(entry),
-                            trailing: trailing,
-                            athleteTrailing: (athlete) =>
-                                _AthleteStatusChip(athlete: athlete),
-                            onSubstitute: _ctrl.requestSubstitution,
-                            avatarSize: 40,
-                          ),
                         );
                       },
                     ),
