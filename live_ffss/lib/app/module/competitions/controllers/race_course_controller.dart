@@ -326,6 +326,10 @@ class RaceCourseController extends GetxController {
 
   /// This course's série when the caller did not hand one over: the fallback,
   /// and it pays for the whole réunion tree.
+  ///
+  /// No caller reaches this branch today — the Séries tab always passes
+  /// `heatId` in — but it is not dead: it is the fallback for a future entry
+  /// point that opens this screen without one.
   Future<int> _resolveHeatId(ProgrammeRace? stored) async {
     final competitionId = competition.value?.id;
     if (stored == null || stored.runId == 0 || competitionId == null) return 0;

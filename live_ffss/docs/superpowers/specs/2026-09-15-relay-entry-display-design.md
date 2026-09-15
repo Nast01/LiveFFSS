@@ -101,12 +101,28 @@ bool isCompetitorOrder(List<List<int>> order, List<Entry> competitors);
 ## Les classements hérités : écartés, puis relus depuis FFSS
 
 Un `finishOrder` déjà stocké contient des ids d'athlètes, et rien dans le JSON
-ne dit lequel des deux sens il porte. **Il n'est pas converti** :
-`isCompetitorOrder` le reconnaît — ses ids ne nomment aucun compétiteur de la
-course — et il est écarté à la lecture, puis remplacé à la première écriture.
-Seuls les relais sont concernés : sur un tirage individuel antérieur à
-`entryIds`, le compétiteur de repli porte l'id de son athlète, donc le
-classement déjà saisi reste lisible.
+ne dit lequel des deux sens il porte. **Il n'est pas converti.**
+`isCompetitorOrder` reste un contrôle strict — vrai seulement quand *tous* les
+ids de l'ordre nomment un compétiteur de la course — mais la **politique** de
+lecture, dans `RaceCourseController._readStoredRanking`, distingue trois cas
+plutôt que de tout garder ou tout jeter :
+
+1. **Ordre valide** (`isCompetitorOrder` vrai) : conservé tel quel.
+2. **Ordre courant amputé** — au moins un id nomme encore un compétiteur de la
+   course, mais pas tous. C'est un ordre actuel qui a perdu des engagements
+   (retrait depuis le tirage, ou `getEntries` tronqué) : il est conservé
+   **moins** les ids disparus, densément renuméroté, et signalé par
+   `course_ranking_competitor_gone`.
+3. **Ordre hérité** — aucun id ne nomme un compétiteur de la course. C'est
+   l'ancien sens, indexé par athlète : il est écarté en bloc, pénalités
+   comprises. Seuls les relais sont concernés : sur un tirage individuel
+   antérieur à `entryIds`, le compétiteur de repli porte l'id de son athlète,
+   donc le classement déjà saisi reste dans le cas 1.
+
+Le cas 3 n'est annoncé (`course_ranking_dropped`) que si la relecture décrite
+ci-dessous ne remplit pas la course à sa place — sinon rien n'a été perdu, et
+le dire serait une fausse alerte sur les courses mêmes que cette relecture
+sert.
 
 Pour que l'opérateur ne retrouve pas une course validée affichée vide, l'écran de
 saisie **relit ce que FFSS détient** :
