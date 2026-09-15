@@ -36,8 +36,8 @@ int nextPlace(List<List<int>> finishOrder) =>
 /// [finishOrder] with [competitorId] added at the end — tied to the last group
 /// when [tied], in a group of their own otherwise.
 ///
-/// Un compétiteur déjà placé revient inchangé : une lecture de bracelet deux
-/// fois ne doit pas le classer à deux endroits.
+/// A competitor already placed is returned untouched: a bracelet read twice must
+/// not rank them in two places.
 List<List<int>> withFinisher(
   List<List<int>> finishOrder,
   int competitorId, {

@@ -20,7 +20,7 @@ CoursePenalty _$CoursePenaltyFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CoursePenalty {
-// Un engagement (voir `competitor.dart`). Clé JSON héritée.
+// An entry (see `competitor.dart`). Inherited JSON key.
   @JsonKey(name: 'athleteId')
   int get competitorId => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: CoursePenaltyKind.unknown)
@@ -146,7 +146,7 @@ class _$CoursePenaltyImpl implements _CoursePenalty {
   factory _$CoursePenaltyImpl.fromJson(Map<String, dynamic> json) =>
       _$$CoursePenaltyImplFromJson(json);
 
-// Un engagement (voir `competitor.dart`). Clé JSON héritée.
+// An entry (see `competitor.dart`). Inherited JSON key.
   @override
   @JsonKey(name: 'athleteId')
   final int competitorId;
@@ -203,7 +203,7 @@ abstract class _CoursePenalty implements CoursePenalty {
   factory _CoursePenalty.fromJson(Map<String, dynamic> json) =
       _$CoursePenaltyImpl.fromJson;
 
-// Un engagement (voir `competitor.dart`). Clé JSON héritée.
+// An entry (see `competitor.dart`). Inherited JSON key.
   @override
   @JsonKey(name: 'athleteId')
   int get competitorId;

@@ -34,10 +34,10 @@ mixin _$ProgrammeRace {
 // all its members here while holding a single slot in `entryIds`. What
 // the result and display code reads.
   List<int> get athleteIds =>
-      throw _privateConstructorUsedError; // Les compétiteurs dans l'ordre où ils ont franchi la ligne, un groupe par
-// arrivée — un groupe de plusieurs étant un ex-aequo déclaré. Des
-// engagements : voir `competitor.dart`. La clé JSON reste `finishOrder`,
-// le stockage étant antérieur au renommage.
+      throw _privateConstructorUsedError; // The competitors in the order they crossed the line, one group per
+// finish — a group of several being a declared tie. Entries: see
+// `competitor.dart`. The JSON key stays `finishOrder`, the stored data
+// predating the rename.
   @JsonKey(name: 'finishOrder')
   List<List<int>> get competitorOrder =>
       throw _privateConstructorUsedError; // Athletes out of the ranking. They take no place, so the athletes after
@@ -289,15 +289,15 @@ class _$ProgrammeRaceImpl implements _ProgrammeRace {
     return EqualUnmodifiableListView(_athleteIds);
   }
 
-// Les compétiteurs dans l'ordre où ils ont franchi la ligne, un groupe par
-// arrivée — un groupe de plusieurs étant un ex-aequo déclaré. Des
-// engagements : voir `competitor.dart`. La clé JSON reste `finishOrder`,
-// le stockage étant antérieur au renommage.
+// The competitors in the order they crossed the line, one group per
+// finish — a group of several being a declared tie. Entries: see
+// `competitor.dart`. The JSON key stays `finishOrder`, the stored data
+// predating the rename.
   final List<List<int>> _competitorOrder;
-// Les compétiteurs dans l'ordre où ils ont franchi la ligne, un groupe par
-// arrivée — un groupe de plusieurs étant un ex-aequo déclaré. Des
-// engagements : voir `competitor.dart`. La clé JSON reste `finishOrder`,
-// le stockage étant antérieur au renommage.
+// The competitors in the order they crossed the line, one group per
+// finish — a group of several being a declared tie. Entries: see
+// `competitor.dart`. The JSON key stays `finishOrder`, the stored data
+// predating the rename.
   @override
   @JsonKey(name: 'finishOrder')
   List<List<int>> get competitorOrder {
@@ -414,10 +414,10 @@ abstract class _ProgrammeRace implements ProgrammeRace {
 // the result and display code reads.
   @override
   List<int>
-      get athleteIds; // Les compétiteurs dans l'ordre où ils ont franchi la ligne, un groupe par
-// arrivée — un groupe de plusieurs étant un ex-aequo déclaré. Des
-// engagements : voir `competitor.dart`. La clé JSON reste `finishOrder`,
-// le stockage étant antérieur au renommage.
+      get athleteIds; // The competitors in the order they crossed the line, one group per
+// finish — a group of several being a declared tie. Entries: see
+// `competitor.dart`. The JSON key stays `finishOrder`, the stored data
+// predating the rename.
   @override
   @JsonKey(name: 'finishOrder')
   List<List<int>>

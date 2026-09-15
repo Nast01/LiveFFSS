@@ -9,12 +9,12 @@ part 'course_penalty.g.dart';
 /// decode.
 enum CoursePenaltyKind { forfeit, disqualified, unknown }
 
-/// Un compétiteur hors classement. [code] est le code de disqualification que
-/// donne l'arbitre ; il reste vide pour un forfait.
+/// A competitor out of the ranking. [code] is the disqualification code the
+/// referee gives; it stays empty for a forfeit.
 @freezed
 class CoursePenalty with _$CoursePenalty {
   const factory CoursePenalty({
-    // Un engagement (voir `competitor.dart`). Clé JSON héritée.
+    // An entry (see `competitor.dart`). Inherited JSON key.
     @JsonKey(name: 'athleteId') required int competitorId,
     @JsonKey(unknownEnumValue: CoursePenaltyKind.unknown)
     required CoursePenaltyKind kind,

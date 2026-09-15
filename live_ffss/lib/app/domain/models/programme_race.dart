@@ -23,10 +23,10 @@ class ProgrammeRace with _$ProgrammeRace {
     // all its members here while holding a single slot in `entryIds`. What
     // the result and display code reads.
     @Default(<int>[]) List<int> athleteIds,
-    // Les compétiteurs dans l'ordre où ils ont franchi la ligne, un groupe par
-    // arrivée — un groupe de plusieurs étant un ex-aequo déclaré. Des
-    // engagements : voir `competitor.dart`. La clé JSON reste `finishOrder`,
-    // le stockage étant antérieur au renommage.
+    // The competitors in the order they crossed the line, one group per
+    // finish — a group of several being a declared tie. Entries: see
+    // `competitor.dart`. The JSON key stays `finishOrder`, the stored data
+    // predating the rename.
     @JsonKey(name: 'finishOrder')
     @Default(<List<int>>[])
     List<List<int>> competitorOrder,
