@@ -83,21 +83,30 @@ réclame, en fonctions pures testées sans mock, à côté de `course_ranking.da
 /// Reconstruits depuis `entryIds` ; quand il est vide — un tirage antérieur au
 /// champ — chaque athlète de `athleteIds` devient son propre engagement, ce qui
 /// redonne exactement le comportement individuel d'avant.
-List<Entry> competitorsOf(ProgrammeRace race, Map<int, Entry> byId);
+List<Entry> competitorsOf(
+  ProgrammeRace race, {
+  required Map<int, Entry> entries,
+  required Map<int, Athlete> athletes,
+});
 
-/// Vrai quand l'ordre stocké est bien une liste d'engagements de cette course.
+/// Vrai quand l'ordre stocké ne nomme que des compétiteurs de cette course.
 ///
-/// Un ordre hérité contient des ids d'athlètes : aucun n'appartient à
-/// `entryIds`, ce qui le rend reconnaissable sans drapeau de version.
-bool isCompetitorOrder(ProgrammeRace race);
+/// Un ordre hérité de relais contient des ids d'athlètes, dont aucun n'est un
+/// engagement de la course : il se reconnaît sans drapeau de version. Un
+/// tirage individuel ancien, lui, reste valide — son engagement de repli porte
+/// l'id de son athlète, donc l'ordre déjà saisi est conservé tel quel.
+bool isCompetitorOrder(List<List<int>> order, List<Entry> competitors);
 ```
 
 ## Les classements hérités : écartés, puis relus depuis FFSS
 
 Un `finishOrder` déjà stocké contient des ids d'athlètes, et rien dans le JSON
-ne dit lequel des deux sens il porte. **Il n'est pas converti** : `isCompetitorOrder`
-le reconnaît — ses ids n'appartiennent pas à `entryIds` — et il est écarté à la
-lecture, puis remplacé à la première écriture.
+ne dit lequel des deux sens il porte. **Il n'est pas converti** :
+`isCompetitorOrder` le reconnaît — ses ids ne nomment aucun compétiteur de la
+course — et il est écarté à la lecture, puis remplacé à la première écriture.
+Seuls les relais sont concernés : sur un tirage individuel antérieur à
+`entryIds`, le compétiteur de repli porte l'id de son athlète, donc le
+classement déjà saisi reste lisible.
 
 Pour que l'opérateur ne retrouve pas une course validée affichée vide, l'écran de
 saisie **relit ce que FFSS détient** :
