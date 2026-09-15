@@ -60,10 +60,13 @@ class EntryGroupTile extends StatelessWidget {
   final bool highlight;
   final double avatarSize;
 
-  /// Lignes accordées au titre avant l'ellipse. Un relais y porte le nom de
-  /// son club, qui ne tient pas toujours entre l'avatar et ce que l'écran
-  /// accroche à droite — d'où le réglage, écran par écran.
-  final int titleMaxLines;
+  /// Lignes accordées au titre avant l'ellipse, `null` pour aucune limite.
+  ///
+  /// Un relais y porte le nom de son club, qui ne tient pas toujours entre
+  /// l'avatar et ce que l'écran accroche à droite. Là où ce nom doit se lire
+  /// en entier, plafonner ne fait que déplacer la coupure : l'écran passe
+  /// `null` et la ligne grandit d'autant.
+  final int? titleMaxLines;
 
   bool get _isTeam => isTeamEntry(entry);
 
