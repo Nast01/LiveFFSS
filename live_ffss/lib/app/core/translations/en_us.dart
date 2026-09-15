@@ -88,6 +88,9 @@ final Map<String, String> enUS = {
   'referees_upper': 'Referees',
   'athletes_lower': 'athletes',
   'athletes_and_referees': '@athleteCount athletes • @refereeCount referees',
+  'relay_substitute': 'Substitute',
+  'relay_substitute_coming_soon': 'Substitution is coming soon',
+  'teams_complete': 'complete teams',
 
   // Program add meeting dialog
   'label': 'Label',

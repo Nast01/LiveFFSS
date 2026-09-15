@@ -89,6 +89,9 @@ final Map<String, String> frFR = {
   'referees_upper': 'Arbitres',
   'athletes_lower': 'athlètes',
   'athletes_and_referees': '@athleteCount athlètes • @refereeCount arbitres',
+  'relay_substitute': 'Remplacer',
+  'relay_substitute_coming_soon': 'Le remplacement arrive bientôt',
+  'teams_complete': 'équipes complètes',
 
   // Program add meeting dialog
   'label': 'Label',
