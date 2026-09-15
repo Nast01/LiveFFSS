@@ -1274,6 +1274,69 @@ void main() {
       verifyNever(() => meetingRepo.getMeetings(any()));
     });
 
+    // Le cas meme pour lequel cette relecture existe : un classement herite,
+    // ecarte parce qu'il nommait des athletes, et que FFSS rend tel qu'il l'a
+    // publie. Rien n'est perdu, donc rien n'est signale.
+    test('un classement herite repris de FFSS ne dit rien', () async {
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => {
+                55: [
+                  (
+                    entryId: 20,
+                    rank: 1,
+                    isDisqualified: false,
+                    complement: null,
+                    status: 0
+                  ),
+                  (
+                    entryId: 10,
+                    rank: 2,
+                    isDisqualified: false,
+                    complement: null,
+                    status: 0
+                  ),
+                ]
+              });
+
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+          (entryId: 20, athleteIds: [201]),
+        ],
+        competitorOrder: const [
+          [101],
+          [201]
+        ],
+        heatId: 55,
+      );
+
+      expect(controller.message.value, isNull);
+      expect(controller.placeOf(controller.competitors.last), 1);
+      expect(controller.placeOf(controller.competitors.first), 2);
+    });
+
+    // Mais quand FFSS n'a rien non plus, la perte est bien reelle : la course
+    // rouvre vide et l'operateur doit le savoir.
+    test('un classement herite que FFSS ne rattrape pas est dit a l ecran',
+        () async {
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => const {55: <HeatResult>[]});
+
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+        ],
+        competitorOrder: const [
+          [101]
+        ],
+        heatId: 55,
+      );
+
+      expect(controller.message.value,
+          const UiMessageError('course_ranking_dropped'));
+      expect(controller.competitorOrder, isEmpty);
+    });
+
     // La saisie en cours ne se fait pas ecraser par le serveur : l'operateur
     // est peut-etre en train de corriger ce que FFSS detient encore.
     test('un classement local l emporte sur le serveur', () async {

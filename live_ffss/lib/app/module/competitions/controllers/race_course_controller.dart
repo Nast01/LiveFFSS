@@ -164,7 +164,7 @@ class RaceCourseController extends GetxController {
         athletes: byAthlete,
       );
 
-      _readStoredRanking(stored, lineUp);
+      final droppedWholeRanking = _readStoredRanking(stored, lineUp);
 
       // Entries arrive with no club on their athletes — the mappers never set
       // one — and that club is what every row shows.
@@ -187,6 +187,13 @@ class RaceCourseController extends GetxController {
       if (competitorOrder.isEmpty && penalties.isEmpty) {
         await _seedFromPublished(stored);
       }
+      // A ranking dropped whole is only worth saying once it has stayed lost.
+      // When the read-back refilled the course with the federation's own
+      // places nothing was lost, and saying otherwise would raise a false
+      // alarm on exactly the courses that read-back exists for.
+      if (droppedWholeRanking && competitorOrder.isEmpty && penalties.isEmpty) {
+        message.trigger(const UiMessageError('course_ranking_dropped'));
+      }
     } on AppException {
       // The line-up is unavailable; the screen shows an empty course rather
       // than failing outright, and reopening it retries.
@@ -208,11 +215,16 @@ class RaceCourseController extends GetxController {
   /// missing from a truncated `getEntries` — which keeps everyone still
   /// engaged, renumbered densely.
   ///
-  /// Either loss is said out loud. Finding a ranking silently blank, or
-  /// silently one place short, is how a marshal publishes a result they never
-  /// entered. An order that was simply never scored stays silent: that is the
-  /// ordinary state of a course not yet run.
-  void _readStoredRanking(ProgrammeRace? stored, List<Entry> lineUp) {
+  /// Either loss that stands is said out loud. Finding a ranking silently
+  /// blank, or silently one place short, is how a marshal publishes a result
+  /// they never entered. An order that was simply never scored stays silent:
+  /// that is the ordinary state of a course not yet run.
+  ///
+  /// Returns whether the order was dropped whole — the one loss this does not
+  /// announce itself, because only [load] knows whether the read-back from
+  /// FFSS then refilled the course. The partial loss is settled here: its
+  /// ranking stays non-empty, so no read-back runs behind it.
+  bool _readStoredRanking(ProgrammeRace? stored, List<Entry> lineUp) {
     final storedOrder = [
       for (final group in stored?.competitorOrder ?? const <List<int>>[])
         [...group],
@@ -222,7 +234,7 @@ class RaceCourseController extends GetxController {
     if (isCompetitorOrder(storedOrder, lineUp)) {
       competitorOrder.value = storedOrder;
       penalties.value = storedPenalties;
-      return;
+      return false;
     }
 
     final present = {for (final entry in lineUp) entry.id};
@@ -231,8 +243,7 @@ class RaceCourseController extends GetxController {
     if (!storedOrder.any((group) => group.any(present.contains))) {
       competitorOrder.value = const [];
       penalties.value = const [];
-      message.trigger(const UiMessageError('course_ranking_dropped'));
-      return;
+      return true;
     }
 
     var order = storedOrder;
@@ -247,6 +258,7 @@ class RaceCourseController extends GetxController {
         if (present.contains(penalty.competitorId)) penalty,
     ];
     message.trigger(const UiMessageError('course_ranking_competitor_gone'));
+    return false;
   }
 
   /// Takes back the ranking FFSS already holds for this course.
