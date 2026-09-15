@@ -32,6 +32,13 @@ class ParticipantService extends GetxService {
   int? _loadingCompetitionId;
   Future<bool>? _loadFuture;
 
+  // Le service est `permanent` et change de compétition en place : deux
+  // lectures peuvent se chevaucher (l'une pour la compétition qu'on quitte,
+  // l'autre pour celle qu'on ouvre). Même jeton que MeetingService : celle
+  // dont le jeton n'est plus le dernier en date sait que sa réponse est
+  // dépassée et n'écrit ni bibs ni suivi en vol par-dessus la plus récente.
+  int _requestToken = 0;
+
   int? get competitionId => _competitionId;
 
   /// Le dossard de cet athlète, 0 quand l'index ne le connaît pas — athlète
@@ -56,19 +63,24 @@ class ParticipantService extends GetxService {
   }
 
   Future<bool> _load(int competitionId) {
-    if (_loadingCompetitionId == competitionId) return _loadFuture!;
-    final future = _doLoad(competitionId);
+    if (_loadingCompetitionId == competitionId && _loadFuture != null) {
+      return _loadFuture!;
+    }
+    final token = ++_requestToken;
+    final future = _doLoad(competitionId, token);
     _loadingCompetitionId = competitionId;
     _loadFuture = future;
     return future;
   }
 
-  Future<bool> _doLoad(int competitionId) async {
+  Future<bool> _doLoad(int competitionId, int token) async {
     // Vider d'abord : les dossards de la compétition précédente
     // désigneraient les mauvais athlètes sous celle-ci. Une relecture de la
     // même compétition (reload, ou après un échec) garde les siens jusqu'à
     // ce qu'une nouvelle lecture réussisse — le dernier résultat connu vaut
-    // mieux qu'un index vidé sous le pied de l'écran qui le lit.
+    // mieux qu'un index vidé sous le pied de l'écran qui le lit. Synchrone,
+    // donc aucun autre appel ne peut s'intercaler avant que le jeton ne soit
+    // posé plus bas.
     if (_competitionId != competitionId) {
       _byAthlete.clear();
       _loaded = false;
@@ -76,6 +88,10 @@ class ParticipantService extends GetxService {
     _competitionId = competitionId;
     try {
       final participants = await _repo.getParticipants(competitionId);
+      // Une compétition plus récente a pu prendre le relais pendant
+      // l'attente réseau ; une réponse dépassée n'écrit rien, au risque
+      // d'effacer les dossards de la compétition désormais tenue.
+      if (token != _requestToken) return false;
       _byAthlete
         ..clear()
         ..addEntries([
@@ -90,8 +106,14 @@ class ParticipantService extends GetxService {
       // tout.
       return false;
     } finally {
-      _loadingCompetitionId = null;
-      _loadFuture = null;
+      // Ne nettoyer le suivi en vol que s'il désigne encore cet appel-ci :
+      // une réponse dépassée ne doit pas effacer celui d'une lecture plus
+      // récente, encore en vol, sous peine de lui faire perdre son partage
+      // entre appelants concurrents.
+      if (_loadingCompetitionId == competitionId) {
+        _loadingCompetitionId = null;
+        _loadFuture = null;
+      }
     }
   }
 }
