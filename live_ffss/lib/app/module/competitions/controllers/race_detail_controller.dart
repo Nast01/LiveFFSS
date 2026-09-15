@@ -372,7 +372,9 @@ class RaceDetailController extends GetxController {
     scanLog.insert(
         0,
         ScanResult(
-            '${match.lastName} ${match.firstName}', ScanOutcome.present));
+            '${match.orderNumber > 0 ? '${match.orderNumber} · ' : ''}'
+            '${match.lastName} ${match.firstName}',
+            ScanOutcome.present));
     presentCount.value++;
   }
 

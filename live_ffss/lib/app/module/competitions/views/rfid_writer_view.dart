@@ -11,6 +11,7 @@ import 'package:live_ffss/app/presentation/shared/filter_chip_bar.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/home_wave.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
+import 'package:live_ffss/app/presentation/shared/order_number_badge.dart';
 
 class RfidWriterView extends StatefulWidget {
   const RfidWriterView({super.key});
@@ -259,11 +260,19 @@ class _AthleteRow extends GetView<RfidWriterController> {
       child: ListTile(
         onTap: () => controller.writeBracelet(athlete),
         isThreeLine: categories.isNotEmpty,
-        title: Text(
-          '${athlete.lastName} ${athlete.firstName}',
-          style: AppTypography.body,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        title: Row(
+          children: [
+            OrderNumberBadge(orderNumber: athlete.orderNumber),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                '${athlete.lastName} ${athlete.firstName}',
+                style: AppTypography.body,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
         // The licence number is what goes on the chip: showing it is how a
         // volunteer notices they picked the wrong athlete. The club name rides

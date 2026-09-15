@@ -9,6 +9,7 @@ import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/athlete_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/entry_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
+import 'package:live_ffss/app/presentation/shared/order_number_badge.dart';
 
 /// Un engagement, sur une ligne : ce que tous les écrans de compétiteurs
 /// montrent.
@@ -84,6 +85,13 @@ class EntryGroupTile extends StatelessWidget {
             fallbackLabel: title,
           ),
           const SizedBox(width: AppSpacing.sm),
+          if (!_isTeam && entry.athletes.isNotEmpty) ...[
+            OrderNumberBadge(
+              orderNumber: entry.athletes.single.orderNumber,
+              fontSize: 12,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,6 +193,8 @@ class _AthleteLine extends StatelessWidget {
           AppSpacing.lg, 2, AppSpacing.sm, AppSpacing.xs),
       child: Row(
         children: [
+          OrderNumberBadge(orderNumber: athlete.orderNumber),
+          const SizedBox(width: AppSpacing.xs),
           Expanded(
             child: Text(
               athlete.displayName,
