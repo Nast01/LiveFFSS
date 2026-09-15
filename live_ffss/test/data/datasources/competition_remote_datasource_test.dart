@@ -62,4 +62,29 @@ void main() {
       expect(captured['fin'], '2026-05-03');
     });
   });
+
+  group('CompetitionRemoteDataSourceImpl.getParticipants', () {
+    test('appelle la route de l evenement et mappe les participants', () async {
+      when(() => http.get(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {
+                'data': [
+                  {'Id': 7, 'Nom': 'DUPONT', 'Dossard': '12'},
+                ]
+              });
+
+      final dtos = await ds.getParticipants(42);
+
+      verify(() => http.get('competition/evenement/42/participants',
+          query: any(named: 'query'))).called(1);
+      expect(dtos.single.id, 7);
+      expect(dtos.single.orderNumber, 12);
+    });
+
+    test('une reponse sans data rend une liste vide', () async {
+      when(() => http.get(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => <String, dynamic>{});
+
+      expect(await ds.getParticipants(42), isEmpty);
+    });
+  });
 }

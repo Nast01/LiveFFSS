@@ -1,7 +1,9 @@
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/core/enum/enum.dart';
 import 'package:live_ffss/app/data/datasources/competition_remote_datasource.dart';
+import 'package:live_ffss/app/data/mappers/athlete_mapper.dart';
 import 'package:live_ffss/app/data/mappers/competition_mapper.dart';
+import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 
 abstract class CompetitionRepository {
@@ -18,6 +20,9 @@ abstract class CompetitionRepository {
     CompetitionVisibility visibility = CompetitionVisibility.passed,
     int pageSize = 10,
   });
+
+  /// Les athlètes engagés sur la compétition, dossard compris.
+  Future<List<Athlete>> getParticipants(int competitionId);
 }
 
 class CompetitionRepositoryImpl implements CompetitionRepository {
@@ -101,5 +106,11 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
       page++;
     }
     return all;
+  }
+
+  @override
+  Future<List<Athlete>> getParticipants(int competitionId) async {
+    final dtos = await _dataSource.getParticipants(competitionId);
+    return [for (final dto in dtos) dto.toDomain()];
   }
 }
