@@ -461,6 +461,7 @@ class _CourseTile extends StatelessWidget {
                   'roundType': level.type,
                   'raceNumber': race.number,
                   'programmeRaceId': race.id,
+                  'heatId': controller.heatIdOf(race),
                 });
                 // The result screen writes into the same programme, so the
                 // structure shown here is stale on the way back.

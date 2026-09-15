@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:intl/intl.dart';
@@ -151,7 +152,7 @@ void main() {
   ProgrammeRace saved() =>
       programme.current.value!.structures.single.levels.single.races.single;
 
-  Map<String, Object?> arguments() => {
+  Map<String, Object?> arguments({int heatId = 0}) => {
         'race': makeRace(),
         'competition': makeCompetition(),
         'categoryId': categoryId,
@@ -159,15 +160,92 @@ void main() {
         'roundType': RoundType.serie,
         'raceNumber': 1,
         'programmeRaceId': programmeRaceId,
+        'heatId': heatId,
       };
+
+  DateTime hhmm(String v) => DateFormat('HH:mm').parse(v);
+
+  Run course(int id, String name, List<Lane> lanes) => Run(
+        id: id,
+        name: name,
+        label: name,
+        fullLabel: name,
+        status: RunStatus.waiting,
+        statusLabel: '',
+        site: 'OCEAN 1',
+        beginTime: hhmm('08:00'),
+        endTime: hhmm('08:10'),
+        lanes: lanes,
+      );
+
+  Meeting meetingWith(List<Run> runs) => Meeting(
+        id: 78,
+        name: 'Réunion',
+        description: '',
+        date: DateTime(2026, 6, 13),
+        beginHour: DateTime(2026, 6, 13, 8),
+        endHour: DateTime(2026, 6, 13, 18),
+        slots: [
+          Slot(
+            id: 66,
+            name: 'Demies',
+            beginHour: hhmm('08:00'),
+            endHour: hhmm('08:20'),
+            runs: runs,
+          ),
+        ],
+      );
+
+  /// Le harnais serveur d'une validation : l'arbre des réunions rendant la
+  /// course visée avec ses places, un siège par engagement, et une série en
+  /// retour de la publication.
+  void stubMeetingTreeForValidate({
+    required int runId,
+    required List<int> laneEntryIds,
+    Map<int, List<int>> athletesOf = const {},
+    List<Lane>? lanes,
+    List<Run> alsoRuns = const [],
+    int heatId = 94369,
+  }) {
+    final places = lanes ??
+        [
+          for (var i = 0; i < laneEntryIds.length; i++)
+            Lane(id: 71 + i, number: i + 1),
+        ];
+    when(() => meetingRepo.getMeetings(competitionId)).thenAnswer(
+      (_) async => [
+        meetingWith([course(runId, 'Demie 1', places), ...alsoRuns])
+      ],
+    );
+    when(() => meetingRepo.getLaneSeats(any())).thenAnswer((_) async => [
+          for (var i = 0; i < laneEntryIds.length; i++)
+            (
+              laneId: places[i].id,
+              number: i + 1,
+              entryId: laneEntryIds[i],
+              athleteIds: athletesOf[laneEntryIds[i]] ?? const <int>[],
+            ),
+        ]);
+    when(() => meetingRepo.publishCourseResults(
+          raceId: any(named: 'raceId'),
+          heatName: any(named: 'heatName'),
+          heatNumber: any(named: 'heatNumber'),
+          outcomes: any(named: 'outcomes'),
+          heatId: any(named: 'heatId'),
+          link: any(named: 'link'),
+        )).thenAnswer((_) async => heatId);
+  }
 
   Future<RaceCourseController> loadWithEntries(
     List<({int entryId, List<int> athleteIds})> spec, {
     List<List<int>> competitorOrder = const [],
+    int heatId = 0,
+    int runId = 0,
   }) async {
     programme = _FakeProgrammeService(programmeWith(ProgrammeRace(
       id: programmeRaceId,
       number: 1,
+      runId: runId,
       entryIds: [for (final e in spec) e.entryId],
       athleteIds: [for (final e in spec) ...e.athleteIds],
       competitorOrder: competitorOrder,
@@ -184,7 +262,7 @@ void main() {
         ]);
     final controller =
         RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-          ..applyArguments(arguments());
+          ..applyArguments(arguments(heatId: heatId));
     await controller.load();
     return controller;
   }
@@ -659,45 +737,12 @@ void main() {
   });
 
   group('validate', () {
-    DateTime hhmm(String v) => DateFormat('HH:mm').parse(v);
-
     Entry entryOf(int id, List<int> athleteIds) => Entry(
           id: id,
           category: const Category(id: categoryId, name: 'Senior'),
           status: 1,
           statusLabel: '',
           athletes: [for (final a in athleteIds) athlete(a)],
-        );
-
-    Run course(int id, String name, List<Lane> lanes) => Run(
-          id: id,
-          name: name,
-          label: name,
-          fullLabel: name,
-          status: RunStatus.waiting,
-          statusLabel: '',
-          site: 'OCEAN 1',
-          beginTime: hhmm('08:00'),
-          endTime: hhmm('08:10'),
-          lanes: lanes,
-        );
-
-    Meeting meetingWith(List<Run> runs) => Meeting(
-          id: 78,
-          name: 'Réunion',
-          description: '',
-          date: DateTime(2026, 6, 13),
-          beginHour: DateTime(2026, 6, 13, 8),
-          endHour: DateTime(2026, 6, 13, 18),
-          slots: [
-            Slot(
-              id: 66,
-              name: 'Demies',
-              beginHour: hhmm('08:00'),
-              endHour: hhmm('08:20'),
-              runs: runs,
-            ),
-          ],
         );
 
     /// Un déroulement de deux demies qualifiant 2 par course vers une finale.
@@ -771,30 +816,22 @@ void main() {
           ]);
       when(() => clubRepo.getAthleteClubs(any(), any()))
           .thenAnswer((_) async => const <int, Club>{});
-      when(() => meetingRepo.getMeetings(competitionId)).thenAnswer(
-        (_) async => [
-          meetingWith([
-            course(25, 'Demie 1', lanes),
-            course(30, 'Finale', const [
-              Lane(id: 81, number: 1),
-              Lane(id: 82, number: 2),
-            ]),
-          ])
+      stubMeetingTreeForValidate(
+        runId: 25,
+        laneEntryIds: const [101, 102, 103],
+        athletesOf: const {
+          101: [1],
+          102: [2],
+          103: [3],
+        },
+        lanes: lanes,
+        alsoRuns: [
+          course(30, 'Finale', const [
+            Lane(id: 81, number: 1),
+            Lane(id: 82, number: 2),
+          ]),
         ],
       );
-      when(() => meetingRepo.getLaneSeats(any())).thenAnswer((_) async => [
-            (laneId: 71, number: 1, entryId: 101, athleteIds: [1]),
-            (laneId: 72, number: 2, entryId: 102, athleteIds: [2]),
-            (laneId: 73, number: 3, entryId: 103, athleteIds: [3]),
-          ]);
-      when(() => meetingRepo.publishCourseResults(
-            raceId: any(named: 'raceId'),
-            heatName: any(named: 'heatName'),
-            heatNumber: any(named: 'heatNumber'),
-            outcomes: any(named: 'outcomes'),
-            heatId: any(named: 'heatId'),
-            link: any(named: 'link'),
-          )).thenAnswer((_) async => 94369);
       when(() => meetingRepo.syncLanes(
                 runId: any(named: 'runId'),
                 entryIds: any(named: 'entryIds'),
@@ -1081,6 +1118,267 @@ void main() {
             link: any(named: 'link'),
           )).captured;
       expect(ids, [null, 94369]);
+    });
+  });
+
+  group('RaceCourseController relecture serveur', () {
+    test('une course sans classement local reprend celui de FFSS', () async {
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => {
+                55: [
+                  (
+                    entryId: 20,
+                    rank: 1,
+                    isDisqualified: false,
+                    complement: null,
+                    status: 0
+                  ),
+                  (
+                    entryId: 10,
+                    rank: 2,
+                    isDisqualified: false,
+                    complement: null,
+                    status: 0
+                  ),
+                ]
+              });
+
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+          (entryId: 20, athleteIds: [201]),
+        ],
+        heatId: 55,
+      );
+
+      expect(controller.placeOf(controller.competitors.last), 1);
+      expect(controller.placeOf(controller.competitors.first), 2);
+    });
+
+    test('un forfait relu revient comme forfait, sans place', () async {
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => {
+                55: [
+                  (
+                    entryId: 10,
+                    rank: null,
+                    isDisqualified: false,
+                    complement: null,
+                    status: 2
+                  ),
+                ]
+              });
+
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+        ],
+        heatId: 55,
+      );
+
+      expect(controller.penaltyOf(controller.competitors.single)?.kind,
+          CoursePenaltyKind.forfeit);
+      expect(controller.placeOf(controller.competitors.single), isNull);
+    });
+
+    // Un engagement que cette course n'aligne pas — une autre serie de la meme
+    // epreuve — n'a aucune ligne ou se poser : il est ecarte, pas invente.
+    test('un engagement etranger a la course est ecarte', () async {
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => {
+                55: [
+                  (
+                    entryId: 99,
+                    rank: 1,
+                    isDisqualified: false,
+                    complement: null,
+                    status: 0
+                  ),
+                  (
+                    entryId: 10,
+                    rank: 2,
+                    isDisqualified: false,
+                    complement: null,
+                    status: 0
+                  ),
+                ]
+              });
+
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+        ],
+        heatId: 55,
+      );
+
+      expect(controller.competitorOrder, [
+        [10]
+      ]);
+      expect(controller.placeOf(controller.competitors.single), 1);
+    });
+
+    // Un rang partage est un ex-aequo declare : un seul groupe, et la suite
+    // des places se decale d'autant.
+    test('un rang partage revient en ex-aequo', () async {
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => {
+                55: [
+                  (
+                    entryId: 10,
+                    rank: 1,
+                    isDisqualified: false,
+                    complement: null,
+                    status: 0
+                  ),
+                  (
+                    entryId: 20,
+                    rank: 1,
+                    isDisqualified: false,
+                    complement: null,
+                    status: 0
+                  ),
+                  (
+                    entryId: 30,
+                    rank: 3,
+                    isDisqualified: false,
+                    complement: null,
+                    status: 0
+                  ),
+                ]
+              });
+
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+          (entryId: 20, athleteIds: [201]),
+          (entryId: 30, athleteIds: [301]),
+        ],
+        heatId: 55,
+      );
+
+      expect(controller.competitorOrder, [
+        [10, 20],
+        [30]
+      ]);
+      expect(controller.placeOf(controller.competitors.last), 3);
+    });
+
+    // Sans serie cote FFSS il n'y a rien a relire, et surtout rien a payer :
+    // ouvrir une course a saisir est le cas ordinaire.
+    test('une course sans serie ne lit pas le serveur', () async {
+      await loadWithEntries([
+        (entryId: 10, athleteIds: [101]),
+      ]);
+
+      verifyNever(() => meetingRepo.getHeatResultsByHeat(any()));
+      verifyNever(() => meetingRepo.getMeetings(any()));
+    });
+
+    // La saisie en cours ne se fait pas ecraser par le serveur : l'operateur
+    // est peut-etre en train de corriger ce que FFSS detient encore.
+    test('un classement local l emporte sur le serveur', () async {
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+          (entryId: 20, athleteIds: [201]),
+        ],
+        competitorOrder: const [
+          [10],
+          [20]
+        ],
+        heatId: 55,
+      );
+
+      expect(controller.placeOf(controller.competitors.first), 1);
+      verifyNever(() => meetingRepo.getHeatResultsByHeat(any()));
+    });
+
+    // Relu une fois, le classement est reecrit dans le programme : la prochaine
+    // ouverture le trouve sur place, et la qualification du tour suivant le lit
+    // la aussi.
+    test('le classement relu est reecrit dans le programme', () async {
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => {
+                55: [
+                  (
+                    entryId: 20,
+                    rank: 1,
+                    isDisqualified: false,
+                    complement: null,
+                    status: 0
+                  ),
+                  (
+                    entryId: 10,
+                    rank: null,
+                    isDisqualified: true,
+                    complement: 'DSQ',
+                    status: 1
+                  ),
+                ]
+              });
+
+      await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+          (entryId: 20, athleteIds: [201]),
+        ],
+        heatId: 55,
+      );
+      await pumpEventQueue();
+
+      expect(saved().competitorOrder, [
+        [20]
+      ]);
+      expect(saved().penalties.single.competitorId, 10);
+      expect(saved().penalties.single.kind, CoursePenaltyKind.disqualified);
+      expect(saved().penalties.single.code, 'DSQ');
+    });
+
+    // Une lecture qui echoue laisse la course a saisir : au bord du bassin,
+    // c'est toujours mieux qu'un ecran d'erreur.
+    test('une lecture en echec laisse la course a saisir', () async {
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenThrow(const NetworkException('offline'));
+
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+        ],
+        heatId: 55,
+      );
+
+      expect(controller.competitors, hasLength(1));
+      expect(controller.competitorOrder, isEmpty);
+    });
+
+    // `_heatId` repartait a 0 a chaque ouverture, et `submitHeat(id: null)`
+    // cree une serie : revalider apres avoir rouvert l'ecran en empilait une
+    // seconde.
+    test('la serie retrouvee est celle que la revalidation reecrit', () async {
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => const {55: <HeatResult>[]});
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+        ],
+        heatId: 55,
+        runId: 3,
+      );
+      // Le meme harnais que le groupe `validate` : l'arbre des reunions rend
+      // la course 3, ses places, et `publishCourseResults` rend une serie.
+      stubMeetingTreeForValidate(runId: 3, laneEntryIds: const [10]);
+      controller.assign(controller.competitors.single);
+
+      await controller.validate();
+
+      verify(() => meetingRepo.publishCourseResults(
+            raceId: any(named: 'raceId'),
+            heatName: any(named: 'heatName'),
+            heatNumber: any(named: 'heatNumber'),
+            outcomes: any(named: 'outcomes'),
+            heatId: 55,
+            link: any(named: 'link'),
+          )).called(1);
     });
   });
 

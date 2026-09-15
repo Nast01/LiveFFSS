@@ -64,6 +64,12 @@ class RaceCourseController extends GetxController {
   /// second validation rewrites it rather than stacking a new one.
   int _heatId = 0;
 
+  /// Whether the caller told us which série this course has — 0 included, which
+  /// means "none yet". The Séries tab always knows, and being believed at 0 is
+  /// what keeps opening a course to score it from reading the whole réunion
+  /// tree only to learn there is nothing to read back.
+  bool _heatIdGiven = false;
+
   /// True while a validation is in flight, so the button can stand down.
   final RxBool isPublishing = false.obs;
 
@@ -127,6 +133,11 @@ class RaceCourseController extends GetxController {
     if (rn is int) raceNumber = rn;
     final pid = arg['programmeRaceId'];
     if (pid is int) programmeRaceId = pid;
+    final heat = arg['heatId'];
+    if (heat is int) {
+      _heatId = heat;
+      _heatIdGiven = true;
+    }
   }
 
   Future<void> load() async {
@@ -172,6 +183,10 @@ class RaceCourseController extends GetxController {
               athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
           ]),
       ];
+
+      if (competitorOrder.isEmpty && penalties.isEmpty) {
+        await _seedFromPublished(stored);
+      }
     } on AppException {
       // The line-up is unavailable; the screen shows an empty course rather
       // than failing outright, and reopening it retries.
@@ -232,6 +247,83 @@ class RaceCourseController extends GetxController {
         if (present.contains(penalty.competitorId)) penalty,
     ];
     message.trigger(const UiMessageError('course_ranking_competitor_gone'));
+  }
+
+  /// Takes back the ranking FFSS already holds for this course.
+  ///
+  /// With no migration of the rankings written under the old athlete-keyed
+  /// meaning, this is what keeps a course already validated from reopening
+  /// blank. Best-effort: a read that fails leaves the course to be scored,
+  /// which beats an error screen at the water's edge.
+  Future<void> _seedFromPublished(ProgrammeRace? stored) async {
+    if (!_heatIdGiven) {
+      _heatId = await _resolveHeatId(stored);
+      _heatIdGiven = true;
+    }
+    if (_heatId == 0) return;
+    try {
+      final byHeat = await _meetings.getHeatResultsByHeat([_heatId]);
+      final results = byHeat[_heatId] ?? const <HeatResult>[];
+      if (results.isEmpty) return;
+
+      // An engagement this course's line-up does not carry has no row to land
+      // on — another heat of the same race — so it is skipped, not invented.
+      final known = {for (final entry in competitors) entry.id};
+      // A shared rank is a declared tie: it stays one group, and the places
+      // after it renumber accordingly.
+      final groups = <int, List<int>>{};
+      for (final result in results) {
+        final rank = result.rank;
+        if (rank == null || !known.contains(result.entryId)) continue;
+        (groups[rank] ??= []).add(result.entryId);
+      }
+      final ranks = groups.keys.toList()..sort();
+      final order = [for (final rank in ranks) groups[rank]!];
+
+      // Only a result without a rank is out of the ranking: the same
+      // invariant `setPenalty` protects, so a rank and a penalty can never be
+      // read back onto the same engagement.
+      final withdrawn = [
+        for (final result in results)
+          if (result.rank == null && known.contains(result.entryId))
+            if (_penaltyKindOf(result) case final CoursePenaltyKind kind)
+              CoursePenalty(
+                competitorId: result.entryId,
+                kind: kind,
+                code: result.complement ?? '',
+              ),
+      ];
+      if (order.isEmpty && withdrawn.isEmpty) return;
+
+      competitorOrder.value = order;
+      penalties.value = withdrawn;
+      // Repair the local copy instead of paying the read again on every open
+      // — and hand `_seedNextRound` the stored order it qualifies from.
+      _persist();
+    } on AppException {
+      // The course is left to be scored.
+    }
+  }
+
+  CoursePenaltyKind? _penaltyKindOf(HeatResult result) =>
+      switch (result.status) {
+        1 => CoursePenaltyKind.disqualified,
+        2 => CoursePenaltyKind.forfeit,
+        _ => result.isDisqualified ? CoursePenaltyKind.disqualified : null,
+      };
+
+  /// This course's série when the caller did not hand one over: the fallback,
+  /// and it pays for the whole réunion tree.
+  Future<int> _resolveHeatId(ProgrammeRace? stored) async {
+    final competitionId = competition.value?.id;
+    if (stored == null || stored.runId == 0 || competitionId == null) return 0;
+    try {
+      final located =
+          _locate(await _meetings.getMeetings(competitionId), stored.runId);
+      return located?.$2.heat?.id ?? 0;
+    } on AppException {
+      return 0;
+    }
   }
 
   int get nextPlaceValue => nextPlace(competitorOrder);
