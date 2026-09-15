@@ -61,6 +61,11 @@ class EntryGroupTile extends StatelessWidget {
 
   bool get _isTeam => isTeamEntry(entry);
 
+  /// Lignes laissées au nom de club d'une équipe. Trois suffisent aux noms
+  /// fédéraux les plus longs à la largeur la plus étroite ; au-delà, l'ellipse
+  /// vaut mieux qu'une ligne qui pousse tout l'écran.
+  static const int _teamTitleLines = 3;
+
   @override
   Widget build(BuildContext context) {
     final head = Padding(
@@ -90,10 +95,15 @@ class EntryGroupTile extends StatelessWidget {
                       .copyWith(fontSize: 13, fontWeight: FontWeight.w600),
                   // Le titre d'une équipe est le nom de son club, et c'est ce
                   // nom que l'opérateur cherche du regard pour la reconnaître :
-                  // il s'enroule autant qu'il faut plutôt que d'être coupé. Un
-                  // engagement individuel, lui, est titré par un nom de
-                  // personne, court, et garde sa ligne unique.
-                  maxLines: _isTeam ? null : 1,
+                  // il s'enroule plutôt que d'être coupé. Un engagement
+                  // individuel, lui, est titré par un nom de personne, court,
+                  // et garde sa ligne unique.
+                  //
+                  // Un nombre explicite, jamais `null` : `Text` lit `null`
+                  // comme « hérite du DefaultTextStyle ancêtre », pas comme
+                  // « aucune limite » — et un ancêtre qui plafonne à une ligne
+                  // reprend alors la main.
+                  maxLines: _isTeam ? _teamTitleLines : 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (subtitle?.isNotEmpty == true)
