@@ -64,7 +64,8 @@ void main() {
   });
 
   group('CompetitionRemoteDataSourceImpl.getParticipants', () {
-    test('appelle la route de l evenement et mappe les participants', () async {
+    test('calls the event route with the id and maps the participants',
+        () async {
       when(() => http.get(any(), query: any(named: 'query')))
           .thenAnswer((_) async => {
                 'data': [
@@ -80,7 +81,7 @@ void main() {
       expect(dtos.single.orderNumber, 12);
     });
 
-    test('une reponse sans data rend une liste vide', () async {
+    test('a response without data yields an empty list', () async {
       when(() => http.get(any(), query: any(named: 'query')))
           .thenAnswer((_) async => <String, dynamic>{});
 
