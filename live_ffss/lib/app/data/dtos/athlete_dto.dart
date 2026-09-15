@@ -65,6 +65,6 @@ Object? _readGuestId(Map<dynamic, dynamic> map, String key) {
 Object? _readOrderNumber(Map<dynamic, dynamic> map, String key) {
   final raw = map[key];
   if (raw is String) return int.tryParse(raw) ?? 0;
-  if (raw is int) return raw;
+  if (raw is num) return raw;
   return 0;
 }

@@ -285,6 +285,12 @@ void main() {
       expect(orderNumberFrom(12), 12);
     });
 
+    // Meme raison : un JSON qui sert 12.0 la ou `Annee` serait passee sans
+    // broncher ne doit pas se lire "pas de dossard".
+    test('un decimal entier se lit comme un entier', () {
+      expect(orderNumberFrom(12.0), 12);
+    });
+
     test('sans dossard, zero', () {
       expect(orderNumberFrom(null), 0);
     });

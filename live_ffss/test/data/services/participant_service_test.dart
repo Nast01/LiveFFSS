@@ -36,13 +36,21 @@ void main() {
   test('le dossard se lit par id d athlete', () async {
     await service.ensureLoaded(42);
 
-    expect(service.orderNumberOf(7), 12);
+    expect(service.orderNumberOf(42, 7), 12);
   });
 
   test('un athlete inconnu n a pas de dossard', () async {
     await service.ensureLoaded(42);
 
-    expect(service.orderNumberOf(999), 0);
+    expect(service.orderNumberOf(42, 999), 0);
+  });
+
+  // Le service est permanent : il tient l'index d'une seule competition a la
+  // fois. Interroge pour une autre, il ne doit pas servir celui qu'il tient.
+  test('une competition qui n est pas celle tenue n a aucun dossard', () async {
+    await service.ensureLoaded(42);
+
+    expect(service.orderNumberOf(43, 7), 0);
   });
 
   // Une lecture par competition : les quatre ecrans de course la partagent.
@@ -58,20 +66,6 @@ void main() {
     await service.ensureLoaded(43);
 
     verify(() => repo.getParticipants(43)).called(1);
-  });
-
-  test('reload relit la competition tenue', () async {
-    await service.ensureLoaded(42);
-    clearInteractions(repo);
-
-    await service.reload();
-
-    verify(() => repo.getParticipants(42)).called(1);
-  });
-
-  test('sans competition chargee, reload ne fait rien', () async {
-    expect(await service.reload(), isFalse);
-    verifyNever(() => repo.getParticipants(any()));
   });
 
   // Une competition sans aucun dossard assigne reste une lecture reussie :
@@ -95,15 +89,6 @@ void main() {
     verify(() => repo.getParticipants(42)).called(1);
   });
 
-  test('un reload qui echoue garde les dossards deja tenus', () async {
-    await service.ensureLoaded(42);
-    when(() => repo.getParticipants(any()))
-        .thenThrow(const NetworkException('coupe'));
-
-    expect(await service.reload(), isFalse);
-    expect(service.orderNumberOf(7), 12);
-  });
-
   // Le dossard est un repere, pas une condition : une lecture qui echoue
   // laisse l'ecran entier lisible, dossards en moins.
   test('une lecture qui echoue rend false et ne jette pas', () async {
@@ -111,7 +96,7 @@ void main() {
         .thenThrow(const NetworkException('coupe'));
 
     expect(await service.ensureLoaded(42), isFalse);
-    expect(service.orderNumberOf(7), 0);
+    expect(service.orderNumberOf(42, 7), 0);
   });
 
   // Le service est permanent et change de competition en place : deux
@@ -134,8 +119,8 @@ void main() {
     expect(await f42, isFalse);
 
     expect(service.competitionId, 43);
-    expect(service.orderNumberOf(9), 5);
-    expect(service.orderNumberOf(7), 0);
+    expect(service.orderNumberOf(43, 9), 5);
+    expect(service.orderNumberOf(43, 7), 0);
   });
 
   test(

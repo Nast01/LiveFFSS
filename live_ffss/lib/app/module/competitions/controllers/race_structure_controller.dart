@@ -459,9 +459,7 @@ class RaceStructureController extends GetxController {
       for (final athlete in athletes)
         athlete.id: athlete.copyWith(
           club: clubs[athlete.id] ?? athlete.club,
-          orderNumber: _participants.orderNumberOf(athlete.id) > 0
-              ? _participants.orderNumberOf(athlete.id)
-              : athlete.orderNumber,
+          orderNumber: _participants.orderNumberOf(competitionId, athlete.id),
         ),
     };
   }

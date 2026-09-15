@@ -208,7 +208,7 @@ void main() {
     meetingRepo = _MockMeetingRepo();
     participants = _MockParticipants();
     when(() => participants.ensureLoaded(any())).thenAnswer((_) async => true);
-    when(() => participants.orderNumberOf(any())).thenReturn(0);
+    when(() => participants.orderNumberOf(any(), any())).thenReturn(0);
     when(() => meetingRepo.getMeetings(any()))
         .thenAnswer((_) async => const []);
     when(() => meetingRepo.syncLanes(
@@ -336,13 +336,33 @@ void main() {
           ]);
       when(() => attendance.forRace(raceId))
           .thenReturn({11: AttendanceStatus.present});
-      when(() => participants.orderNumberOf(11)).thenReturn(12);
+      when(() => participants.orderNumberOf(competitionId, 11)).thenReturn(12);
 
       final controller = build();
       await controller.load();
 
       expect(controller.presentEntries.single.athletes.single.orderNumber, 12);
       verify(() => participants.ensureLoaded(competitionId)).called(1);
+    });
+
+    // The index is asked for this competition by name: the service is
+    // permanent and may still hold the one just left. When it has no bib
+    // here, the athlete shows none — a bib riding on the engagement must not
+    // stand in for it.
+    test('the bib comes from the index, never from the athlete', () async {
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(11).copyWith(orderNumber: 12)]),
+          ]);
+      when(() => attendance.forRace(raceId))
+          .thenReturn({11: AttendanceStatus.present});
+      when(() => participants.orderNumberOf(competitionId, 11)).thenReturn(0);
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.presentEntries.single.athletes.single.orderNumber, 0);
+      verify(() => participants.orderNumberOf(competitionId, 11))
+          .called(greaterThan(0));
     });
 
     // The bib does not hang off the clubs: a competition whose clubs come back
@@ -355,7 +375,7 @@ void main() {
           .thenReturn({11: AttendanceStatus.present});
       when(() => clubRepo.getAthleteClubs(any(), any()))
           .thenAnswer((_) async => const <int, Club>{});
-      when(() => participants.orderNumberOf(11)).thenReturn(12);
+      when(() => participants.orderNumberOf(competitionId, 11)).thenReturn(12);
 
       final controller = build();
       await controller.load();

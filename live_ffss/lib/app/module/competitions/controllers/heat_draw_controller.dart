@@ -245,9 +245,8 @@ class HeatDrawController extends GetxController {
             for (final athlete in entry.athletes)
               athlete.copyWith(
                 club: clubs[athlete.id] ?? athlete.club,
-                orderNumber: _participants.orderNumberOf(athlete.id) > 0
-                    ? _participants.orderNumberOf(athlete.id)
-                    : athlete.orderNumber,
+                orderNumber:
+                    _participants.orderNumberOf(competitionId, athlete.id),
               ),
           ]),
       ];

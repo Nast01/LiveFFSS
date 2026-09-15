@@ -84,7 +84,7 @@ void main() {
     attendanceService = _MockAttendanceService();
     participants = _MockParticipantService();
     when(() => participants.ensureLoaded(any())).thenAnswer((_) async => true);
-    when(() => participants.orderNumberOf(any())).thenReturn(0);
+    when(() => participants.orderNumberOf(any(), any())).thenReturn(0);
     when(() => raceRepo.getEntries(any())).thenAnswer((_) async => const []);
     when(() => clubRepo.getAthleteClubs(any(), any()))
         .thenAnswer((_) async => const <int, Club>{});
@@ -233,7 +233,7 @@ void main() {
         if (attempt >= 2) known = 12;
         return attempt >= 2;
       });
-      when(() => participants.orderNumberOf(11)).thenAnswer((_) => known);
+      when(() => participants.orderNumberOf(99, 11)).thenAnswer((_) => known);
       when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
             makeEntry(id: 1, clubName: 'X', athletes: [athlete(11, clubId: 7)]),
           ]);
@@ -613,7 +613,7 @@ void main() {
     test('les athletes affiches portent leur dossard', () async {
       when(() => participants.ensureLoaded(any()))
           .thenAnswer((_) async => true);
-      when(() => participants.orderNumberOf(11)).thenReturn(12);
+      when(() => participants.orderNumberOf(99, 11)).thenReturn(12);
 
       final controller = await loadWith([
         entry(1, [athlete(11)]),
@@ -622,6 +622,22 @@ void main() {
       expect(controller.entries.single.athletes.single.orderNumber, 12);
       await pumpEventQueue();
       verify(() => participants.ensureLoaded(99)).called(1);
+    });
+
+    // The index is asked for this competition by name: the service is
+    // permanent and may still hold the one the marshal just left. When it has
+    // no bib here, the athlete shows none — a bib carried on the engagement
+    // (or left over from the previous screen) must not stand in for it.
+    test('le dossard vient de l index, jamais de l athlete', () async {
+      when(() => participants.orderNumberOf(99, 11)).thenReturn(0);
+
+      final controller = await loadWith([
+        entry(1, [athlete(11).copyWith(orderNumber: 12)]),
+      ]);
+      await pumpEventQueue();
+
+      expect(controller.entries.single.athletes.single.orderNumber, 0);
+      verify(() => participants.orderNumberOf(99, 11)).called(greaterThan(0));
     });
 
     test('une equipe est en attente tant qu elle n est pas complete', () async {
@@ -787,7 +803,7 @@ void main() {
     /// One engaged athlete per id, licence `L<id>`, bib stubbed from [bibs].
     Future<RaceDetailController> loadWithBibs(Map<int, int> bibs) async {
       for (final entry in bibs.entries) {
-        when(() => participants.orderNumberOf(entry.key))
+        when(() => participants.orderNumberOf(99, entry.key))
             .thenReturn(entry.value);
       }
       when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [

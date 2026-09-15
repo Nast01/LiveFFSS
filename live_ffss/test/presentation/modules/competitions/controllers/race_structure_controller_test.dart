@@ -211,7 +211,7 @@ void main() {
         .thenAnswer((_) async {});
     participants = _MockParticipants();
     when(() => participants.ensureLoaded(any())).thenAnswer((_) async => true);
-    when(() => participants.orderNumberOf(any())).thenReturn(0);
+    when(() => participants.orderNumberOf(any(), any())).thenReturn(0);
     service = ProgrammeService(storage);
     controller = RaceStructureController(service, raceRepo, clubRepo,
         meetingRepo, raceFormatRepo, MeetingService(meetingRepo), participants);
@@ -395,7 +395,7 @@ void main() {
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
             entry(1, 7, athletes: [makeAthlete(31)]),
           ]);
-      when(() => participants.orderNumberOf(31)).thenReturn(12);
+      when(() => participants.orderNumberOf(42, 31)).thenReturn(12);
       await controller.load(race(500), competition);
 
       const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
@@ -403,6 +403,23 @@ void main() {
       expect(
           controller.entriesOf(drawn).single.athletes.single.orderNumber, 12);
       verify(() => participants.ensureLoaded(42)).called(1);
+    });
+
+    // L'index est interrogé pour cette compétition-ci, nommément : le service
+    // est permanent et peut encore tenir celle qu'on vient de quitter. Sans
+    // dossard ici, la pastille reste vide — un dossard porté par l'engagement
+    // ne prend pas sa place.
+    test('the bib comes from the index, never from the athlete', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
+            entry(1, 7, athletes: [makeAthlete(31).copyWith(orderNumber: 12)]),
+          ]);
+      when(() => participants.orderNumberOf(42, 31)).thenReturn(0);
+      await controller.load(race(500), competition);
+
+      const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
+
+      expect(controller.entriesOf(drawn).single.athletes.single.orderNumber, 0);
+      verify(() => participants.orderNumberOf(42, 31)).called(greaterThan(0));
     });
 
     test('a club failure still yields the athletes, without clubs', () async {

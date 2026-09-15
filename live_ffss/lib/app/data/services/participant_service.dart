@@ -41,25 +41,24 @@ class ParticipantService extends GetxService {
 
   int? get competitionId => _competitionId;
 
-  /// Le dossard de cet athlète, 0 quand l'index ne le connaît pas — athlète
-  /// absent de la liste, ou lecture qui a échoué.
-  int orderNumberOf(int athleteId) => _byAthlete[athleteId] ?? 0;
+  /// Le dossard de cet athlète dans cette compétition-ci, 0 quand l'index ne
+  /// le connaît pas — athlète absent de la liste, lecture qui a échoué, ou
+  /// index tenu pour une autre compétition.
+  ///
+  /// La compétition fait partie de la question : le service est `permanent` et
+  /// change de compétition en place, donc un appelant qui lit sans la nommer
+  /// se verrait servir les dossards de l'écran précédent — un dossard ne veut
+  /// rien dire hors de sa compétition.
+  int orderNumberOf(int competitionId, int athleteId) =>
+      competitionId == _competitionId ? (_byAthlete[athleteId] ?? 0) : 0;
 
   /// Charge l'index seulement s'il n'est pas déjà celui de cette compétition.
   ///
-  /// Qui a besoin de fraîcheur appelle [reload] ; un dossard ne change pas en
-  /// cours de compétition, donc les écrans se contentent de celui-ci.
+  /// Un dossard ne change pas en cours de compétition, donc les écrans se
+  /// contentent de cette lecture-ci et ne redemandent rien.
   Future<bool> ensureLoaded(int competitionId) {
     if (_competitionId == competitionId && _loaded) return Future.value(true);
     return _load(competitionId);
-  }
-
-  /// Relit la compétition déjà chargée. Sans appel préalable à [ensureLoaded],
-  /// il n'y a aucune compétition à relire.
-  Future<bool> reload() {
-    final id = _competitionId;
-    if (id == null) return Future.value(false);
-    return _load(id);
   }
 
   Future<bool> _load(int competitionId) {
@@ -76,7 +75,7 @@ class ParticipantService extends GetxService {
   Future<bool> _doLoad(int competitionId, int token) async {
     // Vider d'abord : les dossards de la compétition précédente
     // désigneraient les mauvais athlètes sous celle-ci. Une relecture de la
-    // même compétition (reload, ou après un échec) garde les siens jusqu'à
+    // même compétition (après un échec) garde les siens jusqu'à
     // ce qu'une nouvelle lecture réussisse — le dernier résultat connu vaut
     // mieux qu'un index vidé sous le pied de l'écran qui le lit. Synchrone,
     // donc aucun autre appel ne peut s'intercaler avant que le jeton ne soit

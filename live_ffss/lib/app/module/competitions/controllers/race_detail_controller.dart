@@ -116,23 +116,30 @@ class RaceDetailController extends GetxController {
   }
 
   /// Copies the resolved club and bib onto every engaged athlete. An athlete
-  /// neither resolution reached keeps what they arrived with, which is
-  /// normally no club — [ClubAvatar] then falls back to the club initial — and
-  /// no bib.
-  List<Entry> _withClubs(List<Entry> loaded) => [
-        for (final entry in loaded)
-          entry.copyWith(
-            athletes: [
-              for (final athlete in entry.athletes)
-                athlete.copyWith(
-                  club: _clubs[athlete.id] ?? athlete.club,
-                  orderNumber: _participants.orderNumberOf(athlete.id) > 0
-                      ? _participants.orderNumberOf(athlete.id)
-                      : athlete.orderNumber,
-                ),
-            ],
-          ),
-      ];
+  /// the club resolution did not reach keeps what they arrived with, which is
+  /// normally no club — [ClubAvatar] then falls back to the club initial.
+  ///
+  /// The bib is not carried over: the entries come from `competition/engagement`,
+  /// which never serves `Dossard`, so the index is the only source and 0 means
+  /// "no bib in this competition, right now". Naming the competition is what
+  /// keeps the previous screen's bibs off these athletes.
+  List<Entry> _withClubs(List<Entry> loaded) {
+    final competitionId = competition.value?.id;
+    return [
+      for (final entry in loaded)
+        entry.copyWith(
+          athletes: [
+            for (final athlete in entry.athletes)
+              athlete.copyWith(
+                club: _clubs[athlete.id] ?? athlete.club,
+                orderNumber: competitionId == null
+                    ? 0
+                    : _participants.orderNumberOf(competitionId, athlete.id),
+              ),
+          ],
+        ),
+    ];
+  }
 
   /// Fills in what the engagement list does not carry — the bib, then the
   /// clubs — and patches the rows already on screen.

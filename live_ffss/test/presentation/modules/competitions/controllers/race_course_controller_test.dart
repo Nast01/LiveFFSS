@@ -280,7 +280,8 @@ void main() {
   /// Comme [loadWith], avec le dossard de chaque athlète stubbé sur [bibs].
   Future<RaceCourseController> loadWithBibs(Map<int, int> bibs) async {
     for (final entry in bibs.entries) {
-      when(() => participants.orderNumberOf(entry.key)).thenReturn(entry.value);
+      when(() => participants.orderNumberOf(competitionId, entry.key))
+          .thenReturn(entry.value);
     }
     return loadWith(bibs.keys.toList());
   }
@@ -290,7 +291,7 @@ void main() {
     meetingRepo = _MockMeetingRepo();
     participants = _MockParticipants();
     when(() => participants.ensureLoaded(any())).thenAnswer((_) async => true);
-    when(() => participants.orderNumberOf(any())).thenReturn(0);
+    when(() => participants.orderNumberOf(any(), any())).thenReturn(0);
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
     when(() => clubRepo.getAthleteClubs(any(), any()))
@@ -374,12 +375,36 @@ void main() {
     // Le dossard n'arrive pas davantage sur l'engagement : il vient d'une
     // autre route, recopiée dans le même passage que le club.
     test('les athletes des engagements portent leur dossard', () async {
-      when(() => participants.orderNumberOf(10)).thenReturn(12);
+      when(() => participants.orderNumberOf(competitionId, 10)).thenReturn(12);
 
       final c = await loadWith([10]);
 
       expect(c.competitors.single.athletes.single.orderNumber, 12);
       verify(() => participants.ensureLoaded(competitionId)).called(1);
+    });
+
+    // L'index est interrogé pour cette compétition-ci, nommément : le service
+    // est permanent et peut encore tenir celle qu'on vient de quitter. Sans
+    // dossard ici, la pastille reste vide — un dossard porté par l'engagement
+    // ne prend pas sa place.
+    test('le dossard vient de l index, jamais de l athlete', () async {
+      when(() => participants.orderNumberOf(competitionId, 10)).thenReturn(0);
+      final c = await loadWith([10]);
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            Entry(
+              id: 100,
+              category: const Category(id: categoryId, name: 'Senior'),
+              status: 1,
+              statusLabel: 'Engagé',
+              athletes: [athlete(10).copyWith(orderNumber: 12)],
+            ),
+          ]);
+
+      await c.load();
+
+      expect(c.competitors.single.athletes.single.orderNumber, 0);
+      verify(() => participants.orderNumberOf(competitionId, 10))
+          .called(greaterThan(0));
     });
 
     // Un relais fait tomber chaque athlete dans son propre club : patcher
@@ -805,6 +830,23 @@ void main() {
       expect(c.placeOf(c.competitors[0]), 1);
       expect(c.message.value,
           const UiMessageError('course_athlete_already_ranked'));
+      c.stopScan();
+    });
+
+    // Same rule on the other half of the guard: a withdrawn engagement is
+    // just as unproductive a read, and assign()'s own message is the one the
+    // marshal needs.
+    test('a re-read of a withdrawn engagement keeps assign\'s own message',
+        () async {
+      final c = await loadWithBibs({10: 12, 11: 0});
+      c.setPenalty(c.competitors[0], CoursePenaltyKind.forfeit);
+      c.startScan();
+
+      stream.add('L10;B10;7');
+      await pumpEventQueue();
+
+      expect(c.placeOf(c.competitors[0]), isNull);
+      expect(c.message.value, const UiMessageError('course_athlete_withdrawn'));
       c.stopScan();
     });
   });

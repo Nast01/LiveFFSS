@@ -189,9 +189,8 @@ class RaceCourseController extends GetxController {
             for (final athlete in entry.athletes)
               athlete.copyWith(
                 club: clubs[athlete.id] ?? athlete.club,
-                orderNumber: _participants.orderNumberOf(athlete.id) > 0
-                    ? _participants.orderNumberOf(athlete.id)
-                    : athlete.orderNumber,
+                orderNumber:
+                    _participants.orderNumberOf(competitionIdValue, athlete.id),
               ),
           ]),
       ];
@@ -562,10 +561,8 @@ class RaceCourseController extends GetxController {
     // changed nothing — the provenance warning would already have shown on
     // that bracelet's first, productive read.
     final onBracelet = parseBraceletOrderNumber(payload);
-    if (wasUnranked &&
-        onBracelet > 0 &&
-        (matchedAthlete?.orderNumber ?? 0) > 0 &&
-        onBracelet != matchedAthlete!.orderNumber) {
+    final onFile = matchedAthlete?.orderNumber ?? 0;
+    if (wasUnranked && onBracelet > 0 && onFile > 0 && onBracelet != onFile) {
       message.trigger(const UiMessageError('bracelet_other_event'));
     }
     // Nothing left to place: holding the hardware open would only invite a
