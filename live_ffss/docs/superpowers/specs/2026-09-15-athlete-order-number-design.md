@@ -20,7 +20,7 @@ Le numéro existe pourtant côté FFSS, sur la route
 
 | Question | Décision |
 |---|---|
-| Nom du champ | `Athlete.orderNumber`, **chaîne** — FFSS type `Dossard` en `String`, comme `NumeroLicence` |
+| Nom du champ | `Athlete.orderNumber`, **entier**, 0 = pas de dossard — FFSS le sert en `String`, d'où une coercition à la lecture |
 | Base API | La base courante (`ffss.fr/api/v1.0/` en prod, `site.ffss.io/api/v1.0/` en dév) ; `api.ffss.fr` n'est qu'un alias |
 | Source | Un appel **dédié** à `participants`, par compétition, mémorisé |
 | Écriture bracelet | `licence;nom;dossard` — le dossard **ajouté en fin** |
@@ -36,14 +36,27 @@ Un élément `Participant` a **exactement la forme d'un `AthleteDto`** : `Id`,
 Donc un seul champ à ajouter au DTO existant :
 
 ```dart
-@JsonKey(name: 'Dossard') @Default('') String orderNumber,
+@JsonKey(name: 'Dossard', readValue: _readOrderNumber)
+@Default(0)
+int orderNumber,
 ```
 
 Le champ Dart s'appelle `orderNumber` ; `@JsonKey` ne nomme pas le champ, il dit
 quelle clé lire sur le fil. C'est la convention du dépôt (`NumeroLicence` →
 `licenseeNumber`) et `CLAUDE.md` l'impose.
 
-`Athlete` gagne le même champ, sans annotation : `@Default('') String orderNumber`.
+**Un entier, là où FFSS envoie une chaîne**, d'où `readValue` — exactement ce que
+`_readYear` fait déjà dans ce fichier pour `Annee`, que l'API sert tantôt en
+nombre tantôt en texte. Le lecteur accepte les deux formes et rend 0 pour tout le
+reste : clé absente, chaîne vide, ou dossard non numérique.
+
+**Conséquence assumée** : un dossard alphanumérique — « A12 », si la fédération
+en émettait un jour — se lirait 0, donc pas de dossard, et disparaîtrait de
+l'écran sans bruit. C'est le prix de l'entier, choisi pour que deux dossards se
+comparent et se trient comme des nombres (« 9 » avant « 10 », ce qu'une chaîne
+ne fait pas).
+
+`Athlete` gagne le même champ, sans annotation : `@Default(0) int orderNumber`.
 
 Ce mapping couvre **trois** routes d'un coup :
 
@@ -83,7 +96,7 @@ participants, et à ne pas « corriger » avant de savoir.
 ```dart
 Future<bool> ensureLoaded(int competitionId, {bool silent = false});
 Future<bool> reload({bool silent = false});
-String orderNumberOf(int athleteId);   // '' quand inconnu
+int orderNumberOf(int athleteId);   // 0 quand inconnu
 ```
 
 Il ne lit aucun stockage à la construction, donc un `Get.put` synchrone, enregistré
@@ -96,13 +109,13 @@ appellent `getAthleteClubs` puis recopient le club sur chaque athlète —
 par contrôleur, aucun aller-retour supplémentaire au-delà du premier
 `ensureLoaded`.
 
-Un échec de lecture laisse les dossards vides : la pastille disparaît, le reste
-de l'écran est intact. Le dossard est un repère, pas une condition.
+Un échec de lecture laisse les dossards à 0 : la pastille disparaît, le reste de
+l'écran est intact. Le dossard est un repère, pas une condition.
 
 ## L'affichage
 
 `lib/app/presentation/shared/order_number_badge.dart` — pastille sombre, chiffres
-à chasse fixe, sans préfixe, **rien du tout quand le dossard est vide**.
+à chasse fixe, sans préfixe, **rien du tout quand le dossard vaut 0**.
 
 Le style doit rester impossible à confondre avec les autres nombres de l'écran :
 une place est colorée par son rang, un couloir est un carré bleu pâle, une année
@@ -126,14 +139,18 @@ L'écriture passe de `<licence>;<nom>` à `<licence>;<nom>;<dossard>`
 (`bracelet_payload.dart`). Le dossard **en fin** : la licence reste le premier
 champ, donc un bracelet déjà écrit reste lisible tel quel.
 
-La lecture garde la licence comme identifiant — c'est le seul qui vaille d'une
-compétition à l'autre. Le dossard sert de **vérification** :
+Un dossard à 0 ne s'écrit pas : le payload retombe alors à deux champs, celui
+d'aujourd'hui.
 
-- absent du payload (bracelet hérité) → rien à dire, l'athlète est identifié ;
-- présent et égal à celui de l'athlète dans cette compétition → rien à dire ;
-- présent et **différent** → l'athlète est pointé, et l'app signale
-  `bracelet_other_event` : le bracelet vient d'un autre événement et n'a pas été
-  réécrit.
+La lecture garde la licence comme identifiant — c'est le seul qui vaille d'une
+compétition à l'autre. Le dossard, relu en entier par la même coercition que le
+DTO, sert de **vérification** :
+
+- absent du payload, illisible, ou 0 de part et d'autre → rien à dire, l'athlète
+  est identifié ;
+- égal à celui de l'athlète dans cette compétition → rien à dire ;
+- **différent** → l'athlète est pointé, et l'app signale `bracelet_other_event` :
+  le bracelet vient d'un autre événement et n'a pas été réécrit.
 
 C'est ce qui empêche le bracelet de la compétition précédente de passer
 inaperçu. Il n'identifie pas, précisément parce qu'un dossard ne vaut que pour sa
@@ -146,17 +163,18 @@ Deux contrôleurs lisent les bracelets et doivent appliquer la même règle :
 
 ## Tests
 
-- `test/data/mappers/athlete_mapper_test.dart` — `Dossard` présent, absent, et
-  servi en nombre plutôt qu'en chaîne (l'API l'a déjà fait pour `Annee`).
+- `test/data/mappers/athlete_mapper_test.dart` — `Dossard` en chaîne, en nombre,
+  absent, vide, et non numérique : les trois derniers rendent 0.
 - `test/data/repositories/competition_repository_test.dart` — `getParticipants`
   rend les athlètes avec leur dossard.
 - `test/data/services/participant_service_test.dart` — `ensureLoaded` ne
-  recharge pas une compétition déjà tenue, `reload` si, `orderNumberOf` rend
-  `''` sur un inconnu.
+  recharge pas une compétition déjà tenue, `reload` si, `orderNumberOf` rend 0
+  sur un inconnu.
 - Les quatre contrôleurs — le dossard arrive sur les athlètes affichés, et son
   absence ne casse rien.
-- `test/core/rfid/bracelet_payload_test.dart` — aller-retour à trois champs, et
-  un payload hérité à deux champs toujours lisible.
+- `test/core/rfid/bracelet_payload_test.dart` — aller-retour à trois champs, un
+  athlète sans dossard qui retombe à deux, et un payload hérité à deux champs
+  toujours lisible.
 - `race_detail_controller_test.dart` / `race_course_controller_test.dart` — un
   bracelet dont le dossard diffère pointe quand même l'athlète **et** déclenche
   `bracelet_other_event`.
