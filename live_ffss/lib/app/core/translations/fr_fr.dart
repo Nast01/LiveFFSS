@@ -152,6 +152,7 @@ final Map<String, String> frFR = {
   'nfc_disabled': 'Le NFC est désactivé',
   'nfc_unsupported': 'Cet appareil ne gère pas le NFC',
   'bracelet_write_cancelled': 'Écriture annulée',
+  'bracelet_other_event': 'Bracelet d\'un autre événement',
   'finish': 'Terminé',
 
   // Programme builder

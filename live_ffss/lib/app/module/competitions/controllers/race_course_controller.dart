@@ -530,11 +530,16 @@ class RaceCourseController extends GetxController {
   void _onBracelet(String payload) {
     final licence = parseBraceletLicence(payload);
     Entry? match;
+    Athlete? matchedAthlete;
     for (final entry in competitors) {
-      if (entry.athletes.any((a) => a.licenseeNumber == licence)) {
-        match = entry;
-        break;
+      for (final athlete in entry.athletes) {
+        if (athlete.licenseeNumber == licence) {
+          match = entry;
+          matchedAthlete = athlete;
+          break;
+        }
       }
+      if (match != null) break;
     }
     if (match == null) {
       message.trigger(const UiMessageError('course_bracelet_not_in_race'));
@@ -543,6 +548,17 @@ class RaceCourseController extends GetxController {
     // A team crosses the line once: a teammate's bracelet read afterwards
     // falls onto the duplicate `assign` already reports.
     assign(match);
+    // The bib doesn't identify: it only means something within its own
+    // competition, so an un-rewritten bracelet would silently point at
+    // whichever athlete wears that number here. It verifies, and alerts when
+    // it disagrees with the licence — read off the athlete the licence
+    // matched, not off the engagement.
+    final onBracelet = parseBraceletOrderNumber(payload);
+    if (onBracelet > 0 &&
+        (matchedAthlete?.orderNumber ?? 0) > 0 &&
+        onBracelet != matchedAthlete!.orderNumber) {
+      message.trigger(const UiMessageError('bracelet_other_event'));
+    }
     // Nothing left to place: holding the hardware open would only invite a
     // stray read.
     if (isComplete) stopScan();

@@ -151,6 +151,7 @@ final Map<String, String> enUS = {
   'nfc_disabled': 'NFC is turned off',
   'nfc_unsupported': "This device doesn't support NFC",
   'bracelet_write_cancelled': 'Write cancelled',
+  'bracelet_other_event': 'Bracelet from another event',
   'finish': 'Done',
 
   // Programme builder

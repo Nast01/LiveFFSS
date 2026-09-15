@@ -277,6 +277,14 @@ void main() {
         for (final id in athleteIds) (entryId: id * 10, athleteIds: [id]),
       ]);
 
+  /// Comme [loadWith], avec le dossard de chaque athlète stubbé sur [bibs].
+  Future<RaceCourseController> loadWithBibs(Map<int, int> bibs) async {
+    for (final entry in bibs.entries) {
+      when(() => participants.orderNumberOf(entry.key)).thenReturn(entry.value);
+    }
+    return loadWith(bibs.keys.toList());
+  }
+
   setUp(() {
     rfid = _MockRfidWriter();
     meetingRepo = _MockMeetingRepo();
@@ -753,6 +761,31 @@ void main() {
       final c = await loadWith([10]);
 
       expect(c.canScan, isFalse);
+    });
+
+    test('a bracelet from another event still ranks, and alerts', () async {
+      // The athlete wears bib 12 here; the bracelet announces 7.
+      final c = await loadWithBibs({10: 12});
+      c.startScan();
+
+      stream.add('L10;B10;7');
+      await pumpEventQueue();
+
+      expect(c.placeOf(c.competitors[0]), 1);
+      expect(c.message.value, const UiMessageError('bracelet_other_event'));
+      c.stopScan();
+    });
+
+    test('a bracelet from this event says nothing', () async {
+      final c = await loadWithBibs({10: 12});
+      c.startScan();
+
+      stream.add('L10;B10;12');
+      await pumpEventQueue();
+
+      expect(c.placeOf(c.competitors[0]), 1);
+      expect(c.message.value, isNull);
+      c.stopScan();
     });
   });
 

@@ -369,6 +369,16 @@ class RaceDetailController extends GetxController {
     }
     attendance[match.id] = AttendanceStatus.present;
     _persistAttendance();
+    // The bib doesn't identify: it only means something within its own
+    // competition, so an un-rewritten bracelet would silently point at
+    // whichever athlete wears that number here. It verifies, and alerts when
+    // it disagrees with the licence.
+    final onBracelet = parseBraceletOrderNumber(payload);
+    if (onBracelet > 0 &&
+        match.orderNumber > 0 &&
+        onBracelet != match.orderNumber) {
+      message.trigger(const UiMessageError('bracelet_other_event'));
+    }
     scanLog.insert(
         0,
         ScanResult(

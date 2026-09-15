@@ -16,6 +16,7 @@ import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_detail_controller.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockRaceRepo extends Mock implements RaceRepository {}
@@ -783,6 +784,20 @@ void main() {
           athletes: athletes,
         );
 
+    /// One engaged athlete per id, licence `L<id>`, bib stubbed from [bibs].
+    Future<RaceDetailController> loadWithBibs(Map<int, int> bibs) async {
+      for (final entry in bibs.entries) {
+        when(() => participants.orderNumberOf(entry.key))
+            .thenReturn(entry.value);
+      }
+      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
+            for (final id in bibs.keys)
+              scanEntry([scanAthlete(id, 'B$id', 'L$id')]),
+          ]);
+      await controller.loadEntries();
+      return controller;
+    }
+
     setUp(() {
       scanStream = StreamController<String>();
       when(() => rfidWriter.readBracelets())
@@ -848,6 +863,31 @@ void main() {
     test('canScanBracelets reflects the writer', () {
       when(() => rfidWriter.isSupported).thenReturn(true);
       expect(controller.canScanBracelets, isTrue);
+    });
+
+    test('a bracelet from another event still points, and alerts', () async {
+      // The athlete wears bib 12 here; the bracelet announces 7.
+      final c = await loadWithBibs({11: 12});
+      c.startScan();
+
+      scanStream.add('L11;B11;7');
+      await pumpEventQueue();
+
+      expect(c.attendanceOf(scanAthlete(11, 'B11', 'L11')),
+          AttendanceStatus.present);
+      expect(c.message.value, const UiMessageError('bracelet_other_event'));
+      c.stopScan();
+    });
+
+    test('a bracelet from this event says nothing', () async {
+      final c = await loadWithBibs({11: 12});
+      c.startScan();
+
+      scanStream.add('L11;B11;12');
+      await pumpEventQueue();
+
+      expect(c.message.value, isNull);
+      c.stopScan();
     });
   });
 }

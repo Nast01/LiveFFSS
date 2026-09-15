@@ -6,6 +6,7 @@ void main() {
   Athlete athlete({
     String licenseeNumber = '123456',
     String lastName = 'DUPONT',
+    int orderNumber = 0,
   }) =>
       Athlete(
         id: 1,
@@ -17,6 +18,7 @@ void main() {
         nationalityCode: 'FRA',
         nationality: 'France',
         isValid: true,
+        orderNumber: orderNumber,
       );
 
   group('braceletPayload', () {
@@ -42,6 +44,24 @@ void main() {
     test('handles an empty last name without dropping the separator', () {
       expect(braceletPayload(athlete(lastName: '')), '123456;');
     });
+
+    test('writes the bib as a third field', () {
+      expect(
+        braceletPayload(
+          athlete(licenseeNumber: 'L1', lastName: 'DUPONT', orderNumber: 12),
+        ),
+        'L1;DUPONT;12',
+      );
+    });
+
+    test('keeps two fields when there is no bib', () {
+      expect(
+        braceletPayload(
+          athlete(licenseeNumber: 'L1', lastName: 'DUPONT', orderNumber: 0),
+        ),
+        'L1;DUPONT',
+      );
+    });
   });
 
   group('parseBraceletLicence', () {
@@ -55,6 +75,23 @@ void main() {
 
     test('trims surrounding whitespace', () {
       expect(parseBraceletLicence(' 123456 ;X'), '123456');
+    });
+  });
+
+  group('parseBraceletOrderNumber', () {
+    test('reads the bib back from the third field', () {
+      expect(parseBraceletOrderNumber('L1;DUPONT;12'), 12);
+    });
+
+    // A bracelet written before this version carries only two fields: it stays
+    // readable, and raises no alert.
+    test('a legacy two-field payload carries no bib', () {
+      expect(parseBraceletOrderNumber('L1;DUPONT'), 0);
+      expect(parseBraceletLicence('L1;DUPONT'), 'L1');
+    });
+
+    test('an unreadable third field means no bib', () {
+      expect(parseBraceletOrderNumber('L1;DUPONT;A12'), 0);
     });
   });
 }
