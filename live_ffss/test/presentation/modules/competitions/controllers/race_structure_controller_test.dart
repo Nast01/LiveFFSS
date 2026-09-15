@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/category.dart';
@@ -205,8 +206,8 @@ void main() {
             storage.write(key: any(named: 'key'), value: any(named: 'value')))
         .thenAnswer((_) async {});
     service = ProgrammeService(storage);
-    controller = RaceStructureController(
-        service, raceRepo, clubRepo, meetingRepo, raceFormatRepo);
+    controller = RaceStructureController(service, raceRepo, clubRepo,
+        meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
   });
 
   test('load filters structures to the race and sorts by category label',
@@ -453,7 +454,7 @@ void main() {
           .thenAnswer((_) async => jsonEncode(programme.toJson()));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => entries);
       final c = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await c.load(race(500), competition);
       return c;
     }
@@ -550,7 +551,7 @@ void main() {
             (laneId: 71, number: 1, entryId: 10, athleteIds: [101]),
           ]);
       final c = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await c.load(race(500), competition);
       return c;
     }
@@ -980,7 +981,7 @@ void main() {
       when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => meetings);
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(race(500), competition);
     }
 
@@ -1055,7 +1056,7 @@ void main() {
           .thenThrow(const NetworkException('coupé'));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(race(500), competition);
 
@@ -1154,7 +1155,7 @@ void main() {
           (_) async => local == null ? null : jsonEncode(local.toJson()));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(race(500), competition);
     }
 
@@ -1482,7 +1483,7 @@ void main() {
       when(() => raceFormatRepo.getRaceFormats(42))
           .thenAnswer((_) async => [formatFor(formatCategories)]);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(r, competition);
     }
 
@@ -1717,7 +1718,7 @@ void main() {
             (laneId: 71, number: 2, entryId: 102, athleteIds: [12]),
           ]);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(race(500), competition);
     }
 
@@ -1833,7 +1834,7 @@ void main() {
                 ]
               });
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(race(500), competition);
 
@@ -1852,7 +1853,7 @@ void main() {
             meetingWith([course(25)])
           ]);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(race(500), competition);
 
@@ -1928,7 +1929,7 @@ void main() {
             formatWith(const [serverSerie])
           ]);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(
           race(500).copyWith(
@@ -1950,7 +1951,7 @@ void main() {
       when(() => raceFormatRepo.getRaceFormats(42))
           .thenAnswer((_) async => const []);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(
           race(500).copyWith(
@@ -1959,6 +1960,66 @@ void main() {
           competition);
 
       expect(controller.structures.single.levels.single.serverId, 39);
+    });
+  });
+
+  group('l arbre des reunions passe par le service', () {
+    Meeting tree() => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: DateTime(2026, 6, 13),
+          beginHour: DateTime(2026, 6, 13, 8),
+          endHour: DateTime(2026, 6, 13, 18),
+          slots: const [],
+        );
+
+    RaceStructureController on(MeetingService held) => RaceStructureController(
+        service, raceRepo, clubRepo, meetingRepo, raceFormatRepo, held);
+
+    setUp(() {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      when(() => meetingRepo.getMeetings(any()))
+          .thenAnswer((_) async => [tree()]);
+    });
+
+    // L'arbre couvre toute la competition — une requete par creneau — alors
+    // que cet ecran n'en tire que le site et l'horaire de ses propres courses.
+    // Le redemander a chaque ouverture etait le poste le plus cher du
+    // chargement.
+    test('une seconde ouverture ne redemande pas l arbre deja detenu',
+        () async {
+      final held = MeetingService(meetingRepo);
+      await on(held).load(race(500), competition);
+      verify(() => meetingRepo.getMeetings(competition.id)).called(1);
+
+      clearInteractions(meetingRepo);
+      await on(held).load(race(500), competition);
+
+      verifyNever(() => meetingRepo.getMeetings(any()));
+    });
+
+    test('le tire-pour-rafraichir redemande l arbre', () async {
+      final held = MeetingService(meetingRepo);
+      final controller = on(held);
+      await controller.load(race(500), competition);
+      clearInteractions(meetingRepo);
+
+      await controller.reload();
+
+      verify(() => meetingRepo.getMeetings(competition.id)).called(1);
+    });
+
+    // Une compétition chassant l'autre, le service vide ce qu'il detenait :
+    // l'arbre de la precedente n'a rien a faire sous celle-ci.
+    test('changer de competition recharge', () async {
+      final held = MeetingService(meetingRepo);
+      await on(held).load(race(500), competition);
+      clearInteractions(meetingRepo);
+
+      await held.ensureLoaded(competition.id + 1, silent: true);
+
+      verify(() => meetingRepo.getMeetings(competition.id + 1)).called(1);
     });
   });
 }

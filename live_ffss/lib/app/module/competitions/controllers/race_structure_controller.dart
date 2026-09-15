@@ -4,6 +4,7 @@ import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
@@ -60,6 +61,7 @@ class RaceStructureController extends GetxController {
     this._clubRepo,
     this._meetings,
     this._raceFormatRepo,
+    this._meetingTree,
   );
 
   final ProgrammeService _programme;
@@ -67,6 +69,11 @@ class RaceStructureController extends GetxController {
   final ClubRepository _clubRepo;
   final MeetingRepository _meetings;
   final RaceFormatRepository _raceFormatRepo;
+
+  /// Le propriétaire de l'arbre réunion. Cet écran le lit sans en être
+  /// responsable : il s'en remet à ce que le service détient plutôt que de
+  /// redemander une requête par créneau de la compétition à chaque ouverture.
+  final MeetingService _meetingTree;
 
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
@@ -77,7 +84,8 @@ class RaceStructureController extends GetxController {
 
   /// The competition's réunions, for the créneaux and courses the rounds of
   /// this race were scheduled into.
-  final RxList<Meeting> _meetingsOfCompetition = <Meeting>[].obs;
+  /// Les réunions de la compétition, telles que le service les détient.
+  List<Meeting> get _meetingsOfCompetition => _meetingTree.meetings;
 
   /// Ce que FFSS porte pour une course tirée, indexé par id de ProgrammeRace
   /// puis par engagement. Rempli seulement pour les courses qui portent une
@@ -159,14 +167,17 @@ class RaceStructureController extends GetxController {
     if (!silent) isLoading.value = true;
     try {
       await _programme.load(competition.id);
-      // The déroulement lives on FFSS: a device that never authored it must
-      // still see the épreuve's rounds. Same bargain as the entries below —
-      // offline, whatever is stored locally still renders.
-      try {
-        await _seedStructuresFromServer(race, competition.id);
-      } on AppException {
-        // Local copy only.
-      }
+      // Trois lectures qui ne s'attendent pas : le déroulement du serveur, les
+      // engagés avec leurs clubs, et l'arbre des réunions. Lancées ensemble,
+      // l'écran paie la plus lente au lieu de leur somme. Chacune ravale son
+      // AppException et garde son propre repli — `Future.wait` abandonnerait
+      // les trois au premier échec, là où deux d'entre elles n'empêchent pas
+      // l'écran de s'afficher.
+      await Future.wait([
+        _seedStructures(race, competition.id),
+        _loadEntries(race, competition.id),
+        _loadMeetingTree(competition.id, refresh: silent),
+      ]);
       structures.value = _structuresOf(race);
       // Clamped rather than reset: reloading after a draw must leave the
       // operator on the round they were looking at, while opening a race with
@@ -174,33 +185,6 @@ class RaceStructureController extends GetxController {
       final tabCount = tabs.length;
       selectedTabIndex.value =
           tabCount == 0 ? 0 : selectedTabIndex.value.clamp(0, tabCount - 1);
-      try {
-        final entries = await _raceRepo.getEntries(race.id);
-        final counts = <int, int>{};
-        for (final e in entries) {
-          counts[e.category.id] = (counts[e.category.id] ?? 0) + 1;
-        }
-        _entryCountByCategory = counts;
-        _athletesById = await _indexAthletes(entries, competition.id);
-        _entriesById = _indexEntries(entries);
-      } on AppException {
-        // Entries unavailable (offline / API error): the structure still
-        // renders; category counts fall back to zero and a drawn race lists
-        // no athlete.
-        _entryCountByCategory = const {};
-        _athletesById = const {};
-        _entriesById = const {};
-      }
-      try {
-        _meetingsOfCompetition.value = await _meetings.getMeetings(
-          competition.id,
-        );
-      } on AppException {
-        // Same bargain as the entries: the schedule is a complement here, not
-        // the reason this screen exists. Without it the rounds still read,
-        // only their site and times go missing.
-        _meetingsOfCompetition.clear();
-      }
       // The draw a first device pushed lives in the FFSS places: this is what
       // makes it visible on every other device.
       try {
@@ -213,6 +197,60 @@ class RaceStructureController extends GetxController {
       }
     } finally {
       if (!silent) isLoading.value = false;
+    }
+  }
+
+  /// Le déroulement que FFSS détient, versé dans le programme local.
+  ///
+  /// The déroulement lives on FFSS: a device that never authored it must still
+  /// see the épreuve's rounds. Offline, whatever is stored locally still
+  /// renders.
+  Future<void> _seedStructures(Race race, int competitionId) async {
+    try {
+      await _seedStructuresFromServer(race, competitionId);
+    } on AppException {
+      // Local copy only.
+    }
+  }
+
+  /// Les engagés de l'épreuve, indexés avec leurs clubs résolus.
+  ///
+  /// Indisponibles (hors ligne, erreur API), la structure s'affiche quand
+  /// même : les comptes par catégorie retombent à zéro et une course tirée ne
+  /// liste aucun athlète.
+  Future<void> _loadEntries(Race race, int competitionId) async {
+    try {
+      final entries = await _raceRepo.getEntries(race.id);
+      final counts = <int, int>{};
+      for (final e in entries) {
+        counts[e.category.id] = (counts[e.category.id] ?? 0) + 1;
+      }
+      _entryCountByCategory = counts;
+      _athletesById = await _indexAthletes(entries, competitionId);
+      _entriesById = _indexEntries(entries);
+    } on AppException {
+      _entryCountByCategory = const {};
+      _athletesById = const {};
+      _entriesById = const {};
+    }
+  }
+
+  /// L'arbre des réunions, pour le site et l'horaire des courses.
+  ///
+  /// Une première ouverture se contente de ce que le service détient déjà ; le
+  /// tiré-pour-rafraîchir, lui, redemande. Un échec laisse en place l'arbre
+  /// précédent plutôt que de vider la colonne : un horaire périmé se lit,
+  /// une case vide ne dit rien.
+  Future<void> _loadMeetingTree(
+    int competitionId, {
+    required bool refresh,
+  }) async {
+    // `load` et `ensureLoaded` avalent leur propre AppException et rendent un
+    // booléen : rien à rattraper ici.
+    if (refresh) {
+      await _meetingTree.load(competitionId, silent: true);
+    } else {
+      await _meetingTree.ensureLoaded(competitionId, silent: true);
     }
   }
 

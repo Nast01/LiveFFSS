@@ -89,6 +89,18 @@ class MeetingService extends GetxService {
     }
   }
 
+  /// Charge l'arbre seulement s'il n'est pas déjà celui de cette compétition.
+  ///
+  /// Pour un écran qui lit l'arbre sans en être responsable : l'onglet Séries
+  /// n'en tire que le site et l'horaire de ses propres courses, et le
+  /// redemander à chaque ouverture lui coûtait une requête par créneau de
+  /// toute la compétition. Qui a besoin de fraîcheur appelle [reload] ;
+  /// l'écriture d'une réunion, elle, recharge déjà de son côté.
+  Future<bool> ensureLoaded(int competitionId, {bool silent = false}) async {
+    if (_competitionId == competitionId && meetings.isNotEmpty) return true;
+    return load(competitionId, silent: silent);
+  }
+
   /// Recharge la compétition déjà chargée. Sans appel préalable à [load], il
   /// n'y a aucune compétition à recharger.
   Future<bool> reload({bool silent = false}) async {
