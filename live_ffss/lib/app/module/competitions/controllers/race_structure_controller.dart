@@ -588,8 +588,9 @@ class RaceStructureController extends GetxController {
     var changed = false;
     for (final (at, course) in pairs) {
       final race = races[at];
-      if (race.competitorOrder.isNotEmpty || race.penalties.isNotEmpty)
+      if (race.competitorOrder.isNotEmpty || race.penalties.isNotEmpty) {
         continue;
+      }
       if (course.lanes.isEmpty) continue;
       final seats = await _seatsOf(course);
       if (seats.isEmpty) continue;
