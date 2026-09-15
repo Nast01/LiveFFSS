@@ -25,7 +25,7 @@ Le numéro existe pourtant côté FFSS, sur la route
 | Source | Un appel **dédié** à `participants`, par compétition, mémorisé |
 | Écriture bracelet | `licence;nom;dossard` — le dossard **ajouté en fin** |
 | Lecture bracelet | La **licence identifie**, le dossard **vérifie** |
-| Style | Pastille sombre à chasse fixe, **sans préfixe**, masquée quand le dossard est vide |
+| Style | Pastille sombre à chasse fixe, **sans préfixe**, masquée quand le dossard vaut 0 |
 
 ## Le champ, et ce qu'il couvre gratuitement
 
