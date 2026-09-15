@@ -168,13 +168,6 @@ class _RaceDetailEntriesViewState extends State<RaceDetailEntriesView> {
                                   _AthleteStatusChip(athlete: athlete),
                               onSubstitute: _ctrl.requestSubstitution,
                               avatarSize: 40,
-                              // A relay's row is titled by its club, and the
-                              // marshal reads that name to find their team:
-                              // it is never worth truncating. Capping the
-                              // lines would only move where it gets cut, so
-                              // the title wraps as far as it needs and the row
-                              // grows with it.
-                              titleMaxLines: null,
                             ),
                           ),
                           key: ValueKey(entry.id),
