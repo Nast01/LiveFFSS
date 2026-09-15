@@ -787,6 +787,26 @@ void main() {
       expect(c.message.value, isNull);
       c.stopScan();
     });
+
+    // A re-read is unproductive: assign() already tells the marshal their
+    // gesture changed nothing, and the provenance warning would have shown
+    // on the first, productive read of that same bracelet — repeating it
+    // here would bury the more useful message.
+    test(
+        'a re-read of an already ranked engagement keeps assign\'s own message',
+        () async {
+      final c = await loadWithBibs({10: 12, 11: 0});
+      c.startScan();
+      stream.add('L10;B10;7');
+      await pumpEventQueue();
+      stream.add('L10;B10;7');
+      await pumpEventQueue();
+
+      expect(c.placeOf(c.competitors[0]), 1);
+      expect(c.message.value,
+          const UiMessageError('course_athlete_already_ranked'));
+      c.stopScan();
+    });
   });
 
   group('validate', () {

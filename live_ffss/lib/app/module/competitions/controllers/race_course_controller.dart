@@ -545,6 +545,10 @@ class RaceCourseController extends GetxController {
       message.trigger(const UiMessageError('course_bracelet_not_in_race'));
       return;
     }
+    // assign() overwrites its own "already ranked" / "withdrawn" message
+    // with nothing — it only ever sets message on the branches that change
+    // nothing — so those guards must be read before calling it, not after.
+    final wasUnranked = placeOf(match) == null && penaltyOf(match) == null;
     // A team crosses the line once: a teammate's bracelet read afterwards
     // falls onto the duplicate `assign` already reports.
     assign(match);
@@ -552,9 +556,14 @@ class RaceCourseController extends GetxController {
     // competition, so an un-rewritten bracelet would silently point at
     // whichever athlete wears that number here. It verifies, and alerts when
     // it disagrees with the licence — read off the athlete the licence
-    // matched, not off the engagement.
+    // matched, not off the engagement. Only on a read that genuinely ranked
+    // someone: a re-scan of an already-ranked or withdrawn engagement must
+    // keep assign's own message, which tells the marshal their gesture
+    // changed nothing — the provenance warning would already have shown on
+    // that bracelet's first, productive read.
     final onBracelet = parseBraceletOrderNumber(payload);
-    if (onBracelet > 0 &&
+    if (wasUnranked &&
+        onBracelet > 0 &&
         (matchedAthlete?.orderNumber ?? 0) > 0 &&
         onBracelet != matchedAthlete!.orderNumber) {
       message.trigger(const UiMessageError('bracelet_other_event'));
