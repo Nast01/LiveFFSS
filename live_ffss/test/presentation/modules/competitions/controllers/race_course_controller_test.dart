@@ -276,6 +276,26 @@ void main() {
       expect(c.competitors.single.athletes.single.club?.name, 'SNS Nice');
     });
 
+    // Un relais fait tomber chaque athlete dans son propre club : patcher
+    // l'engagement ne doit pas rabattre toute l'equipe sur un seul.
+    test('chaque relayeur porte son propre club resolu', () async {
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => const {
+          101: Club(id: 3, name: 'SNS Nice'),
+          102: Club(id: 4, name: 'SNS Antibes'),
+        },
+      );
+
+      final c = await loadWithEntries([
+        (entryId: 10, athleteIds: [101, 102]),
+      ]);
+
+      expect(
+        c.competitors.single.athletes.map((a) => a.club?.name),
+        ['SNS Nice', 'SNS Antibes'],
+      );
+    });
+
     test('reopens on the order already recorded', () async {
       final c = await loadWith([10, 11]);
       c.assign(c.competitors.first);
@@ -867,6 +887,51 @@ void main() {
       );
     });
 
+    // Un tirage antérieur à `entryIds` ne nomme que des athlètes, et
+    // `competitorsOf` en fait ses compétiteurs : chercher le rang d'un couloir
+    // par son engagement n'y trouverait rien et publierait toute la série
+    // classée sans rang.
+    test('un tirage d avant les entryIds publie quand même ses rangs',
+        () async {
+      final controller = await ready(
+        seed: const CompetitionProgramme(
+          competitionId: competitionId,
+          nextLocalId: 200,
+          structures: [
+            EventStructure(
+              raceId: raceId,
+              categoryId: categoryId,
+              raceLabel: 'Race',
+              categoryLabel: 'Senior',
+              levels: [
+                RoundLevel(type: RoundType.demi, serverId: 39, races: [
+                  ProgrammeRace(
+                    id: programmeRaceId,
+                    number: 1,
+                    runId: 25,
+                    athleteIds: [1, 2],
+                  ),
+                ]),
+              ],
+            ),
+          ],
+        ),
+      );
+      when(() => meetingRepo.getLaneSeats(any())).thenAnswer((_) async => [
+            (laneId: 71, number: 1, entryId: 101, athleteIds: [1]),
+            (laneId: 72, number: 2, entryId: 102, athleteIds: [2]),
+          ]);
+
+      controller.assign(controller.competitors[0]);
+      controller.assign(controller.competitors[1]);
+      await controller.validate();
+
+      expect(capturedOutcomes().map((o) => (o.entryId, o.rank, o.status)), [
+        (101, 1, 0),
+        (102, 2, 0),
+      ]);
+    });
+
     test('la course est rattachée à sa série', () async {
       final controller = await ready();
       controller.competitorOrder.value = [
@@ -1194,6 +1259,100 @@ void main() {
       );
 
       expect(controller.competitorOrder, isEmpty);
+    });
+
+    // Un engagement retire sur FFSS entre le tirage et la reouverture ne doit
+    // pas emporter le classement des autres avec lui.
+    test('un engagement disparu laisse le classement des autres', () async {
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+          (entryId: 30, athleteIds: [301]),
+        ],
+        competitorOrder: const [
+          [10],
+          [20],
+          [30]
+        ],
+      );
+
+      expect(controller.competitorOrder, [
+        [10],
+        [30]
+      ]);
+      // Les places se resserrent : le troisieme devient deuxieme.
+      expect(controller.placeOf(controller.competitors.last), 2);
+    });
+
+    test('un engagement disparu est dit a l ecran', () async {
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+        ],
+        competitorOrder: const [
+          [10],
+          [20]
+        ],
+      );
+
+      expect(controller.message.value,
+          const UiMessageError('course_ranking_competitor_gone'));
+    });
+
+    test('la penalite d un engagement disparu part avec lui', () async {
+      programme = _FakeProgrammeService(programmeWith(const ProgrammeRace(
+        id: programmeRaceId,
+        number: 1,
+        entryIds: [10],
+        athleteIds: [101],
+        competitorOrder: [
+          [10],
+          [20]
+        ],
+        penalties: [
+          CoursePenalty(competitorId: 10, kind: CoursePenaltyKind.forfeit),
+          CoursePenalty(competitorId: 20, kind: CoursePenaltyKind.forfeit),
+        ],
+      )));
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            Entry(
+              id: 10,
+              category: const Category(id: categoryId, name: 'Senior'),
+              status: 1,
+              statusLabel: 'Engagé',
+              athletes: [athlete(101)],
+            ),
+          ]);
+      final controller =
+          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
+            ..applyArguments(arguments());
+      await controller.load();
+
+      expect(controller.penalties.map((p) => p.competitorId), [10]);
+    });
+
+    test('un classement herite est dit a l ecran, lui aussi', () async {
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101, 102]),
+        ],
+        competitorOrder: const [
+          [101],
+          [102]
+        ],
+      );
+
+      expect(controller.message.value,
+          const UiMessageError('course_ranking_dropped'));
+    });
+
+    // Une course pas encore courue est le cas ordinaire : rien a signaler.
+    test('une course sans classement ne dit rien', () async {
+      final controller = await loadWithEntries([
+        (entryId: 10, athleteIds: [101, 102]),
+      ]);
+
+      expect(controller.message.value, isNull);
     });
 
     test('un classement d engagements est relu tel quel', () async {

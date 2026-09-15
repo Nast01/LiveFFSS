@@ -357,6 +357,10 @@ final Map<String, String> enUS = {
   'course_athlete_withdrawn': 'That athlete is withdrawn',
   'course_athlete_already_ranked': 'That athlete is already ranked',
   'course_save_failed': 'The result could not be saved',
+  'course_ranking_dropped':
+      'The stored ranking no longer matches this heat and was cleared',
+  'course_ranking_competitor_gone':
+      'Entries have left this heat: the ranking was renumbered',
   'course_title': 'Result entry',
   'course_next_place': 'Next place',
   'course_tie': 'tie',

@@ -153,15 +153,7 @@ class RaceCourseController extends GetxController {
         athletes: byAthlete,
       );
 
-      final storedOrder = [
-        for (final group in stored?.competitorOrder ?? const <List<int>>[])
-          [...group],
-      ];
-      // An order written when the competitor was the athlete names no
-      // engagement of this course: reading it back would invent places.
-      final kept = isCompetitorOrder(storedOrder, lineUp);
-      competitorOrder.value = kept ? storedOrder : const [];
-      penalties.value = kept ? [...?stored?.penalties] : const [];
+      _readStoredRanking(stored, lineUp);
 
       // Entries arrive with no club on their athletes — the mappers never set
       // one — and that club is what every row shows.
@@ -187,6 +179,59 @@ class RaceCourseController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Reopens the ranking [stored] holds against the line-up actually engaged.
+  ///
+  /// Three cases, and they must not be confused. An order every id of which
+  /// names a competitor is this course's own and comes back untouched. An
+  /// order NO id of which names a competitor was written when the competitor
+  /// was the athlete: it names nothing here, and reading it back would invent
+  /// places, so it goes — with its penalties. In between sits the one the
+  /// all-or-nothing rule used to throw away with the rest: a current order
+  /// that has lost an engagement — withdrawn on FFSS since the draw, or
+  /// missing from a truncated `getEntries` — which keeps everyone still
+  /// engaged, renumbered densely.
+  ///
+  /// Either loss is said out loud. Finding a ranking silently blank, or
+  /// silently one place short, is how a marshal publishes a result they never
+  /// entered. An order that was simply never scored stays silent: that is the
+  /// ordinary state of a course not yet run.
+  void _readStoredRanking(ProgrammeRace? stored, List<Entry> lineUp) {
+    final storedOrder = [
+      for (final group in stored?.competitorOrder ?? const <List<int>>[])
+        [...group],
+    ];
+    final storedPenalties = [...?stored?.penalties];
+
+    if (isCompetitorOrder(storedOrder, lineUp)) {
+      competitorOrder.value = storedOrder;
+      penalties.value = storedPenalties;
+      return;
+    }
+
+    final present = {for (final entry in lineUp) entry.id};
+    // Not one id belongs to this course: the order was written in the other
+    // namespace, and nothing in it can be salvaged.
+    if (!storedOrder.any((group) => group.any(present.contains))) {
+      competitorOrder.value = const [];
+      penalties.value = const [];
+      message.trigger(const UiMessageError('course_ranking_dropped'));
+      return;
+    }
+
+    var order = storedOrder;
+    for (final group in storedOrder) {
+      for (final id in group) {
+        if (!present.contains(id)) order = withoutCompetitor(order, id);
+      }
+    }
+    competitorOrder.value = order;
+    penalties.value = [
+      for (final penalty in storedPenalties)
+        if (present.contains(penalty.competitorId)) penalty,
+    ];
+    message.trigger(const UiMessageError('course_ranking_competitor_gone'));
   }
 
   int get nextPlaceValue => nextPlace(competitorOrder);
@@ -483,7 +528,7 @@ class RaceCourseController extends GetxController {
         raceId: race.id,
         heatName: run.name,
         heatNumber: raceNumber,
-        outcomes: _outcomesFor(seats),
+        outcomes: _outcomesFor(seats, stored),
         heatId: _heatId == 0 ? null : _heatId,
         link: (
           slotId: slotId,
@@ -525,7 +570,15 @@ class RaceCourseController extends GetxController {
 
   /// One outcome per seated engagement: its rank when it finished, its status
   /// otherwise. A team races as one, so any of its athletes speaks for it.
-  List<CourseOutcome> _outcomesFor(List<LaneSeat> seats) {
+  ///
+  /// A draw made before [ProgrammeRace.entryIds] existed carries no engagement
+  /// id at all, and `competitorsOf` then makes each athlete its own competitor
+  /// — so this course's ranking is keyed by athlete. Matching such a seat by
+  /// its engagement would find nothing and publish the whole heat as classified
+  /// with no rank. The two id spaces are unrelated, so the branch is on where
+  /// the line-up came from, never a fallback from one lookup to the other.
+  List<CourseOutcome> _outcomesFor(List<LaneSeat> seats, ProgrammeRace stored) {
+    final competitorsAreAthletes = stored.entryIds.isEmpty;
     final places = placesOf(competitorOrder);
     final penaltyOf = <int, CoursePenalty>{
       for (final penalty in penalties) penalty.competitorId: penalty,
@@ -533,7 +586,14 @@ class RaceCourseController extends GetxController {
     return [
       for (final seat in seats)
         () {
-          final penalty = penaltyOf[seat.entryId];
+          final competitorIds =
+              competitorsAreAthletes ? seat.athleteIds : [seat.entryId];
+          CoursePenalty? penalty;
+          int? place;
+          for (final id in competitorIds) {
+            penalty ??= penaltyOf[id];
+            place ??= places[id];
+          }
           final status = switch (penalty?.kind) {
             CoursePenaltyKind.disqualified => 1,
             CoursePenaltyKind.forfeit => 2,
@@ -548,7 +608,7 @@ class RaceCourseController extends GetxController {
             laneId: seat.laneId,
             // Out of the ranking takes no place: sending one would put them
             // back in the classification.
-            rank: penalty == null ? places[seat.entryId] : null,
+            rank: penalty == null ? place : null,
             status: status,
             complement: (penalty?.code.isEmpty ?? true) ? null : penalty!.code,
           );
