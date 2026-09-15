@@ -207,8 +207,9 @@ class RaceCourseController extends GetxController {
   ///
   /// Three cases, and they must not be confused. An order every id of which
   /// names a competitor is this course's own and comes back untouched. An
-  /// order NO id of which names a competitor was written when the competitor
-  /// was the athlete: it names nothing here, and reading it back would invent
+  /// order every id of which names one of this course's drawn athletes — or
+  /// one naming no competitor at all — was written when the competitor was the
+  /// athlete: it names nothing usable here, and reading it back would invent
   /// places, so it goes — with its penalties. In between sits the one the
   /// all-or-nothing rule used to throw away with the rest: a current order
   /// that has lost an engagement — withdrawn on FFSS since the draw, or
@@ -238,9 +239,24 @@ class RaceCourseController extends GetxController {
     }
 
     final present = {for (final entry in lineUp) entry.id};
-    // Not one id belongs to this course: the order was written in the other
+    final storedIds = {for (final group in storedOrder) ...group};
+    // Which namespace the order was written in is settled by the draw's own
+    // record, not by whether an id happens to land in the line-up: athlete ids
+    // and engagement ids are separate FFSS sequences that can collide, and one
+    // collision read as "this competitor is still here" would keep that place
+    // — for the wrong engagement — and discard the rest as vanished.
+    //
+    // A draw with no `entryIds` is the exception: its competitors ARE the
+    // athletes, so an order naming them is in the right namespace and a
+    // missing one is an ordinary withdrawal, to be salvaged like any other.
+    final athleteKeyed = stored != null &&
+        storedIds.isNotEmpty &&
+        stored.entryIds.isNotEmpty &&
+        storedIds.every(stored.athleteIds.contains);
+    // Nothing in this order belongs to this course: it names the other
     // namespace, and nothing in it can be salvaged.
-    if (!storedOrder.any((group) => group.any(present.contains))) {
+    if (athleteKeyed ||
+        !storedOrder.any((group) => group.any(present.contains))) {
       competitorOrder.value = const [];
       penalties.value = const [];
       return true;

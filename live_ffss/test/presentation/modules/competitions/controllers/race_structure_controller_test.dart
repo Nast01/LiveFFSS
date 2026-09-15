@@ -461,9 +461,14 @@ void main() {
     /// Une série validée : un seul engagement individuel, dont FFSS porte le
     /// classement.
     Future<RaceStructureController> loadWithResults(
-      List<HeatResult> results,
-    ) async {
-      const programme = CompetitionProgramme(
+      List<HeatResult> results, {
+      List<int> entryIds = const [10],
+      List<int> athleteIds = const [101],
+      List<List<int>> competitorOrder = const [],
+      List<CoursePenalty> penalties = const [],
+      List<Entry>? entries,
+    }) async {
+      final programme = CompetitionProgramme(
         competitionId: 42,
         structures: [
           EventStructure(
@@ -477,8 +482,10 @@ void main() {
                   id: 1,
                   number: 1,
                   runId: 25,
-                  entryIds: [10],
-                  athleteIds: [101],
+                  entryIds: entryIds,
+                  athleteIds: athleteIds,
+                  competitorOrder: competitorOrder,
+                  penalties: penalties,
                 ),
               ]),
             ],
@@ -530,7 +537,9 @@ void main() {
       );
       when(() => storage.read(key: any(named: 'key')))
           .thenAnswer((_) async => jsonEncode(programme.toJson()));
-      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async =>
+          entries ??
+          [
             entry(10, 7, athletes: [makeAthlete(101)])
           ]);
       when(() => meetingRepo.getMeetings(42))
@@ -641,6 +650,45 @@ void main() {
               .entriesOf(controller.racesOf(RoundType.serie).single)
               .single),
           isTrue);
+    });
+
+    // Un tirage antérieur à `entryIds` a des athlètes pour compétiteurs, alors
+    // que les résultats FFSS sont indexés par engagement : les deux suites
+    // d'ids n'ont rien à voir, et une carte serveur non nulle masquerait
+    // l'ordre local — la seule source capable de classer cette course-là.
+    test('un tirage herite garde ses places locales malgre un resultat FFSS',
+        () async {
+      final controller = await loadWithResults(
+        const [
+          (
+            entryId: 10,
+            rank: 1,
+            isDisqualified: false,
+            complement: null,
+            status: 0
+          ),
+        ],
+        entryIds: const [],
+        athleteIds: const [101, 102],
+        competitorOrder: const [
+          [102],
+          [101]
+        ],
+        penalties: const [
+          CoursePenalty(
+              competitorId: 101, kind: CoursePenaltyKind.forfeit, code: 'FF'),
+        ],
+        entries: [
+          entry(10, 7, athletes: [makeAthlete(101)]),
+          entry(20, 7, athletes: [makeAthlete(102)]),
+        ],
+      );
+      final race = controller.racesOf(RoundType.serie).single;
+
+      expect(controller.placeInRace(race, 102), 1);
+      expect(controller.placeInRace(race, 101), 2);
+      expect(
+          controller.penaltyInRace(race, 101)?.kind, CoursePenaltyKind.forfeit);
     });
 
     test('heatIdOf porte l id de serie FFSS de la course', () async {

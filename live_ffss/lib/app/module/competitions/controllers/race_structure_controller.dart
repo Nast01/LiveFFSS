@@ -302,10 +302,19 @@ class RaceStructureController extends GetxController {
   /// copie locale devenue fausse. Sans résultat serveur, l'ordre de
   /// l'appareil reste en vigueur.
   int? placeInRace(ProgrammeRace race, int competitorId) {
-    final server = _serverResults[race.id];
+    final server = _serverResultsFor(race);
     if (server != null) return server[competitorId]?.rank;
     return placesOf(race.competitorOrder)[competitorId];
   }
+
+  /// Ce que FFSS porte pour cette course, ou nul quand il ne peut pas répondre.
+  ///
+  /// Un tirage sans `entryIds` a des athlètes pour compétiteurs, alors que le
+  /// serveur indexe par engagement : les deux suites d'ids n'ont rien à voir,
+  /// et une carte non nulle masquerait l'ordre local — la seule source qui
+  /// puisse classer cette course-là.
+  Map<int, HeatResult>? _serverResultsFor(ProgrammeRace race) =>
+      race.entryIds.isEmpty ? null : _serverResults[race.id];
 
   /// La disqualification ou le forfait que porte cet engagement dans une
   /// course scorée, s'il y en a un.
@@ -319,7 +328,7 @@ class RaceStructureController extends GetxController {
   /// `complement` et atterrit dans [CoursePenalty.code], exactement ce que
   /// l'arbitre a tapé sur l'appareil qui a validé.
   CoursePenalty? penaltyInRace(ProgrammeRace race, int competitorId) {
-    final server = _serverResults[race.id];
+    final server = _serverResultsFor(race);
     if (server != null) {
       final result = server[competitorId];
       if (result == null) return null;

@@ -1622,6 +1622,29 @@ void main() {
       expect(controller.competitorOrder, isEmpty);
     });
 
+    // Les ids d'athlete et les ids d'engagement sont deux suites FFSS
+    // distinctes : elles se croisent. Un classement herite dont un id vaut par
+    // hasard un engagement de la course ne doit pas glisser dans la
+    // recuperation partielle, qui garderait cette place-la — pour le mauvais
+    // engagement — et jetterait le reste comme disparu.
+    test('un classement herite dont un id heurte un engagement part entier',
+        () async {
+      final controller = await loadWithEntries(
+        [
+          (entryId: 10, athleteIds: [101]),
+          (entryId: 20, athleteIds: [10]),
+        ],
+        competitorOrder: const [
+          [101],
+          [10]
+        ],
+      );
+
+      expect(controller.competitorOrder, isEmpty);
+      expect(controller.message.value,
+          const UiMessageError('course_ranking_dropped'));
+    });
+
     // Un engagement retire sur FFSS entre le tirage et la reouverture ne doit
     // pas emporter le classement des autres avec lui.
     test('un engagement disparu laisse le classement des autres', () async {
