@@ -30,6 +30,10 @@ class Athlete with _$Athlete {
     @Default('') String clubLabel,
     @Default(false) bool isSubstitute,
 
+    /// Le dossard que l'athlète porte sur cette compétition, 0 quand il n'en a
+    /// pas — ou quand il vient d'une route qui ne le sert pas.
+    @Default(0) int orderNumber,
+
     /// The categories this athlete is entered in, distinct and in the order
     /// the entries came. Most athletes race two or three: « Junior » and the
     /// umbrella « Open » and « Youth » alongside it.

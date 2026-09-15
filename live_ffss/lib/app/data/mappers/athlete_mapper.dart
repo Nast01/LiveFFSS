@@ -24,6 +24,7 @@ extension AthleteMapper on AthleteDto {
         clubId: clubId,
         clubLabel: clubLabel,
         isSubstitute: isSubstitute,
+        orderNumber: orderNumber,
         categories: _distinctCategories(),
       );
 

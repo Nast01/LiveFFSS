@@ -39,6 +39,10 @@ mixin _$Athlete {
   String get clubLabel => throw _privateConstructorUsedError;
   bool get isSubstitute => throw _privateConstructorUsedError;
 
+  /// Le dossard que l'athlète porte sur cette compétition, 0 quand il n'en a
+  /// pas — ou quand il vient d'une route qui ne le sert pas.
+  int get orderNumber => throw _privateConstructorUsedError;
+
   /// The categories this athlete is entered in, distinct and in the order
   /// the entries came. Most athletes race two or three: « Junior » and the
   /// umbrella « Open » and « Youth » alongside it.
@@ -79,6 +83,7 @@ abstract class $AthleteCopyWith<$Res> {
       int clubId,
       String clubLabel,
       bool isSubstitute,
+      int orderNumber,
       List<Category> categories,
       @JsonKey(includeFromJson: false, includeToJson: false) Club? club});
 
@@ -116,6 +121,7 @@ class _$AthleteCopyWithImpl<$Res, $Val extends Athlete>
     Object? clubId = null,
     Object? clubLabel = null,
     Object? isSubstitute = null,
+    Object? orderNumber = null,
     Object? categories = null,
     Object? club = freezed,
   }) {
@@ -184,6 +190,10 @@ class _$AthleteCopyWithImpl<$Res, $Val extends Athlete>
           ? _value.isSubstitute
           : isSubstitute // ignore: cast_nullable_to_non_nullable
               as bool,
+      orderNumber: null == orderNumber
+          ? _value.orderNumber
+          : orderNumber // ignore: cast_nullable_to_non_nullable
+              as int,
       categories: null == categories
           ? _value.categories
           : categories // ignore: cast_nullable_to_non_nullable
@@ -234,6 +244,7 @@ abstract class _$$AthleteImplCopyWith<$Res> implements $AthleteCopyWith<$Res> {
       int clubId,
       String clubLabel,
       bool isSubstitute,
+      int orderNumber,
       List<Category> categories,
       @JsonKey(includeFromJson: false, includeToJson: false) Club? club});
 
@@ -270,6 +281,7 @@ class __$$AthleteImplCopyWithImpl<$Res>
     Object? clubId = null,
     Object? clubLabel = null,
     Object? isSubstitute = null,
+    Object? orderNumber = null,
     Object? categories = null,
     Object? club = freezed,
   }) {
@@ -338,6 +350,10 @@ class __$$AthleteImplCopyWithImpl<$Res>
           ? _value.isSubstitute
           : isSubstitute // ignore: cast_nullable_to_non_nullable
               as bool,
+      orderNumber: null == orderNumber
+          ? _value.orderNumber
+          : orderNumber // ignore: cast_nullable_to_non_nullable
+              as int,
       categories: null == categories
           ? _value._categories
           : categories // ignore: cast_nullable_to_non_nullable
@@ -370,6 +386,7 @@ class _$AthleteImpl implements _Athlete {
       this.clubId = 0,
       this.clubLabel = '',
       this.isSubstitute = false,
+      this.orderNumber = 0,
       final List<Category> categories = const <Category>[],
       @JsonKey(includeFromJson: false, includeToJson: false) this.club})
       : _categories = categories;
@@ -419,6 +436,12 @@ class _$AthleteImpl implements _Athlete {
   @JsonKey()
   final bool isSubstitute;
 
+  /// Le dossard que l'athlète porte sur cette compétition, 0 quand il n'en a
+  /// pas — ou quand il vient d'une route qui ne le sert pas.
+  @override
+  @JsonKey()
+  final int orderNumber;
+
   /// The categories this athlete is entered in, distinct and in the order
   /// the entries came. Most athletes race two or three: « Junior » and the
   /// umbrella « Open » and « Youth » alongside it.
@@ -443,7 +466,7 @@ class _$AthleteImpl implements _Athlete {
 
   @override
   String toString() {
-    return 'Athlete(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute, categories: $categories, club: $club)';
+    return 'Athlete(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute, orderNumber: $orderNumber, categories: $categories, club: $club)';
   }
 
   @override
@@ -477,6 +500,8 @@ class _$AthleteImpl implements _Athlete {
                 other.clubLabel == clubLabel) &&
             (identical(other.isSubstitute, isSubstitute) ||
                 other.isSubstitute == isSubstitute) &&
+            (identical(other.orderNumber, orderNumber) ||
+                other.orderNumber == orderNumber) &&
             const DeepCollectionEquality()
                 .equals(other._categories, _categories) &&
             (identical(other.club, club) || other.club == club));
@@ -484,26 +509,28 @@ class _$AthleteImpl implements _Athlete {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      licenseeNumber,
-      firstName,
-      lastName,
-      gender,
-      year,
-      nationalityCode,
-      nationality,
-      isValid,
-      isLicensee,
-      isGuest,
-      performanceTime,
-      performanceLabel,
-      clubId,
-      clubLabel,
-      isSubstitute,
-      const DeepCollectionEquality().hash(_categories),
-      club);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        licenseeNumber,
+        firstName,
+        lastName,
+        gender,
+        year,
+        nationalityCode,
+        nationality,
+        isValid,
+        isLicensee,
+        isGuest,
+        performanceTime,
+        performanceLabel,
+        clubId,
+        clubLabel,
+        isSubstitute,
+        orderNumber,
+        const DeepCollectionEquality().hash(_categories),
+        club
+      ]);
 
   /// Create a copy of Athlete
   /// with the given fields replaced by the non-null parameter values.
@@ -539,6 +566,7 @@ abstract class _Athlete implements Athlete {
       final int clubId,
       final String clubLabel,
       final bool isSubstitute,
+      final int orderNumber,
       final List<Category> categories,
       @JsonKey(includeFromJson: false, includeToJson: false)
       final Club? club}) = _$AthleteImpl;
@@ -579,6 +607,11 @@ abstract class _Athlete implements Athlete {
   String get clubLabel;
   @override
   bool get isSubstitute;
+
+  /// Le dossard que l'athlète porte sur cette compétition, 0 quand il n'en a
+  /// pas — ou quand il vient d'une route qui ne le sert pas.
+  @override
+  int get orderNumber;
 
   /// The categories this athlete is entered in, distinct and in the order
   /// the entries came. Most athletes race two or three: « Junior » and the

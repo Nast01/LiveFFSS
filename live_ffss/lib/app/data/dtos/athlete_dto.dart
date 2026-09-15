@@ -37,6 +37,13 @@ class AthleteDto with _$AthleteDto {
     @JsonKey(name: 'engagements')
     @Default(<AthleteEntryDto>[])
     List<AthleteEntryDto> entries,
+    // Le dossard : unique pour un athlète sur une compétition. FFSS le type en
+    // String ; il est lu en entier pour que deux dossards se comparent comme
+    // des nombres. Présent sur les charges utiles de forme Participant
+    // (`participants`, `organismes`), absent de `engagement`.
+    @JsonKey(name: 'Dossard', readValue: _readOrderNumber)
+    @Default(0)
+    int orderNumber,
   }) = _AthleteDto;
 
   factory AthleteDto.fromJson(Map<String, dynamic> json) =>
@@ -53,4 +60,11 @@ Object? _readGuestId(Map<dynamic, dynamic> map, String key) {
   final raw = map[key];
   if (raw == null) return '';
   return raw is String ? raw : raw.toString();
+}
+
+Object? _readOrderNumber(Map<dynamic, dynamic> map, String key) {
+  final raw = map[key];
+  if (raw is String) return int.tryParse(raw) ?? 0;
+  if (raw is int) return raw;
+  return 0;
 }
