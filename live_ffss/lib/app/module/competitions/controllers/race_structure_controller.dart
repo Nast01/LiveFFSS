@@ -9,6 +9,7 @@ import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
+import 'package:live_ffss/app/domain/models/competitor.dart' show competitorsOf;
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/course_ranking.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
@@ -79,9 +80,16 @@ class RaceStructureController extends GetxController {
   final RxList<Meeting> _meetingsOfCompetition = <Meeting>[].obs;
 
   /// What FFSS holds for a drawn course, keyed by ProgrammeRace id then by
-  /// athlete. Filled only for the courses that carry a `serie`; everywhere
+  /// engagement. Filled only for the courses that carry a `serie`; everywhere
   /// else the screen keeps reading the device's own finish order.
   final Map<int, Map<int, HeatResult>> _serverResults = {};
+
+  /// Id de série FFSS d'une course, par id de ProgrammeRace — vide quand la
+  /// course n'en porte aucune. Passé tel quel à l'écran de saisie, qui n'a
+  /// ainsi pas besoin de refaire l'arbre des réunions pour retrouver la
+  /// série qu'il doit relire. Memo de passe comme `_seatsByCourse`, vidé à
+  /// chaque `load()`.
+  final Map<int, int> _courseHeatIds = {};
 
   /// Places lues pendant ce `load()`, par id de course.
   ///
@@ -98,6 +106,10 @@ class RaceStructureController extends GetxController {
   /// with clubs resolved. It is what turns a drawn race's `athleteIds` back
   /// into rows the operator can read.
   Map<int, Athlete> _athletesById = const {};
+
+  /// Id d'engagement -> engagement, bâti sur les engagés de l'épreuve. C'est
+  /// ce qui rend à une course tirée ses compétiteurs.
+  Map<int, Entry> _entriesById = const {};
 
   @override
   void onInit() {
@@ -140,6 +152,7 @@ class RaceStructureController extends GetxController {
     this.race.value = race;
     this.competition.value = competition;
     _seatsByCourse.clear();
+    _courseHeatIds.clear();
     if (!silent) isLoading.value = true;
     try {
       await _programme.load(competition.id);
@@ -166,12 +179,14 @@ class RaceStructureController extends GetxController {
         }
         _entryCountByCategory = counts;
         _athletesById = await _indexAthletes(entries, competition.id);
+        _entriesById = {for (final e in entries) e.id: e};
       } on AppException {
         // Entries unavailable (offline / API error): the structure still
         // renders; category counts fall back to zero and a drawn race lists
         // no athlete.
         _entryCountByCategory = const {};
         _athletesById = const {};
+        _entriesById = const {};
       }
       try {
         _meetingsOfCompetition.value = await _meetings.getMeetings(
@@ -230,7 +245,7 @@ class RaceStructureController extends GetxController {
     if (filter.value.isEmpty) return races.toList();
     return [
       for (final race in races)
-        if (athletesOf(race).any(matchesFilter)) race,
+        if (entriesOf(race).any(matchesEntry)) race,
     ];
   }
 
@@ -260,56 +275,80 @@ class RaceStructureController extends GetxController {
     return buffer.toString().trim();
   }
 
-  /// The athletes a drawn race holds, in the order the draw left them. Ids the
-  /// entries do not account for are skipped rather than rendered as a blank
-  /// row — an athlete withdrawn since the draw is the ordinary way that happens.
-  List<Athlete> athletesOf(ProgrammeRace race) => [
-        for (final id in race.athleteIds)
-          if (_athletesById[id] case final Athlete athlete) athlete,
-      ];
+  /// Whether any athlete of this entry matches the filter — an entry survives
+  /// on one member, not all of them.
+  bool matchesEntry(Entry entry) => entry.athletes.any(matchesFilter);
 
-  /// The place this athlete took in a scored race, or null while it has no
+  /// Les engagements d'une course tirée, dans l'ordre des couloirs.
+  List<Entry> entriesOf(ProgrammeRace race) => competitorsOf(
+        race,
+        entries: _entriesById,
+        athletes: _athletesById,
+      );
+
+  /// The place this entry took in a scored race, or null while it has no
   /// result. Computed from the stored order by the same function the entry
   /// screen uses — the two therefore cannot disagree about a ranking.
-  int? placeIn(ProgrammeRace race, Athlete athlete) =>
-      placeInRace(race, athlete.id);
+  int? placeIn(ProgrammeRace race, Entry entry) => placeInRace(race, entry.id);
 
-  /// Same, by athlete id.
+  /// Same, by competitor (entry) id.
   ///
   /// FFSS wins when it holds a result for this course: a ranking corrected on
   /// another device has to show here, not the local copy that has gone stale.
   /// Without one, the device's own order stands.
-  int? placeInRace(ProgrammeRace race, int athleteId) {
+  int? placeInRace(ProgrammeRace race, int competitorId) {
     final server = _serverResults[race.id];
-    if (server != null) return server[athleteId]?.rank;
-    return placesOf(race.competitorOrder)[athleteId];
+    if (server != null) return server[competitorId]?.rank;
+    return placesOf(race.competitorOrder)[competitorId];
   }
 
-  /// The withdrawal this athlete carries in a scored race, if any.
-  CoursePenalty? penaltyIn(ProgrammeRace race, Athlete athlete) =>
-      penaltyInRace(race, athlete.id);
+  /// The withdrawal this entry carries in a scored race, if any.
+  CoursePenalty? penaltyIn(ProgrammeRace race, Entry entry) =>
+      penaltyInRace(race, entry.id);
 
-  /// Same, by athlete id — FFSS first, for the same reason as [placeInRace].
+  /// Same, by competitor (entry) id — FFSS first, for the same reason as
+  /// [placeInRace].
   ///
-  /// The server reports a disqualification, not why: a code travels in
-  /// `complement` and lands in [CoursePenalty.code], which is exactly what the
-  /// referee typed on the device that validated.
-  CoursePenalty? penaltyInRace(ProgrammeRace race, int athleteId) {
+  /// The server reports a status, not why: a code travels in `complement` and
+  /// lands in [CoursePenalty.code], which is exactly what the referee typed on
+  /// the device that validated.
+  CoursePenalty? penaltyInRace(ProgrammeRace race, int competitorId) {
     final server = _serverResults[race.id];
     if (server != null) {
-      final result = server[athleteId];
-      if (result == null || !result.isDisqualified) return null;
+      final result = server[competitorId];
+      if (result == null) return null;
+      final kind = switch (result.status) {
+        1 => CoursePenaltyKind.disqualified,
+        2 => CoursePenaltyKind.forfeit,
+        // Statut muet : la disqualification reste lisible sur son booléen, et
+        // tout le reste est un classé ordinaire.
+        _ => result.isDisqualified ? CoursePenaltyKind.disqualified : null,
+      };
+      if (kind == null) return null;
       return CoursePenalty(
-        competitorId: athleteId,
-        kind: CoursePenaltyKind.disqualified,
+        competitorId: competitorId,
+        kind: kind,
         code: result.complement ?? '',
       );
     }
     for (final penalty in race.penalties) {
-      if (penalty.competitorId == athleteId) return penalty;
+      if (penalty.competitorId == competitorId) return penalty;
     }
     return null;
   }
+
+  final RxSet<int> expandedEntries = <int>{}.obs;
+
+  bool isEntryExpanded(Entry entry) => expandedEntries.contains(entry.id);
+
+  void toggleEntry(Entry entry) {
+    if (!expandedEntries.remove(entry.id)) expandedEntries.add(entry.id);
+  }
+
+  /// L'id de la série FFSS que porte cette course, 0 quand elle n'en a pas.
+  /// Passé à l'écran de saisie pour qu'il relise le classement déjà publié
+  /// sans refaire l'arbre des réunions.
+  int heatIdOf(ProgrammeRace race) => _courseHeatIds[race.id] ?? 0;
 
   /// Indexes the engaged athletes and resolves their clubs. Best-effort on the
   /// clubs: without them the rows still read, only the logos fall back to the
@@ -456,22 +495,12 @@ class RaceStructureController extends GetxController {
           final course = _courseOf(courses, stored);
           final heatId = course?.heat?.id ?? 0;
           if (course == null || heatId == 0) continue;
-          final seats = await _seatsOf(course);
-          if (seats.isEmpty) continue;
+          _courseHeatIds[stored.id] = heatId;
           // Le best-effort par serie est tenu par la lecture groupee : une
           // serie illisible revient vide, elle ne coute que son classement.
           final results = resultsByHeat[heatId] ?? const <HeatResult>[];
           if (results.isEmpty) continue;
-          final byEntry = {for (final r in results) r.entryId: r};
-          final byAthlete = <int, HeatResult>{};
-          for (final seat in seats) {
-            final result = byEntry[seat.entryId];
-            if (result == null) continue;
-            for (final athleteId in seat.athleteIds) {
-              byAthlete[athleteId] = result;
-            }
-          }
-          if (byAthlete.isNotEmpty) _serverResults[stored.id] = byAthlete;
+          _serverResults[stored.id] = {for (final r in results) r.entryId: r};
         }
       }
     }

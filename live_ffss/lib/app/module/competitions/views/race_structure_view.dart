@@ -5,17 +5,16 @@ import 'package:live_ffss/app/core/theme/app_radius.dart';
 import 'package:live_ffss/app/core/theme/app_spacing.dart';
 import 'package:live_ffss/app/core/const/format_const.dart';
 import 'package:live_ffss/app/core/theme/app_typography.dart';
-import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/course_penalty.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/programme_race.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_structure_controller.dart';
-import 'package:live_ffss/app/presentation/modules/competitions/athlete_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/competitions/course_formatting.dart';
+import 'package:live_ffss/app/presentation/modules/competitions/entry_formatting.dart';
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
-import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
+import 'package:live_ffss/app/presentation/shared/entry_group_tile.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
@@ -440,7 +439,7 @@ class _CourseTile extends StatelessWidget {
     final accent = level.type == RoundType.finale
         ? AppColors.statusFinished
         : AppColors.primary;
-    final athletes = controller.athletesOf(race);
+    final competitors = controller.entriesOf(race);
     final expanded = controller.isExpanded(race);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
@@ -532,7 +531,7 @@ class _CourseTile extends StatelessWidget {
                       ),
                     ),
                     const Icon(Icons.chevron_right, color: AppColors.textMuted),
-                    if (athletes.isNotEmpty)
+                    if (competitors.isNotEmpty)
                       // Its own tap target, so the row keeps opening the entry
                       // page — the gesture the operator already knows.
                       IconButton(
@@ -548,15 +547,24 @@ class _CourseTile extends StatelessWidget {
               ),
             ),
             if (expanded)
-              for (var i = 0; i < athletes.length; i++)
-                _CompetitorRow(
-                  athlete: athletes[i],
-                  last: i == athletes.length - 1,
-                  highlighted: controller.filter.value.isNotEmpty &&
-                      controller.matchesFilter(athletes[i]),
-                  place: controller.placeIn(race, athletes[i]),
-                  penalty: controller.penaltyIn(race, athletes[i]),
-                ),
+              for (final entry in competitors)
+                Obx(() => EntryGroupTile(
+                      key: ValueKey('${race.id}-${entry.id}'),
+                      entry: entry,
+                      title: entryTitle(entry),
+                      subtitle: entrySubtitle(entry),
+                      leading: _PlaceBadge(
+                        place: controller.placeIn(race, entry),
+                        penalty: controller.penaltyIn(race, entry),
+                      ),
+                      highlight: controller.filter.value.isNotEmpty &&
+                          controller.matchesEntry(entry),
+                      expanded: controller.isEntryExpanded(entry) ||
+                          (controller.filter.value.isNotEmpty &&
+                              controller.matchesEntry(entry)),
+                      onToggle: () => controller.toggleEntry(entry),
+                      avatarSize: 28,
+                    )),
           ],
         ),
       ),
@@ -564,95 +572,29 @@ class _CourseTile extends StatelessWidget {
   }
 }
 
-/// One competitor of a drawn race. The left badge shows the finishing place,
-/// or a mention (DQ, FF…) for a withdrawal; the right slot carries the
-/// disqualification code. Both stay blank until the race has been scored.
-class _CompetitorRow extends StatelessWidget {
-  const _CompetitorRow({
-    required this.athlete,
-    required this.last,
-    required this.highlighted,
-    required this.place,
-    required this.penalty,
-  });
+/// The place badge for one competitor of a drawn race: a mention (DQ, FF…)
+/// for a withdrawal, the finishing place otherwise, blank until the race has
+/// been scored.
+class _PlaceBadge extends StatelessWidget {
+  const _PlaceBadge({required this.place, required this.penalty});
 
-  final Athlete athlete;
-  final bool last;
-
-  /// Whether this is one of the athletes the filter went looking for.
-  final bool highlighted;
-
-  /// The place this athlete took, null while the race has no result.
+  /// The place this entry took, null while the race has no result.
   final int? place;
 
-  /// The withdrawal they carry, if any.
+  /// The withdrawal it carries, if any.
   final CoursePenalty? penalty;
 
   @override
   Widget build(BuildContext context) {
-    final club = athlete.club?.name.isNotEmpty == true
-        ? athlete.club!.name
-        : athlete.clubLabel;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: highlighted ? AppColors.primarySurface : null,
-        border: last
-            ? null
-            : const Border(bottom: BorderSide(color: AppColors.border)),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 30,
-            child: Text(
-              courseBadgeLabel(place, penalty),
-              textAlign: TextAlign.center,
-              style: AppTypography.body.copyWith(
-                fontWeight: FontWeight.w800,
-                color: courseBadgeColor(place, penalty),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          ClubAvatar(
-            club: athlete.club,
-            size: 28,
-            shape: ClubAvatarShape.circle,
-            fallbackLabel: club,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  athlete.displayName,
-                  style: AppTypography.body.copyWith(fontSize: 13),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (club.isNotEmpty)
-                  Text(
-                    club,
-                    style: AppTypography.caption.copyWith(fontSize: 11),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            penalty?.code.isNotEmpty == true ? penalty!.code : '—',
-            style: AppTypography.caption.copyWith(
-                color: penalty?.code.isNotEmpty == true
-                    ? AppColors.statusError
-                    : AppColors.textMuted),
-          ),
-        ],
+    return SizedBox(
+      width: 30,
+      child: Text(
+        courseBadgeLabel(place, penalty),
+        textAlign: TextAlign.center,
+        style: AppTypography.body.copyWith(
+          fontWeight: FontWeight.w800,
+          color: courseBadgeColor(place, penalty),
+        ),
       ),
     );
   }
