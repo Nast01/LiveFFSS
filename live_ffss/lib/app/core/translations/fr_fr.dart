@@ -89,6 +89,9 @@ final Map<String, String> frFR = {
   'referees_upper': 'Arbitres',
   'athletes_lower': 'athlètes',
   'athletes_and_referees': '@athleteCount athlètes • @refereeCount arbitres',
+  'relay_substitute': 'Remplacer',
+  'relay_substitute_coming_soon': 'Le remplacement arrive bientôt',
+  'teams_complete': 'équipes complètes',
 
   // Program add meeting dialog
   'label': 'Label',
@@ -358,6 +361,10 @@ final Map<String, String> frFR = {
   'course_athlete_withdrawn': 'Cet athlète est forfait ou disqualifié',
   'course_athlete_already_ranked': 'Cet athlète est déjà classé',
   'course_save_failed': 'Le résultat n\'a pas pu être enregistré',
+  'course_ranking_dropped':
+      'Le classement enregistré ne correspond plus à cette série : il a été vidé',
+  'course_ranking_competitor_gone':
+      'Des engagements ont disparu de cette série : le classement a été renuméroté',
   'course_title': 'Saisie des résultats',
   'course_next_place': 'Place suivante',
   'course_tie': 'ex-aequo',

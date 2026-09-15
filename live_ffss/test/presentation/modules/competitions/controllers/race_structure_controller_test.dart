@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/category.dart';
@@ -41,6 +42,16 @@ class _MockClubRepo extends Mock implements ClubRepository {}
 class _MockMeetingRepo extends Mock implements MeetingRepository {}
 
 class _MockRaceFormatRepo extends Mock implements RaceFormatRepository {}
+
+/// Les courses d'un type de tour donné, toutes structures confondues — un
+/// raccourci de test, la vue lisant les mêmes courses via `structures`.
+extension _RacesOf on RaceStructureController {
+  List<ProgrammeRace> racesOf(RoundType type) => [
+        for (final s in structures)
+          for (final l in s.levels)
+            if (l.type == type) ...l.races,
+      ];
+}
 
 void main() {
   late _MockStorage storage;
@@ -195,8 +206,8 @@ void main() {
             storage.write(key: any(named: 'key'), value: any(named: 'value')))
         .thenAnswer((_) async {});
     service = ProgrammeService(storage);
-    controller = RaceStructureController(
-        service, raceRepo, clubRepo, meetingRepo, raceFormatRepo);
+    controller = RaceStructureController(service, raceRepo, clubRepo,
+        meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
   });
 
   test('load filters structures to the race and sorts by category label',
@@ -331,7 +342,10 @@ void main() {
     });
   });
 
-  group('RaceStructureController.athletesOf', () {
+  group('RaceStructureController.entriesOf', () {
+    // Un tirage d'avant l'engagement : `entryIds` est vide, `entriesOf`
+    // retombe donc sur un engagement synthétique par athlète, portant l'id de
+    // cet athlète — c'est ce que documente `competitorsOf`.
     test('translates the stored ids, in the order the draw left them',
         () async {
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
@@ -341,7 +355,7 @@ void main() {
 
       const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31, 30]);
 
-      expect(controller.athletesOf(drawn).map((a) => a.id), [31, 30]);
+      expect(controller.entriesOf(drawn).map((e) => e.id), [31, 30]);
     });
 
     test('skips an id no entry accounts for', () async {
@@ -352,7 +366,7 @@ void main() {
 
       const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31, 999]);
 
-      expect(controller.athletesOf(drawn).map((a) => a.id), [31]);
+      expect(controller.entriesOf(drawn).map((e) => e.id), [31]);
     });
 
     test('carries the resolved club so the row can show its logo', () async {
@@ -366,7 +380,8 @@ void main() {
 
       const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
 
-      expect(controller.athletesOf(drawn).single.club?.logoUrl, 'l');
+      expect(controller.entriesOf(drawn).single.athletes.single.club?.logoUrl,
+          'l');
     });
 
     test('a club failure still yields the athletes, without clubs', () async {
@@ -379,15 +394,328 @@ void main() {
 
       const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
 
-      expect(controller.athletesOf(drawn).single.club, isNull);
+      expect(controller.entriesOf(drawn).single.athletes.single.club, isNull);
     });
 
     test('an undrawn race yields nothing', () async {
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
       await controller.load(race(500), competition);
 
-      expect(controller.athletesOf(const ProgrammeRace(id: 1, number: 1)),
-          isEmpty);
+      expect(
+          controller.entriesOf(const ProgrammeRace(id: 1, number: 1)), isEmpty);
+    });
+  });
+
+  group('RaceStructureController lit par engagement', () {
+    /// Une course tirée directement en engagements : `entryIds` porte les ids
+    /// d'engagement dans l'ordre des couloirs, `athleteIds` les athlètes
+    /// qu'ils portent à plat. Les athlètes en surplus reviennent aux premiers
+    /// engagements — ce qui en fait des relais — le reste reste individuel.
+    Future<RaceStructureController> loadWithDraw({
+      required List<int> entryIds,
+      required List<int> athleteIds,
+      List<List<int>> competitorOrder = const [],
+    }) async {
+      final base = athleteIds.length ~/ entryIds.length;
+      final remainder = athleteIds.length % entryIds.length;
+      var cursor = 0;
+      final entries = <Entry>[];
+      for (var i = 0; i < entryIds.length; i++) {
+        final count = base + (i < remainder ? 1 : 0);
+        entries.add(entry(entryIds[i], 7, athletes: [
+          for (final id in athleteIds.sublist(cursor, cursor + count))
+            makeAthlete(id),
+        ]));
+        cursor += count;
+      }
+      final programme = CompetitionProgramme(
+        competitionId: 42,
+        structures: [
+          EventStructure(
+            raceId: 500,
+            categoryId: 7,
+            raceLabel: '100m',
+            categoryLabel: 'Cadets',
+            levels: [
+              RoundLevel(type: RoundType.serie, races: [
+                ProgrammeRace(
+                  id: 1,
+                  number: 1,
+                  entryIds: entryIds,
+                  athleteIds: athleteIds,
+                  competitorOrder: competitorOrder,
+                ),
+              ]),
+            ],
+          ),
+        ],
+      );
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(programme.toJson()));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => entries);
+      final c = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
+      await c.load(race(500), competition);
+      return c;
+    }
+
+    /// Une série validée : un seul engagement individuel, dont FFSS porte le
+    /// classement.
+    Future<RaceStructureController> loadWithResults(
+      List<HeatResult> results, {
+      List<int> entryIds = const [10],
+      List<int> athleteIds = const [101],
+      List<List<int>> competitorOrder = const [],
+      List<CoursePenalty> penalties = const [],
+      List<Entry>? entries,
+    }) async {
+      final programme = CompetitionProgramme(
+        competitionId: 42,
+        structures: [
+          EventStructure(
+            raceId: 500,
+            categoryId: 7,
+            raceLabel: '100m',
+            categoryLabel: 'Cadets',
+            levels: [
+              RoundLevel(type: RoundType.serie, serverId: 39, races: [
+                ProgrammeRace(
+                  id: 1,
+                  number: 1,
+                  runId: 25,
+                  entryIds: entryIds,
+                  athleteIds: athleteIds,
+                  competitorOrder: competitorOrder,
+                  penalties: penalties,
+                ),
+              ]),
+            ],
+          ),
+        ],
+      );
+      final course = Run(
+        id: 25,
+        name: 'Série',
+        label: '',
+        fullLabel: '',
+        status: RunStatus.waiting,
+        statusLabel: '',
+        site: 'OCEAN 1',
+        beginTime: DateFormat('HH:mm').parse('08:00'),
+        endTime: DateFormat('HH:mm').parse('08:10'),
+        lanes: const [Lane(id: 71, number: 1)],
+        heat: const Heat(id: 94369),
+      );
+      final meeting = Meeting(
+        id: 78,
+        name: 'Réunion',
+        description: '',
+        date: DateTime(2026, 6, 13),
+        beginHour: DateTime(2026, 6, 13, 8),
+        endHour: DateTime(2026, 6, 13, 18),
+        slots: [
+          Slot(
+            id: 66,
+            name: 'Séries',
+            beginHour: DateFormat('HH:mm').parse('08:00'),
+            endHour: DateFormat('HH:mm').parse('08:20'),
+            raceFormatDetail: const RaceFormatDetail(
+              id: 39,
+              order: 1,
+              label: '',
+              fullLabel: '',
+              levelLabel: '',
+              level: 'heat',
+              numberOfRun: 1,
+              qualificationMethod: 'none',
+              qualificationMethodLabel: '',
+              spotsPerRace: 8,
+              qualifyingSpots: 0,
+            ),
+            runs: [course],
+          ),
+        ],
+      );
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(programme.toJson()));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async =>
+          entries ??
+          [
+            entry(10, 7, athletes: [makeAthlete(101)])
+          ]);
+      when(() => meetingRepo.getMeetings(42))
+          .thenAnswer((_) async => [meeting]);
+      when(() => meetingRepo.getHeatResultsByHeat(any()))
+          .thenAnswer((_) async => {94369: results});
+      when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
+            (laneId: 71, number: 1, entryId: 10, athleteIds: [101]),
+          ]);
+      final c = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
+      await c.load(race(500), competition);
+      return c;
+    }
+
+    test('une course rend ses engagements dans l ordre des couloirs', () async {
+      final controller = await loadWithDraw(
+        entryIds: [20, 10],
+        athleteIds: [201, 202, 101],
+      );
+      final race = controller.racesOf(RoundType.serie).single;
+
+      expect([for (final e in controller.entriesOf(race)) e.id], [20, 10]);
+    });
+
+    // Contrairement au tirage antérieur à l'engagement (couvert dans le
+    // groupe `entriesOf` ci-dessus), ici `entryIds` n'est pas vide :
+    // `entriesOf` lit donc directement `_entriesById`, qui doit porter le
+    // club déjà résolu — sans quoi la ligne retombe sur l'initiale.
+    test('le club resolu se retrouve sur un engagement tire par entryIds',
+        () async {
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => const {101: Club(id: 4, name: 'Nice', logoUrl: 'l')},
+      );
+      final controller = await loadWithDraw(
+        entryIds: [10],
+        athleteIds: [101],
+      );
+      final race = controller.racesOf(RoundType.serie).single;
+
+      expect(
+          controller.entriesOf(race).single.athletes.single.club?.logoUrl, 'l');
+    });
+
+    test('la place se lit sur l engagement', () async {
+      final controller = await loadWithDraw(
+        entryIds: [10, 20],
+        athleteIds: [101, 201],
+        competitorOrder: const [
+          [20],
+          [10]
+        ],
+      );
+      final race = controller.racesOf(RoundType.serie).single;
+
+      expect(controller.placeInRace(race, 20), 1);
+      expect(controller.placeInRace(race, 10), 2);
+    });
+
+    // Le serveur porte desormais un statut : un forfait relu n'est plus
+    // indiscernable d'un « pas encore classe ».
+    test('un forfait FFSS revient comme forfait', () async {
+      final controller = await loadWithResults(const [
+        (
+          entryId: 10,
+          rank: null,
+          isDisqualified: false,
+          complement: null,
+          status: 2
+        ),
+      ]);
+      final race = controller.racesOf(RoundType.serie).single;
+
+      expect(
+          controller.penaltyInRace(race, 10)?.kind, CoursePenaltyKind.forfeit);
+    });
+
+    // Statut muet (0, ce que le fil porte quand FFSS ne dit rien) : la
+    // disqualification reste lisible sur son booléen — le seul arm de la
+    // bascule qui ne dérive pas du statut.
+    test('un statut muet avec isDisqualified vrai reste une disqualification',
+        () async {
+      final controller = await loadWithResults(const [
+        (
+          entryId: 10,
+          rank: null,
+          isDisqualified: true,
+          complement: 'DSQ',
+          status: 0
+        ),
+      ]);
+      final race = controller.racesOf(RoundType.serie).single;
+
+      final penalty = controller.penaltyInRace(race, 10);
+      expect(penalty?.kind, CoursePenaltyKind.disqualified);
+      expect(penalty?.code, 'DSQ');
+    });
+
+    test('le filtre trouve une equipe par un seul de ses athletes', () async {
+      final controller = await loadWithDraw(
+        entryIds: [10],
+        athleteIds: [101, 102],
+      );
+      controller.setFilter('B102');
+
+      expect(
+          controller.matchesEntry(controller
+              .entriesOf(controller.racesOf(RoundType.serie).single)
+              .single),
+          isTrue);
+    });
+
+    // Un tirage antérieur à `entryIds` a des athlètes pour compétiteurs, alors
+    // que les résultats FFSS sont indexés par engagement : les deux suites
+    // d'ids n'ont rien à voir, et une carte serveur non nulle masquerait
+    // l'ordre local — la seule source capable de classer cette course-là.
+    test('un tirage herite garde ses places locales malgre un resultat FFSS',
+        () async {
+      final controller = await loadWithResults(
+        const [
+          (
+            entryId: 10,
+            rank: 1,
+            isDisqualified: false,
+            complement: null,
+            status: 0
+          ),
+        ],
+        entryIds: const [],
+        athleteIds: const [101, 102],
+        competitorOrder: const [
+          [102],
+          [101]
+        ],
+        penalties: const [
+          CoursePenalty(
+              competitorId: 101, kind: CoursePenaltyKind.forfeit, code: 'FF'),
+        ],
+        entries: [
+          entry(10, 7, athletes: [makeAthlete(101)]),
+          entry(20, 7, athletes: [makeAthlete(102)]),
+        ],
+      );
+      final race = controller.racesOf(RoundType.serie).single;
+
+      expect(controller.placeInRace(race, 102), 1);
+      expect(controller.placeInRace(race, 101), 2);
+      expect(
+          controller.penaltyInRace(race, 101)?.kind, CoursePenaltyKind.forfeit);
+    });
+
+    test('heatIdOf porte l id de serie FFSS de la course', () async {
+      final controller = await loadWithResults(const []);
+      final race = controller.racesOf(RoundType.serie).single;
+
+      expect(controller.heatIdOf(race), 94369);
+    });
+
+    test('heatIdOf est nul sans course liee', () async {
+      final controller = await loadWithDraw(entryIds: [10], athleteIds: [101]);
+      final race = controller.racesOf(RoundType.serie).single;
+
+      expect(controller.heatIdOf(race), 0);
+    });
+  });
+
+  group('RaceStructureController expansion par engagement', () {
+    test('un engagement se replie et se deplie', () {
+      final e = entry(10, 7, athletes: [makeAthlete(101), makeAthlete(102)]);
+
+      expect(controller.isEntryExpanded(e), isFalse);
+      controller.toggleEntry(e);
+      expect(controller.isEntryExpanded(e), isTrue);
+      controller.toggleEntry(e);
+      expect(controller.isEntryExpanded(e), isFalse);
     });
   });
 
@@ -518,14 +846,14 @@ void main() {
         id: 1,
         number: 1,
         athleteIds: [31, 32],
-        finishOrder: [
+        competitorOrder: [
           [32],
           [31],
         ],
       );
 
-      expect(controller.placeIn(drawn, makeAthlete(32)), 1);
-      expect(controller.placeIn(drawn, makeAthlete(31)), 2);
+      expect(controller.placeIn(drawn, entry(32, 7)), 1);
+      expect(controller.placeIn(drawn, entry(31, 7)), 2);
     });
 
     test('an unscored race gives no place', () async {
@@ -534,8 +862,8 @@ void main() {
 
       const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
 
-      expect(controller.placeIn(drawn, makeAthlete(31)), isNull);
-      expect(controller.penaltyIn(drawn, makeAthlete(31)), isNull);
+      expect(controller.placeIn(drawn, entry(31, 7)), isNull);
+      expect(controller.penaltyIn(drawn, entry(31, 7)), isNull);
     });
 
     test('reads a withdrawal and its code', () async {
@@ -548,14 +876,14 @@ void main() {
         athleteIds: [31],
         penalties: [
           CoursePenalty(
-            athleteId: 31,
+            competitorId: 31,
             kind: CoursePenaltyKind.disqualified,
             code: '4.7',
           ),
         ],
       );
 
-      final penalty = controller.penaltyIn(drawn, makeAthlete(31));
+      final penalty = controller.penaltyIn(drawn, entry(31, 7));
 
       expect(penalty?.kind, CoursePenaltyKind.disqualified);
       expect(penalty?.code, '4.7');
@@ -653,7 +981,7 @@ void main() {
       when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => meetings);
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(race(500), competition);
     }
 
@@ -728,7 +1056,7 @@ void main() {
           .thenThrow(const NetworkException('coupé'));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(race(500), competition);
 
@@ -827,7 +1155,7 @@ void main() {
           (_) async => local == null ? null : jsonEncode(local.toJson()));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(race(500), competition);
     }
 
@@ -950,7 +1278,7 @@ void main() {
                   number: 1,
                   entryIds: [999],
                   athleteIds: [99],
-                  finishOrder: [
+                  competitorOrder: [
                     [99]
                   ],
                 ),
@@ -1155,7 +1483,7 @@ void main() {
       when(() => raceFormatRepo.getRaceFormats(42))
           .thenAnswer((_) async => [formatFor(formatCategories)]);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(r, competition);
     }
 
@@ -1342,7 +1670,8 @@ void main() {
           ],
         );
 
-    /// Un tour local dont la série porte déjà un ordre d'arrivée : 11 devant 12.
+    /// Un tour local dont la série porte déjà un ordre d'arrivée : l'engagement
+    /// 101 devant le 102.
     CompetitionProgramme localOrder() => const CompetitionProgramme(
           competitionId: 42,
           nextLocalId: 100,
@@ -1360,9 +1689,9 @@ void main() {
                     runId: 25,
                     entryIds: [101, 102],
                     athleteIds: [11, 12],
-                    finishOrder: [
-                      [11],
-                      [12]
+                    competitorOrder: [
+                      [101],
+                      [102]
                     ],
                   ),
                 ]),
@@ -1389,7 +1718,7 @@ void main() {
             (laneId: 71, number: 2, entryId: 102, athleteIds: [12]),
           ]);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(race(500), competition);
     }
 
@@ -1400,33 +1729,57 @@ void main() {
     // appareil doit s'afficher ici, pas la copie locale devenue fausse.
     test('le rang affiché vient du résultat FFSS', () async {
       await loadWithResults(const [
-        (entryId: 101, rank: 2, isDisqualified: false, complement: null),
-        (entryId: 102, rank: 1, isDisqualified: false, complement: null),
+        (
+          entryId: 101,
+          rank: 2,
+          isDisqualified: false,
+          complement: null,
+          status: 0
+        ),
+        (
+          entryId: 102,
+          rank: 1,
+          isDisqualified: false,
+          complement: null,
+          status: 0
+        ),
       ]);
 
-      expect(controller.placeInRace(serieRace(), 11), 2);
-      expect(controller.placeInRace(serieRace(), 12), 1);
+      expect(controller.placeInRace(serieRace(), 101), 2);
+      expect(controller.placeInRace(serieRace(), 102), 1);
     });
 
     test('une disqualification FFSS sort l athlète du classement', () async {
       await loadWithResults(const [
-        (entryId: 101, rank: null, isDisqualified: true, complement: 'DSQ'),
-        (entryId: 102, rank: 1, isDisqualified: false, complement: null),
+        (
+          entryId: 101,
+          rank: null,
+          isDisqualified: true,
+          complement: 'DSQ',
+          status: 1
+        ),
+        (
+          entryId: 102,
+          rank: 1,
+          isDisqualified: false,
+          complement: null,
+          status: 0
+        ),
       ]);
 
-      expect(controller.placeInRace(serieRace(), 11), isNull);
-      final penalty = controller.penaltyInRace(serieRace(), 11);
+      expect(controller.placeInRace(serieRace(), 101), isNull);
+      final penalty = controller.penaltyInRace(serieRace(), 101);
       expect(penalty!.kind, CoursePenaltyKind.disqualified);
       expect(penalty.code, 'DSQ');
-      expect(controller.penaltyInRace(serieRace(), 12), isNull);
+      expect(controller.penaltyInRace(serieRace(), 102), isNull);
     });
 
     // Sans résultat sur FFSS, l'écran continue de lire ce que l'appareil sait.
     test('sans résultat FFSS, le classement local est conservé', () async {
       await loadWithResults(const []);
 
-      expect(controller.placeInRace(serieRace(), 11), 1);
-      expect(controller.placeInRace(serieRace(), 12), 2);
+      expect(controller.placeInRace(serieRace(), 101), 1);
+      expect(controller.placeInRace(serieRace(), 102), 2);
     });
 
     /// Une serie encore vierge : _importCompositions la remplit depuis les
@@ -1475,12 +1828,13 @@ void main() {
                     entryId: 101,
                     rank: 1,
                     isDisqualified: false,
-                    complement: null
+                    complement: null,
+                    status: 0
                   )
                 ]
               });
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(race(500), competition);
 
@@ -1488,7 +1842,7 @@ void main() {
       // La composition a bien ete adoptee, donc la premiere passe a lu.
       expect(serieRace().athleteIds, [11]);
       // Et le classement serveur a bien ete relie, donc la seconde a lu aussi.
-      expect(controller.placeInRace(serieRace(), 11), 1);
+      expect(controller.placeInRace(serieRace(), 101), 1);
     });
 
     test('une course sans série ne déclenche aucune lecture', () async {
@@ -1499,7 +1853,7 @@ void main() {
             meetingWith([course(25)])
           ]);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(race(500), competition);
 
@@ -1507,7 +1861,7 @@ void main() {
           .captured
           .single as Iterable<int>;
       expect(asked, isEmpty);
-      expect(controller.placeInRace(serieRace(), 11), 1);
+      expect(controller.placeInRace(serieRace(), 101), 1);
     });
   });
 
@@ -1575,7 +1929,7 @@ void main() {
             formatWith(const [serverSerie])
           ]);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(
           race(500).copyWith(
@@ -1597,7 +1951,7 @@ void main() {
       when(() => raceFormatRepo.getRaceFormats(42))
           .thenAnswer((_) async => const []);
       controller = RaceStructureController(ProgrammeService(storage), raceRepo,
-          clubRepo, meetingRepo, raceFormatRepo);
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(
           race(500).copyWith(
@@ -1606,6 +1960,178 @@ void main() {
           competition);
 
       expect(controller.structures.single.levels.single.serverId, 39);
+    });
+  });
+
+  group('l arbre des reunions passe par le service', () {
+    Meeting tree() => Meeting(
+          id: 78,
+          name: 'Réunion',
+          description: '',
+          date: DateTime(2026, 6, 13),
+          beginHour: DateTime(2026, 6, 13, 8),
+          endHour: DateTime(2026, 6, 13, 18),
+          slots: const [],
+        );
+
+    RaceStructureController on(MeetingService held) => RaceStructureController(
+        service, raceRepo, clubRepo, meetingRepo, raceFormatRepo, held);
+
+    setUp(() {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      when(() => meetingRepo.getMeetings(any()))
+          .thenAnswer((_) async => [tree()]);
+    });
+
+    // L'arbre couvre toute la competition — une requete par creneau — alors
+    // que cet ecran n'en tire que le site et l'horaire de ses propres courses.
+    // Le redemander a chaque ouverture etait le poste le plus cher du
+    // chargement.
+    test('une seconde ouverture ne redemande pas l arbre deja detenu',
+        () async {
+      final held = MeetingService(meetingRepo);
+      await on(held).load(race(500), competition);
+      verify(() => meetingRepo.getMeetings(competition.id)).called(1);
+
+      clearInteractions(meetingRepo);
+      await on(held).load(race(500), competition);
+
+      verifyNever(() => meetingRepo.getMeetings(any()));
+    });
+
+    test('le tire-pour-rafraichir redemande l arbre', () async {
+      final held = MeetingService(meetingRepo);
+      final controller = on(held);
+      await controller.load(race(500), competition);
+      clearInteractions(meetingRepo);
+
+      await controller.reload();
+
+      verify(() => meetingRepo.getMeetings(competition.id)).called(1);
+    });
+
+    // Une compétition chassant l'autre, le service vide ce qu'il detenait :
+    // l'arbre de la precedente n'a rien a faire sous celle-ci.
+    test('changer de competition recharge', () async {
+      final held = MeetingService(meetingRepo);
+      await on(held).load(race(500), competition);
+      clearInteractions(meetingRepo);
+
+      await held.ensureLoaded(competition.id + 1, silent: true);
+
+      verify(() => meetingRepo.getMeetings(competition.id + 1)).called(1);
+    });
+  });
+
+  group('les places ne sont lues que pour le tour affiche', () {
+    DateTime hhmm(String v) => DateFormat('HH:mm').parse(v);
+
+    Run course(int id, int laneId, String at) => Run(
+          id: id,
+          name: 'Course',
+          label: '',
+          fullLabel: '',
+          status: RunStatus.waiting,
+          statusLabel: '',
+          site: 'OCEAN 1',
+          beginTime: hhmm(at),
+          endTime: hhmm(at),
+          lanes: [Lane(id: laneId, number: 1)],
+        );
+
+    Slot slotOf(int partieId, Run run) => Slot(
+          id: partieId,
+          name: 'Créneau',
+          beginHour: run.beginTime,
+          endHour: run.endTime,
+          raceFormatDetail: RaceFormatDetail(
+            id: partieId,
+            order: 1,
+            label: '',
+            fullLabel: '',
+            levelLabel: '',
+            level: 'heat',
+            numberOfRun: 1,
+            qualificationMethod: 'none',
+            qualificationMethodLabel: '',
+            spotsPerRace: 8,
+            qualifyingSpots: 0,
+          ),
+          runs: [run],
+        );
+
+    const local = CompetitionProgramme(
+      competitionId: 42,
+      structures: [
+        EventStructure(
+          raceId: 500,
+          categoryId: 7,
+          raceLabel: '100m',
+          categoryLabel: 'Cadets',
+          levels: [
+            RoundLevel(
+                type: RoundType.serie,
+                serverId: 39,
+                races: [ProgrammeRace(id: 10, number: 1)]),
+            RoundLevel(
+                type: RoundType.finale,
+                serverId: 40,
+                races: [ProgrammeRace(id: 12, number: 1)]),
+          ],
+        ),
+      ],
+    );
+
+    late RaceStructureController controller;
+
+    setUp(() async {
+      when(() => storage.read(key: any(named: 'key')))
+          .thenAnswer((_) async => jsonEncode(local.toJson()));
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
+      when(() => meetingRepo.getMeetings(any())).thenAnswer((_) async => [
+            Meeting(
+              id: 78,
+              name: 'Réunion',
+              description: '',
+              date: DateTime(2026, 6, 13),
+              beginHour: DateTime(2026, 6, 13, 8),
+              endHour: DateTime(2026, 6, 13, 18),
+              slots: [
+                slotOf(39, course(1, 71, '08:00')),
+                slotOf(40, course(2, 72, '09:00')),
+              ],
+            )
+          ]);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
+      await controller.load(race(500), competition);
+    });
+
+    // Le poste le plus cher du chargement etait une requete par place, pour
+    // tous les tours a la fois — alors que l'ecran n'en affiche qu'un.
+    test('l ouverture ne lit que les places du premier tour', () {
+      verify(() => meetingRepo.getLaneSeats([71])).called(1);
+      verifyNever(() => meetingRepo.getLaneSeats([72]));
+    });
+
+    test('ouvrir la finale lit ses places a ce moment-la', () async {
+      controller.selectTab(1);
+      await pumpEventQueue();
+
+      verify(() => meetingRepo.getLaneSeats([72])).called(1);
+    });
+
+    test('revenir sur un tour deja lu ne le relit pas', () async {
+      controller.selectTab(1);
+      await pumpEventQueue();
+      clearInteractions(meetingRepo);
+
+      controller.selectTab(0);
+      await pumpEventQueue();
+      controller.selectTab(1);
+      await pumpEventQueue();
+
+      verifyNever(() => meetingRepo.getLaneSeats(any()));
     });
   });
 }

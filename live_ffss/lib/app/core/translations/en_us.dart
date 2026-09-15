@@ -88,6 +88,9 @@ final Map<String, String> enUS = {
   'referees_upper': 'Referees',
   'athletes_lower': 'athletes',
   'athletes_and_referees': '@athleteCount athletes • @refereeCount referees',
+  'relay_substitute': 'Substitute',
+  'relay_substitute_coming_soon': 'Substitution is coming soon',
+  'teams_complete': 'complete teams',
 
   // Program add meeting dialog
   'label': 'Label',
@@ -354,6 +357,10 @@ final Map<String, String> enUS = {
   'course_athlete_withdrawn': 'That athlete is withdrawn',
   'course_athlete_already_ranked': 'That athlete is already ranked',
   'course_save_failed': 'The result could not be saved',
+  'course_ranking_dropped':
+      'The stored ranking no longer matches this heat and was cleared',
+  'course_ranking_competitor_gone':
+      'Entries have left this heat: the ranking was renumbered',
   'course_title': 'Result entry',
   'course_next_place': 'Next place',
   'course_tie': 'tie',

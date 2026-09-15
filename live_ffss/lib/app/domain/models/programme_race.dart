@@ -23,12 +23,15 @@ class ProgrammeRace with _$ProgrammeRace {
     // all its members here while holding a single slot in `entryIds`. What
     // the result and display code reads.
     @Default(<int>[]) List<int> athleteIds,
-    // The order this race was crossed in — one entry per finishing group, a
-    // group of several being a declared tie. Places are computed from this
-    // and never stored: that is what makes a removal renumber for free.
-    @Default(<List<int>>[]) List<List<int>> finishOrder,
-    // Athletes out of the ranking. They take no place, so the athletes after
-    // them number as though they had not started.
+    // The competitors in the order they crossed the line, one group per
+    // finish — a group of several being a declared tie. Entries: see
+    // `competitor.dart`. The JSON key stays `finishOrder`, the stored data
+    // predating the rename.
+    @JsonKey(name: 'finishOrder')
+    @Default(<List<int>>[])
+    List<List<int>> competitorOrder,
+    // Competitors out of the ranking. They take no place, so the competitors
+    // after them number as though they had not started.
     @Default(<CoursePenalty>[]) List<CoursePenalty> penalties,
     // The FFSS course this heat runs as, 0 while it has none. The draw lives
     // on the device and the timetable on the server: without this id nothing

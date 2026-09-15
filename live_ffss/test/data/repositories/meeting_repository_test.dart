@@ -651,6 +651,32 @@ void main() {
       expect(await repo.getHeatResultsByHeat(const []), isEmpty);
       verifyNever(() => ds.getHeatResults(any()));
     });
+
+    test('le statut FFSS remonte tel quel', () async {
+      when(() => ds.getHeatResults(1)).thenAnswer((_) async => const [
+            HeatResultDto(
+              rank: null,
+              status: 2,
+              entry: HeatResultEntryDto(id: 301),
+            ),
+          ]);
+
+      final byHeat = await repo.getHeatResultsByHeat([1]);
+
+      expect(byHeat[1]!.single.status, 2);
+    });
+
+    // Un resultat sans `Statut` est un classe ordinaire : inventer un forfait
+    // sortirait l'engagement du classement sans que FFSS l'ait dit.
+    test('un statut absent vaut classe', () async {
+      when(() => ds.getHeatResults(1)).thenAnswer((_) async => const [
+            HeatResultDto(rank: 1, entry: HeatResultEntryDto(id: 101)),
+          ]);
+
+      final byHeat = await repo.getHeatResultsByHeat([1]);
+
+      expect(byHeat[1]!.single.status, 0);
+    });
   });
 
   group('publishCourseResults', () {

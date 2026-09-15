@@ -105,9 +105,9 @@ void main() {
     });
   });
 
-  group('withoutAthlete', () {
+  group('withoutCompetitor', () {
     test('removing renumbers everyone after', () {
-      final after = withoutAthlete(const [
+      final after = withoutCompetitor(const [
         [10],
         [11],
         [12],
@@ -121,7 +121,7 @@ void main() {
     });
 
     test('removing one of a tie leaves the other in place', () {
-      final after = withoutAthlete(const [
+      final after = withoutCompetitor(const [
         [10, 11],
         [12],
       ], 11);
@@ -135,7 +135,7 @@ void main() {
 
     test('an athlete who never finished changes nothing', () {
       expect(
-          withoutAthlete(const [
+          withoutCompetitor(const [
             [10],
           ], 99),
           [

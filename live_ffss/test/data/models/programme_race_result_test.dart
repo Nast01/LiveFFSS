@@ -12,7 +12,7 @@ void main() {
         'number': 1,
       });
 
-      expect(restored.finishOrder, isEmpty);
+      expect(restored.competitorOrder, isEmpty);
       expect(restored.penalties, isEmpty);
     });
 
@@ -21,13 +21,13 @@ void main() {
         id: 1,
         number: 1,
         athleteIds: [10, 11, 12],
-        finishOrder: [
+        competitorOrder: [
           [10],
           [11, 12],
         ],
         penalties: [
           CoursePenalty(
-            athleteId: 12,
+            competitorId: 12,
             kind: CoursePenaltyKind.disqualified,
             code: '4.7',
           ),
@@ -36,11 +36,11 @@ void main() {
 
       final restored = ProgrammeRace.fromJson(race.toJson());
 
-      expect(restored.finishOrder, [
+      expect(restored.competitorOrder, [
         [10],
         [11, 12],
       ]);
-      expect(restored.penalties.single.athleteId, 12);
+      expect(restored.penalties.single.competitorId, 12);
       expect(restored.penalties.single.kind, CoursePenaltyKind.disqualified);
       expect(restored.penalties.single.code, '4.7');
     });

@@ -175,6 +175,21 @@ void main() {
       ..categoryLabel = 'Senior';
   }
 
+  /// A controller loaded with one team engagement, both athletes present —
+  /// enough to exercise expansion and substitution without a draw.
+  Future<HeatDrawController> loadedController() async {
+    when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+          entry(1, [athlete(1), athlete(2)]),
+        ]);
+    when(() => attendance.forRace(raceId)).thenReturn({
+      1: AttendanceStatus.present,
+      2: AttendanceStatus.present,
+    });
+    final controller = build();
+    await controller.load();
+    return controller;
+  }
+
   setUp(() {
     raceRepo = _MockRaceRepo();
     attendance = _MockAttendance();
@@ -636,7 +651,8 @@ void main() {
       expect(controller.hasExistingComposition, isFalse);
     });
 
-    test('a redraw clears the finishOrder and penalties of the race it reuses',
+    test(
+        'a redraw clears the competitorOrder and penalties of the race it reuses',
         () async {
       final controller = await drawn(
         4,
@@ -646,11 +662,12 @@ void main() {
               id: 1,
               number: 1,
               athleteIds: [99],
-              finishOrder: [
+              competitorOrder: [
                 [99],
               ],
               penalties: [
-                CoursePenalty(athleteId: 99, kind: CoursePenaltyKind.forfeit),
+                CoursePenalty(
+                    competitorId: 99, kind: CoursePenaltyKind.forfeit),
               ],
             ),
           ]),
@@ -660,7 +677,7 @@ void main() {
       await controller.save();
 
       final reused = savedRaces(RoundType.serie).first;
-      expect(reused.finishOrder, isEmpty);
+      expect(reused.competitorOrder, isEmpty);
       expect(reused.penalties, isEmpty);
     });
 
@@ -1272,6 +1289,29 @@ void main() {
       expect(controller.saved.value, isTrue);
       expect(
           controller.message.value!.translationKey, 'heat_draw_lanes_failed');
+    });
+  });
+
+  group('HeatDrawController expansion et remplacement', () {
+    test('deplier une equipe, puis la replier', () async {
+      final controller = await loadedController();
+      final team = controller.presentEntries.first;
+
+      expect(controller.isEntryExpanded(team), isFalse);
+      controller.toggleEntry(team);
+      expect(controller.isEntryExpanded(team), isTrue);
+      controller.toggleEntry(team);
+      expect(controller.isEntryExpanded(team), isFalse);
+    });
+
+    test('le remplacement annonce qu il arrive', () async {
+      final controller = await loadedController();
+      final team = controller.presentEntries.first;
+
+      controller.requestSubstitution(team, team.athletes.first);
+
+      expect(controller.message.value,
+          const UiMessageError('relay_substitute_coming_soon'));
     });
   });
 }

@@ -8,7 +8,7 @@ part of 'course_penalty.dart';
 
 _$CoursePenaltyImpl _$$CoursePenaltyImplFromJson(Map<String, dynamic> json) =>
     _$CoursePenaltyImpl(
-      athleteId: (json['athleteId'] as num).toInt(),
+      competitorId: (json['athleteId'] as num).toInt(),
       kind: $enumDecode(_$CoursePenaltyKindEnumMap, json['kind'],
           unknownValue: CoursePenaltyKind.unknown),
       code: json['code'] as String? ?? '',
@@ -16,7 +16,7 @@ _$CoursePenaltyImpl _$$CoursePenaltyImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$CoursePenaltyImplToJson(_$CoursePenaltyImpl instance) =>
     <String, dynamic>{
-      'athleteId': instance.athleteId,
+      'athleteId': instance.competitorId,
       'kind': _$CoursePenaltyKindEnumMap[instance.kind]!,
       'code': instance.code,
     };
