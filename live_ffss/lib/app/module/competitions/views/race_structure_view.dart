@@ -548,23 +548,33 @@ class _CourseTile extends StatelessWidget {
             ),
             if (expanded)
               for (final entry in competitors)
-                Obx(() => EntryGroupTile(
-                      key: ValueKey('${race.id}-${entry.id}'),
-                      entry: entry,
-                      title: entryTitle(entry),
-                      subtitle: entrySubtitle(entry),
-                      leading: _PlaceBadge(
-                        place: controller.placeIn(race, entry),
-                        penalty: controller.penaltyIn(race, entry),
-                      ),
-                      highlight: controller.filter.value.isNotEmpty &&
-                          controller.matchesEntry(entry),
-                      expanded: controller.isEntryExpanded(entry) ||
-                          (controller.filter.value.isNotEmpty &&
-                              controller.matchesEntry(entry)),
-                      onToggle: () => controller.toggleEntry(entry),
-                      avatarSize: 28,
-                    )),
+                Obx(() {
+                  final place = controller.placeIn(race, entry);
+                  final penalty = controller.penaltyIn(race, entry);
+                  return EntryGroupTile(
+                    key: ValueKey('${race.id}-${entry.id}'),
+                    entry: entry,
+                    title: entryTitle(entry),
+                    subtitle: entrySubtitle(entry),
+                    leading: _PlaceBadge(place: place, penalty: penalty),
+                    // The code the referee typed — "4.7", "DSQ" — only means
+                    // something on a withdrawal.
+                    trailing: penalty?.code.isNotEmpty == true
+                        ? Text(
+                            penalty!.code,
+                            style: AppTypography.caption
+                                .copyWith(color: AppColors.statusError),
+                          )
+                        : null,
+                    highlight: controller.filter.value.isNotEmpty &&
+                        controller.matchesEntry(entry),
+                    expanded: controller.isEntryExpanded(entry) ||
+                        (controller.filter.value.isNotEmpty &&
+                            controller.matchesEntry(entry)),
+                    onToggle: () => controller.toggleEntry(entry),
+                    avatarSize: 28,
+                  );
+                }),
           ],
         ),
       ),

@@ -79,9 +79,10 @@ class RaceStructureController extends GetxController {
   /// this race were scheduled into.
   final RxList<Meeting> _meetingsOfCompetition = <Meeting>[].obs;
 
-  /// What FFSS holds for a drawn course, keyed by ProgrammeRace id then by
-  /// engagement. Filled only for the courses that carry a `serie`; everywhere
-  /// else the screen keeps reading the device's own finish order.
+  /// Ce que FFSS porte pour une course tirée, indexé par id de ProgrammeRace
+  /// puis par engagement. Rempli seulement pour les courses qui portent une
+  /// `serie` ; ailleurs l'écran continue de lire l'ordre d'arrivée propre à
+  /// l'appareil.
   final Map<int, Map<int, HeatResult>> _serverResults = {};
 
   /// Id de série FFSS d'une course, par id de ProgrammeRace — vide quand la
@@ -107,8 +108,10 @@ class RaceStructureController extends GetxController {
   /// into rows the operator can read.
   Map<int, Athlete> _athletesById = const {};
 
-  /// Id d'engagement -> engagement, bâti sur les engagés de l'épreuve. C'est
-  /// ce qui rend à une course tirée ses compétiteurs.
+  /// Id d'engagement -> engagement, athlètes patchés avec le club déjà résolu
+  /// par `_indexAthletes`. Sans ce patch, `entriesOf` — qui lit directement
+  /// cette map dès qu'un tirage porte des `entryIds` — rendrait des athlètes
+  /// sans club, et la ligne retomberait sur l'initiale au lieu du logo.
   Map<int, Entry> _entriesById = const {};
 
   @override
@@ -179,7 +182,7 @@ class RaceStructureController extends GetxController {
         }
         _entryCountByCategory = counts;
         _athletesById = await _indexAthletes(entries, competition.id);
-        _entriesById = {for (final e in entries) e.id: e};
+        _entriesById = _indexEntries(entries);
       } on AppException {
         // Entries unavailable (offline / API error): the structure still
         // renders; category counts fall back to zero and a drawn race lists
@@ -275,8 +278,8 @@ class RaceStructureController extends GetxController {
     return buffer.toString().trim();
   }
 
-  /// Whether any athlete of this entry matches the filter — an entry survives
-  /// on one member, not all of them.
+  /// Vrai si un athlète de cet engagement correspond au filtre — un
+  /// engagement survit sur un seul de ses membres, pas sur tous.
   bool matchesEntry(Entry entry) => entry.athletes.any(matchesFilter);
 
   /// Les engagements d'une course tirée, dans l'ordre des couloirs.
@@ -286,32 +289,35 @@ class RaceStructureController extends GetxController {
         athletes: _athletesById,
       );
 
-  /// The place this entry took in a scored race, or null while it has no
-  /// result. Computed from the stored order by the same function the entry
-  /// screen uses — the two therefore cannot disagree about a ranking.
+  /// La place que cet engagement a prise dans une course scorée, ou nul tant
+  /// qu'il n'a pas de résultat. Calculée à partir de l'ordre stocké par la
+  /// même fonction que l'écran de saisie — les deux ne peuvent donc pas se
+  /// contredire sur un classement.
   int? placeIn(ProgrammeRace race, Entry entry) => placeInRace(race, entry.id);
 
-  /// Same, by competitor (entry) id.
+  /// Idem, par id de compétiteur (engagement).
   ///
-  /// FFSS wins when it holds a result for this course: a ranking corrected on
-  /// another device has to show here, not the local copy that has gone stale.
-  /// Without one, the device's own order stands.
+  /// FFSS l'emporte quand il porte un résultat pour cette course : un
+  /// classement corrigé sur un autre appareil doit s'afficher ici, pas la
+  /// copie locale devenue fausse. Sans résultat serveur, l'ordre de
+  /// l'appareil reste en vigueur.
   int? placeInRace(ProgrammeRace race, int competitorId) {
     final server = _serverResults[race.id];
     if (server != null) return server[competitorId]?.rank;
     return placesOf(race.competitorOrder)[competitorId];
   }
 
-  /// The withdrawal this entry carries in a scored race, if any.
+  /// La disqualification ou le forfait que porte cet engagement dans une
+  /// course scorée, s'il y en a un.
   CoursePenalty? penaltyIn(ProgrammeRace race, Entry entry) =>
       penaltyInRace(race, entry.id);
 
-  /// Same, by competitor (entry) id — FFSS first, for the same reason as
-  /// [placeInRace].
+  /// Idem, par id de compétiteur (engagement) — FFSS d'abord, pour la même
+  /// raison que [placeInRace].
   ///
-  /// The server reports a status, not why: a code travels in `complement` and
-  /// lands in [CoursePenalty.code], which is exactly what the referee typed on
-  /// the device that validated.
+  /// Le serveur donne un statut, pas pourquoi : un code voyage dans
+  /// `complement` et atterrit dans [CoursePenalty.code], exactement ce que
+  /// l'arbitre a tapé sur l'appareil qui a validé.
   CoursePenalty? penaltyInRace(ProgrammeRace race, int competitorId) {
     final server = _serverResults[race.id];
     if (server != null) {
@@ -370,6 +376,19 @@ class RaceStructureController extends GetxController {
         athlete.id: athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
     };
   }
+
+  /// Les engagements de l'épreuve, athlètes patchés avec le club que
+  /// `_athletesById` a déjà résolu — aucun aller-retour de plus, seulement une
+  /// réutilisation de ce que `_indexAthletes` vient de lire. Doit être appelé
+  /// après `_athletesById` pour le même chargement.
+  Map<int, Entry> _indexEntries(List<Entry> entries) => {
+        for (final e in entries)
+          e.id: e.copyWith(
+            athletes: [
+              for (final a in e.athletes) _athletesById[a.id] ?? a,
+            ],
+          ),
+      };
 
   /// The stored structures this race owns, by category label.
   ///

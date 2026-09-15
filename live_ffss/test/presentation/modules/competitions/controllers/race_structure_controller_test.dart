@@ -556,6 +556,25 @@ void main() {
       expect([for (final e in controller.entriesOf(race)) e.id], [20, 10]);
     });
 
+    // Contrairement au tirage antérieur à l'engagement (couvert dans le
+    // groupe `entriesOf` ci-dessus), ici `entryIds` n'est pas vide :
+    // `entriesOf` lit donc directement `_entriesById`, qui doit porter le
+    // club déjà résolu — sans quoi la ligne retombe sur l'initiale.
+    test('le club resolu se retrouve sur un engagement tire par entryIds',
+        () async {
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => const {101: Club(id: 4, name: 'Nice', logoUrl: 'l')},
+      );
+      final controller = await loadWithDraw(
+        entryIds: [10],
+        athleteIds: [101],
+      );
+      final race = controller.racesOf(RoundType.serie).single;
+
+      expect(
+          controller.entriesOf(race).single.athletes.single.club?.logoUrl, 'l');
+    });
+
     test('la place se lit sur l engagement', () async {
       final controller = await loadWithDraw(
         entryIds: [10, 20],
@@ -587,6 +606,27 @@ void main() {
 
       expect(
           controller.penaltyInRace(race, 10)?.kind, CoursePenaltyKind.forfeit);
+    });
+
+    // Statut muet (0, ce que le fil porte quand FFSS ne dit rien) : la
+    // disqualification reste lisible sur son booléen — le seul arm de la
+    // bascule qui ne dérive pas du statut.
+    test('un statut muet avec isDisqualified vrai reste une disqualification',
+        () async {
+      final controller = await loadWithResults(const [
+        (
+          entryId: 10,
+          rank: null,
+          isDisqualified: true,
+          complement: 'DSQ',
+          status: 0
+        ),
+      ]);
+      final race = controller.racesOf(RoundType.serie).single;
+
+      final penalty = controller.penaltyInRace(race, 10);
+      expect(penalty?.kind, CoursePenaltyKind.disqualified);
+      expect(penalty?.code, 'DSQ');
     });
 
     test('le filtre trouve une equipe par un seul de ses athletes', () async {
