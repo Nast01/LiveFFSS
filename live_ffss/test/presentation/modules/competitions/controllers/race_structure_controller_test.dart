@@ -1400,8 +1400,20 @@ void main() {
     // appareil doit s'afficher ici, pas la copie locale devenue fausse.
     test('le rang affiché vient du résultat FFSS', () async {
       await loadWithResults(const [
-        (entryId: 101, rank: 2, isDisqualified: false, complement: null),
-        (entryId: 102, rank: 1, isDisqualified: false, complement: null),
+        (
+          entryId: 101,
+          rank: 2,
+          isDisqualified: false,
+          complement: null,
+          status: 0
+        ),
+        (
+          entryId: 102,
+          rank: 1,
+          isDisqualified: false,
+          complement: null,
+          status: 0
+        ),
       ]);
 
       expect(controller.placeInRace(serieRace(), 11), 2);
@@ -1410,8 +1422,20 @@ void main() {
 
     test('une disqualification FFSS sort l athlète du classement', () async {
       await loadWithResults(const [
-        (entryId: 101, rank: null, isDisqualified: true, complement: 'DSQ'),
-        (entryId: 102, rank: 1, isDisqualified: false, complement: null),
+        (
+          entryId: 101,
+          rank: null,
+          isDisqualified: true,
+          complement: 'DSQ',
+          status: 1
+        ),
+        (
+          entryId: 102,
+          rank: 1,
+          isDisqualified: false,
+          complement: null,
+          status: 0
+        ),
       ]);
 
       expect(controller.placeInRace(serieRace(), 11), isNull);
@@ -1475,7 +1499,8 @@ void main() {
                     entryId: 101,
                     rank: 1,
                     isDisqualified: false,
-                    complement: null
+                    complement: null,
+                    status: 0
                   )
                 ]
               });

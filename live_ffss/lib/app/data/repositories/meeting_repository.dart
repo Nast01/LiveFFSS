@@ -443,6 +443,7 @@ class MeetingRepositoryImpl implements MeetingRepository {
             rank: dto.rank,
             isDisqualified: dto.isDisqualified,
             complement: dto.complement,
+            status: dto.status ?? 0,
           ),
     ];
   }
@@ -473,9 +474,15 @@ typedef CourseHeatLink = ({
 
 /// What FFSS holds for one competitor of a heat, as the Séries screen
 /// redisplays it.
+///
+/// [status] is FFSS's own: 0 ranked, 1 disqualified, 2 forfeit. Absent on the
+/// wire it reads 0 — a competitor FFSS says nothing about is a plain ranked
+/// one, and inventing a withdrawal would take them out of a classification the
+/// referee never touched.
 typedef HeatResult = ({
   int entryId,
   int? rank,
   bool isDisqualified,
   String? complement,
+  int status,
 });
