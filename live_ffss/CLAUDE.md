@@ -141,6 +141,19 @@ All `permanent: true`. Per-route bindings (under `lib/app/module/<feature>/bindi
   c'est précisément ce que `_resequenceDay` mélangeait avec ses écritures.
 - Don't send an empty `engagement` to create a free spot. `''` **libère** une
   place occupée, `'0'` en crée une libre — voir le design du 2026-09-14.
+- **Don't let a screen's last element sit under the phone's navigation bar.**
+  It has now bitten four screens, and it never shows up in a test — the suite
+  has no widget tests and the analyzer sees nothing. Two shapes, two fixes:
+  a **fixed** bottom bar or button row gets `SafeArea(top: false)` around the
+  `Column` that ends with it (`top: false` because the `AppBar` already holds
+  the top) — wrap the column and not the bar itself, so whatever is last when
+  a panel opens below it is covered too, as in `meeting_editor_view.dart`;
+  a **scrollable** list whose last child is a button or a card gets
+  `MediaQuery.of(context).viewPadding.bottom` added to its bottom padding, as
+  in `race_course_view.dart`, `race_structure_view.dart`,
+  `rfid_writer_view.dart`, `meeting_list_view.dart` and
+  `meeting_form_view.dart`. A `Scaffold` body that goes straight into a
+  `Column` with an interactive last child is the shape to look for.
 - Don't index a ranking by athlete. `ProgrammeRace.competitorOrder` and
   `CoursePenalty.competitorId` name **engagements** — their JSON keys stay
   `finishOrder`/`athleteId`, the storage predating the rename. `isCompetitorOrder`
