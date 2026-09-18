@@ -96,7 +96,11 @@ class _MeetingFormViewState extends State<MeetingFormView> {
             )),
       ),
       body: ListView(
-        padding: AppSpacing.pageAll,
+        // Le bouton de validation ferme cette liste : sans le retrait de la
+        // barre de navigation, il reste sous elle au bout du défilement.
+        padding: AppSpacing.pageAll.add(
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewPadding.bottom),
+        ),
         children: [
           TextField(
             controller: _title,

@@ -279,47 +279,55 @@ class _MeetingEditorViewState extends State<MeetingEditorView> {
         final items = _controller.items;
         return Stack(
           children: [
-            Column(
-              children: [
-                _Header(
-                  date: meeting.date,
-                  begin: meeting.beginHour,
-                  end: meeting.endHour,
-                  site: _controller.site,
-                ),
-                Expanded(
-                  child: items.isEmpty
-                      ? EmptyState(
-                          icon: Icons.playlist_add, title: 'no_items'.tr)
-                      : ReorderableListView(
-                          padding: AppSpacing.pageAll,
-                          onReorder: _controller.reorderItems,
-                          children: [
-                            for (final item in items)
-                              _ItemCard(
-                                key: ValueKey(item.slotId),
-                                item: item,
-                                onEditSlotDuration: () =>
-                                    _editSlotDuration(item),
-                                onDeleteSlot: () => _deleteSlot(item),
-                                onEditCourseDuration: _editCourseDuration,
-                                onDeleteCourse: _deleteCourse,
-                              ),
-                          ],
-                        ),
-                ),
-                _Actions(
-                  onManual: _addManualItem,
-                  onRound: () => setState(() => _paletteOpen = !_paletteOpen),
-                ),
-                if (_paletteOpen)
-                  _Palette(
-                    controller: _controller,
-                    nameFor: _nameFor,
-                    nameAt: _courseNameAt,
-                    genderOf: _programme.genderForRace,
+            // La barre d'actions — et la palette quand elle est ouverte —
+            // ferme cette colonne : sans ça, la barre de navigation du
+            // téléphone passe par-dessus et les deux boutons deviennent
+            // inatteignables. `top: false` parce que l'AppBar tient déjà le
+            // haut.
+            SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  _Header(
+                    date: meeting.date,
+                    begin: meeting.beginHour,
+                    end: meeting.endHour,
+                    site: _controller.site,
                   ),
-              ],
+                  Expanded(
+                    child: items.isEmpty
+                        ? EmptyState(
+                            icon: Icons.playlist_add, title: 'no_items'.tr)
+                        : ReorderableListView(
+                            padding: AppSpacing.pageAll,
+                            onReorder: _controller.reorderItems,
+                            children: [
+                              for (final item in items)
+                                _ItemCard(
+                                  key: ValueKey(item.slotId),
+                                  item: item,
+                                  onEditSlotDuration: () =>
+                                      _editSlotDuration(item),
+                                  onDeleteSlot: () => _deleteSlot(item),
+                                  onEditCourseDuration: _editCourseDuration,
+                                  onDeleteCourse: _deleteCourse,
+                                ),
+                            ],
+                          ),
+                  ),
+                  _Actions(
+                    onManual: _addManualItem,
+                    onRound: () => setState(() => _paletteOpen = !_paletteOpen),
+                  ),
+                  if (_paletteOpen)
+                    _Palette(
+                      controller: _controller,
+                      nameFor: _nameFor,
+                      nameAt: _courseNameAt,
+                      genderOf: _programme.genderForRace,
+                    ),
+                ],
+              ),
             ),
             if (_controller.isBusy.value)
               ProgressOverlay(message: 'meeting_pushing'.tr),
