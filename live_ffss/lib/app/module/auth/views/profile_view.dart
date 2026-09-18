@@ -38,7 +38,14 @@ class ProfileView extends GetView<ProfileController> {
           onRefresh: controller.refreshProfile,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+            // Le bouton de deconnexion ferme ce defilement : sans le retrait de
+            // la barre de navigation, il reste sous elle en bas de course.
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              16 + MediaQuery.of(context).viewPadding.bottom,
+            ),
             child: Column(
               children: [
                 _buildProfileHeader(),

@@ -22,7 +22,14 @@ class DebugView extends GetView<DebugController> {
         centerTitle: true,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        // La dernière carte porte les boutons de bascule d'environnement :
+        // sans le retrait de la barre de navigation, ils restent dessous.
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          16 + MediaQuery.of(context).viewPadding.bottom,
+        ),
         children: [
           Card(
             child: Padding(
