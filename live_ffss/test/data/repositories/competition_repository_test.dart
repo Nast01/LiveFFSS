@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/enum/enum.dart';
 import 'package:live_ffss/app/data/datasources/competition_remote_datasource.dart';
-import 'package:live_ffss/app/data/dtos/athlete_dto.dart';
 import 'package:live_ffss/app/data/dtos/competition_dto.dart';
 import 'package:live_ffss/app/data/repositories/competition_repository.dart';
 import 'package:mocktail/mocktail.dart';
@@ -165,19 +164,6 @@ void main() {
       expect(list.length, 4);
       expect(list.map((c) => c.id), [1, 2, 3, 4]);
       expect(calls, 2);
-    });
-  });
-
-  group('getParticipants', () {
-    test('rend des athletes de domaine avec leur dossard', () async {
-      when(() => ds.getParticipants(42)).thenAnswer((_) async => const [
-            AthleteDto(id: 7, lastName: 'DUPONT', orderNumber: 12),
-          ]);
-
-      final athletes = await repo.getParticipants(42);
-
-      expect(athletes.single.id, 7);
-      expect(athletes.single.orderNumber, 12);
     });
   });
 }

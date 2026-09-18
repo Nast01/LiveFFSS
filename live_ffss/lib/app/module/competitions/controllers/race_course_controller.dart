@@ -9,7 +9,6 @@ import 'dart:math';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
-import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
@@ -50,8 +49,7 @@ class RaceCourseController extends GetxController {
     this._raceRepo,
     this._clubRepo,
     this._rfid,
-    this._meetings,
-    this._participants, {
+    this._meetings, {
     Random? random,
   }) : _random = random ?? Random();
 
@@ -60,7 +58,6 @@ class RaceCourseController extends GetxController {
   final ClubRepository _clubRepo;
   final RfidWriter _rfid;
   final MeetingRepository _meetings;
-  final ParticipantService _participants;
   final Random _random;
 
   /// The FFSS `serie` this course's results hang off, once created. Kept so a
@@ -175,7 +172,6 @@ class RaceCourseController extends GetxController {
       // loads here, in the same pass, and demands nothing — a read that fails
       // simply leaves the badges empty.
       final drawnAthletes = [for (final entry in lineUp) ...entry.athletes];
-      await _participants.ensureLoaded(competitionIdValue);
       Map<int, Club> clubs;
       try {
         clubs =
@@ -189,8 +185,6 @@ class RaceCourseController extends GetxController {
             for (final athlete in entry.athletes)
               athlete.copyWith(
                 club: clubs[athlete.id] ?? athlete.club,
-                orderNumber:
-                    _participants.orderNumberOf(competitionIdValue, athlete.id),
               ),
           ]),
       ];

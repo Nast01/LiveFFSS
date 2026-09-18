@@ -7,7 +7,6 @@ import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
-import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
@@ -27,14 +26,11 @@ class _MockRfidWriter extends Mock implements RfidWriter {}
 
 class _MockAttendanceService extends Mock implements AttendanceService {}
 
-class _MockParticipantService extends Mock implements ParticipantService {}
-
 void main() {
   late _MockRaceRepo raceRepo;
   late _MockClubRepo clubRepo;
   late _MockRfidWriter rfidWriter;
   late _MockAttendanceService attendanceService;
-  late _MockParticipantService participants;
   late RaceDetailController controller;
 
   setUpAll(() {
@@ -82,9 +78,6 @@ void main() {
     clubRepo = _MockClubRepo();
     rfidWriter = _MockRfidWriter();
     attendanceService = _MockAttendanceService();
-    participants = _MockParticipantService();
-    when(() => participants.ensureLoaded(any())).thenAnswer((_) async => true);
-    when(() => participants.orderNumberOf(any(), any())).thenReturn(0);
     when(() => raceRepo.getEntries(any())).thenAnswer((_) async => const []);
     when(() => clubRepo.getAthleteClubs(any(), any()))
         .thenAnswer((_) async => const <int, Club>{});
@@ -96,7 +89,6 @@ void main() {
       clubRepo,
       rfidWriter,
       attendanceService,
-      participants,
     );
     controller.race.value = makeRace(10);
     controller.competition.value = makeCompetition(99);
@@ -219,23 +211,14 @@ void main() {
       verify(() => clubRepo.getAthleteClubs(any(), any())).called(1);
     });
 
-    test('a reload retries a bib read that failed, clubs already resolved',
-        () async {
-      // The clubs resolve on the first load and are never asked for again;
-      // the bib read must not ride on that guard, or a marshaller whose first
-      // read failed would have no way to retry short of leaving the screen.
-      var attempt = 0;
-      var known = 0;
-      when(() => participants.ensureLoaded(any())).thenAnswer((_) async {
-        attempt++;
-        // The service only knows a bib once a read has landed. Here the first
-        // one fails and the second succeeds.
-        if (attempt >= 2) known = 12;
-        return attempt >= 2;
-      });
-      when(() => participants.orderNumberOf(99, 11)).thenAnswer((_) => known);
+    test('the bib carried by an entry survives the club patching', () async {
+      // `competition/engagement` serves `Dossard` on its athletes, so the bib
+      // arrives with the entry. The club pass rewrites those athletes — it
+      // must rewrite them without dropping it.
       when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
-            makeEntry(id: 1, clubName: 'X', athletes: [athlete(11, clubId: 7)]),
+            makeEntry(id: 1, clubName: 'X', athletes: [
+              athlete(11, clubId: 7).copyWith(orderNumber: 329),
+            ]),
           ]);
       when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
         (_) async => const {11: Club(id: 7, name: 'Nice', logoUrl: 'l')},
@@ -243,14 +226,9 @@ void main() {
 
       await controller.loadEntries();
       await pumpEventQueue();
-      expect(controller.entries.single.athletes.single.orderNumber, 0);
 
-      await controller.loadEntries();
-      await pumpEventQueue();
-
-      expect(controller.entries.single.athletes.single.orderNumber, 12);
+      expect(controller.entries.single.athletes.single.orderNumber, 329);
       expect(controller.entries.single.athletes.single.club?.logoUrl, 'l');
-      verify(() => clubRepo.getAthleteClubs(any(), any())).called(1);
     });
 
     test('renders entries even if the club resolution fails', () async {
@@ -611,33 +589,12 @@ void main() {
     }
 
     test('les athletes affiches portent leur dossard', () async {
-      when(() => participants.ensureLoaded(any()))
-          .thenAnswer((_) async => true);
-      when(() => participants.orderNumberOf(99, 11)).thenReturn(12);
-
       final controller = await loadWith([
-        entry(1, [athlete(11)]),
-      ]);
-
-      expect(controller.entries.single.athletes.single.orderNumber, 12);
-      await pumpEventQueue();
-      verify(() => participants.ensureLoaded(99)).called(1);
-    });
-
-    // The index is asked for this competition by name: the service is
-    // permanent and may still hold the one the marshal just left. When it has
-    // no bib here, the athlete shows none — a bib carried on the engagement
-    // (or left over from the previous screen) must not stand in for it.
-    test('le dossard vient de l index, jamais de l athlete', () async {
-      when(() => participants.orderNumberOf(99, 11)).thenReturn(0);
-
-      final controller = await loadWith([
-        entry(1, [athlete(11).copyWith(orderNumber: 12)]),
+        entry(1, [athlete(11).copyWith(orderNumber: 329)]),
       ]);
       await pumpEventQueue();
 
-      expect(controller.entries.single.athletes.single.orderNumber, 0);
-      verify(() => participants.orderNumberOf(99, 11)).called(greaterThan(0));
+      expect(controller.entries.single.athletes.single.orderNumber, 329);
     });
 
     test('une equipe est en attente tant qu elle n est pas complete', () async {
@@ -780,7 +737,13 @@ void main() {
   group('startScan', () {
     late StreamController<String> scanStream;
 
-    Athlete scanAthlete(int id, String lastName, String licence) => Athlete(
+    Athlete scanAthlete(
+      int id,
+      String lastName,
+      String licence, {
+      int orderNumber = 0,
+    }) =>
+        Athlete(
           id: id,
           licenseeNumber: licence,
           firstName: 'X',
@@ -790,6 +753,7 @@ void main() {
           nationalityCode: '',
           nationality: '',
           isValid: true,
+          orderNumber: orderNumber,
         );
 
     Entry scanEntry(List<Athlete> athletes) => Entry(
@@ -800,15 +764,19 @@ void main() {
           athletes: athletes,
         );
 
-    /// One engaged athlete per id, licence `L<id>`, bib stubbed from [bibs].
+    /// One engaged athlete per id, licence `L<id>`, bib taken from [bibs] —
+    /// carried by the engagement itself, as `Dossard` is.
     Future<RaceDetailController> loadWithBibs(Map<int, int> bibs) async {
-      for (final entry in bibs.entries) {
-        when(() => participants.orderNumberOf(99, entry.key))
-            .thenReturn(entry.value);
-      }
       when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
-            for (final id in bibs.keys)
-              scanEntry([scanAthlete(id, 'B$id', 'L$id')]),
+            for (final entry in bibs.entries)
+              scanEntry([
+                scanAthlete(
+                  entry.key,
+                  'B${entry.key}',
+                  'L${entry.key}',
+                  orderNumber: entry.value,
+                ),
+              ]),
           ]);
       await controller.loadEntries();
       return controller;

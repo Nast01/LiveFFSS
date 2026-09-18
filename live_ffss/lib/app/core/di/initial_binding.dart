@@ -32,7 +32,6 @@ import 'package:live_ffss/app/data/repositories/result_repository.dart';
 import 'package:live_ffss/app/data/repositories/programme_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/data/services/meeting_service.dart';
-import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/user_preferences_service.dart';
 import 'package:live_ffss/app/data/services/user_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
@@ -172,14 +171,6 @@ class InitialBinding {
     // ProgrammeService.
     Get.put<MeetingService>(
       MeetingService(Get.find<MeetingRepository>()),
-      permanent: true,
-    );
-
-    // 5d ter. Les dossards de la compétition ouverte, partagés par les
-    // quatre écrans de course. Synchrone comme MeetingService : il ne lit
-    // aucun stockage à la construction.
-    Get.put<ParticipantService>(
-      ParticipantService(Get.find<CompetitionRepository>()),
       permanent: true,
     );
 

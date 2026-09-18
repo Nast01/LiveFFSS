@@ -6,7 +6,6 @@ import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/data/services/meeting_service.dart';
-import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import '../controllers/race_detail_controller.dart';
 import '../controllers/race_structure_controller.dart';
@@ -20,7 +19,6 @@ class RaceDetailBinding extends Bindings {
         Get.find<ClubRepository>(),
         Get.find<RfidWriter>(),
         Get.find<AttendanceService>(),
-        Get.find<ParticipantService>(),
       ),
     );
     Get.lazyPut<RaceStructureController>(
@@ -31,7 +29,6 @@ class RaceDetailBinding extends Bindings {
         Get.find<MeetingRepository>(),
         Get.find<RaceFormatRepository>(),
         Get.find<MeetingService>(),
-        Get.find<ParticipantService>(),
       ),
     );
   }

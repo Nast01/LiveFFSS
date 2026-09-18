@@ -10,7 +10,6 @@ import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/meeting_service.dart';
-import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/category.dart';
@@ -44,8 +43,6 @@ class _MockMeetingRepo extends Mock implements MeetingRepository {}
 
 class _MockRaceFormatRepo extends Mock implements RaceFormatRepository {}
 
-class _MockParticipants extends Mock implements ParticipantService {}
-
 /// Les courses d'un type de tour donné, toutes structures confondues — un
 /// raccourci de test, la vue lisant les mêmes courses via `structures`.
 extension _RacesOf on RaceStructureController {
@@ -62,7 +59,6 @@ void main() {
   late _MockClubRepo clubRepo;
   late _MockMeetingRepo meetingRepo;
   late _MockRaceFormatRepo raceFormatRepo;
-  late _MockParticipants participants;
   late ProgrammeService service;
   late RaceStructureController controller;
 
@@ -209,12 +205,9 @@ void main() {
     when(() =>
             storage.write(key: any(named: 'key'), value: any(named: 'value')))
         .thenAnswer((_) async {});
-    participants = _MockParticipants();
-    when(() => participants.ensureLoaded(any())).thenAnswer((_) async => true);
-    when(() => participants.orderNumberOf(any(), any())).thenReturn(0);
     service = ProgrammeService(storage);
     controller = RaceStructureController(service, raceRepo, clubRepo,
-        meetingRepo, raceFormatRepo, MeetingService(meetingRepo), participants);
+        meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
   });
 
   test('load filters structures to the race and sorts by category label',
@@ -393,33 +386,14 @@ void main() {
 
     test('carries the bib so the row can show it', () async {
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
-            entry(1, 7, athletes: [makeAthlete(31)]),
+            entry(1, 7, athletes: [makeAthlete(31).copyWith(orderNumber: 329)]),
           ]);
-      when(() => participants.orderNumberOf(42, 31)).thenReturn(12);
       await controller.load(race(500), competition);
 
       const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
 
       expect(
-          controller.entriesOf(drawn).single.athletes.single.orderNumber, 12);
-      verify(() => participants.ensureLoaded(42)).called(1);
-    });
-
-    // L'index est interrogé pour cette compétition-ci, nommément : le service
-    // est permanent et peut encore tenir celle qu'on vient de quitter. Sans
-    // dossard ici, la pastille reste vide — un dossard porté par l'engagement
-    // ne prend pas sa place.
-    test('the bib comes from the index, never from the athlete', () async {
-      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
-            entry(1, 7, athletes: [makeAthlete(31).copyWith(orderNumber: 12)]),
-          ]);
-      when(() => participants.orderNumberOf(42, 31)).thenReturn(0);
-      await controller.load(race(500), competition);
-
-      const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
-
-      expect(controller.entriesOf(drawn).single.athletes.single.orderNumber, 0);
-      verify(() => participants.orderNumberOf(42, 31)).called(greaterThan(0));
+          controller.entriesOf(drawn).single.athletes.single.orderNumber, 329);
     });
 
     test('a club failure still yields the athletes, without clubs', () async {
@@ -491,14 +465,8 @@ void main() {
       when(() => storage.read(key: any(named: 'key')))
           .thenAnswer((_) async => jsonEncode(programme.toJson()));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => entries);
-      final c = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      final c = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await c.load(race(500), competition);
       return c;
     }
@@ -594,14 +562,8 @@ void main() {
       when(() => meetingRepo.getLaneSeats([71])).thenAnswer((_) async => [
             (laneId: 71, number: 1, entryId: 10, athleteIds: [101]),
           ]);
-      final c = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      final c = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await c.load(race(500), competition);
       return c;
     }
@@ -1030,14 +992,8 @@ void main() {
           .thenAnswer((_) async => jsonEncode(programme.toJson()));
       when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => meetings);
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
-      controller = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(race(500), competition);
     }
 
@@ -1111,14 +1067,8 @@ void main() {
       when(() => meetingRepo.getMeetings(42))
           .thenThrow(const NetworkException('coupé'));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
-      controller = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(race(500), competition);
 
@@ -1216,14 +1166,8 @@ void main() {
       when(() => storage.read(key: any(named: 'key'))).thenAnswer(
           (_) async => local == null ? null : jsonEncode(local.toJson()));
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
-      controller = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(race(500), competition);
     }
 
@@ -1550,14 +1494,8 @@ void main() {
       when(() => raceRepo.getEntries(r.id)).thenAnswer((_) async => const []);
       when(() => raceFormatRepo.getRaceFormats(42))
           .thenAnswer((_) async => [formatFor(formatCategories)]);
-      controller = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(r, competition);
     }
 
@@ -1791,14 +1729,8 @@ void main() {
             (laneId: 71, number: 1, entryId: 101, athleteIds: [11]),
             (laneId: 71, number: 2, entryId: 102, athleteIds: [12]),
           ]);
-      controller = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(race(500), competition);
     }
 
@@ -1913,14 +1845,8 @@ void main() {
                   )
                 ]
               });
-      controller = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(race(500), competition);
 
@@ -1938,14 +1864,8 @@ void main() {
       when(() => meetingRepo.getMeetings(42)).thenAnswer((_) async => [
             meetingWith([course(25)])
           ]);
-      controller = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(race(500), competition);
 
@@ -2020,14 +1940,8 @@ void main() {
       when(() => raceFormatRepo.getRaceFormats(42)).thenAnswer((_) async => [
             formatWith(const [serverSerie])
           ]);
-      controller = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(
           race(500).copyWith(
@@ -2048,14 +1962,8 @@ void main() {
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
       when(() => raceFormatRepo.getRaceFormats(42))
           .thenAnswer((_) async => const []);
-      controller = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
 
       await controller.load(
           race(500).copyWith(
@@ -2079,13 +1987,7 @@ void main() {
         );
 
     RaceStructureController on(MeetingService held) => RaceStructureController(
-        service,
-        raceRepo,
-        clubRepo,
-        meetingRepo,
-        raceFormatRepo,
-        held,
-        participants);
+        service, raceRepo, clubRepo, meetingRepo, raceFormatRepo, held);
 
     setUp(() {
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => const []);
@@ -2212,14 +2114,8 @@ void main() {
               ],
             )
           ]);
-      controller = RaceStructureController(
-          ProgrammeService(storage),
-          raceRepo,
-          clubRepo,
-          meetingRepo,
-          raceFormatRepo,
-          MeetingService(meetingRepo),
-          participants);
+      controller = RaceStructureController(ProgrammeService(storage), raceRepo,
+          clubRepo, meetingRepo, raceFormatRepo, MeetingService(meetingRepo));
       await controller.load(race(500), competition);
     });
 

@@ -7,7 +7,6 @@ import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/meeting_service.dart';
-import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
@@ -65,7 +64,6 @@ class RaceStructureController extends GetxController {
     this._meetings,
     this._raceFormatRepo,
     this._meetingTree,
-    this._participants,
   );
 
   final ProgrammeService _programme;
@@ -80,7 +78,6 @@ class RaceStructureController extends GetxController {
   final MeetingService _meetingTree;
 
   /// Les dossards de la compétition, que les engagements ne servent pas.
-  final ParticipantService _participants;
 
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
@@ -448,7 +445,6 @@ class RaceStructureController extends GetxController {
   ) async {
     final athletes = [for (final entry in entries) ...entry.athletes];
     if (athletes.isEmpty) return const {};
-    await _participants.ensureLoaded(competitionId);
     Map<int, Club> clubs;
     try {
       clubs = await _clubRepo.getAthleteClubs(competitionId, athletes);
@@ -457,10 +453,7 @@ class RaceStructureController extends GetxController {
     }
     return {
       for (final athlete in athletes)
-        athlete.id: athlete.copyWith(
-          club: clubs[athlete.id] ?? athlete.club,
-          orderNumber: _participants.orderNumberOf(competitionId, athlete.id),
-        ),
+        athlete.id: athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
     };
   }
 

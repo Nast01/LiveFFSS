@@ -1,7 +1,8 @@
 # Le dossard d'un athlète — design
 
 **Date** : 2026-09-15
-**État** : validé au cadrage, à implémenter
+**État** : implémenté, puis **corrigé le 2026-09-18** — voir la section finale,
+qui annule la source de données choisie ici
 **Touche** : le modèle `Athlete`, une route FFSS de plus, les cinq endroits où un
 athlète s'affiche, et le contrat du bracelet — écriture comme lecture.
 
@@ -188,3 +189,36 @@ Pas de test de widget, conformément au dépôt : la pastille se vérifie à l'�
 ## Traductions
 
 Une clé, dans **les deux** langues : `bracelet_other_event`.
+
+---
+
+## Correction du 2026-09-18 — la source était déjà là
+
+Ce design repose sur une affirmation fausse : « `competition/engagement` ne
+porte pas `Dossard` ». Vérification faite sur l'événement 1453, **il le
+porte**, sur chacun de ses athlètes. Tout l'appareillage construit ici pour
+combler ce trou — la route `participants`, `CompetitionRepository.getParticipants`,
+`ParticipantService`, la jointure dans les quatre contrôleurs — était donc sans
+objet, et a été supprimé.
+
+Pire que superflu : nuisible. Les deux routes **ne numérotent pas les athlètes
+de la même façon**. Eli Sandbach est `Id: 663377` dans `participants` et
+`Id: 663374` dans `engagement` — même `idInvite: 9013`, même `Dossard: "329"`.
+Les deux espaces d'ids se chevauchent, si bien que la jointure tombait juste
+par collision : 12 pastilles sur une épreuve entière. Et comme la revue finale
+avait fait retirer le repli sur `athlete.orderNumber` — au motif, tiré de cette
+même affirmation fausse, qu'il était du poids mort — le dossard correct que
+l'engagement portait déjà était **écrasé** par le 0 de l'index.
+
+Ce qui reste, et qui est toute la fonctionnalité : `AthleteDto.orderNumber`,
+mappé sur `Dossard`. Il sert `engagement`, `organismes` et `participants` d'un
+coup, donc les six écrans ont le dossard sans une seule requête de plus.
+
+Deux décisions de ce design tombent avec la source : le risque de troncature à
+30 lignes de `participants` (route plus appelée — et mesurée à 330 éléments
+sans plafond, au passage) et la divergence entre routes que la revue finale
+signalait, puisque tous les écrans lisent désormais le même champ du même objet.
+
+La leçon, consignée dans `CLAUDE.md` : ne jamais joindre `participants` et
+`engagement` sur `Id`. Si `participants` redevient nécessaire, la jointure se
+fait sur `NumeroLicence`, `idLicencie` ou `idInvite`.

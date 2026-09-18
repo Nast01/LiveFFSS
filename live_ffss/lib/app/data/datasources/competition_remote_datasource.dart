@@ -1,7 +1,6 @@
 import 'package:live_ffss/app/core/config/app_config.dart';
 import 'package:live_ffss/app/core/enum/enum.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
-import 'package:live_ffss/app/data/dtos/athlete_dto.dart';
 import 'package:live_ffss/app/data/dtos/competition_dto.dart';
 
 abstract class CompetitionRemoteDataSource {
@@ -14,8 +13,6 @@ abstract class CompetitionRemoteDataSource {
     required int page,
     required int pageSize,
   });
-
-  Future<List<AthleteDto>> getParticipants(int competitionId);
 }
 
 class CompetitionRemoteDataSourceImpl implements CompetitionRemoteDataSource {
@@ -50,22 +47,6 @@ class CompetitionRemoteDataSourceImpl implements CompetitionRemoteDataSource {
     return list
         .whereType<Map<String, dynamic>>()
         .map(CompetitionDto.fromJson)
-        .toList();
-  }
-
-  @override
-  Future<List<AthleteDto>> getParticipants(int competitionId) async {
-    final endpoint = ApiEndpoints.replacePath(
-      ApiEndpoints.participantList,
-      {'id': competitionId.toString()},
-    );
-    // Pas de fenêtre start/length : la route sœur `organismes` n'en demande
-    // pas non plus. Voir le risque de troncature noté dans le design.
-    final body = await _http.get(endpoint);
-    final list = (body['data'] as List?) ?? const [];
-    return list
-        .whereType<Map<String, dynamic>>()
-        .map(AthleteDto.fromJson)
         .toList();
   }
 }

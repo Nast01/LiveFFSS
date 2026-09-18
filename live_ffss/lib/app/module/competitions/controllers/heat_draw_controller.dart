@@ -6,7 +6,6 @@ import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
-import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
@@ -34,8 +33,7 @@ class HeatDrawController extends GetxController {
     this._clubRepo,
     this._attendance,
     this._programme,
-    this._meetings,
-    this._participants, {
+    this._meetings, {
     Random? random,
   }) : _random = random ?? Random();
 
@@ -49,7 +47,6 @@ class HeatDrawController extends GetxController {
   final MeetingRepository _meetings;
 
   /// The bibs of the competition, for the drawn athletes' badges.
-  final ParticipantService _participants;
   final Random _random;
 
   final Rxn<Race> race = Rxn<Race>();
@@ -236,7 +233,6 @@ class HeatDrawController extends GetxController {
       // in the same pass as the clubs, and demands nothing — a read that fails
       // simply leaves the badges empty. Patching runs even with no club
       // resolved, since the bibs may well have arrived on their own.
-      await _participants.ensureLoaded(competitionId);
       final clubs = await _clubIndex(
           competitionId, [for (final e in present) ...e.athletes]);
       presentEntries.value = [
@@ -245,8 +241,6 @@ class HeatDrawController extends GetxController {
             for (final athlete in entry.athletes)
               athlete.copyWith(
                 club: clubs[athlete.id] ?? athlete.club,
-                orderNumber:
-                    _participants.orderNumberOf(competitionId, athlete.id),
               ),
           ]),
       ];

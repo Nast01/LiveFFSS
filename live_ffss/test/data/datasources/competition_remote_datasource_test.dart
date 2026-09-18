@@ -62,30 +62,4 @@ void main() {
       expect(captured['fin'], '2026-05-03');
     });
   });
-
-  group('CompetitionRemoteDataSourceImpl.getParticipants', () {
-    test('calls the event route with the id and maps the participants',
-        () async {
-      when(() => http.get(any(), query: any(named: 'query')))
-          .thenAnswer((_) async => {
-                'data': [
-                  {'Id': 7, 'Nom': 'DUPONT', 'Dossard': '12'},
-                ]
-              });
-
-      final dtos = await ds.getParticipants(42);
-
-      verify(() => http.get('competition/evenement/42/participants',
-          query: any(named: 'query'))).called(1);
-      expect(dtos.single.id, 7);
-      expect(dtos.single.orderNumber, 12);
-    });
-
-    test('a response without data yields an empty list', () async {
-      when(() => http.get(any(), query: any(named: 'query')))
-          .thenAnswer((_) async => <String, dynamic>{});
-
-      expect(await ds.getParticipants(42), isEmpty);
-    });
-  });
 }

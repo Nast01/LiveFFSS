@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
-import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
@@ -37,8 +36,6 @@ class _MockAttendance extends Mock implements AttendanceService {}
 class _MockClubRepo extends Mock implements ClubRepository {}
 
 class _MockMeetingRepo extends Mock implements MeetingRepository {}
-
-class _MockParticipants extends Mock implements ParticipantService {}
 
 /// Real store semantics without secure storage: `save` keeps the programme in
 /// memory so the controller's read-modify-write can be asserted end to end.
@@ -82,7 +79,6 @@ void main() {
   late _MockClubRepo clubRepo;
   late _MockMeetingRepo meetingRepo;
   late _FakeProgrammeService programme;
-  late _MockParticipants participants;
 
   Athlete athlete(int id, {int clubId = 0}) => Athlete(
         id: id,
@@ -171,7 +167,6 @@ void main() {
       attendance,
       programme,
       meetingRepo,
-      participants,
       random: Random(7),
     )
       ..race.value = makeRace()
@@ -206,9 +201,6 @@ void main() {
         .thenAnswer((_) async => const <int, Club>{});
     programme = _FakeProgrammeService(programmeWith());
     meetingRepo = _MockMeetingRepo();
-    participants = _MockParticipants();
-    when(() => participants.ensureLoaded(any())).thenAnswer((_) async => true);
-    when(() => participants.orderNumberOf(any(), any())).thenReturn(0);
     when(() => meetingRepo.getMeetings(any()))
         .thenAnswer((_) async => const []);
     when(() => meetingRepo.syncLanes(
@@ -332,55 +324,32 @@ void main() {
 
     test('the present athletes carry their bib', () async {
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
-            entry(1, [athlete(11)]),
+            entry(1, [athlete(11).copyWith(orderNumber: 329)]),
           ]);
       when(() => attendance.forRace(raceId))
           .thenReturn({11: AttendanceStatus.present});
-      when(() => participants.orderNumberOf(competitionId, 11)).thenReturn(12);
 
       final controller = build();
       await controller.load();
 
-      expect(controller.presentEntries.single.athletes.single.orderNumber, 12);
-      verify(() => participants.ensureLoaded(competitionId)).called(1);
+      expect(controller.presentEntries.single.athletes.single.orderNumber, 329);
     });
 
-    // The index is asked for this competition by name: the service is
-    // permanent and may still hold the one just left. When it has no bib
-    // here, the athlete shows none — a bib riding on the engagement must not
-    // stand in for it.
-    test('the bib comes from the index, never from the athlete', () async {
-      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
-            entry(1, [athlete(11).copyWith(orderNumber: 12)]),
-          ]);
-      when(() => attendance.forRace(raceId))
-          .thenReturn({11: AttendanceStatus.present});
-      when(() => participants.orderNumberOf(competitionId, 11)).thenReturn(0);
-
-      final controller = build();
-      await controller.load();
-
-      expect(controller.presentEntries.single.athletes.single.orderNumber, 0);
-      verify(() => participants.orderNumberOf(competitionId, 11))
-          .called(greaterThan(0));
-    });
-
-    // The bib does not hang off the clubs: a competition whose clubs come back
-    // empty still shows it.
+    // The bib rides on the engagement, so it does not hang off the clubs: a
+    // competition whose clubs come back empty still shows it.
     test('the bib lands even when no club resolves', () async {
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
-            entry(1, [athlete(11)]),
+            entry(1, [athlete(11).copyWith(orderNumber: 329)]),
           ]);
       when(() => attendance.forRace(raceId))
           .thenReturn({11: AttendanceStatus.present});
       when(() => clubRepo.getAthleteClubs(any(), any()))
           .thenAnswer((_) async => const <int, Club>{});
-      when(() => participants.orderNumberOf(competitionId, 11)).thenReturn(12);
 
       final controller = build();
       await controller.load();
 
-      expect(controller.presentEntries.single.athletes.single.orderNumber, 12);
+      expect(controller.presentEntries.single.athletes.single.orderNumber, 329);
     });
 
     test('a club fetch failure still loads the athletes, without clubs',
@@ -674,7 +643,6 @@ void main() {
         attendance,
         programme,
         meetingRepo,
-        participants,
         random: Random(7),
       )
         ..race.value = makeRace(speciality: 'Eau-plate')
@@ -904,7 +872,6 @@ void main() {
         attendance,
         programme,
         meetingRepo,
-        participants,
         random: Random(7),
       )
         ..race.value = makeRace(speciality: speciality)
@@ -1134,7 +1101,6 @@ void main() {
         attendance,
         programme,
         meetingRepo,
-        participants,
         random: Random(7),
       )
         ..race.value = makeRace(speciality: speciality)

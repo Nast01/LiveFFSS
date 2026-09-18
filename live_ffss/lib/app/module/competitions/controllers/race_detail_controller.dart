@@ -7,7 +7,6 @@ import 'package:live_ffss/app/core/rfid/rfid_writer.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
-import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
@@ -23,14 +22,12 @@ class RaceDetailController extends GetxController {
     this._clubRepo,
     this._rfidWriter,
     this._attendance,
-    this._participants,
   );
 
   final RaceRepository _raceRepo;
   final ClubRepository _clubRepo;
   final RfidWriter _rfidWriter;
   final AttendanceService _attendance;
-  final ParticipantService _participants;
 
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
@@ -124,41 +121,27 @@ class RaceDetailController extends GetxController {
   /// "no bib in this competition, right now". Naming the competition is what
   /// keeps the previous screen's bibs off these athletes.
   List<Entry> _withClubs(List<Entry> loaded) {
-    final competitionId = competition.value?.id;
     return [
       for (final entry in loaded)
         entry.copyWith(
           athletes: [
             for (final athlete in entry.athletes)
-              athlete.copyWith(
-                club: _clubs[athlete.id] ?? athlete.club,
-                orderNumber: competitionId == null
-                    ? 0
-                    : _participants.orderNumberOf(competitionId, athlete.id),
-              ),
+              athlete.copyWith(club: _clubs[athlete.id] ?? athlete.club),
           ],
         ),
     ];
   }
 
-  /// Fills in what the engagement list does not carry — the bib, then the
-  /// clubs — and patches the rows already on screen.
+  /// Resolves the clubs of the athletes on screen.
   ///
-  /// The bib comes from another route than the engagements and demands
-  /// nothing: a read that fails simply leaves the badges empty, and must not
-  /// skip the clubs that follow. It runs on every load rather than behind the
-  /// clubs' de-duplication, because [ParticipantService] caches per
-  /// competition on its own — it answers at once for one already held, and
-  /// retries one whose read failed. A pull-to-refresh is the only retry this
-  /// screen has.
+  /// The bib needs nothing here: `competition/engagement` carries `Dossard`
+  /// on its athletes, so it is decoded with the rest of the entry.
   Future<void> _resolveBadges() async {
     final competitionId = competition.value?.id;
     final athletes = [
       for (final entry in entries) ...entry.athletes,
     ];
     if (competitionId == null || athletes.isEmpty) return;
-    await _participants.ensureLoaded(competitionId);
-    entries.value = _withClubs(entries);
     await _ensureClubs(competitionId, athletes);
   }
 

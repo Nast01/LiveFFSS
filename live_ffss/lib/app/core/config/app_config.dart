@@ -62,10 +62,6 @@ class ApiEndpoints {
   static const String competitionRanking = 'organisme/classement';
   static const String raceList = 'competition/epreuve';
   static const String clubList = 'competition/evenement/:id/organismes';
-  // Les athlètes d'une compétition, avec leur dossard. Un élément Participant a
-  // la forme d'un athlète : le même DTO le décode.
-  static const String participantList =
-      'competition/evenement/:id/participants';
   static const String entryList = 'competition/engagement';
   static const String clubDetail = 'organisme/:id';
   static const String meetingSubmit = 'competition/:competition/reunion/submit';

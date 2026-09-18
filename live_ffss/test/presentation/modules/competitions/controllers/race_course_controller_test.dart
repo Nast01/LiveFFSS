@@ -8,7 +8,6 @@ import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
-import 'package:live_ffss/app/data/services/participant_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/category.dart';
@@ -36,8 +35,6 @@ class _MockClubRepo extends Mock implements ClubRepository {}
 class _MockRfidWriter extends Mock implements RfidWriter {}
 
 class _MockMeetingRepo extends Mock implements MeetingRepository {}
-
-class _MockParticipants extends Mock implements ParticipantService {}
 
 /// Keeps the programme in memory so the controller's read-modify-write can be
 /// asserted end to end, without secure storage.
@@ -79,7 +76,6 @@ void main() {
   late _FakeProgrammeService programme;
   late _MockRfidWriter rfid;
   late _MockMeetingRepo meetingRepo;
-  late _MockParticipants participants;
 
   setUpAll(() {
     registerFallbackValue(const <Athlete>[]);
@@ -245,6 +241,7 @@ void main() {
     List<List<int>> competitorOrder = const [],
     int heatId = 0,
     int runId = 0,
+    Map<int, int> bibs = const {},
   }) async {
     programme = _FakeProgrammeService(programmeWith(ProgrammeRace(
       id: programmeRaceId,
@@ -261,12 +258,15 @@ void main() {
               category: const Category(id: categoryId, name: 'Senior'),
               status: 1,
               statusLabel: 'Engagé',
-              athletes: [for (final id in e.athleteIds) athlete(id)],
+              athletes: [
+                for (final id in e.athleteIds)
+                  athlete(id).copyWith(orderNumber: bibs[id] ?? 0),
+              ],
             ),
         ]);
-    final controller = RaceCourseController(
-        programme, raceRepo, clubRepo, rfid, meetingRepo, participants)
-      ..applyArguments(arguments(heatId: heatId));
+    final controller =
+        RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
+          ..applyArguments(arguments(heatId: heatId));
     await controller.load();
     return controller;
   }
@@ -277,21 +277,19 @@ void main() {
         for (final id in athleteIds) (entryId: id * 10, athleteIds: [id]),
       ]);
 
-  /// Comme [loadWith], avec le dossard de chaque athlète stubbé sur [bibs].
-  Future<RaceCourseController> loadWithBibs(Map<int, int> bibs) async {
-    for (final entry in bibs.entries) {
-      when(() => participants.orderNumberOf(competitionId, entry.key))
-          .thenReturn(entry.value);
-    }
-    return loadWith(bibs.keys.toList());
-  }
+  /// Comme [loadWith], le dossard de chaque athlète étant porté par son
+  /// engagement — c'est `competition/engagement` qui sert `Dossard`.
+  Future<RaceCourseController> loadWithBibs(Map<int, int> bibs) =>
+      loadWithEntries(
+        [
+          for (final id in bibs.keys) (entryId: id * 10, athleteIds: [id]),
+        ],
+        bibs: bibs,
+      );
 
   setUp(() {
     rfid = _MockRfidWriter();
     meetingRepo = _MockMeetingRepo();
-    participants = _MockParticipants();
-    when(() => participants.ensureLoaded(any())).thenAnswer((_) async => true);
-    when(() => participants.orderNumberOf(any(), any())).thenReturn(0);
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
     when(() => clubRepo.getAthleteClubs(any(), any()))
@@ -309,7 +307,6 @@ void main() {
         clubRepo,
         rfid,
         meetingRepo,
-        participants,
       );
       controller.applyArguments({
         'race': makeRace(),
@@ -338,7 +335,6 @@ void main() {
         clubRepo,
         rfid,
         meetingRepo,
-        participants,
       );
       controller.applyArguments(null);
 
@@ -375,36 +371,14 @@ void main() {
     // Le dossard n'arrive pas davantage sur l'engagement : il vient d'une
     // autre route, recopiée dans le même passage que le club.
     test('les athletes des engagements portent leur dossard', () async {
-      when(() => participants.orderNumberOf(competitionId, 10)).thenReturn(12);
+      final c = await loadWithEntries(
+        [
+          (entryId: 100, athleteIds: [10])
+        ],
+        bibs: {10: 329},
+      );
 
-      final c = await loadWith([10]);
-
-      expect(c.competitors.single.athletes.single.orderNumber, 12);
-      verify(() => participants.ensureLoaded(competitionId)).called(1);
-    });
-
-    // L'index est interrogé pour cette compétition-ci, nommément : le service
-    // est permanent et peut encore tenir celle qu'on vient de quitter. Sans
-    // dossard ici, la pastille reste vide — un dossard porté par l'engagement
-    // ne prend pas sa place.
-    test('le dossard vient de l index, jamais de l athlete', () async {
-      when(() => participants.orderNumberOf(competitionId, 10)).thenReturn(0);
-      final c = await loadWith([10]);
-      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
-            Entry(
-              id: 100,
-              category: const Category(id: categoryId, name: 'Senior'),
-              status: 1,
-              statusLabel: 'Engagé',
-              athletes: [athlete(10).copyWith(orderNumber: 12)],
-            ),
-          ]);
-
-      await c.load();
-
-      expect(c.competitors.single.athletes.single.orderNumber, 0);
-      verify(() => participants.orderNumberOf(competitionId, 10))
-          .called(greaterThan(0));
+      expect(c.competitors.single.athletes.single.orderNumber, 329);
     });
 
     // Un relais fait tomber chaque athlete dans son propre club : patcher
@@ -432,9 +406,9 @@ void main() {
       c.assign(c.competitors.first);
 
       // A second controller on the same programme sees the stored order.
-      final again = RaceCourseController(
-          programme, raceRepo, clubRepo, rfid, meetingRepo, participants)
-        ..applyArguments(arguments());
+      final again =
+          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
+            ..applyArguments(arguments());
       await again.load();
 
       expect(again.placeOf(again.competitors.first), 1);
@@ -591,9 +565,9 @@ void main() {
               athletes: [athlete(10), athlete(11)],
             ),
           ]);
-      final c = RaceCourseController(
-          programme, raceRepo, clubRepo, rfid, meetingRepo, participants)
-        ..applyArguments(arguments());
+      final c =
+          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
+            ..applyArguments(arguments());
       await c.load();
 
       // Identity, not equality: a rebuilt-but-value-equal structure would pass
@@ -956,15 +930,15 @@ void main() {
               (i.namedArguments[const Symbol('entryIds')] as List<int>).length);
 
       Get.arguments;
-      final controller = RaceCourseController(
-          programme, raceRepo, clubRepo, rfid, meetingRepo, participants)
-        ..race.value = makeRace()
-        ..competition.value = makeCompetition()
-        ..categoryId = categoryId
-        ..categoryLabel = 'Senior'
-        ..roundType = RoundType.demi
-        ..raceNumber = 1
-        ..programmeRaceId = programmeRaceId;
+      final controller =
+          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
+            ..race.value = makeRace()
+            ..competition.value = makeCompetition()
+            ..categoryId = categoryId
+            ..categoryLabel = 'Senior'
+            ..roundType = RoundType.demi
+            ..raceNumber = 1
+            ..programmeRaceId = programmeRaceId;
       await controller.load();
       return controller;
     }
@@ -1822,9 +1796,9 @@ void main() {
               athletes: [athlete(101)],
             ),
           ]);
-      final controller = RaceCourseController(
-          programme, raceRepo, clubRepo, rfid, meetingRepo, participants)
-        ..applyArguments(arguments());
+      final controller =
+          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
+            ..applyArguments(arguments());
       await controller.load();
 
       expect(controller.penalties.map((p) => p.competitorId), [10]);
