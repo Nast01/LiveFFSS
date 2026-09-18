@@ -167,7 +167,10 @@ class RaceCourseController extends GetxController {
       final droppedWholeRanking = _readStoredRanking(stored, lineUp);
 
       // Entries arrive with no club on their athletes — the mappers never set
-      // one — and that club is what every row shows.
+      // one — and that club is what every row shows. The bib is in the same
+      // case, except it comes from another route than the engagements: it
+      // loads here, in the same pass, and demands nothing — a read that fails
+      // simply leaves the badges empty.
       final drawnAthletes = [for (final entry in lineUp) ...entry.athletes];
       Map<int, Club> clubs;
       try {
@@ -180,7 +183,9 @@ class RaceCourseController extends GetxController {
         for (final entry in lineUp)
           entry.copyWith(athletes: [
             for (final athlete in entry.athletes)
-              athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
+              athlete.copyWith(
+                club: clubs[athlete.id] ?? athlete.club,
+              ),
           ]),
       ];
 
@@ -518,19 +523,42 @@ class RaceCourseController extends GetxController {
   void _onBracelet(String payload) {
     final licence = parseBraceletLicence(payload);
     Entry? match;
+    Athlete? matchedAthlete;
     for (final entry in competitors) {
-      if (entry.athletes.any((a) => a.licenseeNumber == licence)) {
-        match = entry;
-        break;
+      for (final athlete in entry.athletes) {
+        if (athlete.licenseeNumber == licence) {
+          match = entry;
+          matchedAthlete = athlete;
+          break;
+        }
       }
+      if (match != null) break;
     }
     if (match == null) {
       message.trigger(const UiMessageError('course_bracelet_not_in_race'));
       return;
     }
+    // assign() overwrites its own "already ranked" / "withdrawn" message
+    // with nothing — it only ever sets message on the branches that change
+    // nothing — so those guards must be read before calling it, not after.
+    final wasUnranked = placeOf(match) == null && penaltyOf(match) == null;
     // A team crosses the line once: a teammate's bracelet read afterwards
     // falls onto the duplicate `assign` already reports.
     assign(match);
+    // The bib doesn't identify: it only means something within its own
+    // competition, so an un-rewritten bracelet would silently point at
+    // whichever athlete wears that number here. It verifies, and alerts when
+    // it disagrees with the licence — read off the athlete the licence
+    // matched, not off the engagement. Only on a read that genuinely ranked
+    // someone: a re-scan of an already-ranked or withdrawn engagement must
+    // keep assign's own message, which tells the marshal their gesture
+    // changed nothing — the provenance warning would already have shown on
+    // that bracelet's first, productive read.
+    final onBracelet = parseBraceletOrderNumber(payload);
+    final onFile = matchedAthlete?.orderNumber ?? 0;
+    if (wasUnranked && onBracelet > 0 && onFile > 0 && onBracelet != onFile) {
+      message.trigger(const UiMessageError('bracelet_other_event'));
+    }
     // Nothing left to place: holding the hardware open would only invite a
     // stray read.
     if (isComplete) stopScan();

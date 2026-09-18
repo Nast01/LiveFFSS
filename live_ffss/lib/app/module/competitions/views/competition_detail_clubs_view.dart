@@ -12,6 +12,7 @@ import 'package:live_ffss/app/presentation/shared/club_avatar.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
+import 'package:live_ffss/app/presentation/shared/order_number_badge.dart';
 
 class CompetitionDetailClubsView
     extends GetView<CompetitionDetailClubsController> {
@@ -220,6 +221,7 @@ class _AthleteTile extends StatelessWidget {
       iconColor: AppColors.statusFinished,
       name: '${athlete.firstName} ${athlete.lastName}',
       badgeLabel: 'athlete_upper',
+      orderNumber: athlete.orderNumber,
     );
   }
 }
@@ -246,12 +248,14 @@ class _LicenseeRow extends StatelessWidget {
     required this.iconColor,
     required this.name,
     required this.badgeLabel,
+    this.orderNumber = 0,
   });
 
   final IconData icon;
   final Color iconColor;
   final String name;
   final String badgeLabel;
+  final int orderNumber;
 
   @override
   Widget build(BuildContext context) {
@@ -272,6 +276,8 @@ class _LicenseeRow extends StatelessWidget {
             child: Icon(icon, color: iconColor, size: 18),
           ),
           const SizedBox(width: AppSpacing.sm),
+          OrderNumberBadge(orderNumber: orderNumber),
+          if (orderNumber > 0) const SizedBox(width: AppSpacing.xs),
           Expanded(
             child: Text(
               name,

@@ -102,9 +102,9 @@ class RaceDetailController extends GetxController {
       final loaded = await _raceRepo.getEntries(raceId);
       entries.value = _withClubs(loaded);
       // Progressive enhancement: the list is on screen already, so resolving
-      // the clubs (a list call plus one per club) happens behind it and patches
-      // the rows when it lands.
-      unawaited(_ensureClubs());
+      // the badges (a list call plus one per club) happens behind it and
+      // patches the rows when it lands.
+      unawaited(_resolveBadges());
     } on AppException catch (e) {
       entriesError.value = e;
     } finally {
@@ -112,11 +112,15 @@ class RaceDetailController extends GetxController {
     }
   }
 
-  /// Copies the resolved club onto every engaged athlete. Athletes the
-  /// resolution did not reach keep whatever club they arrived with, which is
-  /// normally none — [ClubAvatar] then falls back to the club initial.
+  /// Copies the resolved club and bib onto every engaged athlete. An athlete
+  /// the club resolution did not reach keeps what they arrived with, which is
+  /// normally no club — [ClubAvatar] then falls back to the club initial.
+  ///
+  /// The bib is not carried over: the entries come from `competition/engagement`,
+  /// which never serves `Dossard`, so the index is the only source and 0 means
+  /// "no bib in this competition, right now". Naming the competition is what
+  /// keeps the previous screen's bibs off these athletes.
   List<Entry> _withClubs(List<Entry> loaded) {
-    if (_clubs.isEmpty) return loaded;
     return [
       for (final entry in loaded)
         entry.copyWith(
@@ -128,23 +132,30 @@ class RaceDetailController extends GetxController {
     ];
   }
 
-  /// Resolves every engaged athlete's club once, then patches the rows already
-  /// on screen. Concurrent callers share the in-flight resolution; on failure
-  /// the future is cleared so a pull-to-refresh retries.
-  Future<void> _ensureClubs() {
-    if (_clubs.isNotEmpty) return Future.value();
-    return _clubsFuture ??= _resolveClubs();
+  /// Resolves the clubs of the athletes on screen.
+  ///
+  /// The bib needs nothing here: `competition/engagement` carries `Dossard`
+  /// on its athletes, so it is decoded with the rest of the entry.
+  Future<void> _resolveBadges() async {
+    final competitionId = competition.value?.id;
+    final athletes = [
+      for (final entry in entries) ...entry.athletes,
+    ];
+    if (competitionId == null || athletes.isEmpty) return;
+    await _ensureClubs(competitionId, athletes);
   }
 
-  Future<void> _resolveClubs() async {
+  /// Resolves every engaged athlete's club once, then patches the rows again.
+  /// Concurrent callers share the in-flight resolution; on failure the future
+  /// is cleared so a pull-to-refresh retries.
+  Future<void> _ensureClubs(int competitionId, List<Athlete> athletes) {
+    if (_clubs.isNotEmpty) return Future.value();
+    return _clubsFuture ??= _resolveClubs(competitionId, athletes);
+  }
+
+  Future<void> _resolveClubs(int competitionId, List<Athlete> athletes) async {
     try {
-      final competitionId = competition.value?.id;
-      final athletes = [
-        for (final entry in entries) ...entry.athletes,
-      ];
-      if (competitionId == null || athletes.isEmpty) return;
       _clubs = await _clubRepo.getAthleteClubs(competitionId, athletes);
-      if (_clubs.isEmpty) return;
       entries.value = _withClubs(entries);
     } on AppException {
       // Best-effort: every row keeps the club initial rather than an image.
@@ -348,10 +359,22 @@ class RaceDetailController extends GetxController {
     }
     attendance[match.id] = AttendanceStatus.present;
     _persistAttendance();
+    // The bib doesn't identify: it only means something within its own
+    // competition, so an un-rewritten bracelet would silently point at
+    // whichever athlete wears that number here. It verifies, and alerts when
+    // it disagrees with the licence.
+    final onBracelet = parseBraceletOrderNumber(payload);
+    if (onBracelet > 0 &&
+        match.orderNumber > 0 &&
+        onBracelet != match.orderNumber) {
+      message.trigger(const UiMessageError('bracelet_other_event'));
+    }
     scanLog.insert(
         0,
         ScanResult(
-            '${match.lastName} ${match.firstName}', ScanOutcome.present));
+            '${match.orderNumber > 0 ? '${match.orderNumber} · ' : ''}'
+            '${match.lastName} ${match.firstName}',
+            ScanOutcome.present));
     presentCount.value++;
   }
 

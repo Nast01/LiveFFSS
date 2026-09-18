@@ -77,6 +77,8 @@ class RaceStructureController extends GetxController {
   /// redemander une requête par créneau de la compétition à chaque ouverture.
   final MeetingService _meetingTree;
 
+  /// Les dossards de la compétition, que les engagements ne servent pas.
+
   final Rxn<Race> race = Rxn<Race>();
   final Rxn<Competition> competition = Rxn<Competition>();
   final RxBool isLoading = true.obs;
@@ -431,9 +433,12 @@ class RaceStructureController extends GetxController {
   /// sans refaire l'arbre des réunions.
   int heatIdOf(ProgrammeRace race) => _courseHeatIds[race.id] ?? 0;
 
-  /// Indexes the engaged athletes and resolves their clubs. Best-effort on the
-  /// clubs: without them the rows still read, only the logos fall back to the
-  /// club initial.
+  /// Indexe les engagés, leur club résolu et leur dossard posés dessus.
+  ///
+  /// Au mieux des deux : sans les clubs les lignes se lisent quand même, seuls
+  /// les logos retombent sur l'initiale ; sans les dossards les pastilles
+  /// restent vides. Le dossard vient d'une autre route que les engagements et
+  /// se charge ici, dans le même passage que les clubs.
   Future<Map<int, Athlete>> _indexAthletes(
     List<Entry> entries,
     int competitionId,

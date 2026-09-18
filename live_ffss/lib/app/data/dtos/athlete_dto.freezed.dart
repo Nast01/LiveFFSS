@@ -62,7 +62,13 @@ mixin _$AthleteDto {
 // `categories` map lists what they are *eligible* for, up to eleven
 // brackets for a master, which names nothing they actually race.
   @JsonKey(name: 'engagements')
-  List<AthleteEntryDto> get entries => throw _privateConstructorUsedError;
+  List<AthleteEntryDto> get entries =>
+      throw _privateConstructorUsedError; // The bib number: unique for an athlete within one competition. FFSS
+// types it as a String; it is read as an int so two bibs compare as
+// numbers. Present on Participant-shaped payloads (`participants`,
+// `organismes`), absent from `engagement`.
+  @JsonKey(name: 'Dossard', readValue: _readOrderNumber)
+  int get orderNumber => throw _privateConstructorUsedError;
 
   /// Serializes this AthleteDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -98,7 +104,8 @@ abstract class $AthleteDtoCopyWith<$Res> {
       @JsonKey(name: 'idClub') int clubId,
       @JsonKey(name: 'clubLabel') String clubLabel,
       @JsonKey(name: 'isRemplacant') bool isSubstitute,
-      @JsonKey(name: 'engagements') List<AthleteEntryDto> entries});
+      @JsonKey(name: 'engagements') List<AthleteEntryDto> entries,
+      @JsonKey(name: 'Dossard', readValue: _readOrderNumber) int orderNumber});
 }
 
 /// @nodoc
@@ -134,6 +141,7 @@ class _$AthleteDtoCopyWithImpl<$Res, $Val extends AthleteDto>
     Object? clubLabel = null,
     Object? isSubstitute = null,
     Object? entries = null,
+    Object? orderNumber = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -208,6 +216,10 @@ class _$AthleteDtoCopyWithImpl<$Res, $Val extends AthleteDto>
           ? _value.entries
           : entries // ignore: cast_nullable_to_non_nullable
               as List<AthleteEntryDto>,
+      orderNumber: null == orderNumber
+          ? _value.orderNumber
+          : orderNumber // ignore: cast_nullable_to_non_nullable
+              as int,
     ) as $Val);
   }
 }
@@ -238,7 +250,8 @@ abstract class _$$AthleteDtoImplCopyWith<$Res>
       @JsonKey(name: 'idClub') int clubId,
       @JsonKey(name: 'clubLabel') String clubLabel,
       @JsonKey(name: 'isRemplacant') bool isSubstitute,
-      @JsonKey(name: 'engagements') List<AthleteEntryDto> entries});
+      @JsonKey(name: 'engagements') List<AthleteEntryDto> entries,
+      @JsonKey(name: 'Dossard', readValue: _readOrderNumber) int orderNumber});
 }
 
 /// @nodoc
@@ -272,6 +285,7 @@ class __$$AthleteDtoImplCopyWithImpl<$Res>
     Object? clubLabel = null,
     Object? isSubstitute = null,
     Object? entries = null,
+    Object? orderNumber = null,
   }) {
     return _then(_$AthleteDtoImpl(
       id: null == id
@@ -346,6 +360,10 @@ class __$$AthleteDtoImplCopyWithImpl<$Res>
           ? _value._entries
           : entries // ignore: cast_nullable_to_non_nullable
               as List<AthleteEntryDto>,
+      orderNumber: null == orderNumber
+          ? _value.orderNumber
+          : orderNumber // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -372,7 +390,9 @@ class _$AthleteDtoImpl implements _AthleteDto {
       @JsonKey(name: 'clubLabel') this.clubLabel = '',
       @JsonKey(name: 'isRemplacant') this.isSubstitute = false,
       @JsonKey(name: 'engagements')
-      final List<AthleteEntryDto> entries = const <AthleteEntryDto>[]})
+      final List<AthleteEntryDto> entries = const <AthleteEntryDto>[],
+      @JsonKey(name: 'Dossard', readValue: _readOrderNumber)
+      this.orderNumber = 0})
       : _entries = entries;
 
   factory _$AthleteDtoImpl.fromJson(Map<String, dynamic> json) =>
@@ -449,9 +469,17 @@ class _$AthleteDtoImpl implements _AthleteDto {
     return EqualUnmodifiableListView(_entries);
   }
 
+// The bib number: unique for an athlete within one competition. FFSS
+// types it as a String; it is read as an int so two bibs compare as
+// numbers. Present on Participant-shaped payloads (`participants`,
+// `organismes`), absent from `engagement`.
+  @override
+  @JsonKey(name: 'Dossard', readValue: _readOrderNumber)
+  final int orderNumber;
+
   @override
   String toString() {
-    return 'AthleteDto(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, guestId: $guestId, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute, entries: $entries)';
+    return 'AthleteDto(id: $id, licenseeNumber: $licenseeNumber, firstName: $firstName, lastName: $lastName, gender: $gender, year: $year, nationalityCode: $nationalityCode, nationality: $nationality, isValid: $isValid, isLicensee: $isLicensee, isGuest: $isGuest, guestId: $guestId, performanceTime: $performanceTime, performanceLabel: $performanceLabel, clubId: $clubId, clubLabel: $clubLabel, isSubstitute: $isSubstitute, entries: $entries, orderNumber: $orderNumber)';
   }
 
   @override
@@ -486,31 +514,35 @@ class _$AthleteDtoImpl implements _AthleteDto {
                 other.clubLabel == clubLabel) &&
             (identical(other.isSubstitute, isSubstitute) ||
                 other.isSubstitute == isSubstitute) &&
-            const DeepCollectionEquality().equals(other._entries, _entries));
+            const DeepCollectionEquality().equals(other._entries, _entries) &&
+            (identical(other.orderNumber, orderNumber) ||
+                other.orderNumber == orderNumber));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      licenseeNumber,
-      firstName,
-      lastName,
-      gender,
-      year,
-      nationalityCode,
-      nationality,
-      isValid,
-      isLicensee,
-      isGuest,
-      guestId,
-      performanceTime,
-      performanceLabel,
-      clubId,
-      clubLabel,
-      isSubstitute,
-      const DeepCollectionEquality().hash(_entries));
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        licenseeNumber,
+        firstName,
+        lastName,
+        gender,
+        year,
+        nationalityCode,
+        nationality,
+        isValid,
+        isLicensee,
+        isGuest,
+        guestId,
+        performanceTime,
+        performanceLabel,
+        clubId,
+        clubLabel,
+        isSubstitute,
+        const DeepCollectionEquality().hash(_entries),
+        orderNumber
+      ]);
 
   /// Create a copy of AthleteDto
   /// with the given fields replaced by the non-null parameter values.
@@ -547,8 +579,9 @@ abstract class _AthleteDto implements AthleteDto {
       @JsonKey(name: 'idClub') final int clubId,
       @JsonKey(name: 'clubLabel') final String clubLabel,
       @JsonKey(name: 'isRemplacant') final bool isSubstitute,
-      @JsonKey(name: 'engagements')
-      final List<AthleteEntryDto> entries}) = _$AthleteDtoImpl;
+      @JsonKey(name: 'engagements') final List<AthleteEntryDto> entries,
+      @JsonKey(name: 'Dossard', readValue: _readOrderNumber)
+      final int orderNumber}) = _$AthleteDtoImpl;
 
   factory _AthleteDto.fromJson(Map<String, dynamic> json) =
       _$AthleteDtoImpl.fromJson;
@@ -613,7 +646,14 @@ abstract class _AthleteDto implements AthleteDto {
 // brackets for a master, which names nothing they actually race.
   @override
   @JsonKey(name: 'engagements')
-  List<AthleteEntryDto> get entries;
+  List<AthleteEntryDto>
+      get entries; // The bib number: unique for an athlete within one competition. FFSS
+// types it as a String; it is read as an int so two bibs compare as
+// numbers. Present on Participant-shaped payloads (`participants`,
+// `organismes`), absent from `engagement`.
+  @override
+  @JsonKey(name: 'Dossard', readValue: _readOrderNumber)
+  int get orderNumber;
 
   /// Create a copy of AthleteDto
   /// with the given fields replaced by the non-null parameter values.

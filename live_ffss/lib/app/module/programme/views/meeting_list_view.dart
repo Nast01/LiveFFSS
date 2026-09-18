@@ -139,7 +139,11 @@ class _MeetingListViewState extends State<MeetingListView> {
     return RefreshIndicator(
       onRefresh: _controller.reloadFromServer,
       child: ListView(
-        padding: AppSpacing.pageAll,
+        // Le bouton « nouvelle réunion » ferme cette liste : sans le retrait
+        // de la barre de navigation, il reste sous elle au bout du défilement.
+        padding: AppSpacing.pageAll.add(
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewPadding.bottom),
+        ),
         children: [
           Align(
             alignment: Alignment.centerRight,

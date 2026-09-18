@@ -45,6 +45,8 @@ class HeatDrawController extends GetxController {
   /// For the FFSS spots: the drawn line-up is pushed onto each heat's course
   /// when the draw is saved — the spots are what results are entered against.
   final MeetingRepository _meetings;
+
+  /// The bibs of the competition, for the drawn athletes' badges.
   final Random _random;
 
   final Rxn<Race> race = Rxn<Race>();
@@ -227,17 +229,21 @@ class HeatDrawController extends GetxController {
             entry,
       ];
 
+      // The bib comes from another route than the engagements: it loads here,
+      // in the same pass as the clubs, and demands nothing — a read that fails
+      // simply leaves the badges empty. Patching runs even with no club
+      // resolved, since the bibs may well have arrived on their own.
       final clubs = await _clubIndex(
           competitionId, [for (final e in present) ...e.athletes]);
-      presentEntries.value = clubs.isEmpty
-          ? present
-          : [
-              for (final entry in present)
-                entry.copyWith(athletes: [
-                  for (final athlete in entry.athletes)
-                    athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
-                ]),
-            ];
+      presentEntries.value = [
+        for (final entry in present)
+          entry.copyWith(athletes: [
+            for (final athlete in entry.athletes)
+              athlete.copyWith(
+                club: clubs[athlete.id] ?? athlete.club,
+              ),
+          ]),
+      ];
     } on AppException catch (e) {
       error.value = e;
     } finally {

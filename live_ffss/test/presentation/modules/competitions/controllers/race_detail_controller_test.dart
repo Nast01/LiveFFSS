@@ -15,6 +15,7 @@ import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/race.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_detail_controller.dart';
+import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockRaceRepo extends Mock implements RaceRepository {}
@@ -83,8 +84,12 @@ void main() {
     when(() => attendanceService.forRace(any()))
         .thenReturn(const <int, AttendanceStatus>{});
     when(() => attendanceService.save(any(), any())).thenAnswer((_) async {});
-    controller =
-        RaceDetailController(raceRepo, clubRepo, rfidWriter, attendanceService);
+    controller = RaceDetailController(
+      raceRepo,
+      clubRepo,
+      rfidWriter,
+      attendanceService,
+    );
     controller.race.value = makeRace(10);
     controller.competition.value = makeCompetition(99);
   });
@@ -204,6 +209,26 @@ void main() {
 
       expect(controller.entries.single.athletes.single.club?.logoUrl, 'l');
       verify(() => clubRepo.getAthleteClubs(any(), any())).called(1);
+    });
+
+    test('the bib carried by an entry survives the club patching', () async {
+      // `competition/engagement` serves `Dossard` on its athletes, so the bib
+      // arrives with the entry. The club pass rewrites those athletes — it
+      // must rewrite them without dropping it.
+      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
+            makeEntry(id: 1, clubName: 'X', athletes: [
+              athlete(11, clubId: 7).copyWith(orderNumber: 329),
+            ]),
+          ]);
+      when(() => clubRepo.getAthleteClubs(any(), any())).thenAnswer(
+        (_) async => const {11: Club(id: 7, name: 'Nice', logoUrl: 'l')},
+      );
+
+      await controller.loadEntries();
+      await pumpEventQueue();
+
+      expect(controller.entries.single.athletes.single.orderNumber, 329);
+      expect(controller.entries.single.athletes.single.club?.logoUrl, 'l');
     });
 
     test('renders entries even if the club resolution fails', () async {
@@ -563,6 +588,15 @@ void main() {
       return controller;
     }
 
+    test('les athletes affiches portent leur dossard', () async {
+      final controller = await loadWith([
+        entry(1, [athlete(11).copyWith(orderNumber: 329)]),
+      ]);
+      await pumpEventQueue();
+
+      expect(controller.entries.single.athletes.single.orderNumber, 329);
+    });
+
     test('une equipe est en attente tant qu elle n est pas complete', () async {
       final controller = await loadWith([
         entry(1, [athlete(11), athlete(12)]),
@@ -703,7 +737,13 @@ void main() {
   group('startScan', () {
     late StreamController<String> scanStream;
 
-    Athlete scanAthlete(int id, String lastName, String licence) => Athlete(
+    Athlete scanAthlete(
+      int id,
+      String lastName,
+      String licence, {
+      int orderNumber = 0,
+    }) =>
+        Athlete(
           id: id,
           licenseeNumber: licence,
           firstName: 'X',
@@ -713,6 +753,7 @@ void main() {
           nationalityCode: '',
           nationality: '',
           isValid: true,
+          orderNumber: orderNumber,
         );
 
     Entry scanEntry(List<Athlete> athletes) => Entry(
@@ -722,6 +763,24 @@ void main() {
           statusLabel: 'Engagé',
           athletes: athletes,
         );
+
+    /// One engaged athlete per id, licence `L<id>`, bib taken from [bibs] —
+    /// carried by the engagement itself, as `Dossard` is.
+    Future<RaceDetailController> loadWithBibs(Map<int, int> bibs) async {
+      when(() => raceRepo.getEntries(any())).thenAnswer((_) async => [
+            for (final entry in bibs.entries)
+              scanEntry([
+                scanAthlete(
+                  entry.key,
+                  'B${entry.key}',
+                  'L${entry.key}',
+                  orderNumber: entry.value,
+                ),
+              ]),
+          ]);
+      await controller.loadEntries();
+      return controller;
+    }
 
     setUp(() {
       scanStream = StreamController<String>();
@@ -788,6 +847,31 @@ void main() {
     test('canScanBracelets reflects the writer', () {
       when(() => rfidWriter.isSupported).thenReturn(true);
       expect(controller.canScanBracelets, isTrue);
+    });
+
+    test('a bracelet from another event still points, and alerts', () async {
+      // The athlete wears bib 12 here; the bracelet announces 7.
+      final c = await loadWithBibs({11: 12});
+      c.startScan();
+
+      scanStream.add('L11;B11;7');
+      await pumpEventQueue();
+
+      expect(c.attendanceOf(scanAthlete(11, 'B11', 'L11')),
+          AttendanceStatus.present);
+      expect(c.message.value, const UiMessageError('bracelet_other_event'));
+      c.stopScan();
+    });
+
+    test('a bracelet from this event says nothing', () async {
+      final c = await loadWithBibs({11: 12});
+      c.startScan();
+
+      scanStream.add('L11;B11;12');
+      await pumpEventQueue();
+
+      expect(c.message.value, isNull);
+      c.stopScan();
     });
   });
 }

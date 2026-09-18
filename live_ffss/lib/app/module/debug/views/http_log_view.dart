@@ -57,7 +57,13 @@ class HttpLogView extends GetView<HttpLogController> {
                   ),
                 );
               }
+              // Chaque ligne du journal se déplie et porte un bouton copier :
+              // sans le retrait de la barre de navigation, celui de la
+              // dernière reste dessous.
               return ListView.builder(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewPadding.bottom,
+                ),
                 itemCount: controller.entries.length,
                 itemBuilder: (context, index) =>
                     _tile(context, controller.entries[index]),

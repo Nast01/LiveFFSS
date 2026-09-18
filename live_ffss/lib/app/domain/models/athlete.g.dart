@@ -24,6 +24,7 @@ _$AthleteImpl _$$AthleteImplFromJson(Map<String, dynamic> json) =>
       clubId: (json['clubId'] as num?)?.toInt() ?? 0,
       clubLabel: json['clubLabel'] as String? ?? '',
       isSubstitute: json['isSubstitute'] as bool? ?? false,
+      orderNumber: (json['orderNumber'] as num?)?.toInt() ?? 0,
       categories: (json['categories'] as List<dynamic>?)
               ?.map((e) => Category.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -48,6 +49,7 @@ Map<String, dynamic> _$$AthleteImplToJson(_$AthleteImpl instance) =>
       'clubId': instance.clubId,
       'clubLabel': instance.clubLabel,
       'isSubstitute': instance.isSubstitute,
+      'orderNumber': instance.orderNumber,
       'categories': instance.categories,
     };
 

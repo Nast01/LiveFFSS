@@ -322,6 +322,36 @@ void main() {
       expect(lead.club?.logoUrl, 'https://logo/7.png');
     });
 
+    test('the present athletes carry their bib', () async {
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(11).copyWith(orderNumber: 329)]),
+          ]);
+      when(() => attendance.forRace(raceId))
+          .thenReturn({11: AttendanceStatus.present});
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.presentEntries.single.athletes.single.orderNumber, 329);
+    });
+
+    // The bib rides on the engagement, so it does not hang off the clubs: a
+    // competition whose clubs come back empty still shows it.
+    test('the bib lands even when no club resolves', () async {
+      when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [
+            entry(1, [athlete(11).copyWith(orderNumber: 329)]),
+          ]);
+      when(() => attendance.forRace(raceId))
+          .thenReturn({11: AttendanceStatus.present});
+      when(() => clubRepo.getAthleteClubs(any(), any()))
+          .thenAnswer((_) async => const <int, Club>{});
+
+      final controller = build();
+      await controller.load();
+
+      expect(controller.presentEntries.single.athletes.single.orderNumber, 329);
+    });
+
     test('a club fetch failure still loads the athletes, without clubs',
         () async {
       when(() => raceRepo.getEntries(raceId)).thenAnswer((_) async => [

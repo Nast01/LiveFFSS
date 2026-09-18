@@ -267,4 +267,42 @@ void main() {
 
     expect(athlete.categories.map((c) => c.id), [13]);
   });
+
+  group('orderNumber', () {
+    int orderNumberFrom(Object? dossard) =>
+        AthleteDto.fromJson(<String, dynamic>{
+          'Id': 1,
+          if (dossard != null) 'Dossard': dossard,
+        }).toDomain().orderNumber;
+
+    test('une chaine de chiffres devient un entier', () {
+      expect(orderNumberFrom('12'), 12);
+    });
+
+    // FFSS documente `Dossard` en String, mais sert deja `Annee` tantot en
+    // nombre tantot en texte : les deux formes doivent passer.
+    test('un nombre passe tel quel', () {
+      expect(orderNumberFrom(12), 12);
+    });
+
+    // Meme raison : un JSON qui sert 12.0 la ou `Annee` serait passee sans
+    // broncher ne doit pas se lire "pas de dossard".
+    test('un decimal entier se lit comme un entier', () {
+      expect(orderNumberFrom(12.0), 12);
+    });
+
+    test('sans dossard, zero', () {
+      expect(orderNumberFrom(null), 0);
+    });
+
+    test('une chaine vide vaut pas de dossard', () {
+      expect(orderNumberFrom(''), 0);
+    });
+
+    // Consequence assumee de l'entier : un dossard alphanumerique se lit 0,
+    // donc pas de dossard, et disparait de l'ecran.
+    test('un dossard non numerique vaut pas de dossard', () {
+      expect(orderNumberFrom('A12'), 0);
+    });
+  });
 }

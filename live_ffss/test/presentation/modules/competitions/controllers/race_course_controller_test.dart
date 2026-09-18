@@ -241,6 +241,7 @@ void main() {
     List<List<int>> competitorOrder = const [],
     int heatId = 0,
     int runId = 0,
+    Map<int, int> bibs = const {},
   }) async {
     programme = _FakeProgrammeService(programmeWith(ProgrammeRace(
       id: programmeRaceId,
@@ -257,7 +258,10 @@ void main() {
               category: const Category(id: categoryId, name: 'Senior'),
               status: 1,
               statusLabel: 'Engagé',
-              athletes: [for (final id in e.athleteIds) athlete(id)],
+              athletes: [
+                for (final id in e.athleteIds)
+                  athlete(id).copyWith(orderNumber: bibs[id] ?? 0),
+              ],
             ),
         ]);
     final controller =
@@ -272,6 +276,16 @@ void main() {
       loadWithEntries([
         for (final id in athleteIds) (entryId: id * 10, athleteIds: [id]),
       ]);
+
+  /// Comme [loadWith], le dossard de chaque athlète étant porté par son
+  /// engagement — c'est `competition/engagement` qui sert `Dossard`.
+  Future<RaceCourseController> loadWithBibs(Map<int, int> bibs) =>
+      loadWithEntries(
+        [
+          for (final id in bibs.keys) (entryId: id * 10, athleteIds: [id]),
+        ],
+        bibs: bibs,
+      );
 
   setUp(() {
     rfid = _MockRfidWriter();
@@ -352,6 +366,19 @@ void main() {
       final c = await loadWith([10]);
 
       expect(c.competitors.single.athletes.single.club?.name, 'SNS Nice');
+    });
+
+    // Le dossard n'arrive pas davantage sur l'engagement : il vient d'une
+    // autre route, recopiée dans le même passage que le club.
+    test('les athletes des engagements portent leur dossard', () async {
+      final c = await loadWithEntries(
+        [
+          (entryId: 100, athleteIds: [10])
+        ],
+        bibs: {10: 329},
+      );
+
+      expect(c.competitors.single.athletes.single.orderNumber, 329);
     });
 
     // Un relais fait tomber chaque athlete dans son propre club : patcher
@@ -733,6 +760,68 @@ void main() {
       final c = await loadWith([10]);
 
       expect(c.canScan, isFalse);
+    });
+
+    test('a bracelet from another event still ranks, and alerts', () async {
+      // The athlete wears bib 12 here; the bracelet announces 7.
+      final c = await loadWithBibs({10: 12});
+      c.startScan();
+
+      stream.add('L10;B10;7');
+      await pumpEventQueue();
+
+      expect(c.placeOf(c.competitors[0]), 1);
+      expect(c.message.value, const UiMessageError('bracelet_other_event'));
+      c.stopScan();
+    });
+
+    test('a bracelet from this event says nothing', () async {
+      final c = await loadWithBibs({10: 12});
+      c.startScan();
+
+      stream.add('L10;B10;12');
+      await pumpEventQueue();
+
+      expect(c.placeOf(c.competitors[0]), 1);
+      expect(c.message.value, isNull);
+      c.stopScan();
+    });
+
+    // A re-read is unproductive: assign() already tells the marshal their
+    // gesture changed nothing, and the provenance warning would have shown
+    // on the first, productive read of that same bracelet — repeating it
+    // here would bury the more useful message.
+    test(
+        'a re-read of an already ranked engagement keeps assign\'s own message',
+        () async {
+      final c = await loadWithBibs({10: 12, 11: 0});
+      c.startScan();
+      stream.add('L10;B10;7');
+      await pumpEventQueue();
+      stream.add('L10;B10;7');
+      await pumpEventQueue();
+
+      expect(c.placeOf(c.competitors[0]), 1);
+      expect(c.message.value,
+          const UiMessageError('course_athlete_already_ranked'));
+      c.stopScan();
+    });
+
+    // Same rule on the other half of the guard: a withdrawn engagement is
+    // just as unproductive a read, and assign()'s own message is the one the
+    // marshal needs.
+    test('a re-read of a withdrawn engagement keeps assign\'s own message',
+        () async {
+      final c = await loadWithBibs({10: 12, 11: 0});
+      c.setPenalty(c.competitors[0], CoursePenaltyKind.forfeit);
+      c.startScan();
+
+      stream.add('L10;B10;7');
+      await pumpEventQueue();
+
+      expect(c.placeOf(c.competitors[0]), isNull);
+      expect(c.message.value, const UiMessageError('course_athlete_withdrawn'));
+      c.stopScan();
     });
   });
 

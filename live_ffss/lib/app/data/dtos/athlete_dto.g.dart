@@ -29,6 +29,7 @@ _$AthleteDtoImpl _$$AthleteDtoImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => AthleteEntryDto.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const <AthleteEntryDto>[],
+      orderNumber: (_readOrderNumber(json, 'Dossard') as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$$AthleteDtoImplToJson(_$AthleteDtoImpl instance) =>
@@ -51,4 +52,5 @@ Map<String, dynamic> _$$AthleteDtoImplToJson(_$AthleteDtoImpl instance) =>
       'clubLabel': instance.clubLabel,
       'isRemplacant': instance.isSubstitute,
       'engagements': instance.entries,
+      'Dossard': instance.orderNumber,
     };

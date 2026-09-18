@@ -25,7 +25,14 @@ class StorageInspectorView extends GetView<StorageInspectorController> {
       body: Obx(() {
         if (controller.isLoading.value) return const LoadingIndicator();
         return ListView(
-          padding: const EdgeInsets.all(16),
+          // Les cartes portent des boutons copier/supprimer : sans le retrait
+          // de la barre de navigation, ceux de la dernière restent dessous.
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            16 + MediaQuery.of(context).viewPadding.bottom,
+          ),
           children: [
             Container(
               padding: const EdgeInsets.all(12),

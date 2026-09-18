@@ -37,6 +37,13 @@ class AthleteDto with _$AthleteDto {
     @JsonKey(name: 'engagements')
     @Default(<AthleteEntryDto>[])
     List<AthleteEntryDto> entries,
+    // The bib number: unique for an athlete within one competition. FFSS
+    // types it as a String; it is read as an int so two bibs compare as
+    // numbers. Present on Participant-shaped payloads (`participants`,
+    // `organismes`), absent from `engagement`.
+    @JsonKey(name: 'Dossard', readValue: _readOrderNumber)
+    @Default(0)
+    int orderNumber,
   }) = _AthleteDto;
 
   factory AthleteDto.fromJson(Map<String, dynamic> json) =>
@@ -53,4 +60,11 @@ Object? _readGuestId(Map<dynamic, dynamic> map, String key) {
   final raw = map[key];
   if (raw == null) return '';
   return raw is String ? raw : raw.toString();
+}
+
+Object? _readOrderNumber(Map<dynamic, dynamic> map, String key) {
+  final raw = map[key];
+  if (raw is String) return int.tryParse(raw) ?? 0;
+  if (raw is num) return raw;
+  return 0;
 }

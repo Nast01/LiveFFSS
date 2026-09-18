@@ -384,6 +384,18 @@ void main() {
           'l');
     });
 
+    test('carries the bib so the row can show it', () async {
+      when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
+            entry(1, 7, athletes: [makeAthlete(31).copyWith(orderNumber: 329)]),
+          ]);
+      await controller.load(race(500), competition);
+
+      const drawn = ProgrammeRace(id: 1, number: 1, athleteIds: [31]);
+
+      expect(
+          controller.entriesOf(drawn).single.athletes.single.orderNumber, 329);
+    });
+
     test('a club failure still yields the athletes, without clubs', () async {
       when(() => raceRepo.getEntries(500)).thenAnswer((_) async => [
             entry(1, 7, athletes: [makeAthlete(31, clubId: 4)]),

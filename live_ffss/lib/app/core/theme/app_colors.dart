@@ -35,4 +35,9 @@ abstract class AppColors {
   static const Color rankGold = Color(0xFFFFA000);
   static const Color rankSilver = Color(0xFF757575);
   static const Color rankBronze = Color(0xFF6D4C41);
+
+  /// Fond de la pastille de dossard. Volontairement la seule forme sombre de
+  /// l'app : une place est colorée par son rang, un couloir est bleu pâle, un
+  /// statut est vert ou rouge — le dossard ne doit se confondre avec aucun.
+  static const Color orderNumberBadge = Color(0xFF263238);
 }
