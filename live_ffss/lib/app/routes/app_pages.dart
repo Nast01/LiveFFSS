@@ -121,6 +121,14 @@ class AppPages {
       GetPage(
         name: Routes.restarting,
         page: () => const RestartingView(),
+        // Sans animation, et c'est ce qui rend la bascule d'environnement
+        // possible : `AppRestart.switchTo` détruit le conteneur une frame
+        // après avoir poussé cette route, et une transition animée laisserait
+        // l'ancienne pile montée pendant ce temps. Sa première `GetView`
+        // redemanderait alors un contrôleur que `Get.deleteAll` vient
+        // d'emporter.
+        transition: Transition.noTransition,
+        transitionDuration: Duration.zero,
       ),
     if (kDebugMode)
       GetPage(

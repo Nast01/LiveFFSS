@@ -24,6 +24,12 @@ abstract class AppRestart {
     // suit, sur l'écran d'attente. Ce qu'il faut attendre, c'est la frame qui
     // démonte l'ancienne pile — /restarting n'a ni binding ni contrôleur, donc
     // une fois celle-ci écoulée, plus aucune vue ne peut faire de Get.find.
+    //
+    // Ceci tient à une condition, portée par la déclaration de /restarting
+    // dans app_pages : sa transition est nulle. Animée, elle garderait
+    // l'ancienne pile montée le temps de l'animation, et le deleteAll
+    // ci-dessous détruirait le contrôleur sous une vue encore vivante — dont
+    // le premier Obx redemanderait aussitôt ce contrôleur disparu.
     unawaited(Get.offAllNamed<void>(Routes.restarting));
     await WidgetsBinding.instance.endOfFrame;
 
