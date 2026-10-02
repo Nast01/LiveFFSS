@@ -51,7 +51,7 @@ class RaceDetailController extends GetxController {
   bool _attendanceRestored = false;
 
   /// How the engagement list is ordered. Drives [sortedEntries].
-  final Rx<CompetitorSortMode> sortMode = CompetitorSortMode.name.obs;
+  final Rx<CompetitorSortMode> sortMode = CompetitorSortMode.orderNumber.obs;
 
   final RxBool isScanning = false.obs;
   final RxList<ScanResult> scanLog = <ScanResult>[].obs;
@@ -170,6 +170,10 @@ class RaceDetailController extends GetxController {
   List<Entry> get sortedEntries {
     final all = entries.toList();
     all.sort(switch (sortMode.value) {
+      CompetitorSortMode.orderNumber => (a, b) {
+          final byBib = _bibOf(a).compareTo(_bibOf(b));
+          return byBib != 0 ? byBib : _byTitle(a, b);
+        },
       CompetitorSortMode.name => _byTitle,
       CompetitorSortMode.club => (a, b) {
           final byClub = _clubOf(a).compareTo(_clubOf(b));
@@ -189,6 +193,21 @@ class RaceDetailController extends GetxController {
       entryTitle(a).toLowerCase().compareTo(entryTitle(b).toLowerCase());
 
   String _clubOf(Entry entry) => entryClubLabel(entry).toLowerCase();
+
+  /// The bib an engagement sorts on: a relay takes the smallest of its
+  /// athletes', and an engagement carrying none takes [_noBib] so that "no
+  /// bib" (0, what `Athlete.orderNumber` defaults to) closes the list instead
+  /// of opening it.
+  int _bibOf(Entry entry) {
+    var lowest = 0;
+    for (final athlete in entry.athletes) {
+      final bib = athlete.orderNumber;
+      if (bib > 0 && (lowest == 0 || bib < lowest)) lowest = bib;
+    }
+    return lowest == 0 ? _noBib : lowest;
+  }
+
+  static const int _noBib = 1 << 30;
 
   void setSortMode(CompetitorSortMode mode) => sortMode.value = mode;
 
@@ -398,4 +417,4 @@ class ScanResult {
   final ScanOutcome outcome;
 }
 
-enum CompetitorSortMode { name, club, attendance }
+enum CompetitorSortMode { orderNumber, name, club, attendance }

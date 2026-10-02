@@ -218,24 +218,42 @@ void main() {
         [3]
       ], 1, 3);
 
+      // La case qu'il libère reste vide : 2 et 3 gardent les numéros saisis.
       expect(order, [
+        <int>[],
         [2],
         [3, 1]
       ]);
+      expect(placesOf(order), {2: 2, 3: 3, 1: 3});
     });
 
-    // Le classement reste dense : on ne peut pas être deuxième sans premier.
-    test('un rang au-delà du plateau se referme sur la suite', () {
+    // Ce qui est tapé est ce qui reste : taper 5 pose 5, les cases 3 et 4
+    // attendent ceux qui n'ont pas encore été saisis. Le plateau, lui, est
+    // borné par l'appelant — le contrôleur ramène 99 au dernier concurrent.
+    test('un rang au-delà des classés laisse les cases vides derrière lui', () {
       final order = withPlace([
         [1],
         [2]
-      ], 3, 99);
+      ], 3, 5);
 
       expect(order, [
         [1],
         [2],
+        <int>[],
+        <int>[],
         [3]
       ]);
+      expect(placesOf(order), {1: 1, 2: 2, 3: 5});
+    });
+
+    test('poser une place ne renumérote personne d autre', () {
+      final order = withPlace(
+        withPlace(withPlace(const [], 1, 1), 2, 5),
+        3,
+        3,
+      );
+
+      expect(placesOf(order), {1: 1, 2: 5, 3: 3});
     });
 
     test('un rang inférieur à 1 ne change rien', () {
@@ -254,6 +272,171 @@ void main() {
       ];
 
       expect(identical(withPlace(order, 2, 0), order), isFalse);
+    });
+  });
+
+  group('placesOf sur une grille trouée', () {
+    test('une case vide garde son numéro à celui qui suit', () {
+      expect(
+          placesOf(const [
+            [10],
+            [],
+            [12],
+          ]),
+          {10: 1, 12: 3});
+    });
+
+    test('un ex-aequo consomme toujours les places qu il occupe', () {
+      // La case 2 dit « deuxième », l'ex-aequo dit « troisième » : la règle
+      // fédérale l'emporte, on ne peut pas être deuxième derrière deux premiers.
+      expect(
+          placesOf(const [
+            [10, 11],
+            [12],
+          ]),
+          {10: 1, 11: 1, 12: 3});
+    });
+  });
+
+  group('rankingOf', () {
+    test('tasse les cases vides pour la fédération', () {
+      expect(
+          rankingOf(const [
+            [10],
+            [],
+            [12],
+          ]),
+          {10: 1, 12: 2});
+    });
+
+    test('garde la règle de l ex-aequo', () {
+      expect(
+          rankingOf(const [
+            [10, 11],
+            [12],
+          ]),
+          {10: 1, 11: 1, 12: 3});
+    });
+
+    test('sur une course sans trou, c est placesOf mot pour mot', () {
+      const order = [
+        [10, 11],
+        [12],
+        [13],
+      ];
+
+      expect(rankingOf(order), placesOf(order));
+    });
+  });
+
+  group('withoutPlace', () {
+    test('vide la case sans faire remonter les suivants', () {
+      final after = withoutPlace(const [
+        [10],
+        [11],
+        [12],
+      ], 10);
+
+      expect(after, [
+        <int>[],
+        [11],
+        [12],
+      ]);
+      expect(placesOf(after), {11: 2, 12: 3});
+    });
+
+    test('les cases vides de la fin ne sont pas gardées', () {
+      expect(
+          withoutPlace(const [
+            [10],
+            [11],
+          ], 11),
+          [
+            [10],
+          ]);
+    });
+
+    test('vider une case d un ex-aequo rend sa place à celui qui suit', () {
+      // L'ex-aequo ne consomme plus la deuxième place : 12 retrouve le numéro
+      // de sa case, celui qui avait été saisi pour lui.
+      final after = withoutPlace(const [
+        [10, 11],
+        [12],
+      ], 11);
+
+      expect(placesOf(after), {10: 1, 12: 2});
+    });
+  });
+
+  group('la grille trouée et les autres fonctions', () {
+    test('nextPlace vise le premier trou', () {
+      expect(
+          nextPlace(const [
+            [10],
+            [],
+            [12],
+          ]),
+          2);
+    });
+
+    test('withFinisher comble le premier trou', () {
+      expect(
+          withFinisher(const [
+            [10],
+            [],
+            [12],
+          ], 11, tied: false),
+          [
+            [10],
+            [11],
+            [12],
+          ]);
+    });
+
+    test('withFinisher se lie au dernier groupe occupé', () {
+      expect(
+          withFinisher(const [
+            [10],
+            [],
+            [12],
+          ], 11, tied: true),
+          [
+            [10],
+            <int>[],
+            [12, 11],
+          ]);
+    });
+
+    test('withoutCompetitor referme sa case et garde les autres trous', () {
+      final after = withoutCompetitor(const [
+        [10],
+        [],
+        [12],
+        [13],
+      ], 12);
+
+      expect(after, [
+        [10],
+        <int>[],
+        [13],
+      ]);
+      expect(placesOf(after), {10: 1, 13: 3});
+    });
+
+    test('withoutLastFinisher reprend le dernier posé, trou ou pas', () {
+      expect(
+          withoutLastFinisher(const [
+            [10],
+            [],
+            [12],
+          ]),
+          [
+            [10],
+          ]);
+    });
+
+    test('withoutLastFinisher sur une grille sans personne ne jette pas', () {
+      expect(withoutLastFinisher(const [[], []]), isEmpty);
     });
   });
 }

@@ -5,6 +5,7 @@ import 'package:live_ffss/app/data/dtos/heat_result_dto.dart';
 import 'package:live_ffss/app/data/dtos/lane_detail_dto.dart';
 import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
 import 'package:live_ffss/app/data/dtos/run_dto.dart';
+import 'package:live_ffss/app/domain/models/round_level.dart';
 
 abstract class MeetingRemoteDataSource {
   /// One window of the competition's réunions. FFSS caps this list — it
@@ -94,10 +95,17 @@ abstract class MeetingRemoteDataSource {
   /// Creates the FFSS `serie` a course's results hang off, or updates the one
   /// with [id]. A série belongs to the épreuve; `submitRun`'s `serie`
   /// parameter is what ties it to the course.
+  ///
+  /// [level] part sur chaque appel, update compris : sans lui FFSS retombe sur
+  /// son défaut `heat`, et toutes les finales de l'app s'enregistraient en
+  /// séries. Un tour que l'app ne sait pas nommer ([RoundType.unknown]) laisse
+  /// le champ de côté plutôt que d'envoyer un code vide — le défaut du serveur
+  /// vaut mieux qu'un refus au bord du bassin.
   Future<int> submitHeat({
     required int raceId,
     required String name,
     required int number,
+    required RoundType level,
     int? id,
   });
 
@@ -328,13 +336,18 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
     required int raceId,
     required String name,
     required int number,
+    required RoundType level,
     int? id,
   }) async {
+    final code = roundTypeCode(level);
     final body = await _http.post(ApiEndpoints.heatSubmit, query: {
       'id': id?.toString() ?? '',
       'epreuve': raceId.toString(),
       'nom': name,
       'numero': number.toString(),
+      // Le même vocabulaire que `deroulement/partie/submit` : heat, quarter,
+      // semi, final.
+      if (code.isNotEmpty) 'niveau': code,
     });
     final assigned = body['id'];
     return assigned is int ? assigned : 0;

@@ -342,6 +342,7 @@ class _SortDropdown extends GetView<RaceDetailController> {
   const _SortDropdown();
 
   static String _labelOf(CompetitorSortMode mode) => switch (mode) {
+        CompetitorSortMode.orderNumber => 'sort_order_number'.tr,
         CompetitorSortMode.name => 'sort_name'.tr,
         CompetitorSortMode.club => 'sort_club'.tr,
         CompetitorSortMode.attendance => 'sort_status'.tr,

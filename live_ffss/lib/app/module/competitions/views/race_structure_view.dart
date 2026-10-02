@@ -15,6 +15,7 @@ import 'package:live_ffss/app/presentation/modules/competitions/entry_formatting
 import 'package:live_ffss/app/presentation/modules/programme/programme_formatting.dart';
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/entry_group_tile.dart';
+import 'package:live_ffss/app/presentation/shared/lane_number_badge.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
@@ -567,7 +568,18 @@ class _CourseTile extends StatelessWidget {
                       entry: entry,
                       title: entryTitle(entry),
                       subtitle: entrySubtitle(entry),
-                      leading: _PlaceBadge(place: place, penalty: penalty),
+                      // Couloir puis place : la même suite que le tirage
+                      // montre — `entriesOf` rend les engagements dans
+                      // l'ordre des couloirs — et, à côté, ce que la course
+                      // a donné.
+                      leading: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          LaneNumberBadge(lane: i + 1),
+                          const SizedBox(width: AppSpacing.xs),
+                          _PlaceBadge(place: place, penalty: penalty),
+                        ],
+                      ),
                       // The code the referee typed — "4.7", "DSQ" — only means
                       // something on a withdrawal.
                       trailing: penalty?.code.isNotEmpty == true

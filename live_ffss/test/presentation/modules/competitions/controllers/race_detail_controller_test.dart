@@ -272,6 +272,7 @@ void main() {
       required String lastName,
       int year = 2000,
       String clubLabel = '',
+      int orderNumber = 0,
     }) =>
         Athlete(
           id: id,
@@ -284,6 +285,7 @@ void main() {
           nationality: '',
           isValid: true,
           clubLabel: clubLabel,
+          orderNumber: orderNumber,
         );
 
     Entry entryWithAthletes(int id, List<Athlete> athletes) => Entry(
@@ -294,8 +296,35 @@ void main() {
           athletes: athletes,
         );
 
-    test('defaults to sorting by name', () {
-      expect(controller.sortMode.value, CompetitorSortMode.name);
+    test('defaults to sorting by bib', () {
+      expect(controller.sortMode.value, CompetitorSortMode.orderNumber);
+    });
+
+    test('sortMode orderNumber orders by bib, the bibless last', () {
+      controller.entries.value = [
+        entryWithAthletes(1, [
+          makeAthlete(
+              id: 1, firstName: 'Zoe', lastName: 'Aaa', orderNumber: 12),
+        ]),
+        // No bib at all: sinks to the end whatever its name.
+        entryWithAthletes(2, [
+          makeAthlete(id: 2, firstName: 'Anna', lastName: 'Bbb'),
+        ]),
+        entryWithAthletes(3, [
+          makeAthlete(id: 3, firstName: 'Bob', lastName: 'Ccc', orderNumber: 5),
+        ]),
+        // A relay sorts on its smallest bib, 7, so between 5 and 12.
+        entryWithAthletes(4, [
+          makeAthlete(
+              id: 41, firstName: 'Léa', lastName: 'Ddd', orderNumber: 30),
+          makeAthlete(
+              id: 42, firstName: 'Max', lastName: 'Eee', orderNumber: 7),
+        ]),
+      ];
+
+      controller.setSortMode(CompetitorSortMode.orderNumber);
+
+      expect(controller.sortedEntries.map((e) => e.id), [3, 4, 1, 2]);
     });
 
     test('sortMode club orders individual entries by club then name', () {

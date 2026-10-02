@@ -15,6 +15,7 @@ import 'package:live_ffss/app/presentation/modules/programme/programme_formattin
 import 'package:live_ffss/app/presentation/shared/empty_state.dart';
 import 'package:live_ffss/app/presentation/shared/entry_group_tile.dart';
 import 'package:live_ffss/app/presentation/shared/error_state.dart';
+import 'package:live_ffss/app/presentation/shared/lane_number_badge.dart';
 import 'package:live_ffss/app/presentation/shared/loading_indicator.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message_display.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
@@ -598,7 +599,7 @@ class _HeatCard extends StatelessWidget {
                     entry: entry,
                     title: entryTitle(entry),
                     subtitle: entrySubtitle(entry),
-                    leading: _LaneNumber(lane: lane + 1),
+                    leading: LaneNumberBadge(lane: lane + 1),
                     trailing: const Icon(Icons.swap_horiz,
                         size: 18, color: AppColors.textMuted),
                     expanded: ctrl.isEntryExpanded(entry),
@@ -611,28 +612,6 @@ class _HeatCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
         ],
       ),
-    );
-  }
-}
-
-class _LaneNumber extends StatelessWidget {
-  const _LaneNumber({required this.lane});
-
-  final int lane;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 28,
-      height: 28,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.12),
-        borderRadius: AppRadius.smRadius,
-      ),
-      child: Text('$lane',
-          style: AppTypography.caption
-              .copyWith(fontWeight: FontWeight.w800, color: AppColors.primary)),
     );
   }
 }

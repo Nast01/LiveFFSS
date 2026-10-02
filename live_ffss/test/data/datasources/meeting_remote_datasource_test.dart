@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
+import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -381,11 +382,17 @@ void main() {
   group('submitHeat et submitResult', () {
     // Vérifié en production le 2026-09-04. Une `serie` s'accroche à l'épreuve,
     // pas à la course ; c'est `course/submit` qui porte ensuite le lien.
-    test('une série part avec son épreuve, son nom et son numéro', () async {
+    test('une série part avec son épreuve, son nom, son numéro et son niveau',
+        () async {
       when(() => http.post(any(), query: any(named: 'query')))
           .thenAnswer((_) async => {'success': true, 'id': 94369});
 
-      final id = await ds.submitHeat(raceId: 37962, name: 'Demie 1', number: 1);
+      final id = await ds.submitHeat(
+        raceId: 37962,
+        name: 'Demie 1',
+        number: 1,
+        level: RoundType.demi,
+      );
 
       expect(id, 94369);
       final query = verify(() => http.post('competition/serie/submit',
@@ -393,6 +400,48 @@ void main() {
       expect(query['epreuve'], '37962');
       expect(query['nom'], 'Demie 1');
       expect(query['numero'], '1');
+      // Le vocabulaire de `deroulement/partie/submit`, confirmé par la table
+      // des niveaux de série : heat, quarter, semi, final.
+      expect(query['niveau'], 'semi');
+    });
+
+    // Sans `niveau`, FFSS applique son défaut `heat` : une finale s'y
+    // enregistrait en série, et une revalidation le réécrivait à chaque fois.
+    test('une finale part bien en finale', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 94369});
+
+      await ds.submitHeat(
+        raceId: 37962,
+        name: 'Finale A',
+        number: 2,
+        level: RoundType.finale,
+        id: 94369,
+      );
+
+      final query = verify(() => http.post('competition/serie/submit',
+          query: captureAny(named: 'query'))).captured.single as Map;
+      // Update compris : l'omettre laisserait le serveur retomber sur `heat`.
+      expect(query['id'], '94369');
+      expect(query['niveau'], 'final');
+    });
+
+    // Un tour que l'app ne sait pas nommer n'a pas de code à envoyer ; le
+    // défaut du serveur vaut mieux qu'une chaîne vide qu'il pourrait refuser.
+    test('un tour inconnu laisse le niveau de côté', () async {
+      when(() => http.post(any(), query: any(named: 'query')))
+          .thenAnswer((_) async => {'success': true, 'id': 94369});
+
+      await ds.submitHeat(
+        raceId: 37962,
+        name: 'Série 1',
+        number: 1,
+        level: RoundType.unknown,
+      );
+
+      final query = verify(() => http.post('competition/serie/submit',
+          query: captureAny(named: 'query'))).captured.single as Map;
+      expect(query.containsKey('niveau'), isFalse);
     });
 
     // `statut` : 0 = OK, 1 = DQ, 2 = forfait — relevé en sondant la route.

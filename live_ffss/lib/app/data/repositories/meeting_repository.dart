@@ -8,6 +8,7 @@ import 'package:live_ffss/app/data/mappers/lane_detail_mapper.dart';
 import 'package:live_ffss/app/data/mappers/meeting_mapper.dart';
 import 'package:live_ffss/app/domain/models/lane.dart';
 import 'package:live_ffss/app/domain/models/meeting.dart';
+import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/domain/models/run.dart';
 
 abstract class MeetingRepository {
@@ -96,10 +97,13 @@ abstract class MeetingRepository {
   ///
   /// Returns the heat id, or 0 when the heat itself was refused — no result is
   /// sent then, since every one of them hangs off it.
+  /// [roundType] est le niveau de la série chez FFSS : sans lui, une finale
+  /// s'enregistre en série, le serveur appliquant son défaut.
   Future<int> publishCourseResults({
     required int raceId,
     required String heatName,
     required int heatNumber,
+    required RoundType roundType,
     required List<CourseOutcome> outcomes,
     int? heatId,
     CourseHeatLink? link,
@@ -391,6 +395,7 @@ class MeetingRepositoryImpl implements MeetingRepository {
     required int raceId,
     required String heatName,
     required int heatNumber,
+    required RoundType roundType,
     required List<CourseOutcome> outcomes,
     int? heatId,
     CourseHeatLink? link,
@@ -399,6 +404,7 @@ class MeetingRepositoryImpl implements MeetingRepository {
       raceId: raceId,
       name: heatName,
       number: heatNumber,
+      level: roundType,
       id: heatId,
     );
     if (heat == 0) return 0;

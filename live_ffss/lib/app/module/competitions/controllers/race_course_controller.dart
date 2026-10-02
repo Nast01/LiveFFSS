@@ -310,6 +310,9 @@ class RaceCourseController extends GetxController {
         if (rank == null || !known.contains(result.entryId)) continue;
         (groups[rank] ??= []).add(result.entryId);
       }
+      // Tassé, sans garder les rangs pour cases : un trou dans ce que FFSS
+      // rend ne dit pas que l'opérateur en avait laissé un — un engagement
+      // d'une autre série écarté juste au-dessus en creuse un tout pareil.
       final ranks = groups.keys.toList()..sort();
       final order = [for (final rank in ranks) groups[rank]!];
 
@@ -434,9 +437,20 @@ class RaceCourseController extends GetxController {
       message.trigger(const UiMessageError('course_athlete_withdrawn'));
       return;
     }
-    competitorOrder.value = place < 1
-        ? withoutCompetitor(competitorOrder, entry.id)
-        : withPlace(competitorOrder, entry.id, place);
+    // Vider la case libère la place sans faire remonter personne : corriger
+    // une saisie ne doit pas renuméroter celles d'à côté. Retirer du
+    // classement — le menu de la ligne — referme derrière, lui.
+    if (place < 1) {
+      competitorOrder.value = withoutPlace(competitorOrder, entry.id);
+      _persist();
+      return;
+    }
+    // Une place au-delà du plateau n'existe pas : un doigt qui tape 99 sur une
+    // série de huit vise le dernier, pas la 99e case, et l'ordre stocké n'a
+    // pas à porter les 91 cases vides qui suivraient.
+    final last = competitors.length;
+    competitorOrder.value =
+        withPlace(competitorOrder, entry.id, place > last ? last : place);
     _persist();
   }
 
@@ -680,6 +694,7 @@ class RaceCourseController extends GetxController {
         raceId: race.id,
         heatName: run.name,
         heatNumber: raceNumber,
+        roundType: roundType,
         outcomes: _outcomesFor(seats, stored),
         heatId: _heatId == 0 ? null : _heatId,
         link: (
@@ -731,7 +746,9 @@ class RaceCourseController extends GetxController {
   /// the line-up came from, never a fallback from one lookup to the other.
   List<CourseOutcome> _outcomesFor(List<LaneSeat> seats, ProgrammeRace stored) {
     final competitorsAreAthletes = stored.entryIds.isEmpty;
-    final places = placesOf(competitorOrder);
+    // Le classement fédéral, pas les numéros de l'écran : une saisie encore
+    // trouée part tassée, un cinquième sans troisième n'étant pas publiable.
+    final places = rankingOf(competitorOrder);
     final penaltyOf = <int, CoursePenalty>{
       for (final penalty in penalties) penalty.competitorId: penalty,
     };
