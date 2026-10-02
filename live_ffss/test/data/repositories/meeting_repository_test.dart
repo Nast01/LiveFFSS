@@ -10,12 +10,17 @@ import 'package:live_ffss/app/data/dtos/run_dto.dart';
 import 'package:live_ffss/app/data/dtos/slot_dto.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/domain/models/lane.dart';
+import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/domain/models/run.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockDataSource extends Mock implements MeetingRemoteDataSource {}
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(RoundType.serie);
+  });
+
   late _MockDataSource ds;
   late MeetingRepository repo;
 
@@ -685,6 +690,7 @@ void main() {
             raceId: any(named: 'raceId'),
             name: any(named: 'name'),
             number: any(named: 'number'),
+            level: any(named: 'level'),
             id: any(named: 'id'),
           )).thenAnswer((_) async => 94369);
       when(() => ds.submitRun(
@@ -718,12 +724,17 @@ void main() {
         raceId: 37962,
         heatName: 'Demie 1',
         heatNumber: 1,
+        roundType: RoundType.demi,
         outcomes: outcomes,
       );
 
       expect(heatId, 94369);
       verify(() => ds.submitHeat(
-          raceId: 37962, name: 'Demie 1', number: 1, id: null)).called(1);
+          raceId: 37962,
+          name: 'Demie 1',
+          number: 1,
+          level: RoundType.demi,
+          id: null)).called(1);
       verify(() => ds.submitResult(
           heatId: 94369,
           entryId: 101,
@@ -746,12 +757,17 @@ void main() {
         raceId: 37962,
         heatName: 'Demie 1',
         heatNumber: 1,
+        roundType: RoundType.demi,
         outcomes: outcomes,
         heatId: 94369,
       );
 
       verify(() => ds.submitHeat(
-          raceId: 37962, name: 'Demie 1', number: 1, id: 94369)).called(1);
+          raceId: 37962,
+          name: 'Demie 1',
+          number: 1,
+          level: RoundType.demi,
+          id: 94369)).called(1);
     });
 
     // Le lien course -> série passe par course/submit : sans lui, la course
@@ -761,6 +777,7 @@ void main() {
         raceId: 37962,
         heatName: 'Demie 1',
         heatNumber: 1,
+        roundType: RoundType.demi,
         outcomes: outcomes,
         link: (
           slotId: 66,
@@ -789,6 +806,7 @@ void main() {
             raceId: any(named: 'raceId'),
             name: any(named: 'name'),
             number: any(named: 'number'),
+            level: any(named: 'level'),
             id: any(named: 'id'),
           )).thenAnswer((_) async => 0);
 
@@ -797,6 +815,7 @@ void main() {
           raceId: 37962,
           heatName: 'x',
           heatNumber: 1,
+          roundType: RoundType.demi,
           outcomes: outcomes,
         ),
         0,

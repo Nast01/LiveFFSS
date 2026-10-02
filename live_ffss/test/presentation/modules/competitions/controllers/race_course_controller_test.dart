@@ -82,6 +82,7 @@ void main() {
     registerFallbackValue(const <int>[]);
     registerFallbackValue(const <Lane>[]);
     registerFallbackValue(const <CourseOutcome>[]);
+    registerFallbackValue(RoundType.serie);
   });
 
   Athlete athlete(int id) => Athlete(
@@ -230,6 +231,7 @@ void main() {
           raceId: any(named: 'raceId'),
           heatName: any(named: 'heatName'),
           heatNumber: any(named: 'heatNumber'),
+          roundType: any(named: 'roundType'),
           outcomes: any(named: 'outcomes'),
           heatId: any(named: 'heatId'),
           link: any(named: 'link'),
@@ -948,6 +950,7 @@ void main() {
               raceId: any(named: 'raceId'),
               heatName: any(named: 'heatName'),
               heatNumber: any(named: 'heatNumber'),
+              roundType: any(named: 'roundType'),
               outcomes: captureAny(named: 'outcomes'),
               heatId: any(named: 'heatId'),
               link: any(named: 'link'),
@@ -1058,6 +1061,27 @@ void main() {
       ]);
     });
 
+    // Sans le niveau, FFSS applique son defaut `heat` : une demi-finale
+    // publiee depuis l app s enregistrait en serie.
+    test('la validation porte le niveau du tour', () async {
+      final controller = await ready();
+      controller.competitorOrder.value = [
+        [101]
+      ];
+
+      await controller.validate();
+
+      verify(() => meetingRepo.publishCourseResults(
+            raceId: any(named: 'raceId'),
+            heatName: any(named: 'heatName'),
+            heatNumber: any(named: 'heatNumber'),
+            roundType: RoundType.demi,
+            outcomes: any(named: 'outcomes'),
+            heatId: any(named: 'heatId'),
+            link: any(named: 'link'),
+          )).called(1);
+    });
+
     test('la course est rattachée à sa série', () async {
       final controller = await ready();
       controller.competitorOrder.value = [
@@ -1070,6 +1094,7 @@ void main() {
             raceId: any(named: 'raceId'),
             heatName: any(named: 'heatName'),
             heatNumber: any(named: 'heatNumber'),
+            roundType: any(named: 'roundType'),
             outcomes: any(named: 'outcomes'),
             heatId: any(named: 'heatId'),
             link: captureAny(named: 'link'),
@@ -1179,6 +1204,7 @@ void main() {
             raceId: any(named: 'raceId'),
             heatName: any(named: 'heatName'),
             heatNumber: any(named: 'heatNumber'),
+            roundType: any(named: 'roundType'),
             outcomes: any(named: 'outcomes'),
             heatId: any(named: 'heatId'),
             link: any(named: 'link'),
@@ -1202,6 +1228,7 @@ void main() {
             raceId: any(named: 'raceId'),
             heatName: any(named: 'heatName'),
             heatNumber: any(named: 'heatNumber'),
+            roundType: any(named: 'roundType'),
             outcomes: any(named: 'outcomes'),
             heatId: captureAny(named: 'heatId'),
             link: any(named: 'link'),
@@ -1527,6 +1554,7 @@ void main() {
             raceId: any(named: 'raceId'),
             heatName: any(named: 'heatName'),
             heatNumber: any(named: 'heatNumber'),
+            roundType: any(named: 'roundType'),
             outcomes: any(named: 'outcomes'),
             heatId: 55,
             link: any(named: 'link'),
@@ -1589,7 +1617,8 @@ void main() {
       expect(controller.placeOf(controller.competitors[1]), 3);
     });
 
-    test('un rang vidé sort l engagement du classement', () async {
+    test('un rang vidé sort l engagement sans faire remonter les autres',
+        () async {
       final controller = await loadWith([1, 2, 3]);
       controller.assign(controller.competitors[0]);
       controller.assign(controller.competitors[1]);
@@ -1597,7 +1626,64 @@ void main() {
       controller.setPlace(controller.competitors[0], 0);
 
       expect(controller.placeOf(controller.competitors[0]), isNull);
+      // Corriger une case ne renumérote pas celle d'à côté : le deuxième
+      // reste deuxième, la première place attend qui la prendra.
+      expect(controller.placeOf(controller.competitors[1]), 2);
+    });
+
+    test('un rang saisi tient, trous compris', () async {
+      final controller = await loadWith([1, 2, 3]);
+
+      controller.setPlace(controller.competitors[0], 3);
+      controller.setPlace(controller.competitors[1], 1);
+
+      expect(controller.placeOf(controller.competitors[0]), 3);
       expect(controller.placeOf(controller.competitors[1]), 1);
+      expect(saved().competitorOrder, [
+        [20],
+        <int>[],
+        [10],
+      ]);
+    });
+
+    // Le mode ne porte aucun classement : il décide seulement comment on
+    // saisit. Un aller-retour laisse donc les numéros tapés tels quels, trous
+    // compris — ce que l'ancien modèle dense ne pouvait pas tenir.
+    test('les rangs saisis survivent a un aller-retour de mode', () async {
+      final controller = await loadWith([1, 2, 3]);
+      controller.setEntryMode(CourseEntryMode.manual);
+      controller.setPlace(controller.competitors[0], 1);
+      controller.setPlace(controller.competitors[1], 3);
+
+      controller.setEntryMode(CourseEntryMode.automatic);
+      controller.setEntryMode(CourseEntryMode.manual);
+
+      expect(controller.placeOf(controller.competitors[0]), 1);
+      // La deuxième place est restée libre, et le 3 tapé est toujours un 3.
+      expect(controller.placeOf(controller.competitors[1]), 3);
+    });
+
+    // Le mode automatique reprend la saisie là où elle a laissé un trou.
+    test('la place suivante vise le premier trou', () async {
+      final controller = await loadWith([1, 2, 3]);
+      controller.setPlace(controller.competitors[0], 1);
+      controller.setPlace(controller.competitors[1], 3);
+
+      expect(controller.nextPlaceValue, 2);
+
+      controller.assign(controller.competitors[2]);
+
+      expect(controller.placeOf(controller.competitors[2]), 2);
+      expect(controller.placeOf(controller.competitors[1]), 3);
+    });
+
+    test('un rang au-dela du plateau se pose sur le dernier concurrent',
+        () async {
+      final controller = await loadWith([1, 2, 3]);
+
+      controller.setPlace(controller.competitors[0], 99);
+
+      expect(controller.placeOf(controller.competitors[0]), 3);
     });
 
     // Même invariant que `assign` : un forfait ne prend pas de place, sans
