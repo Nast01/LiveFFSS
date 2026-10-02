@@ -75,6 +75,7 @@ final Map<String, String> frFR = {
   'forfeit': 'Forfait',
   'scan_bracelet': 'Scanner un bracelet',
   'sort_by': 'Trier par',
+  'sort_order_number': 'Dossard',
   'sort_name': 'Nom',
   'sort_club': 'Club',
   'sort_status': 'Présence',
