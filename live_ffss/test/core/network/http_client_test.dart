@@ -281,6 +281,21 @@ void main() {
     // `"false"` est une chaine non vide, donc veridique en Dart : un refus
     // formule ainsi passait pour un succes et l'appelant lisait une reponse
     // vide comme un resultat. La doc FFSS (§1) annonce les deux formes.
+    // Le web ne connait pas SocketException : il leve ClientException, qui
+    // tombait dans le `catch` generique et ressortait en UnknownException.
+    test('a ClientException is a network failure, not an unknown one',
+        () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => null);
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenThrow(http.ClientException('Failed to fetch'));
+
+      await expectLater(
+        client.get('x'),
+        throwsA(isA<NetworkException>()
+            .having((e) => e.message, 'message', 'Failed to fetch')),
+      );
+    });
+
     test('a refusal spelled as the string "false" is still a refusal',
         () async {
       when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');

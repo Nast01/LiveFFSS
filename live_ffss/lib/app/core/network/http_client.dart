@@ -103,6 +103,13 @@ class HttpClient {
       final message = e.message ?? 'Request timed out';
       _record(started, method, uri, body, error: message);
       throw NetworkException(message);
+    } on http.ClientException catch (e) {
+      // Ce que le web leve a la place de SocketException, lequel n'y existe
+      // pas : sans ce bras, une coupure reseau y devenait une
+      // UnknownException, et l'ecran affichait une erreur technique la ou il
+      // sait dire « pas de reseau ». Le web est une cible declaree du projet.
+      _record(started, method, uri, body, error: e.message);
+      throw NetworkException(e.message);
     } catch (e) {
       _record(started, method, uri, body, error: e.toString());
       throw UnknownException(e.toString());
