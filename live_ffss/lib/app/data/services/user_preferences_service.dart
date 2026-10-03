@@ -20,6 +20,22 @@ class UserPreferencesService extends GetxService {
   final RxSet<int> favoriteIds = <int>{}.obs;
   final RxList<int> lastViewedIds = <int>[].obs; // newest first
 
+  /// Sérialise les écritures, comme `AttendanceService` le fait déjà pour la
+  /// même raison : deux bascules enchaînées calculent chacune sa charge utile
+  /// correctement, mais rien ne garantissait leur ordre d'arrivée sur le
+  /// disque — et la plus ancienne pouvait atterrir en dernier, remettant le
+  /// favori que l'opérateur venait de retirer.
+  Future<void> _writeQueue = Future.value();
+
+  /// L'échec d'une écriture ne condamne pas les suivantes : la chaîne
+  /// repart, et l'appelant garde l'erreur de la sienne.
+  Future<void> _enqueueWrite(String key, String payload) {
+    Future<void> write() => _storage.write(key: key, value: payload);
+    final queued = _writeQueue.then((_) => write(), onError: (_) => write());
+    _writeQueue = queued.catchError((Object _) {});
+    return queued;
+  }
+
   Future<UserPreferencesService> init() async {
     favoriteIds.assignAll((await _readIds(_favoritesKey)).toSet());
     lastViewedIds.value = await _readIds(_lastViewedKey);
@@ -34,10 +50,7 @@ class UserPreferencesService extends GetxService {
     } else {
       favoriteIds.add(id);
     }
-    await _storage.write(
-      key: _favoritesKey,
-      value: jsonEncode(favoriteIds.toList()),
-    );
+    await _enqueueWrite(_favoritesKey, jsonEncode(favoriteIds.toList()));
   }
 
   Future<void> recordView(int id) async {
@@ -46,10 +59,7 @@ class UserPreferencesService extends GetxService {
       updated.removeRange(_lastViewedCap, updated.length);
     }
     lastViewedIds.value = updated;
-    await _storage.write(
-      key: _lastViewedKey,
-      value: jsonEncode(updated),
-    );
+    await _enqueueWrite(_lastViewedKey, jsonEncode(updated));
   }
 
   Future<List<int>> _readIds(String key) async {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -147,6 +148,55 @@ void main() {
             key: 'dev_favorite_competitions',
             value: '[7]',
           )).called(1);
+    });
+  });
+
+  // Deux bascules enchainees calculent chacune sa charge utile correctement,
+  // mais rien ne garantissait leur ordre d'arrivee sur le disque : la plus
+  // ancienne pouvait atterrir en dernier et remettre le favori retire.
+  group('UserPreferencesService ecritures serialisees', () {
+    test('la seconde ecriture attend que la premiere soit terminee', () async {
+      final first = Completer<void>();
+      final payloads = <String>[];
+      var calls = 0;
+      when(() =>
+              storage.write(key: any(named: 'key'), value: any(named: 'value')))
+          .thenAnswer((invocation) {
+        calls++;
+        payloads
+            .add(invocation.namedArguments[const Symbol('value')] as String);
+        return calls == 1 ? first.future : Future<void>.value();
+      });
+
+      final a = prefs.toggleFavorite(7);
+      final b = prefs.toggleFavorite(9);
+      await Future<void>.delayed(Duration.zero);
+
+      // La deuxieme n'est pas encore partie : la file la retient.
+      expect(calls, 1);
+
+      first.complete();
+      await Future.wait([a, b]);
+
+      expect(calls, 2);
+      // Et elle part avec l'etat le plus recent, les deux favoris.
+      expect(jsonDecode(payloads.first), [7]);
+      expect(jsonDecode(payloads.last), [7, 9]);
+    });
+
+    test('une ecriture refusee ne condamne pas la suivante', () async {
+      var calls = 0;
+      when(() =>
+              storage.write(key: any(named: 'key'), value: any(named: 'value')))
+          .thenAnswer((_) async {
+        calls++;
+        if (calls == 1) throw Exception('keystore indisponible');
+      });
+
+      await expectLater(prefs.toggleFavorite(7), throwsA(isA<Exception>()));
+      await prefs.toggleFavorite(9);
+
+      expect(calls, 2);
     });
   });
 }
