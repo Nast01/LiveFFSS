@@ -101,8 +101,19 @@ class ProgrammeService extends GetxService {
 
   /// Returns the next local id and advances the counter in [current]. The
   /// caller persists the bump with a subsequent [save].
+  ///
+  /// [load] est un prérequis, et pas une recommandation : le compteur vit dans
+  /// le programme chargé, donc sans programme il n'y a rien à avancer. Le
+  /// `!` qui tenait cette place levait un `TypeError` nu, qui ne disait ni
+  /// quoi corriger ni où — d'où un échec explicite.
   int allocateId() {
-    final p = current.value!;
+    final p = current.value;
+    if (p == null) {
+      throw StateError(
+        'allocateId() appelé sans programme chargé : appeler load() sur la '
+        'compétition avant de distribuer des ids.',
+      );
+    }
     current.value = p.copyWith(nextLocalId: p.nextLocalId + 1);
     return p.nextLocalId;
   }

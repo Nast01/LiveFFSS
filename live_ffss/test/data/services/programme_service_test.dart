@@ -180,4 +180,18 @@ void main() {
       verify(() => storage.read(key: 'dev_programme_42')).called(1);
     });
   });
+
+  // Le `!` qui tenait cette place levait un TypeError nu, qui ne disait ni quoi
+  // corriger ni ou.
+  group('ProgrammeService.allocateId sans programme charge', () {
+    test('leve un StateError qui nomme le prerequis', () {
+      final vierge = ProgrammeService(storage);
+
+      expect(
+        vierge.allocateId,
+        throwsA(isA<StateError>()
+            .having((e) => e.message, 'message', contains('load()'))),
+      );
+    });
+  });
 }
