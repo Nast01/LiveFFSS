@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
@@ -142,7 +143,7 @@ class CompetitionDetailRacesController extends GetxController {
 
       allRaces.value = loaded;
       _pruneFilters();
-    } catch (_) {
+    } on AppException {
       hasError.value = true;
     } finally {
       isLoading.value = false;

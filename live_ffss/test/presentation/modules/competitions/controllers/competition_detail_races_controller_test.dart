@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/category.dart';
@@ -60,7 +61,10 @@ void main() {
     });
 
     test('on AppException sets hasError', () async {
-      when(() => repo.getRaces(any())).thenThrow(Exception('boom'));
+      // Une vraie AppException, comme le nom du test l'annonce : avec une
+      // Exception nue il ne verifiait que le `catch (_)` qui attrapait tout.
+      when(() => repo.getRaces(any()))
+          .thenThrow(const NetworkException('boom'));
 
       await controller.loadRaces(99);
 
@@ -192,6 +196,20 @@ void main() {
 
       expect(controller.selectedCount(RaceFilter.speciality), 0);
       expect(controller.filteredRaces, hasLength(1));
+    });
+  });
+
+  // La regle du depot : attraper AppException, laisser filer le reste. Un
+  // `catch (_)` avalait aussi les erreurs de programmation, qui ressortaient
+  // en « une erreur est survenue » sans rien dans les journaux.
+  group('CompetitionDetailRacesController erreurs non-API', () {
+    test('une erreur de programmation remonte au lieu de devenir un hasError',
+        () async {
+      when(() => repo.getRaces(any())).thenThrow(StateError('bug'));
+
+      await expectLater(controller.loadRaces(1), throwsA(isA<StateError>()));
+      expect(controller.hasError.value, isFalse);
+      expect(controller.isLoading.value, isFalse);
     });
   });
 }

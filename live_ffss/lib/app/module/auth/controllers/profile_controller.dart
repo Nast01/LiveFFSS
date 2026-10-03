@@ -117,10 +117,12 @@ class ProfileController extends GetxController {
   }
 
   void _refreshDependentControllers() {
+    // Le `Get.isRegistered` suffit : le try/catch qui l'entourait datait d'une
+    // version sans cette garde, et il avalait depuis toute vraie erreur de
+    // refreshAfterLogout — dont un bug de deconnexion qui ne laisserait aucune
+    // trace.
     if (Get.isRegistered<HomeController>()) {
-      try {
-        Get.find<HomeController>().refreshAfterLogout();
-      } catch (_) {}
+      Get.find<HomeController>().refreshAfterLogout();
     }
     Get.forceAppUpdate();
   }
