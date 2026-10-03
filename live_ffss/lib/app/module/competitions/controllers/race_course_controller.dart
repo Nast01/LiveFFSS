@@ -12,7 +12,6 @@ import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
-import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/competitor.dart'
@@ -174,28 +173,11 @@ class RaceCourseController extends GetxController {
 
       final droppedWholeRanking = _readStoredRanking(stored, lineUp);
 
-      // Entries arrive with no club on their athletes — the mappers never set
-      // one — and that club is what every row shows. The bib is in the same
-      // case, except it comes from another route than the engagements: it
-      // loads here, in the same pass, and demands nothing — a read that fails
-      // simply leaves the badges empty.
-      final drawnAthletes = [for (final entry in lineUp) ...entry.athletes];
-      Map<int, Club> clubs;
-      try {
-        clubs =
-            await _clubRepo.getAthleteClubs(competitionIdValue, drawnAthletes);
-      } on AppException {
-        clubs = const {};
-      }
-      competitors.value = [
-        for (final entry in lineUp)
-          entry.copyWith(athletes: [
-            for (final athlete in entry.athletes)
-              athlete.copyWith(
-                club: clubs[athlete.id] ?? athlete.club,
-              ),
-          ]),
-      ];
+      // La ligne de depart seule, pas toute l'epreuve : resoudre les clubs de
+      // tous les engages ferait payer une requete par club de l'epreuve pour
+      // une course qui en compte une poignee.
+      competitors.value =
+          await _clubRepo.withAthleteClubs(competitionIdValue, lineUp);
 
       if (competitorOrder.isEmpty && penalties.isEmpty) {
         await _seedFromPublished(stored);

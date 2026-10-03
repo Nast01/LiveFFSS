@@ -32,6 +32,7 @@ import 'package:live_ffss/app/domain/models/slot.dart';
 import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_structure_controller.dart';
 import 'package:mocktail/mocktail.dart';
+import '../../../../support/club_repository_stubs.dart';
 
 class _MockStorage extends Mock implements FlutterSecureStorage {}
 
@@ -175,6 +176,7 @@ void main() {
     storage = _MockStorage();
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
+    stubAthleteClubPatch(clubRepo);
     meetingRepo = _MockMeetingRepo();
     when(() => meetingRepo.getMeetings(any()))
         .thenAnswer((_) async => const []);

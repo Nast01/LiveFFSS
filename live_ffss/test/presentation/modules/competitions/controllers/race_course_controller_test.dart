@@ -28,6 +28,7 @@ import 'package:live_ffss/app/domain/models/round_level.dart';
 import 'package:live_ffss/app/module/competitions/controllers/race_course_controller.dart';
 import 'package:live_ffss/app/presentation/shared/ui_message.dart';
 import 'package:mocktail/mocktail.dart';
+import '../../../../support/club_repository_stubs.dart';
 
 class _MockRaceRepo extends Mock implements RaceRepository {}
 
@@ -300,6 +301,7 @@ void main() {
     meetingRepo = _MockMeetingRepo();
     raceRepo = _MockRaceRepo();
     clubRepo = _MockClubRepo();
+    stubAthleteClubPatch(clubRepo);
     when(() => clubRepo.getAthleteClubs(any(), any()))
         .thenAnswer((_) async => const <int, Club>{});
   });

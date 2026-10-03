@@ -120,17 +120,12 @@ class RaceDetailController extends GetxController {
   /// which never serves `Dossard`, so the index is the only source and 0 means
   /// "no bib in this competition, right now". Naming the competition is what
   /// keeps the previous screen's bibs off these athletes.
-  List<Entry> _withClubs(List<Entry> loaded) {
-    return [
-      for (final entry in loaded)
-        entry.copyWith(
-          athletes: [
-            for (final athlete in entry.athletes)
-              athlete.copyWith(club: _clubs[athlete.id] ?? athlete.club),
-          ],
-        ),
-    ];
-  }
+  /// Garde son propre index plutôt que `ClubRepository.withAthleteClubs` : cet
+  /// écran affiche les engagements **avant** que les clubs n'arrivent, puis
+  /// repatche les lignes — et un rechargement doit pouvoir les repatcher sans
+  /// redemander les clubs.
+  List<Entry> _withClubs(List<Entry> loaded) =>
+      entriesWithClubs(loaded, _clubs);
 
   /// Resolves the clubs of the athletes on screen.
   ///

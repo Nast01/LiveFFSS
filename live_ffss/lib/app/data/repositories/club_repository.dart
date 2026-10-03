@@ -3,6 +3,7 @@ import 'package:live_ffss/app/data/datasources/club_remote_datasource.dart';
 import 'package:live_ffss/app/data/mappers/club_mapper.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
+import 'package:live_ffss/app/domain/models/entry.dart';
 
 abstract class ClubRepository {
   Future<List<Club>> getClubs(int competitionId);
@@ -24,6 +25,14 @@ abstract class ClubRepository {
     int competitionId,
     Iterable<Athlete> athletes,
   );
+
+  /// Les mêmes engagements, le club de chaque athlète résolu.
+  ///
+  /// Best-effort, et c'est tout l'intérêt de l'avoir ici : une résolution qui
+  /// échoue rend les engagements inchangés, donc les lignes retombent sur
+  /// l'initiale du club au lieu de faire tomber l'écran. Trois contrôleurs
+  /// portaient ce `try` et cette boucle, chacun à sa façon.
+  Future<List<Entry>> withAthleteClubs(int competitionId, List<Entry> entries);
 }
 
 class ClubRepositoryImpl implements ClubRepository {
@@ -103,6 +112,23 @@ class ClubRepositoryImpl implements ClubRepository {
         if (_clubFor(athlete, named, details) case final Club club)
           athlete.id: club,
     };
+  }
+
+  @override
+  Future<List<Entry>> withAthleteClubs(
+    int competitionId,
+    List<Entry> entries,
+  ) async {
+    final athletes = [for (final entry in entries) ...entry.athletes];
+    if (athletes.isEmpty) return entries;
+    try {
+      return entriesWithClubs(
+        entries,
+        await getAthleteClubs(competitionId, athletes),
+      );
+    } on AppException {
+      return entries;
+    }
   }
 
   Club? _clubFor(

@@ -9,7 +9,6 @@ import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
-import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/competitor.dart' show competitorsOf;
@@ -256,8 +255,15 @@ class RaceStructureController extends GetxController {
         counts[e.category.id] = (counts[e.category.id] ?? 0) + 1;
       }
       _entryCountByCategory = counts;
-      _athletesById = await _indexAthletes(entries, competitionId);
-      _entriesById = _indexEntries(entries);
+      // Toute l'epreuve : cet ecran montre tous les tours, donc tous les
+      // engages peuvent finir a l'ecran. Les deux index sortent de la meme
+      // lecture, et portent donc le meme club pour un athlete donne.
+      final resolved = await _clubRepo.withAthleteClubs(competitionId, entries);
+      _entriesById = {for (final entry in resolved) entry.id: entry};
+      _athletesById = {
+        for (final entry in resolved)
+          for (final athlete in entry.athletes) athlete.id: athlete,
+      };
     } on AppException {
       _entryCountByCategory = const {};
       _athletesById = const {};
@@ -432,43 +438,6 @@ class RaceStructureController extends GetxController {
   /// Passé à l'écran de saisie pour qu'il relise le classement déjà publié
   /// sans refaire l'arbre des réunions.
   int heatIdOf(ProgrammeRace race) => _courseHeatIds[race.id] ?? 0;
-
-  /// Indexe les engagés, leur club résolu et leur dossard posés dessus.
-  ///
-  /// Au mieux des deux : sans les clubs les lignes se lisent quand même, seuls
-  /// les logos retombent sur l'initiale ; sans les dossards les pastilles
-  /// restent vides. Le dossard vient d'une autre route que les engagements et
-  /// se charge ici, dans le même passage que les clubs.
-  Future<Map<int, Athlete>> _indexAthletes(
-    List<Entry> entries,
-    int competitionId,
-  ) async {
-    final athletes = [for (final entry in entries) ...entry.athletes];
-    if (athletes.isEmpty) return const {};
-    Map<int, Club> clubs;
-    try {
-      clubs = await _clubRepo.getAthleteClubs(competitionId, athletes);
-    } on AppException {
-      clubs = const {};
-    }
-    return {
-      for (final athlete in athletes)
-        athlete.id: athlete.copyWith(club: clubs[athlete.id] ?? athlete.club),
-    };
-  }
-
-  /// Les engagements de l'épreuve, athlètes patchés avec le club que
-  /// `_athletesById` a déjà résolu — aucun aller-retour de plus, seulement une
-  /// réutilisation de ce que `_indexAthletes` vient de lire. Doit être appelé
-  /// après `_athletesById` pour le même chargement.
-  Map<int, Entry> _indexEntries(List<Entry> entries) => {
-        for (final e in entries)
-          e.id: e.copyWith(
-            athletes: [
-              for (final a in e.athletes) _athletesById[a.id] ?? a,
-            ],
-          ),
-      };
 
   /// The stored structures this race owns, by category label.
   ///

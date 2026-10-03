@@ -10,7 +10,6 @@ import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
-import 'package:live_ffss/app/domain/models/club.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
@@ -236,41 +235,13 @@ class HeatDrawController extends GetxController {
             entry,
       ];
 
-      // The bib comes from another route than the engagements: it loads here,
-      // in the same pass as the clubs, and demands nothing — a read that fails
-      // simply leaves the badges empty. Patching runs even with no club
-      // resolved, since the bibs may well have arrived on their own.
-      final clubs = await _clubIndex(
-          competitionId, [for (final e in present) ...e.athletes]);
-      presentEntries.value = [
-        for (final entry in present)
-          entry.copyWith(athletes: [
-            for (final athlete in entry.athletes)
-              athlete.copyWith(
-                club: clubs[athlete.id] ?? athlete.club,
-              ),
-          ]),
-      ];
+      // Les presents seuls : les clubs des absents ne s'affichent nulle part.
+      presentEntries.value =
+          await _clubRepo.withAthleteClubs(competitionId, present);
     } on AppException catch (e) {
       error.value = e;
     } finally {
       isLoading.value = false;
-    }
-  }
-
-  /// Athlete id → club, so a drawn lane can show its club's logo or cap.
-  /// `Athlete.club` is never deserialised — a controller has to resolve it.
-  ///
-  /// Best-effort: a failure leaves an empty index and every lane falls back to
-  /// the club initial rather than taking the draw screen down.
-  Future<Map<int, Club>> _clubIndex(
-    int competitionId,
-    List<Athlete> athletes,
-  ) async {
-    try {
-      return await _clubRepo.getAthleteClubs(competitionId, athletes);
-    } on AppException {
-      return const {};
     }
   }
 

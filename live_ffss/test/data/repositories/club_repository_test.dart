@@ -6,6 +6,8 @@ import 'package:live_ffss/app/data/dtos/club_dto.dart';
 import 'package:live_ffss/app/data/mappers/club_mapper.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
+import 'package:live_ffss/app/domain/models/category.dart';
+import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockDataSource extends Mock implements ClubRemoteDataSource {}
@@ -227,6 +229,68 @@ void main() {
 
       expect(byAthlete[1]?.name, 'Nice');
       expect(byAthlete[1]?.logoUrl, isNull);
+    });
+  });
+
+  // Ce que trois controleurs deroulaient chacun a sa facon : lire les clubs,
+  // en patcher les engagements, et tolerer l'echec de la lecture.
+  group('ClubRepository.withAthleteClubs', () {
+    Athlete member(int id, int clubId) => Athlete(
+          id: id,
+          licenseeNumber: 'L$id',
+          firstName: 'A$id',
+          lastName: 'B$id',
+          gender: Gender.male,
+          year: 2000,
+          nationalityCode: '',
+          nationality: '',
+          isValid: true,
+          clubId: clubId,
+        );
+
+    Entry engagement(int id, List<Athlete> athletes) => Entry(
+          id: id,
+          category: const Category(id: 7, name: 'Junior'),
+          status: 1,
+          statusLabel: 'Engage',
+          athletes: athletes,
+        );
+
+    test('rend les engagements avec le club de chaque athlete', () async {
+      when(() => ds.getClubs(42)).thenAnswer((_) async => [
+            ClubDto(id: 7, name: 'Nice', athletes: [_athlete(1, 7, 'Nice')]),
+          ]);
+      when(() => ds.getClubDetail(7)).thenAnswer(
+          (_) async => ClubDto(id: 7, name: 'Nice', logoUrl: 'nice.png'));
+
+      final patched = await repo.withAthleteClubs(42, [
+        engagement(10, [member(1, 7)]),
+      ]);
+
+      expect(patched.single.athletes.single.club?.name, 'Nice');
+      expect(patched.single.athletes.single.club?.logoUrl, 'nice.png');
+    });
+
+    // Un ecran sans logo se lit encore ; un ecran tombe, non.
+    test('une lecture refusee rend les engagements inchanges', () async {
+      when(() => ds.getClubs(42)).thenThrow(const NetworkException('offline'));
+      when(() => ds.getClubDetail(any()))
+          .thenThrow(const NetworkException('offline'));
+
+      final entries = [
+        engagement(10, [member(1, 7)])
+      ];
+      final patched = await repo.withAthleteClubs(42, entries);
+
+      expect(patched, entries);
+      expect(patched.single.athletes.single.club, isNull);
+    });
+
+    test('sans athlete, aucune requete', () async {
+      final entries = [engagement(10, const [])];
+
+      expect(await repo.withAthleteClubs(42, entries), entries);
+      verifyNever(() => ds.getClubs(any()));
     });
   });
 }
