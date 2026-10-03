@@ -363,6 +363,7 @@ final Map<String, String> frFR = {
   'course_athlete_withdrawn': 'Cet athlète est forfait ou disqualifié',
   'course_athlete_already_ranked': 'Cet athlète est déjà classé',
   'course_save_failed': 'Le résultat n\'a pas pu être enregistré',
+  'structure_save_failed': "La structure n'a pas pu être enregistrée",
   'course_ranking_dropped':
       'Le classement enregistré ne correspond plus à cette série : il a été vidé',
   'course_ranking_competitor_gone':

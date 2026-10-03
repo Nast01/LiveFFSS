@@ -1227,4 +1227,27 @@ void main() {
       expect(controller.structure.value!.levels, isEmpty);
     });
   });
+
+  // L'ecriture n'est pas attendue, mais son echec partait en erreur asynchrone
+  // que personne n'ecoutait : l'operateur quittait l'ecran en croyant sa
+  // structure enregistree.
+  group('StructureEditorController sauvegarde refusee', () {
+    test('un stockage qui refuse l ecriture le fait dire', () async {
+      controller.start(args);
+      // Un Future rejete, pas un throw synchrone : le canal de plateforme de
+      // FlutterSecureStorage ne leve jamais avant de rendre son Future.
+      when(() =>
+              storage.write(key: any(named: 'key'), value: any(named: 'value')))
+          .thenAnswer((_) async => throw Exception('keystore indisponible'));
+
+      controller.proposeDefault();
+      // Le catchError se resout sur une microtache : la laisser passer.
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.message.value!.translationKey, 'structure_save_failed');
+      // L'edition reste a l'ecran : perdre le travail en plus de l'ecriture
+      // serait pire que de le signaler.
+      expect(controller.structure.value!.levels, isNotEmpty);
+    });
+  });
 }

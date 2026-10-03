@@ -510,6 +510,12 @@ class StructureEditorController extends GetxController {
 
   /// Sets the reactive structure and persists it into the programme, replacing
   /// any prior structure for this épreuve × category.
+  ///
+  /// L'écriture n'est pas attendue — éditer un tour doit répondre sous le
+  /// doigt, et il n'y a pas de bouton Enregistrer sur quoi se rabattre — mais
+  /// son échec est dit. Sans cela il partait en erreur asynchrone que personne
+  /// n'écoutait, et l'opérateur quittait l'écran en croyant sa structure
+  /// enregistrée. Même marché que `RaceCourseController._persist`.
   void _commit(EventStructure updated) {
     structure.value = updated;
     final p = _programme.current.value ??
@@ -518,6 +524,12 @@ class StructureEditorController extends GetxController {
         .where((s) =>
             !(s.raceId == updated.raceId && s.categoryId == updated.categoryId))
         .toList();
-    _programme.save(p.copyWith(structures: [...others, updated]));
+    _programme
+        .save(p.copyWith(structures: [...others, updated]))
+        // Le secure storage lève une PlatformException, pas une AppException :
+        // c'est bien ce type-là qu'il faut attraper ici.
+        .catchError((Object _) {
+      message.trigger(const UiMessageError('structure_save_failed'));
+    });
   }
 }
