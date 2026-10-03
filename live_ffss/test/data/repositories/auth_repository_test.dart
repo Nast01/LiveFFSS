@@ -163,11 +163,11 @@ void main() {
     });
   });
 
-  group('AuthRepository.restoreSession', () {
+  group('AuthRepository.restoreStoredSession', () {
     test('returns null when nothing stored', () async {
       when(() => secure.read(key: 'user')).thenAnswer((_) async => null);
 
-      expect(await repo.restoreSession(), isNull);
+      expect(await repo.restoreStoredSession(), isNull);
     });
 
     test('returns null when token is expired', () async {
@@ -178,7 +178,7 @@ void main() {
       when(() => tokens.clearToken()).thenAnswer((_) async {});
       when(() => secure.delete(key: 'user')).thenAnswer((_) async {});
 
-      expect(await repo.restoreSession(), isNull);
+      expect(await repo.restoreStoredSession(), isNull);
       verify(() => tokens.clearToken()).called(1);
     });
 
@@ -187,17 +187,24 @@ void main() {
       when(() => secure.read(key: 'user')).thenAnswer((_) async => '''
 {"token":"good","tokenExpiration":"$future","label":"X","type":"licensee","role":"admin"}
 ''');
-      when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
-            label: 'X',
-            type: 'licencie',
-            data: UserDtoData(role: 'admin'),
-          ));
 
-      final user = await repo.restoreSession();
+      final user = await repo.restoreStoredSession();
 
       expect(user, isNotNull);
       expect(user!.token, 'good');
       expect(user.role, UserRole.admin);
+    });
+
+    // Tout l'objet de la separation : le demarrage ne touche pas au reseau.
+    test('ne demande rien au serveur', () async {
+      final future = DateTime.utc(2099, 12, 31).toIso8601String();
+      when(() => secure.read(key: 'user')).thenAnswer((_) async => '''
+{"token":"good","tokenExpiration":"$future","label":"X","type":"licensee","role":"admin"}
+''');
+
+      await repo.restoreStoredSession();
+
+      verifyNever(() => ds.getCurrentUser());
     });
   });
 
@@ -205,76 +212,100 @@ void main() {
   // `expiration: "2026-08-30"` was already dead hours later. And FFSS never
   // says so on a read — it serves an anonymous 200 — so only asking who we are
   // reveals a session that ended.
-  group('AuthRepository.restoreSession checks the session is still real', () {
-    final future = DateTime.utc(2099, 12, 31).toIso8601String();
-
-    void storedSession() {
-      when(() => secure.read(key: 'user')).thenAnswer((_) async => '''
-{"token":"good","tokenExpiration":"$future","label":"X","type":"licensee","role":"admin"}
-''');
+  // La date que `requestToken` rend ne prouve rien : un jeton emis avec
+  // `expiration: "2026-08-30"` etait deja mort quelques heures plus tard. Et
+  // FFSS ne le dit jamais sur une lecture — il sert un 200 anonyme — donc seul
+  // « qui suis-je » revele une session terminee. Cette verification tourne
+  // apres le premier rendu, jamais avant.
+  group('AuthRepository.revalidateSession', () {
+    void heldToken() {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'good');
       when(() => tokens.clearToken()).thenAnswer((_) async {});
       when(() => secure.delete(key: 'user')).thenAnswer((_) async {});
     }
 
-    test('drops the session when the server answers anonymously', () async {
-      storedSession();
-      // What FFSS returns for a dead token: no licencie, no organisme.
+    test('ferme la session quand le serveur repond anonymement', () async {
+      heldToken();
+      // Ce que FFSS rend pour un jeton mort : ni licencie, ni organisme.
       when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
             label: 'Utilisateur Anonyme',
             type: 'public',
             data: UserDtoData(role: 'user'),
           ));
+      final emitted = repo.userStream.first;
 
-      expect(await repo.restoreSession(), isNull);
+      await repo.revalidateSession();
+
       verify(() => tokens.clearToken()).called(1);
       verify(() => secure.delete(key: 'user')).called(1);
+      // La fermeture passe par le flux : c'est ce que UserService ecoute.
+      expect(await emitted, isNull);
     });
 
-    test('keeps the session when the server names a real account', () async {
-      storedSession();
+    test('garde la session quand le serveur nomme un vrai compte', () async {
+      heldToken();
       when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
             label: 'FFSS',
             type: 'organisme',
             data: UserDtoData(role: 'admin'),
           ));
 
-      expect(await repo.restoreSession(), isNotNull);
+      await repo.revalidateSession();
+
       verifyNever(() => tokens.clearToken());
     });
 
-    test('keeps the session when the check cannot be made', () async {
-      // Offline is not proof of anything. Signing the operator out on a dead
-      // network would be worse than the stale session this guards against.
-      storedSession();
+    test('garde la session quand la verification est impossible', () async {
+      // Etre hors ligne ne prouve rien. Deconnecter sur un reseau mort serait
+      // pire que la session perimee contre laquelle ceci protege.
+      heldToken();
       when(() => ds.getCurrentUser())
           .thenThrow(const NetworkException('offline'));
 
-      expect(await repo.restoreSession(), isNotNull);
+      await repo.revalidateSession();
+
       verifyNever(() => tokens.clearToken());
     });
 
-    test('keeps the session rather than hanging on a silent network', () async {
-      storedSession();
+    test('garde la session plutot que de pendre sur un reseau muet', () async {
+      heldToken();
       when(() => ds.getCurrentUser()).thenAnswer((_) => Future<UserDto>.delayed(
           const Duration(minutes: 1),
           () => const UserDto(
               label: 'X', type: 'licencie', data: UserDtoData(role: 'user'))));
 
-      // Startup must not wait on a socket that never answers.
-      expect(await repo.restoreSession(), isNotNull);
+      await repo.revalidateSession();
+
       verifyNever(() => tokens.clearToken());
     });
 
-    test('an expired date short-circuits before any call', () async {
-      final past = DateTime.utc(2000, 1, 1).toIso8601String();
-      when(() => secure.read(key: 'user')).thenAnswer((_) async => '''
-{"token":"old","tokenExpiration":"$past","label":"X","type":"licensee","role":"user"}
-''');
+    test('sans jeton memorise, aucun appel', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => null);
+
+      await repo.revalidateSession();
+
+      verifyNever(() => ds.getCurrentUser());
+    });
+
+    // La sonde porte le jeton d'avant : une connexion survenue pendant qu'elle
+    // etait en vol ne doit pas se faire fermer par sa reponse.
+    test('une connexion survenue pendant la sonde n est pas fermee', () async {
+      var reads = 0;
+      when(() => tokens.getToken()).thenAnswer((_) async {
+        reads++;
+        return reads == 1 ? 'ancien' : 'tout-neuf';
+      });
       when(() => tokens.clearToken()).thenAnswer((_) async {});
       when(() => secure.delete(key: 'user')).thenAnswer((_) async {});
+      when(() => ds.getCurrentUser()).thenAnswer((_) async => const UserDto(
+            label: 'Utilisateur Anonyme',
+            type: 'public',
+            data: UserDtoData(role: 'user'),
+          ));
 
-      expect(await repo.restoreSession(), isNull);
-      verifyNever(() => ds.getCurrentUser());
+      await repo.revalidateSession();
+
+      verifyNever(() => tokens.clearToken());
     });
   });
 
@@ -288,7 +319,7 @@ void main() {
       );
       when(() => secure.read(key: 'dev_user')).thenAnswer((_) async => null);
 
-      await scoped.restoreSession();
+      await scoped.restoreStoredSession();
 
       verify(() => secure.read(key: 'dev_user')).called(1);
     });

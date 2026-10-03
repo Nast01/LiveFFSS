@@ -13,7 +13,24 @@ import 'package:live_ffss/app/domain/models/user.dart';
 abstract class AuthRepository {
   Future<User> login({required String login, required String password});
   Future<void> logout();
-  Future<User?> restoreSession();
+
+  /// La session telle que le disque la porte, sans toucher au réseau : lecture
+  /// du compte mémorisé, et nettoyage si sa date d'expiration est passée.
+  ///
+  /// Séparée de [revalidateSession] parce que le démarrage ne doit pas dépendre
+  /// d'une socket : cette lecture-ci rend la main en quelques millisecondes.
+  Future<User?> restoreStoredSession();
+
+  /// Demande au serveur si la session mémorisée vaut encore, et la referme
+  /// quand il répond « vous n'êtes personne ».
+  ///
+  /// À lancer **sans l'attendre**, après le premier rendu : la date
+  /// d'expiration que `requestToken` renvoie ne prouve rien (voir
+  /// [probeSession]), mais vérifier coûte jusqu'à quatre secondes plus la
+  /// résolution DNS, et personne ne doit regarder un écran noir pendant ce
+  /// temps.
+  Future<void> revalidateSession();
+
   Future<SessionProbe> probeSession();
   Stream<User?> get userStream;
 
@@ -76,7 +93,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<User?> restoreSession() async {
+  Future<User?> restoreStoredSession() async {
     final raw = await _secureStorage.read(key: _userKey);
     if (raw == null || raw.isEmpty) return null;
 
@@ -90,10 +107,18 @@ class AuthRepositoryImpl implements AuthRepository {
       return null;
     }
 
-    if (await _isStillSignedIn()) return user;
-    await _tokenStorage.clearToken();
-    await _secureStorage.delete(key: _userKey);
-    return null;
+    return user;
+  }
+
+  @override
+  Future<void> revalidateSession() async {
+    final token = await _tokenStorage.getToken();
+    if (token == null || token.isEmpty) return;
+    if (await _isStillSignedIn()) return;
+    // La sonde porte le jeton d'avant : si une connexion a eu lieu pendant
+    // qu'elle était en vol, c'est la session fraîche qu'on fermerait.
+    if (await _tokenStorage.getToken() != token) return;
+    await logout();
   }
 
   /// Asks the server who we are, because the stored expiration date does not
