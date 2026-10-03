@@ -19,8 +19,6 @@ import 'package:live_ffss/app/data/datasources/meeting_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/race_format_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/race_remote_datasource.dart';
 import 'package:live_ffss/app/data/datasources/ranking_remote_datasource.dart';
-import 'package:live_ffss/app/data/datasources/result_remote_datasource.dart';
-import 'package:live_ffss/app/data/datasources/programme_remote_datasource.dart';
 import 'package:live_ffss/app/data/repositories/auth_repository.dart';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/competition_repository.dart';
@@ -28,8 +26,6 @@ import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_format_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/repositories/ranking_repository.dart';
-import 'package:live_ffss/app/data/repositories/result_repository.dart';
-import 'package:live_ffss/app/data/repositories/programme_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/user_preferences_service.dart';
@@ -174,16 +170,6 @@ class InitialBinding {
       permanent: true,
     );
 
-    // 5e. Result data layer (UnimplementedError stubs — see ResultRepository)
-    Get.put<ResultRemoteDataSource>(
-      ResultRemoteDataSourceImpl(),
-      permanent: true,
-    );
-    Get.put<ResultRepository>(
-      ResultRepositoryImpl(Get.find<ResultRemoteDataSource>()),
-      permanent: true,
-    );
-
     // 5f. Ranking data layer (stub returning empty lists — see datasource doc)
     Get.put<RankingRemoteDataSource>(
       RankingRemoteDataSourceImpl(),
@@ -191,16 +177,6 @@ class InitialBinding {
     );
     Get.put<RankingRepository>(
       RankingRepositoryImpl(Get.find<RankingRemoteDataSource>()),
-      permanent: true,
-    );
-
-    // 5g. Programme sync seam (stub — FFSS write endpoints TBD; see datasource)
-    Get.put<ProgrammeRemoteDataSource>(
-      ProgrammeRemoteDataSourceImpl(),
-      permanent: true,
-    );
-    Get.put<ProgrammeRepository>(
-      ProgrammeRepositoryImpl(Get.find<ProgrammeRemoteDataSource>()),
       permanent: true,
     );
 
