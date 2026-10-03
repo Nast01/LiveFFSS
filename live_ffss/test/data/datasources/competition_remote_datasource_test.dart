@@ -61,5 +61,43 @@ void main() {
       expect(captured['debut'], '2026-04-27');
       expect(captured['fin'], '2026-05-03');
     });
+
+    // Le parametre etait accepte par toute la chaine et n'atteignait jamais la
+    // requete : le filtre n'avait donc jamais agi.
+    test('sends "visibility" using the name the API expects', () async {
+      await ds.getCompetitions(
+        season: '2025-2026',
+        startDate: '2025-10-01',
+        type: CompetitionType.mixte,
+        visibility: CompetitionVisibility.incoming,
+        page: 1,
+        pageSize: 10,
+      );
+
+      final captured = verify(() => http.get(
+            ApiEndpoints.competitionList,
+            query: captureAny(named: 'query'),
+          )).captured.single as Map<String, dynamic>;
+
+      expect(captured['visibility'], 'incoming');
+    });
+
+    test('omits "visibility" entirely when none is asked for', () async {
+      await ds.getCompetitions(
+        season: '2025-2026',
+        startDate: '2025-10-01',
+        type: CompetitionType.mixte,
+        visibility: null,
+        page: 1,
+        pageSize: 10,
+      );
+
+      final captured = verify(() => http.get(
+            ApiEndpoints.competitionList,
+            query: captureAny(named: 'query'),
+          )).captured.single as Map<String, dynamic>;
+
+      expect(captured.containsKey('visibility'), isFalse);
+    });
   });
 }

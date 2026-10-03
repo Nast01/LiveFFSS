@@ -8,7 +8,7 @@ import 'package:live_ffss/app/domain/models/competition.dart';
 abstract class CompetitionRepository {
   Future<List<Competition>> getAllCompetitions({
     CompetitionType type = CompetitionType.mixte,
-    CompetitionVisibility visibility = CompetitionVisibility.incoming,
+    CompetitionVisibility? visibility,
     int pageSize = 10,
   });
 
@@ -16,7 +16,7 @@ abstract class CompetitionRepository {
     required DateTime from,
     required DateTime to,
     CompetitionType type = CompetitionType.mixte,
-    CompetitionVisibility visibility = CompetitionVisibility.passed,
+    CompetitionVisibility? visibility,
     int pageSize = 10,
   });
 }
@@ -38,7 +38,7 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
   /// qui paginent pour eux, seule facon d'obtenir une liste complete.
   Future<List<Competition>> _getCompetitions({
     required CompetitionType type,
-    required CompetitionVisibility visibility,
+    required CompetitionVisibility? visibility,
     required int pageSize,
     required int page,
   }) async {
@@ -59,7 +59,7 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
   @override
   Future<List<Competition>> getAllCompetitions({
     CompetitionType type = CompetitionType.mixte,
-    CompetitionVisibility visibility = CompetitionVisibility.incoming,
+    CompetitionVisibility? visibility,
     int pageSize = _defaultPageSize,
   }) async {
     final all = <Competition>[];
@@ -84,7 +84,7 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
     required DateTime from,
     required DateTime to,
     CompetitionType type = CompetitionType.mixte,
-    CompetitionVisibility visibility = CompetitionVisibility.passed,
+    CompetitionVisibility? visibility,
     int pageSize = _defaultPageSize,
   }) async {
     final fromStr = _dayFormat.format(from);

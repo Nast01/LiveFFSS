@@ -133,7 +133,10 @@ void main() {
             startDate: '2026-04-27',
             endDate: '2026-05-03',
             type: CompetitionType.mixte,
-            visibility: CompetitionVisibility.passed,
+            // Sans visibilite demandee, aucune ne part : le defaut valait
+            // `passed`, qui n'avait jamais ete envoye et filtrerait desormais
+            // pour de bon.
+            visibility: null,
             page: 1,
             pageSize: any(named: 'pageSize'),
           )).called(1);

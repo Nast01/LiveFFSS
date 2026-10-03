@@ -57,10 +57,13 @@ class HomeController extends GetxController {
       errorDetail.value = '';
       // Copied before sorting: the repository owns what it hands back, and
       // sorting it in place would fail outright on an unmodifiable list.
+      // Sans `visibility` : cette liste montre les deux, et son tri DESC fait
+      // remonter les compétitions à venir avant les passées. Elle demandait
+      // `passed` depuis toujours, mais le paramètre n'était jamais envoyé —
+      // le jour où il l'a été, les compétitions à venir en disparaissaient.
       final loaded = [
         ...await _competitionRepo.getAllCompetitions(
           type: CompetitionType.mixte,
-          visibility: CompetitionVisibility.passed,
         )
       ];
       // DESC by beginDate: future competitions appear first (their dates
