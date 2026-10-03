@@ -6,3 +6,9 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
+    # flutter_lints 6 a retire ces trois regles de son jeu ; flutter_lints 3 les
+    # appliquait, le code les respecte deja, et les perdre en silence aurait
+    # fait de la montee de version un relachement deguise.
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
