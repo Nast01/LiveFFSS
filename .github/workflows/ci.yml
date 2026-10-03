@@ -1,0 +1,46 @@
+# Les trois commandes qu'on lance a la main avant chaque commit. Le projet
+# Flutter vit dans live_ffss/, d'ou le working-directory par defaut.
+name: CI
+
+on:
+  push:
+    branches: [main, dev, val, refactoring]
+  pull_request:
+
+# Une seule execution par branche : un second push annule le premier plutot
+# que de faire la queue.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: live_ffss
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Epinglee sur la version du poste de developpement. Le dossier
+      # d'installation s'appelle flutter_windows_3.22.2-stable mais le clone
+      # est sur le tag 3.41.9 — voir la section Tooling pins de CLAUDE.md.
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.41.9
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      # Avant analyze : un ecart de formatage se corrige en une commande, et
+      # le dire d'abord evite de lire un echec d'analyse pour une virgule.
+      - name: dart format
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: flutter analyze
+        run: flutter analyze
+
+      - name: flutter test
+        run: flutter test
