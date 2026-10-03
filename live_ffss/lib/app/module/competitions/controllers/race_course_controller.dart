@@ -9,6 +9,7 @@ import 'dart:math';
 import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/club.dart';
@@ -49,7 +50,8 @@ class RaceCourseController extends GetxController {
     this._raceRepo,
     this._clubRepo,
     this._rfid,
-    this._meetings, {
+    this._meetings,
+    this._meetingTree, {
     Random? random,
   }) : _random = random ?? Random();
 
@@ -58,6 +60,12 @@ class RaceCourseController extends GetxController {
   final ClubRepository _clubRepo;
   final RfidWriter _rfid;
   final MeetingRepository _meetings;
+
+  /// Le propriétaire de l'arbre réunion. Cet écran écrit dessus, donc il le
+  /// fait rafraîchir avant chaque publication plutôt que de lire un cache —
+  /// mais il passe par le service, qui déduplique les chargements concurrents
+  /// et refuse d'écrire la réponse d'une compétition qu'on a quittée.
+  final MeetingService _meetingTree;
   final Random _random;
 
   /// The FFSS `serie` this course's results hang off, once created. Kept so a
@@ -357,13 +365,11 @@ class RaceCourseController extends GetxController {
   Future<int> _resolveHeatId(ProgrammeRace? stored) async {
     final competitionId = competition.value?.id;
     if (stored == null || stored.runId == 0 || competitionId == null) return 0;
-    try {
-      final located =
-          _locate(await _meetings.getMeetings(competitionId), stored.runId);
-      return located?.$2.heat?.id ?? 0;
-    } on AppException {
-      return 0;
-    }
+    // Une lecture, pas une écriture : ce que le service détient déjà fait
+    // l'affaire, et l'arbre n'est demandé que s'il manque.
+    await _meetingTree.ensureLoaded(competitionId, silent: true);
+    final located = _locate(_meetingTree.meetings, stored.runId);
+    return located?.$2.heat?.id ?? 0;
   }
 
   int get nextPlaceValue => nextPlace(competitorOrder);
@@ -674,7 +680,15 @@ class RaceCourseController extends GetxController {
 
     isPublishing.value = true;
     try {
-      final meetings = await _meetings.getMeetings(competition.id);
+      // Rafraîchi, jamais lu depuis le cache : on écrit sur cet arbre. Une
+      // course supprimée entre-temps y figurerait encore, et on publierait
+      // dans le vide ; des places créées depuis par un autre appareil
+      // manqueraient, et `syncLanes` en ajouterait à côté.
+      if (!await _meetingTree.load(competition.id, silent: true)) {
+        message.trigger(const UiMessageError('course_publish_failed'));
+        return;
+      }
+      final meetings = _meetingTree.meetings.toList();
       final located = _locate(meetings, stored.runId);
       if (located == null) {
         message.trigger(const UiMessageError('course_publish_unplaced'));

@@ -7,6 +7,7 @@ import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
@@ -167,6 +168,7 @@ void main() {
       attendance,
       programme,
       meetingRepo,
+      MeetingService(meetingRepo),
       random: Random(7),
     )
       ..race.value = makeRace()
@@ -643,6 +645,7 @@ void main() {
         attendance,
         programme,
         meetingRepo,
+        MeetingService(meetingRepo),
         random: Random(7),
       )
         ..race.value = makeRace(speciality: 'Eau-plate')
@@ -872,6 +875,7 @@ void main() {
         attendance,
         programme,
         meetingRepo,
+        MeetingService(meetingRepo),
         random: Random(7),
       )
         ..race.value = makeRace(speciality: speciality)
@@ -1101,6 +1105,7 @@ void main() {
         attendance,
         programme,
         meetingRepo,
+        MeetingService(meetingRepo),
         random: Random(7),
       )
         ..race.value = makeRace(speciality: speciality)

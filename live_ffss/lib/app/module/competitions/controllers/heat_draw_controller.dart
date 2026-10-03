@@ -6,6 +6,7 @@ import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
 import 'package:live_ffss/app/data/services/attendance_service.dart';
+import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
@@ -33,7 +34,8 @@ class HeatDrawController extends GetxController {
     this._clubRepo,
     this._attendance,
     this._programme,
-    this._meetings, {
+    this._meetings,
+    this._meetingTree, {
     Random? random,
   }) : _random = random ?? Random();
 
@@ -45,6 +47,11 @@ class HeatDrawController extends GetxController {
   /// For the FFSS spots: the drawn line-up is pushed onto each heat's course
   /// when the draw is saved — the spots are what results are entered against.
   final MeetingRepository _meetings;
+
+  /// Le propriétaire de l'arbre réunion, rafraîchi avant la poussée des
+  /// places : lire un cache ferait créer des places à côté de celles qui
+  /// existent, au lieu de les réécrire.
+  final MeetingService _meetingTree;
 
   /// The bibs of the competition, for the drawn athletes' badges.
   final Random _random;
@@ -442,17 +449,16 @@ class HeatDrawController extends GetxController {
 
     final competitionId = competition.value?.id;
     Map<int, List<Lane>>? existingByRun;
-    if (competitionId != null) {
-      try {
-        final meetings = await _meetings.getMeetings(competitionId);
-        existingByRun = {
-          for (final meeting in meetings)
-            for (final slot in meeting.slots)
-              for (final run in slot.runs) run.id: run.lanes,
-        };
-      } on AppException {
-        existingByRun = null;
-      }
+    // Rafraîchi plutôt que lu dans le cache : `load` rend faux sur un échec
+    // comme sur un appel dépassé, et dans les deux cas l'arbre ne reflète pas
+    // FFSS — pousser dessus créerait des places à côté des existantes.
+    if (competitionId != null &&
+        await _meetingTree.load(competitionId, silent: true)) {
+      existingByRun = {
+        for (final meeting in _meetingTree.meetings)
+          for (final slot in meeting.slots)
+            for (final run in slot.runs) run.id: run.lanes,
+      };
     }
     if (existingByRun == null) {
       return (unlinked: unlinked, failed: linked.length);

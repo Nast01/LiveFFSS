@@ -8,6 +8,7 @@ import 'package:live_ffss/app/data/repositories/club_repository.dart';
 import 'package:intl/intl.dart';
 import 'package:live_ffss/app/data/repositories/meeting_repository.dart';
 import 'package:live_ffss/app/data/repositories/race_repository.dart';
+import 'package:live_ffss/app/data/services/meeting_service.dart';
 import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/category.dart';
@@ -271,9 +272,9 @@ void main() {
               ],
             ),
         ]);
-    final controller =
-        RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-          ..applyArguments(arguments(heatId: heatId));
+    final controller = RaceCourseController(programme, raceRepo, clubRepo, rfid,
+        meetingRepo, MeetingService(meetingRepo))
+      ..applyArguments(arguments(heatId: heatId));
     await controller.load();
     return controller;
   }
@@ -314,6 +315,7 @@ void main() {
         clubRepo,
         rfid,
         meetingRepo,
+        MeetingService(meetingRepo),
       );
       controller.applyArguments({
         'race': makeRace(),
@@ -342,6 +344,7 @@ void main() {
         clubRepo,
         rfid,
         meetingRepo,
+        MeetingService(meetingRepo),
       );
       controller.applyArguments(null);
 
@@ -413,9 +416,9 @@ void main() {
       c.assign(c.competitors.first);
 
       // A second controller on the same programme sees the stored order.
-      final again =
-          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-            ..applyArguments(arguments());
+      final again = RaceCourseController(programme, raceRepo, clubRepo, rfid,
+          meetingRepo, MeetingService(meetingRepo))
+        ..applyArguments(arguments());
       await again.load();
 
       expect(again.placeOf(again.competitors.first), 1);
@@ -572,9 +575,9 @@ void main() {
               athletes: [athlete(10), athlete(11)],
             ),
           ]);
-      final c =
-          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-            ..applyArguments(arguments());
+      final c = RaceCourseController(programme, raceRepo, clubRepo, rfid,
+          meetingRepo, MeetingService(meetingRepo))
+        ..applyArguments(arguments());
       await c.load();
 
       // Identity, not equality: a rebuilt-but-value-equal structure would pass
@@ -937,15 +940,15 @@ void main() {
               (i.namedArguments[const Symbol('entryIds')] as List<int>).length);
 
       Get.arguments;
-      final controller =
-          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-            ..race.value = makeRace()
-            ..competition.value = makeCompetition()
-            ..categoryId = categoryId
-            ..categoryLabel = 'Senior'
-            ..roundType = RoundType.demi
-            ..raceNumber = 1
-            ..programmeRaceId = programmeRaceId;
+      final controller = RaceCourseController(programme, raceRepo, clubRepo,
+          rfid, meetingRepo, MeetingService(meetingRepo))
+        ..race.value = makeRace()
+        ..competition.value = makeCompetition()
+        ..categoryId = categoryId
+        ..categoryLabel = 'Senior'
+        ..roundType = RoundType.demi
+        ..raceNumber = 1
+        ..programmeRaceId = programmeRaceId;
       await controller.load();
       return controller;
     }
@@ -1064,6 +1067,46 @@ void main() {
         (101, 1, 0),
         (102, 2, 0),
       ]);
+    });
+
+    // L'arbre est rafraichi avant chaque publication, jamais lu dans un cache :
+    // on ecrit dessus, et une course supprimee entre-temps y figurerait encore.
+    test('l arbre est relu a chaque validation', () async {
+      final controller = await ready();
+      controller.competitorOrder.value = [
+        [101]
+      ];
+
+      // Consomme les appels du chargement — `load` resout deja la serie par
+      // l'arbre — pour ne compter que ce que les validations demandent.
+      verify(() => meetingRepo.getMeetings(competitionId));
+
+      await controller.validate();
+      await controller.validate();
+
+      verify(() => meetingRepo.getMeetings(competitionId)).called(2);
+    });
+
+    test('un arbre illisible refuse la publication', () async {
+      final controller = await ready();
+      controller.competitorOrder.value = [
+        [101]
+      ];
+      when(() => meetingRepo.getMeetings(competitionId))
+          .thenThrow(const NetworkException('offline'));
+
+      await controller.validate();
+
+      expect(controller.message.value!.translationKey, 'course_publish_failed');
+      verifyNever(() => meetingRepo.publishCourseResults(
+            raceId: any(named: 'raceId'),
+            heatName: any(named: 'heatName'),
+            heatNumber: any(named: 'heatNumber'),
+            roundType: any(named: 'roundType'),
+            outcomes: any(named: 'outcomes'),
+            heatId: any(named: 'heatId'),
+            link: any(named: 'link'),
+          ));
     });
 
     // Un resultat refuse laissait passer « Resultats envoyes » en vert, et
@@ -1920,9 +1963,9 @@ void main() {
               athletes: [athlete(101)],
             ),
           ]);
-      final controller =
-          RaceCourseController(programme, raceRepo, clubRepo, rfid, meetingRepo)
-            ..applyArguments(arguments());
+      final controller = RaceCourseController(programme, raceRepo, clubRepo,
+          rfid, meetingRepo, MeetingService(meetingRepo))
+        ..applyArguments(arguments());
       await controller.load();
 
       expect(controller.penalties.map((p) => p.competitorId), [10]);
