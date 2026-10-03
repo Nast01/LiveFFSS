@@ -18,3 +18,43 @@ class CompetitionProgramme with _$CompetitionProgramme {
   factory CompetitionProgramme.fromJson(Map<String, dynamic> json) =>
       _$CompetitionProgrammeFromJson(json);
 }
+
+/// La structure d'une épreuve × catégorie, et son remplacement.
+///
+/// Une épreuve peut être partagée par deux catégories — les séries Junior et
+/// Senior d'un même 50 m produisent deux structures de même `raceId` — donc la
+/// paire est la clé, jamais le seul `raceId`. Quatre contrôleurs déroulaient
+/// cette boucle.
+extension CompetitionProgrammeStructures on CompetitionProgramme {
+  /// La structure de cette épreuve × catégorie, ou nul s'il n'y en a pas.
+  EventStructure? structureFor(int raceId, int categoryId) {
+    for (final structure in structures) {
+      if (structure.raceId == raceId && structure.categoryId == categoryId) {
+        return structure;
+      }
+    }
+    return null;
+  }
+
+  /// Le même programme, [updated] ayant pris la place de la structure qui
+  /// porte sa clé — ou ajoutée à la fin quand il n'y en avait aucune.
+  ///
+  /// L'ordre des autres est conservé : l'aperçu des structures les affiche
+  /// dans l'ordre du blob, et une édition ne doit pas réordonner la liste
+  /// sous l'opérateur.
+  CompetitionProgramme withStructure(EventStructure updated) {
+    var replaced = false;
+    final merged = [
+      for (final structure in structures)
+        if (structure.raceId == updated.raceId &&
+            structure.categoryId == updated.categoryId)
+          () {
+            replaced = true;
+            return updated;
+          }()
+        else
+          structure,
+    ];
+    return copyWith(structures: replaced ? merged : [...merged, updated]);
+  }
+}

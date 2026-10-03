@@ -498,15 +498,8 @@ class StructureEditorController extends GetxController {
     _commit(structure.value!.copyWith(levels: levels));
   }
 
-  EventStructure? _stored() {
-    final structures = _programme.current.value?.structures ?? const [];
-    for (final s in structures) {
-      if (s.raceId == _args.raceId && s.categoryId == _args.categoryId) {
-        return s;
-      }
-    }
-    return null;
-  }
+  EventStructure? _stored() =>
+      _programme.current.value?.structureFor(_args.raceId, _args.categoryId);
 
   /// Sets the reactive structure and persists it into the programme, replacing
   /// any prior structure for this épreuve × category.
@@ -520,12 +513,8 @@ class StructureEditorController extends GetxController {
     structure.value = updated;
     final p = _programme.current.value ??
         CompetitionProgramme(competitionId: _args.competitionId);
-    final others = p.structures
-        .where((s) =>
-            !(s.raceId == updated.raceId && s.categoryId == updated.categoryId))
-        .toList();
     _programme
-        .save(p.copyWith(structures: [...others, updated]))
+        .save(p.withStructure(updated))
         // Le secure storage lève une PlatformException, pas une AppException :
         // c'est bien ce type-là qu'il faut attraper ici.
         .catchError((Object _) {

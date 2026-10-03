@@ -11,6 +11,7 @@ import 'package:live_ffss/app/data/services/programme_service.dart';
 import 'package:live_ffss/app/domain/models/athlete.dart';
 import 'package:live_ffss/app/domain/models/attendance_status.dart';
 import 'package:live_ffss/app/domain/models/competition.dart';
+import 'package:live_ffss/app/domain/models/competition_programme.dart';
 import 'package:live_ffss/app/domain/models/entry.dart';
 import 'package:live_ffss/app/domain/models/event_structure.dart';
 import 'package:live_ffss/app/domain/models/heat_draw.dart';
@@ -130,11 +131,7 @@ class HeatDrawController extends GetxController {
   EventStructure? get structure {
     final raceId = race.value?.id;
     if (raceId == null) return null;
-    for (final s
-        in _programme.current.value?.structures ?? const <EventStructure>[]) {
-      if (s.raceId == raceId && s.categoryId == categoryId) return s;
-    }
-    return null;
+    return _programme.current.value?.structureFor(raceId, categoryId);
   }
 
   /// Race size of the selected round. Falls back to the structure default for

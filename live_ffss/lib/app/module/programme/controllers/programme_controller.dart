@@ -588,13 +588,8 @@ class ProgrammeController extends GetxController {
     await _programme.save(current.copyWith(structures: kept));
   }
 
-  EventStructure? _structureFor(int raceId, int categoryId) {
-    final structures = _programme.current.value?.structures ?? const [];
-    for (final s in structures) {
-      if (s.raceId == raceId && s.categoryId == categoryId) return s;
-    }
-    return null;
-  }
+  EventStructure? _structureFor(int raceId, int categoryId) =>
+      _programme.current.value?.structureFor(raceId, categoryId);
 
   /// Re-derives each row's `structure` from the current stored programme,
   /// without refetching races/entries. Keeps the overview in sync after an

@@ -577,6 +577,10 @@ class RaceCourseController extends GetxController {
   /// and different `categoryId`. Only "we know the category and it differs"
   /// rules a structure out — an unset [categoryId] must not rule out every
   /// structure and silently persist nothing.
+  ///
+  /// C'est cette tolérance qui interdit d'utiliser
+  /// `CompetitionProgramme.structureFor` ici : elle exige une catégorie, et
+  /// cet écran peut être ouvert sans.
   bool _isOtherStructure(EventStructure structure) =>
       structure.raceId != race.value?.id ||
       (categoryId != null && structure.categoryId != categoryId);
