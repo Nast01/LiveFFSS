@@ -690,7 +690,7 @@ class RaceCourseController extends GetxController {
         return;
       }
 
-      final heatId = await _meetings.publishCourseResults(
+      final report = await _meetings.publishCourseResults(
         raceId: race.id,
         heatName: run.name,
         heatNumber: raceNumber,
@@ -706,11 +706,23 @@ class RaceCourseController extends GetxController {
           site: run.site,
         ),
       );
-      if (heatId == 0) {
+      if (report.heatId == 0) {
         message.trigger(const UiMessageError('course_publish_failed'));
         return;
       }
-      _heatId = heatId;
+      // La serie existe : la retenir meme sur une publication trouee, sinon la
+      // tentative suivante en empilerait une seconde.
+      _heatId = report.heatId;
+
+      // Un resultat refuse n'est pas un detail : le classement que FFSS
+      // detient est alors incomplet, et qualifier depuis un classement troue
+      // tirerait le tour suivant sur de mauvais noms. L'operateur revalide
+      // apres avoir corrige — chaque passage republie tout.
+      if (report.published < report.total) {
+        message.trigger(UiMessageError('course_publish_partial',
+            details: '${report.published}/${report.total}'));
+        return;
+      }
 
       await _seedNextRound(race, meetings);
       message.trigger(const UiMessageSuccess('course_published'));

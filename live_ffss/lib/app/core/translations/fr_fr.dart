@@ -375,6 +375,7 @@ final Map<String, String> frFR = {
   'course_scan_stop': 'Arrêter le scan',
   'course_published': 'Résultats envoyés sur FFSS',
   'course_publish_failed': "L'envoi des résultats a échoué",
+  'course_publish_partial': "FFSS n'a pas accepté tous les résultats",
   'course_publish_unplaced':
       "Cette course n'est pas au programme FFSS : placez le tour, puis "
           'réessayez.',

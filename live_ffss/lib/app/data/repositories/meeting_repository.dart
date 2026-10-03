@@ -95,11 +95,16 @@ abstract class MeetingRepository {
   /// ties the course to it when [link] says which course, then records one
   /// result per competitor, seated in the place they raced from.
   ///
-  /// Returns the heat id, or 0 when the heat itself was refused — no result is
-  /// sent then, since every one of them hangs off it.
+  /// Rend l'id de la série, le nombre de résultats que FFSS a acceptés et le
+  /// nombre envoyé. `heatId` vaut 0 quand la série elle-même a été refusée :
+  /// aucun résultat ne part alors, puisque tous s'y accrochent.
+  ///
+  /// Le compte n'est pas décoratif : `submitResult` rend 0 sur un refus, et le
+  /// jeter faisait passer une série dont trois résultats sur huit manquaient
+  /// pour un envoi complet. L'appelant compare les deux nombres.
   /// [roundType] est le niveau de la série chez FFSS : sans lui, une finale
   /// s'enregistre en série, le serveur appliquant son défaut.
-  Future<int> publishCourseResults({
+  Future<({int heatId, int published, int total})> publishCourseResults({
     required int raceId,
     required String heatName,
     required int heatNumber,
@@ -391,7 +396,7 @@ class MeetingRepositoryImpl implements MeetingRepository {
   }
 
   @override
-  Future<int> publishCourseResults({
+  Future<({int heatId, int published, int total})> publishCourseResults({
     required int raceId,
     required String heatName,
     required int heatNumber,
@@ -407,7 +412,9 @@ class MeetingRepositoryImpl implements MeetingRepository {
       level: roundType,
       id: heatId,
     );
-    if (heat == 0) return 0;
+    if (heat == 0) {
+      return (heatId: 0, published: 0, total: outcomes.length);
+    }
 
     // Before the results, not after: a course that carries no `serie` shows
     // none of them on the federal site, and a failure here is worth knowing
@@ -424,8 +431,12 @@ class MeetingRepositoryImpl implements MeetingRepository {
       );
     }
 
+    // Un refus n'arrete pas les suivants — mieux vaut sept resultats sur huit
+    // qu'un seul — mais il est compte : c'est tout ce qui distingue une
+    // publication complete d'une publication trouee.
+    var published = 0;
     for (final outcome in outcomes) {
-      await _dataSource.submitResult(
+      final id = await _dataSource.submitResult(
         heatId: heat,
         entryId: outcome.entryId,
         laneId: outcome.laneId,
@@ -433,8 +444,9 @@ class MeetingRepositoryImpl implements MeetingRepository {
         status: outcome.status,
         complement: outcome.complement,
       );
+      if (id != 0) published++;
     }
-    return heat;
+    return (heatId: heat, published: published, total: outcomes.length);
   }
 
   /// Les resultats d'une serie. Interne : les appelants passent par

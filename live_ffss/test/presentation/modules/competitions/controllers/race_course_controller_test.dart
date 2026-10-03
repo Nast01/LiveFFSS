@@ -235,7 +235,12 @@ void main() {
           outcomes: any(named: 'outcomes'),
           heatId: any(named: 'heatId'),
           link: any(named: 'link'),
-        )).thenAnswer((_) async => heatId);
+        )).thenAnswer((invocation) async {
+      // Tout accepte par defaut : un test qui veut une publication trouee
+      // reecrit ce stub avec un `published` plus petit.
+      final sent = invocation.namedArguments[const Symbol('outcomes')] as List;
+      return (heatId: heatId, published: sent.length, total: sent.length);
+    });
   }
 
   Future<RaceCourseController> loadWithEntries(
@@ -1059,6 +1064,39 @@ void main() {
         (101, 1, 0),
         (102, 2, 0),
       ]);
+    });
+
+    // Un resultat refuse laissait passer « Resultats envoyes » en vert, et
+    // qualifiait le tour suivant depuis un classement que FFSS ne detient pas
+    // en entier.
+    test('une publication trouée est signalée et ne qualifie personne',
+        () async {
+      final controller = await ready();
+      controller.competitorOrder.value = [
+        [101],
+        [102]
+      ];
+      when(() => meetingRepo.publishCourseResults(
+            raceId: any(named: 'raceId'),
+            heatName: any(named: 'heatName'),
+            heatNumber: any(named: 'heatNumber'),
+            roundType: any(named: 'roundType'),
+            outcomes: any(named: 'outcomes'),
+            heatId: any(named: 'heatId'),
+            link: any(named: 'link'),
+          )).thenAnswer((_) async => (heatId: 77, published: 1, total: 2));
+
+      await controller.validate();
+
+      final message = controller.message.value;
+      expect(message, isA<UiMessageError>());
+      expect(message!.translationKey, 'course_publish_partial');
+      expect(message.details, '1/2');
+      verifyNever(() => meetingRepo.syncLanes(
+            runId: any(named: 'runId'),
+            entryIds: any(named: 'entryIds'),
+            existing: any(named: 'existing'),
+          ));
     });
 
     // Sans le niveau, FFSS applique son defaut `heat` : une demi-finale

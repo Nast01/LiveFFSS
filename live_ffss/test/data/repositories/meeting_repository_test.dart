@@ -720,7 +720,7 @@ void main() {
 
     test('crée la série, l accroche à la course, puis pose les résultats',
         () async {
-      final heatId = await repo.publishCourseResults(
+      final report = await repo.publishCourseResults(
         raceId: 37962,
         heatName: 'Demie 1',
         heatNumber: 1,
@@ -728,7 +728,9 @@ void main() {
         outcomes: outcomes,
       );
 
-      expect(heatId, 94369);
+      expect(report.heatId, 94369);
+      expect(report.published, 3);
+      expect(report.total, 3);
       verify(() => ds.submitHeat(
           raceId: 37962,
           name: 'Demie 1',
@@ -801,6 +803,40 @@ void main() {
       expect(query.single, 94369);
     });
 
+    // submitResult rend 0 sur un refus. Le jeter faisait passer une serie
+    // trouee pour un envoi complet.
+    test('un résultat refusé est compté, les autres partent quand même',
+        () async {
+      when(() => ds.submitResult(
+            heatId: any(named: 'heatId'),
+            entryId: 102,
+            laneId: any(named: 'laneId'),
+            rank: any(named: 'rank'),
+            status: any(named: 'status'),
+            complement: any(named: 'complement'),
+          )).thenAnswer((_) async => 0);
+
+      final report = await repo.publishCourseResults(
+        raceId: 37962,
+        heatName: 'Demie 1',
+        heatNumber: 1,
+        roundType: RoundType.demi,
+        outcomes: outcomes,
+      );
+
+      expect(report.heatId, 94369);
+      expect(report.published, 2);
+      expect(report.total, 3);
+      // Le refus du deuxieme n'a pas empeche le troisieme.
+      verify(() => ds.submitResult(
+          heatId: 94369,
+          entryId: 103,
+          laneId: 73,
+          rank: null,
+          status: 1,
+          complement: 'DSQ')).called(1);
+    });
+
     test('une série refusée n envoie aucun résultat', () async {
       when(() => ds.submitHeat(
             raceId: any(named: 'raceId'),
@@ -810,16 +846,18 @@ void main() {
             id: any(named: 'id'),
           )).thenAnswer((_) async => 0);
 
-      expect(
-        await repo.publishCourseResults(
-          raceId: 37962,
-          heatName: 'x',
-          heatNumber: 1,
-          roundType: RoundType.demi,
-          outcomes: outcomes,
-        ),
-        0,
+      final report = await repo.publishCourseResults(
+        raceId: 37962,
+        heatName: 'x',
+        heatNumber: 1,
+        roundType: RoundType.demi,
+        outcomes: outcomes,
       );
+
+      expect(report.heatId, 0);
+      // Rien n'est parti, mais le total dit ce qui aurait du partir.
+      expect(report.published, 0);
+      expect(report.total, 3);
       verifyNever(() => ds.submitResult(
             heatId: any(named: 'heatId'),
             entryId: any(named: 'entryId'),
