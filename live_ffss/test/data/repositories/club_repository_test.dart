@@ -261,7 +261,7 @@ void main() {
             ClubDto(id: 7, name: 'Nice', athletes: [_athlete(1, 7, 'Nice')]),
           ]);
       when(() => ds.getClubDetail(7)).thenAnswer(
-          (_) async => ClubDto(id: 7, name: 'Nice', logoUrl: 'nice.png'));
+          (_) async => const ClubDto(id: 7, name: 'Nice', logoUrl: 'nice.png'));
 
       final patched = await repo.withAthleteClubs(42, [
         engagement(10, [member(1, 7)]),
