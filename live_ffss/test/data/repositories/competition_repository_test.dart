@@ -166,4 +166,86 @@ void main() {
       expect(calls, 2);
     });
   });
+
+  // La saison n'est plus une constante : elle se deduit de la date courante,
+  // et la borne basse est le 1er octobre qui l'ouvre.
+  group('CompetitionRepository saison courante', () {
+    Future<Map<String, String>> captureWindow(DateTime today) async {
+      final clockedRepo = CompetitionRepositoryImpl(ds, now: () => today);
+      when(() => ds.getCompetitions(
+            season: any(named: 'season'),
+            startDate: any(named: 'startDate'),
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+          )).thenAnswer((_) async => const []);
+
+      await clockedRepo.getAllCompetitions();
+
+      final call = verify(() => ds.getCompetitions(
+            season: captureAny(named: 'season'),
+            startDate: captureAny(named: 'startDate'),
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+          )).captured;
+      return {
+        'season': call[0] as String,
+        'startDate': call[1] as String,
+      };
+    }
+
+    test('un jour de saison ouverte en octobre porte cette saison', () async {
+      expect(await captureWindow(DateTime(2026, 1, 15)), {
+        'season': '2025-2026',
+        'startDate': '2025-10-01',
+      });
+    });
+
+    test('le 30 septembre tient encore a la saison precedente', () async {
+      expect(await captureWindow(DateTime(2026, 9, 30)), {
+        'season': '2025-2026',
+        'startDate': '2025-10-01',
+      });
+    });
+
+    test('le 1er octobre bascule la fenetre entiere', () async {
+      expect(await captureWindow(DateTime(2026, 10, 1)), {
+        'season': '2026-2027',
+        'startDate': '2026-10-01',
+      });
+    });
+
+    test('une plage passee part avec la saison de son debut, pas celle du jour',
+        () async {
+      final clockedRepo =
+          CompetitionRepositoryImpl(ds, now: () => DateTime(2026, 10, 15));
+      when(() => ds.getCompetitions(
+            season: any(named: 'season'),
+            startDate: any(named: 'startDate'),
+            endDate: any(named: 'endDate'),
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+          )).thenAnswer((_) async => const []);
+
+      await clockedRepo.getCompetitionsForRange(
+        from: DateTime(2026, 4, 27),
+        to: DateTime(2026, 5, 3),
+      );
+
+      verify(() => ds.getCompetitions(
+            season: '2025-2026',
+            startDate: '2026-04-27',
+            endDate: '2026-05-03',
+            type: any(named: 'type'),
+            visibility: any(named: 'visibility'),
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+          )).called(1);
+    });
+  });
 }
