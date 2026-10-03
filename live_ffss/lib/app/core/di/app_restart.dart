@@ -6,6 +6,7 @@ import 'package:live_ffss/app/core/config/app_environment.dart';
 import 'package:live_ffss/app/core/config/environment_storage.dart';
 import 'package:live_ffss/app/core/di/initial_binding.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
+import 'package:live_ffss/app/data/repositories/auth_repository.dart';
 import 'package:live_ffss/app/routes/app_pages.dart';
 
 /// Bascule d'environnement : un démarrage à froid sans relancer le processus.
@@ -40,6 +41,10 @@ abstract class AppRestart {
     // gestionnaire obsolète pousserait /login en course avec le retour vers
     // /home.
     Get.find<HttpClient>().onAuthFailure = () async {};
+
+    // Le flux d'authentification de l'ancien depot n'a plus d'ecoutant utile :
+    // le UserService qui s'y etait abonne part avec le deleteAll ci-dessous.
+    await Get.find<AuthRepository>().dispose();
 
     // 3-4. Le conteneur repart de zéro, avec le nouvel environnement.
     // Get.deleteAll détruit aussi GetMaterialController, le contrôleur racine

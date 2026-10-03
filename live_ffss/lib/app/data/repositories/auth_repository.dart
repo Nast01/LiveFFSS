@@ -16,6 +16,11 @@ abstract class AuthRepository {
   Future<User?> restoreSession();
   Future<SessionProbe> probeSession();
   Stream<User?> get userStream;
+
+  /// Ferme [userStream]. Appelé par `AppRestart.switchTo`, seul endroit où ce
+  /// dépôt est jeté avant la fin du processus : sans cela l'ancien contrôleur
+  /// de flux survivait à chaque bascule d'environnement.
+  Future<void> dispose();
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -133,6 +138,9 @@ class AuthRepositoryImpl implements AuthRepository {
       );
     }
   }
+
+  @override
+  Future<void> dispose() => _userController.close();
 
   /// Seul un « vous n'êtes personne » explicite met fin à la session — voir
   /// [probeSession].

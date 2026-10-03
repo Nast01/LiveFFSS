@@ -293,4 +293,18 @@ void main() {
       verify(() => secure.read(key: 'dev_user')).called(1);
     });
   });
+
+  // Le controleur de flux n'etait jamais ferme : il survivait a chaque bascule
+  // d'environnement, qui est le seul moment ou ce depot est jete.
+  group('AuthRepository.dispose', () {
+    test('ferme userStream', () async {
+      var closed = false;
+      repo.userStream.listen((_) {}, onDone: () => closed = true);
+
+      await repo.dispose();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(closed, isTrue);
+    });
+  });
 }

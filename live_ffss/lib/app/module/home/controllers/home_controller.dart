@@ -189,8 +189,8 @@ class HomeController extends GetxController {
 
   RxString get currentLanguage => _languageService.currentLanguage;
 
-  void changeLanguage(String languageCode) {
-    _languageService.changeLanguage(languageCode);
+  Future<void> changeLanguage(String languageCode) async {
+    await _languageService.changeLanguage(languageCode);
   }
 
   void refreshAfterLogout() {
