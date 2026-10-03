@@ -278,6 +278,34 @@ void main() {
       );
     });
 
+    // `"false"` est une chaine non vide, donc veridique en Dart : un refus
+    // formule ainsi passait pour un succes et l'appelant lisait une reponse
+    // vide comme un resultat. La doc FFSS (§1) annonce les deux formes.
+    test('a refusal spelled as the string "false" is still a refusal',
+        () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(() =>
+          httpMock.post(any(),
+              headers: any(named: 'headers'),
+              body: any(named: 'body'))).thenAnswer((_) async => responseWith(
+          '{"success": "false", "message": "Enregistrement impossible"}', 200));
+
+      await expectLater(
+        client.post('x'),
+        throwsA(isA<ApiException>()
+            .having((e) => e.message, 'message', 'Enregistrement impossible')),
+      );
+    });
+
+    test('a success spelled as the string "true" goes through', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(() => httpMock.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async =>
+              responseWith('{"success": "true", "id": "94369"}', 200));
+
+      expect(await client.get('x'), {'success': 'true', 'id': '94369'});
+    });
+
     test('no token means no token parameter, not an empty one', () async {
       when(() => tokens.getToken()).thenAnswer((_) async => '');
       when(() => httpMock.get(any(), headers: any(named: 'headers')))

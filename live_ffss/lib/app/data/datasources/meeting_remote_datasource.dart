@@ -1,6 +1,7 @@
 import 'package:live_ffss/app/core/config/app_config.dart';
 import 'package:live_ffss/app/core/errors/app_exception.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
+import 'package:live_ffss/app/data/datasources/api_envelope.dart';
 import 'package:live_ffss/app/data/dtos/heat_result_dto.dart';
 import 'package:live_ffss/app/data/dtos/lane_detail_dto.dart';
 import 'package:live_ffss/app/data/dtos/meeting_dto.dart';
@@ -193,9 +194,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       'debut': beginTime,
       'fin': endTime,
     });
-    if (body['success'] != true) return 0;
-    final assigned = body['id'];
-    return assigned is int ? assigned : int.tryParse('$assigned') ?? 0;
+    return assignedId(body);
   }
 
   @override
@@ -218,9 +217,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       'fin': endTime,
       'partie': raceFormatDetailId?.toString() ?? '',
     });
-    if (body['success'] != true) return 0;
-    final assigned = body['id'];
-    return assigned is int ? assigned : int.tryParse('$assigned') ?? 0;
+    return assignedId(body);
   }
 
   @override
@@ -230,7 +227,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       {'id': slotId.toString()},
     );
     final body = await _http.post(endpoint);
-    return body['success'] == true;
+    return wasAccepted(body);
   }
 
   @override
@@ -240,7 +237,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       {'id': meetingId.toString()},
     );
     final body = await _http.post(endpoint);
-    return body['success'] == true;
+    return wasAccepted(body);
   }
 
   @override
@@ -260,8 +257,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       'numero': number.toString(),
       'engagement': engagement,
     });
-    final assigned = body['id'];
-    return assigned is int ? assigned : 0;
+    return assignedId(body);
   }
 
   @override
@@ -271,7 +267,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       {'id': laneId.toString()},
     );
     final body = await _http.post(endpoint);
-    return body['success'] == true;
+    return wasAccepted(body);
   }
 
   @override
@@ -303,8 +299,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       // to a plain retiming.
       if (heatId != null) 'serie': heatId.toString(),
     });
-    final assigned = body['id'];
-    return assigned is int ? assigned : 0;
+    return assignedId(body);
   }
 
   @override
@@ -314,7 +309,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       {'id': runId.toString()},
     );
     final body = await _http.post(endpoint);
-    return body['success'] == true;
+    return wasAccepted(body);
   }
 
   @override
@@ -349,8 +344,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       // semi, final.
       if (code.isNotEmpty) 'niveau': code,
     });
-    final assigned = body['id'];
-    return assigned is int ? assigned : 0;
+    return assignedId(body);
   }
 
   @override
@@ -372,8 +366,7 @@ class MeetingRemoteDataSourceImpl implements MeetingRemoteDataSource {
       'statut': status.toString(),
       'complement': complement ?? '',
     });
-    final assigned = body['id'];
-    return assigned is int ? assigned : 0;
+    return assignedId(body);
   }
 
   @override

@@ -264,7 +264,11 @@ class HttpClient {
           statusCode: status, authenticated: authenticated);
     }
 
-    if (decoded['success'] == false) {
+    // Un refus se dit `false` ou `"false"` selon la route (doc FFSS, §1), et
+    // `"false"` est une chaine non vide — donc veridique en Dart. Un refus
+    // formule ainsi passait pour un succes, et l'appelant lisait une reponse
+    // vide comme un resultat.
+    if (_isRefused(decoded['success'])) {
       throw ApiException(
         decoded['message']?.toString() ?? 'API returned success: false',
         statusCode: status,
@@ -275,6 +279,12 @@ class HttpClient {
 
     return decoded;
   }
+
+  /// Seul un refus explicite compte : `true`, `"true"` ou un champ absent
+  /// valent tous succes — l'enveloppe FFSS omet `success` sur une bonne partie
+  /// de ses routes.
+  static bool _isRefused(Object? success) =>
+      success == false || success == 'false';
 
   void _notifyAuthFailure() {
     final cb = _onAuthFailure;

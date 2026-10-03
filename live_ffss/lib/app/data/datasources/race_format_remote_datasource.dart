@@ -1,5 +1,6 @@
 import 'package:live_ffss/app/core/config/app_config.dart';
 import 'package:live_ffss/app/core/network/http_client.dart';
+import 'package:live_ffss/app/data/datasources/api_envelope.dart';
 import 'package:live_ffss/app/data/dtos/race_format_configuration_dto.dart';
 
 abstract class RaceFormatRemoteDataSource {
@@ -93,9 +94,7 @@ class RaceFormatRemoteDataSourceImpl implements RaceFormatRemoteDataSource {
       // per entry — categories[]=10&categories[]=24.
       'categories[]': categoryIds,
     });
-    if (body['success'] != true) return 0;
-    final assigned = body['id'];
-    return assigned is int ? assigned : int.tryParse('$assigned') ?? 0;
+    return assignedId(body);
   }
 
   @override
@@ -105,7 +104,7 @@ class RaceFormatRemoteDataSourceImpl implements RaceFormatRemoteDataSource {
       {'id': raceFormatId.toString()},
     );
     final body = await _http.post(endpoint);
-    return body['success'] == true;
+    return wasAccepted(body);
   }
 
   @override
@@ -134,9 +133,7 @@ class RaceFormatRemoteDataSourceImpl implements RaceFormatRemoteDataSource {
       'nbPlaceQualificative': qualifyingSpots,
       'categories[]': categoryIds,
     });
-    if (body['success'] != true) return 0;
-    final assigned = body['id'];
-    return assigned is int ? assigned : int.tryParse('$assigned') ?? 0;
+    return assignedId(body);
   }
 
   @override
@@ -146,6 +143,6 @@ class RaceFormatRemoteDataSourceImpl implements RaceFormatRemoteDataSource {
       {'id': detailId.toString()},
     );
     final body = await _http.post(endpoint);
-    return body['success'] == true;
+    return wasAccepted(body);
   }
 }
