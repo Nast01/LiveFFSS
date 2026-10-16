@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:live_ffss_v2/app.dart';
+import 'package:live_ffss_v2/core/providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,5 +10,5 @@ Future<void> main() async {
   // y', locale)`) lèvent tant que les données de la langue ne sont pas
   // chargées.
   await initializeDateFormatting();
-  runApp(const ProviderScope(child: LiveFfssApp()));
+  runApp(const ProviderScope(retry: noRetry, child: LiveFfssApp()));
 }

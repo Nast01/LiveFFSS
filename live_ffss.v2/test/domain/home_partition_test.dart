@@ -90,8 +90,9 @@ void main() {
     });
 
     test('le passage à l\'heure d\'hiver ne décale pas la fenêtre', () {
-      // Le 25 octobre 2026, l'heure recule : soustraire 14 × 24 h à minuit
-      // tomberait la veille à 23 h et ferait entrer une compétition de trop.
+      // Le 25 octobre 2026, l'heure recule : soustraire 14 × 24 h au minuit
+      // du 8 novembre tomberait le 25 octobre à 01 h et ferait EXCLURE à tort
+      // la compétition du 25 octobre (minuit < 01 h).
       final afterDst = DateTime(2026, 11, 8, 10);
       final p = partitionHome([
         competition(1, start: DateTime(2026, 10, 25)),

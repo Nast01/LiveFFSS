@@ -1,6 +1,7 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/competition_repository.dart';
 import 'package:live_ffss_v2/features/home/search_provider.dart';
 import 'package:mocktail/mocktail.dart';
@@ -22,7 +23,7 @@ void main() {
 
   ProviderContainer containerFor() => ProviderContainer(
     overrides: [competitionRepositoryProvider.overrideWithValue(repository)],
-    retry: (_, _) => null,
+    retry: noRetry,
   );
 
   test('moins de 2 caractères : aucun appel, aucun résultat', () async {

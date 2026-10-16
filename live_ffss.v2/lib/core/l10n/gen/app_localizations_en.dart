@@ -24,19 +24,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterAll => 'All';
 
   @override
-  String get filterFlatWater => 'Pool';
+  String get filterFlatWater => 'Flat water';
 
   @override
-  String get filterCoastal => 'Ocean';
+  String get filterCoastal => 'Coastal';
 
   @override
   String get filterFavorites => 'My favourites';
 
   @override
-  String get disciplineFlatWater => 'Pool';
+  String get disciplineFlatWater => 'Flat water';
 
   @override
-  String get disciplineCoastal => 'Ocean';
+  String get disciplineCoastal => 'Coastal';
 
   @override
   String get disciplineMixed => 'Mixed';

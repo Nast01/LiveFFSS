@@ -160,4 +160,23 @@ void main() {
 
     expect([for (final m in meetings) m.id], [2]);
   });
+
+  test('un serveur qui ignore start ne fait pas boucler : pages bornées, '
+      'sans doublon', () async {
+    final page = [
+      for (var i = 1; i <= MeetingRepositoryImpl.pageSize; i++) reunion(i),
+    ];
+    when(
+      () => http.get(any(), query: any(named: 'query')),
+    ).thenAnswer((_) async => {'data': page});
+
+    final meetings = await repository.getMeetings(1453);
+
+    verify(
+      () => http.get(any(), query: any(named: 'query')),
+    ).called(MeetingRepositoryImpl.maxPages);
+    final ids = [for (final m in meetings) m.id];
+    expect(ids.toSet().length, ids.length);
+    expect(ids.length, MeetingRepositoryImpl.pageSize);
+  });
 }

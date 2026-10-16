@@ -13,7 +13,7 @@ void main() {
     store = InMemoryLocalStore();
     container = ProviderContainer(
       overrides: [localStoreProvider.overrideWithValue(store)],
-      retry: (_, _) => null,
+      retry: noRetry,
     );
     addTearDown(container.dispose);
   });

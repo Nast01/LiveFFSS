@@ -27,6 +27,9 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
 
   static const int searchLimit = 50;
 
+  /// Un serveur qui ignorerait `start` renverrait la première page à l'infini.
+  static const int maxPages = 50;
+
   /// `type` 3 (« mixte ») est la valeur qui rend les trois spécialités : c'est
   /// celle que la v1 envoyait pour « toutes ».
   static const int _allSpecialities = 3;
@@ -35,19 +38,23 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
 
   @override
   Future<List<CompetitionSummary>> getCompetitionsFrom(DateTime from) async {
-    final all = <CompetitionSummary>[];
-    for (var start = 0; ; start += pageSize) {
+    final byId = <int, CompetitionSummary>{};
+    for (var page = 0; page < maxPages; page++) {
+      final start = page * pageSize;
       final rows = await _rows({
         'debut': _day.format(from),
         'type': _allSpecialities,
         'start': start,
         'length': pageSize,
       });
-      all.addAll(_summaries(rows));
+      for (final summary in _summaries(rows)) {
+        byId.putIfAbsent(summary.id, () => summary);
+      }
       // Compté sur les entrées brutes : une entrée non-objet ou écartée par le
       // mapper ne doit pas faire passer une page pleine pour la dernière.
-      if (rows.length < pageSize) return all;
+      if (rows.length < pageSize) break;
     }
+    return byId.values.toList();
   }
 
   @override

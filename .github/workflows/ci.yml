@@ -16,6 +16,10 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    # Fuseau de la FFSS : le test de changement d'heure du découpage de
+    # l'accueil ne discrimine qu'avec un fuseau qui en a un (UTC n'en a pas).
+    env:
+      TZ: Europe/Paris
     strategy:
       fail-fast: false
       matrix:

@@ -37,3 +37,9 @@ final localStoreProvider = Provider<LocalStore>(
 /// L'heure courante, remplaçable dans les tests : le découpage de l'accueil
 /// et « Jour 1/3 » en dépendent.
 final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+
+/// Riverpod 3 relance par défaut un fournisseur en échec pendant près de
+/// 40 s : hors ligne, le rafraîchissement tournerait d'autant avant de
+/// signaler l'échec. Le rafraîchissement manuel et la minuterie de 30 s
+/// tiennent lieu de nouvelle tentative.
+Duration? noRetry(int retryCount, Object error) => null;

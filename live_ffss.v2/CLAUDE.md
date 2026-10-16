@@ -23,7 +23,7 @@ Règles et conventions de la v2 de l'application mobile. Référence pour les se
 
 ## État et navigation
 
-- **Riverpod 3.** Fournisseurs déclarés à la main (pas de `riverpod_generator`). Les tests créent `ProviderContainer(overrides: [...], retry: (_, _) => null)` : sans `retry`, Riverpod 3 relance un fournisseur en échec et le test attend.
+- **Riverpod 3.** Fournisseurs déclarés à la main (pas de `riverpod_generator`). Les tests créent `ProviderContainer(overrides: [...], retry: noRetry)` et `main.dart` passe le même `noRetry` (`core/providers.dart`) à `ProviderScope` : Riverpod 3 relance par défaut un fournisseur en échec pendant près de 40 s, ce qui ferait attendre un test et, hors ligne, tournerait le rafraîchissement d'autant. Le rafraîchissement manuel et la minuterie de 30 s tiennent lieu de nouvelle tentative.
 - **`clockProvider`** donne l'heure : ne jamais appeler `DateTime.now()` dans un fournisseur ou une page.
 - **go_router 17**, `StatefulShellRoute.indexedStack` : une branche par onglet. Les routes sont dans `Routes` (`core/router/app_router.dart`).
 - **Compétition active** : `activeCompetitionProvider` (id persisté, résumé en mémoire) ; `currentCompetitionProvider` en déduit la compétition des onglets. On ouvre une compétition avec `openCompetition(...)`.

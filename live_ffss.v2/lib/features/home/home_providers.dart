@@ -7,7 +7,12 @@ import 'package:live_ffss_v2/features/home/favorites.dart';
 import 'package:live_ffss_v2/features/home/home_view.dart';
 import 'package:live_ffss_v2/features/shell/active_competition.dart';
 
-/// Les compétitions de l'accueil. On part d'aujourd'hui − 14 jours et non du
+/// Une compétition de plusieurs jours qui a commencé avant la fenêtre de 14
+/// jours mais s'est terminée dedans, ou qui court encore, doit revenir :
+/// `partitionHome` garde la vraie fenêtre de 14 jours.
+const int fetchMarginDays = 31;
+
+/// Les compétitions de l'accueil. On part d'aujourd'hui − 45 jours et non du
 /// début de saison : sinon, au 1er octobre, les compétitions terminées la
 /// semaine d'avant disparaîtraient de « Terminées récemment ».
 final homeCompetitionsProvider = FutureProvider<List<CompetitionSummary>>((
@@ -17,7 +22,11 @@ final homeCompetitionsProvider = FutureProvider<List<CompetitionSummary>>((
   return ref
       .watch(competitionRepositoryProvider)
       .getCompetitionsFrom(
-        DateTime(today.year, today.month, today.day - recentWindowDays),
+        DateTime(
+          today.year,
+          today.month,
+          today.day - (recentWindowDays + fetchMarginDays),
+        ),
       );
 });
 

@@ -28,7 +28,7 @@ void main() {
         localStoreProvider.overrideWithValue(InMemoryLocalStore()),
         clockProvider.overrideWithValue(() => DateTime(2026, 10, 17, 9, 42)),
       ],
-      retry: (_, _) => null,
+      retry: noRetry,
     );
     addTearDown(container.dispose);
   });
@@ -43,7 +43,7 @@ void main() {
       await container.read(homeCompetitionsProvider.future);
 
       verify(
-        () => repository.getCompetitionsFrom(DateTime(2026, 10, 3)),
+        () => repository.getCompetitionsFrom(DateTime(2026, 9, 2)),
       ).called(1);
     },
   );

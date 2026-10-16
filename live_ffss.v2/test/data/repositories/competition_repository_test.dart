@@ -117,6 +117,27 @@ void main() {
       },
     );
 
+    test('un serveur qui ignore start ne fait pas boucler : pages bornées, '
+        'sans doublon', () async {
+      final page = [
+        for (var i = 0; i < CompetitionRepositoryImpl.pageSize; i++) row(i),
+      ];
+      when(
+        () => http.get(any(), query: any(named: 'query')),
+      ).thenAnswer((_) async => {'data': page});
+
+      final result = await repository.getCompetitionsFrom(
+        DateTime(2026, 10, 3),
+      );
+
+      verify(
+        () => http.get(any(), query: any(named: 'query')),
+      ).called(CompetitionRepositoryImpl.maxPages);
+      final ids = [for (final c in result) c.id];
+      expect(ids.toSet().length, ids.length);
+      expect(ids.length, CompetitionRepositoryImpl.pageSize);
+    });
+
     test(
       'une ligne au mauvais type est écartée seule, les autres restent',
       () async {

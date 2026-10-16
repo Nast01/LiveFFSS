@@ -137,11 +137,11 @@ Tout ce qui sert à l'affichage (« 27 – 29 mars 2026 », libellé et couleur 
 
 | Besoin | Appel |
 |---|---|
-| Accueil | `GET competition/evenement`, `debut = aujourd'hui − 14 jours`, sans `fin`, pagination automatique |
+| Accueil | `GET competition/evenement`, `debut = aujourd'hui − 45 jours`, sans `fin`, pagination automatique |
 | Recherche | `GET competition/evenement`, `search`, déclenché 300 ms après la dernière frappe |
 | Ligne « MAINTENANT » | L'arbre des réunions de la compétition, **uniquement pour les compétitions en direct** |
 
-On part d'aujourd'hui − 14 jours et non du début de saison : sinon, au 1er octobre, les compétitions terminées la semaine d'avant disparaîtraient de « Terminées récemment ».
+On part d'aujourd'hui − 45 jours (14 jours affichés + 31 de marge pour les compétitions de plusieurs jours, dont le début précède la fenêtre alors que la fin y tombe ou qu'elles sont en cours) et non du début de saison : sinon, au 1er octobre, les compétitions terminées la semaine d'avant disparaîtraient de « Terminées récemment ». `partitionHome` garde la vraie fenêtre de 14 jours.
 
 `partitionHome(competitions, today)` est une **fonction pure** qui découpe la liste en trois groupes :
 - **en direct** : `startDate ≤ today ≤ endDate` ;

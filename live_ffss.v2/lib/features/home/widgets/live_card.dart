@@ -22,7 +22,8 @@ class LiveCard extends ConsumerWidget {
     final today = ref.watch(clockProvider)();
     final day = competition.dayOfCompetition(today);
     // En échec, la ligne disparaît simplement : la carte reste utile sans elle.
-    final now = ref.watch(nowRunningProvider(competition.id)).value;
+    final async = ref.watch(nowRunningProvider(competition.id));
+    final now = async.hasError ? null : async.value;
     final place = [
       ?competition.location,
       competition.dateRangeLabel(locale),

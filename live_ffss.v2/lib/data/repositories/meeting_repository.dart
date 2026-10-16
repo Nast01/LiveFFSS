@@ -21,6 +21,10 @@ class MeetingRepositoryImpl implements MeetingRepository {
   /// vrai programme.
   static const int pageSize = 100;
 
+  /// Un serveur qui ignorerait `start` renverrait la première page à l'infini,
+  /// à chaque passage de la minuterie de 30 s.
+  static const int maxPages = 50;
+
   /// Les courses viennent de la réponse `reunion` elle-même, et non de
   /// `creneau/:id/course` : cette route refuse tous les créneaux depuis le
   /// 2026-08-31, et la v1 retombait de toute façon sur ces mêmes courses.
@@ -31,8 +35,9 @@ class MeetingRepositoryImpl implements MeetingRepository {
     final path = ApiEndpoints.replacePath(ApiEndpoints.meetingList, {
       'id': competitionId.toString(),
     });
-    final meetings = <Meeting>[];
-    for (var start = 0; ; start += pageSize) {
+    final byId = <int, Meeting>{};
+    for (var page = 0; page < maxPages; page++) {
+      final start = page * pageSize;
       final body = await _http.get(
         path,
         query: {'start': start, 'length': pageSize},
@@ -49,16 +54,17 @@ class MeetingRepositoryImpl implements MeetingRepository {
           continue;
         }
         final meeting = dto.toDomain();
-        if (meeting != null) meetings.add(meeting);
+        if (meeting != null) byId.putIfAbsent(meeting.id, () => meeting);
       }
       // Compté sur les entrées brutes : une entrée non-objet ne doit pas faire
       // passer une page pleine pour la dernière.
       if (raw.length < pageSize) break;
     }
-    return meetings..sort((a, b) {
+    return byId.values.toList()..sort((a, b) {
       final byDay = a.day.compareTo(b.day);
       if (byDay != 0) return byDay;
-      return (a.startTime ?? a.day).compareTo(b.startTime ?? b.day);
+      final byTime = (a.startTime ?? a.day).compareTo(b.startTime ?? b.day);
+      return byTime != 0 ? byTime : a.id.compareTo(b.id);
     });
   }
 }

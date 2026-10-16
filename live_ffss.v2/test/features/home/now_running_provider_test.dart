@@ -1,5 +1,6 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:live_ffss_v2/core/providers.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
@@ -44,7 +45,7 @@ void main() {
   test('calcule la série en cours de la compétition', () async {
     final container = ProviderContainer(
       overrides: [meetingRepositoryProvider.overrideWithValue(repository)],
-      retry: (_, _) => null,
+      retry: noRetry,
     );
     addTearDown(container.dispose);
     container.listen(nowRunningProvider(1453), (_, _) {});
@@ -61,7 +62,7 @@ void main() {
     fakeAsync((async) {
       final container = ProviderContainer(
         overrides: [meetingRepositoryProvider.overrideWithValue(repository)],
-        retry: (_, _) => null,
+        retry: noRetry,
       );
       final subscription = container.listen(
         nowRunningProvider(1453),
