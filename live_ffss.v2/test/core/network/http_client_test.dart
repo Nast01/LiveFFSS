@@ -1,0 +1,883 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:live_ffss_v2/core/config/app_config.dart';
+import 'package:live_ffss_v2/core/config/app_environment.dart';
+import 'package:live_ffss_v2/core/errors/app_exception.dart';
+import 'package:live_ffss_v2/core/network/http_client.dart';
+import 'package:live_ffss_v2/core/network/token_storage.dart';
+import 'package:mocktail/mocktail.dart';
+
+class _MockHttp extends Mock implements http.Client {}
+
+class _MockTokenStorage extends Mock implements TokenStorage {}
+
+class _FakeUri extends Fake implements Uri {}
+
+http.Response responseWith(String body, int status) =>
+    http.Response(body, status);
+
+void main() {
+  setUpAll(() {
+    registerFallbackValue(_FakeUri());
+  });
+
+  late _MockHttp httpMock;
+  late _MockTokenStorage tokens;
+  late HttpClient client;
+
+  const config = AppConfig(
+    baseUrl: 'https://example.test',
+    apiVersion: 'api/v1.0',
+  );
+
+  setUp(() {
+    httpMock = _MockHttp();
+    tokens = _MockTokenStorage();
+    client = HttpClient(config: config, tokenStorage: tokens, inner: httpMock);
+    when(() => tokens.getToken()).thenAnswer((_) async => null);
+  });
+
+  group('HttpClient.get URL building', () {
+    test('joins baseUrl, apiVersion, and path with single slashes', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async => responseWith('{"success": true, "data": []}', 200),
+      );
+
+      await client.get('competition/evenement');
+
+      final captured = verify(
+        () => httpMock.get(captureAny(), headers: any(named: 'headers')),
+      ).captured;
+      expect(
+        captured.single,
+        Uri.parse('https://example.test/api/v1.0/competition/evenement'),
+      );
+    });
+
+    test('appends query parameters', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get(
+        'competition/evenement',
+        query: {'saison': '2023-2024', 'page': 2},
+      );
+
+      final captured = verify(
+        () => httpMock.get(captureAny(), headers: any(named: 'headers')),
+      ).captured;
+      final uri = captured.single as Uri;
+      expect(uri.path, '/api/v1.0/competition/evenement');
+      expect(uri.queryParameters, {'saison': '2023-2024', 'page': '2'});
+    });
+
+    test('bâtit ses URLs sur l\'endpoint de developpement', () async {
+      final devClient = HttpClient(
+        config: AppConfig.forEnvironment(AppEnvironment.development),
+        tokenStorage: tokens,
+        inner: httpMock,
+      );
+      when(() => tokens.getToken()).thenAnswer((_) async => null);
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => http.Response('{"success":true}', 200));
+
+      await devClient.get('competition/evenement');
+
+      final captured =
+          verify(
+                () =>
+                    httpMock.get(captureAny(), headers: any(named: 'headers')),
+              ).captured.single
+              as Uri;
+      expect(
+        captured.toString(),
+        'https://site.ffss.io/api/v1.0/competition/evenement',
+      );
+    });
+
+    test('null query values are omitted', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x', query: {'a': 'kept', 'b': null});
+
+      final captured = verify(
+        () => httpMock.get(captureAny(), headers: any(named: 'headers')),
+      ).captured;
+      expect((captured.single as Uri).queryParameters, {'a': 'kept'});
+    });
+
+    test('a list value becomes one repeated key per entry', () async {
+      // FFSS expects `categories[]=10&categories[]=24` (PHP array notation),
+      // which a flattened `[10, 24]` would not produce.
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get(
+        'x',
+        query: {
+          'discipline': 8,
+          'categories[]': [10, 24],
+        },
+      );
+
+      final captured = verify(
+        () => httpMock.get(captureAny(), headers: any(named: 'headers')),
+      ).captured;
+      final uri = captured.single as Uri;
+      expect(uri.queryParametersAll['categories[]'], ['10', '24']);
+      expect(uri.queryParameters['discipline'], '8');
+      expect(uri.query, contains('categories%5B%5D=10'));
+      expect(uri.query, contains('categories%5B%5D=24'));
+    });
+
+    test('an empty list contributes no parameter at all', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x', query: {'a': 'kept', 'categories[]': <int>[]});
+
+      final captured = verify(
+        () => httpMock.get(captureAny(), headers: any(named: 'headers')),
+      ).captured;
+      expect((captured.single as Uri).queryParameters, {'a': 'kept'});
+    });
+  });
+
+  group('HttpClient headers', () {
+    test(
+      'always sends Content-Type: application/json; charset=UTF-8',
+      () async {
+        when(
+          () => httpMock.get(any(), headers: any(named: 'headers')),
+        ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+        await client.get('x');
+
+        final captured = verify(
+          () => httpMock.get(any(), headers: captureAny(named: 'headers')),
+        ).captured;
+        final headers = captured.single as Map<String, String>;
+        expect(headers['Content-Type'], 'application/json; charset=UTF-8');
+      },
+    );
+
+    test('omits Authorization when no token', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => null);
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x');
+
+      final captured = verify(
+        () => httpMock.get(any(), headers: captureAny(named: 'headers')),
+      ).captured;
+      final headers = captured.single as Map<String, String>;
+      expect(headers.containsKey('Authorization'), isFalse);
+    });
+
+    test('omits Authorization when token is empty string', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => '');
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x');
+
+      final captured = verify(
+        () => httpMock.get(any(), headers: captureAny(named: 'headers')),
+      ).captured;
+      expect(
+        (captured.single as Map<String, String>).containsKey('Authorization'),
+        isFalse,
+      );
+    });
+
+    test('sends Authorization: Bearer <token> when token present', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x');
+
+      final captured = verify(
+        () => httpMock.get(any(), headers: captureAny(named: 'headers')),
+      ).captured;
+      final headers = captured.single as Map<String, String>;
+      expect(headers['Authorization'], 'Bearer abc123');
+    });
+
+    // FFSS ignores the Authorization header outright: `GET /me` carrying only
+    // the Bearer answers "Utilisateur Anonyme", exactly as it does with no
+    // credentials at all. The `token` query parameter its documentation lists
+    // on every endpoint is the only auth it honours.
+    test(
+      'sends the token as a query parameter, beside the other params',
+      () async {
+        when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+        when(
+          () => httpMock.get(any(), headers: any(named: 'headers')),
+        ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+        await client.get('x', query: {'a': 'b'});
+
+        final captured = verify(
+          () => httpMock.get(captureAny(), headers: any(named: 'headers')),
+        ).captured;
+        final uri = captured.single as Uri;
+        expect(uri.queryParameters['token'], 'abc123');
+        expect(uri.queryParameters['a'], 'b');
+      },
+    );
+
+    test('a post carries the token too, not just a get', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(
+        () => httpMock.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.post('x', query: {'a': 'b'});
+
+      final captured = verify(
+        () => httpMock.post(
+          captureAny(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).captured;
+      expect((captured.single as Uri).queryParameters['token'], 'abc123');
+    });
+
+    test(
+      'a request with no query of its own still carries the token',
+      () async {
+        when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+        when(
+          () => httpMock.get(any(), headers: any(named: 'headers')),
+        ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+        await client.get('x');
+
+        final captured = verify(
+          () => httpMock.get(captureAny(), headers: any(named: 'headers')),
+        ).captured;
+        expect((captured.single as Uri).queryParameters['token'], 'abc123');
+      },
+    );
+
+    test(
+      'a failure records that the request went out unauthenticated',
+      () async {
+        when(() => tokens.getToken()).thenAnswer((_) async => null);
+        when(
+          () => httpMock.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          ),
+        ).thenAnswer(
+          (_) async => responseWith(
+            '{"success": false, "message": "Invalid Token"}',
+            200,
+          ),
+        );
+
+        // FFSS answers "Invalid Token" to a bad token and to no token alike, so
+        // only the client knows which of the two just happened.
+        await expectLater(
+          client.post('x'),
+          throwsA(
+            isA<ApiException>().having(
+              (e) => e.authenticated,
+              'authenticated',
+              isFalse,
+            ),
+          ),
+        );
+      },
+    );
+
+    test('a failure records that the request did carry a token', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(
+        () => httpMock.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            responseWith('{"success": false, "message": "Invalid Token"}', 200),
+      );
+
+      await expectLater(
+        client.post('x'),
+        throwsA(
+          isA<ApiException>().having(
+            (e) => e.authenticated,
+            'authenticated',
+            isTrue,
+          ),
+        ),
+      );
+    });
+
+    // `"false"` est une chaine non vide, donc veridique en Dart : un refus
+    // formule ainsi passait pour un succes et l'appelant lisait une reponse
+    // vide comme un resultat. La doc FFSS (§1) annonce les deux formes.
+    // Le web ne connait pas SocketException : il leve ClientException, qui
+    // tombait dans le `catch` generique et ressortait en UnknownException.
+    test(
+      'a ClientException is a network failure, not an unknown one',
+      () async {
+        when(() => tokens.getToken()).thenAnswer((_) async => null);
+        when(
+          () => httpMock.get(any(), headers: any(named: 'headers')),
+        ).thenThrow(http.ClientException('Failed to fetch'));
+
+        await expectLater(
+          client.get('x'),
+          throwsA(
+            isA<NetworkException>().having(
+              (e) => e.message,
+              'message',
+              'Failed to fetch',
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'a refusal spelled as the string "false" is still a refusal',
+      () async {
+        when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+        when(
+          () => httpMock.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          ),
+        ).thenAnswer(
+          (_) async => responseWith(
+            '{"success": "false", "message": "Enregistrement impossible"}',
+            200,
+          ),
+        );
+
+        await expectLater(
+          client.post('x'),
+          throwsA(
+            isA<ApiException>().having(
+              (e) => e.message,
+              'message',
+              'Enregistrement impossible',
+            ),
+          ),
+        );
+      },
+    );
+
+    test('a success spelled as the string "true" goes through', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async => responseWith('{"success": "true", "id": "94369"}', 200),
+      );
+
+      expect(await client.get('x'), {'success': 'true', 'id': '94369'});
+    });
+
+    test('no token means no token parameter, not an empty one', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => '');
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x');
+
+      final captured = verify(
+        () => httpMock.get(captureAny(), headers: any(named: 'headers')),
+      ).captured;
+      expect(
+        (captured.single as Uri).queryParameters.containsKey('token'),
+        isFalse,
+      );
+    });
+  });
+
+  group('HttpClient success responses', () {
+    test('returns full body on 2xx with success: true', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async => responseWith(
+          '{"success": true, "data": [1, 2, 3], "meta": "x"}',
+          200,
+        ),
+      );
+
+      final body = await client.get('x');
+
+      expect(body['success'], true);
+      expect(body['data'], [1, 2, 3]);
+      expect(body['meta'], 'x');
+    });
+
+    test('returns full body on 2xx without a success key', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"data": [1, 2]}', 200));
+
+      final body = await client.get('x');
+      expect(body['data'], [1, 2]);
+    });
+
+    test('accepts 200 and 201 as success', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 201));
+
+      final body = await client.get('x');
+      expect(body['success'], true);
+    });
+
+    test('throws ApiException when body is not a JSON object', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('"a string"', 200));
+
+      expect(client.get('x'), throwsA(isA<ApiException>()));
+    });
+
+    test('throws ApiException on invalid JSON', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('not json', 200));
+
+      expect(client.get('x'), throwsA(isA<ApiException>()));
+    });
+  });
+
+  group('HttpClient API errors', () {
+    test('throws ApiException on 2xx with success: false', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async =>
+            responseWith('{"success": false, "message": "Bad input"}', 200),
+      );
+
+      expect(
+        client.get('x'),
+        throwsA(
+          isA<ApiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Bad input'),
+          ),
+        ),
+      );
+    });
+
+    test('throws ApiException with statusCode on 4xx', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async =>
+            responseWith('{"success": false, "message": "Not found"}', 404),
+      );
+
+      expect(
+        client.get('x'),
+        throwsA(
+          isA<ApiException>().having((e) => e.statusCode, 'statusCode', 404),
+        ),
+      );
+    });
+
+    test('throws ApiException on 5xx even with non-JSON body', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async => responseWith('<html>Internal Server Error</html>', 500),
+      );
+
+      expect(
+        client.get('x'),
+        throwsA(
+          isA<ApiException>().having((e) => e.statusCode, 'statusCode', 500),
+        ),
+      );
+    });
+
+    test('throws AuthException on 401', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async =>
+            responseWith('{"success": false, "message": "Token expired"}', 401),
+      );
+
+      expect(client.get('x'), throwsA(isA<AuthException>()));
+    });
+  });
+
+  group('HttpClient network errors', () {
+    test('SocketException becomes NetworkException', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenThrow(const SocketException('No internet'));
+
+      expect(client.get('x'), throwsA(isA<NetworkException>()));
+    });
+
+    test('TimeoutException becomes NetworkException', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenThrow(TimeoutException('slow'));
+
+      expect(client.get('x'), throwsA(isA<NetworkException>()));
+    });
+
+    test('AppException is rethrown unchanged (not wrapped)', () async {
+      // Server returned HTML 500 -> ApiException; ensure that is what bubbles up,
+      // not a wrapping UnknownException.
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('html', 500));
+
+      expect(client.get('x'), throwsA(isA<ApiException>()));
+    });
+
+    test('Unexpected error becomes UnknownException', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenThrow(StateError('weird'));
+
+      expect(client.get('x'), throwsA(isA<UnknownException>()));
+    });
+  });
+
+  group('HttpClient.post', () {
+    test('builds URI and sends JSON-encoded body', () async {
+      when(
+        () => httpMock.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.post('competition/evenement', body: {'name': 'X'});
+
+      final captured = verify(
+        () => httpMock.post(
+          captureAny(),
+          headers: any(named: 'headers'),
+          body: captureAny(named: 'body'),
+        ),
+      ).captured;
+      expect(
+        captured[0],
+        Uri.parse('https://example.test/api/v1.0/competition/evenement'),
+      );
+      expect(captured[1], '{"name":"X"}');
+    });
+
+    test('sends null body when none provided', () async {
+      when(
+        () => httpMock.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 201));
+
+      await client.post('x');
+
+      final captured = verify(
+        () => httpMock.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: captureAny(named: 'body'),
+        ),
+      ).captured;
+      expect(captured.single, isNull);
+    });
+
+    test('decodes 2xx success response identically to get', () async {
+      when(
+        () => httpMock.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer(
+        (_) async => responseWith('{"success": true, "id": 7}', 200),
+      );
+
+      final body = await client.post('x', body: {'k': 'v'});
+      expect(body['id'], 7);
+    });
+  });
+
+  group('HttpClient onAuthFailure', () {
+    test(
+      'on 401, fires onAuthFailure and still throws AuthException',
+      () async {
+        var handlerCalled = false;
+        client.onAuthFailure = () async {
+          handlerCalled = true;
+        };
+        when(
+          () => httpMock.get(any(), headers: any(named: 'headers')),
+        ).thenAnswer(
+          (_) async => responseWith(
+            '{"success": false, "message": "Token expired"}',
+            401,
+          ),
+        );
+
+        await expectLater(client.get('x'), throwsA(isA<AuthException>()));
+        // Allow the fire-and-forget callback to settle.
+        await Future<void>.delayed(Duration.zero);
+        expect(handlerCalled, isTrue);
+      },
+    );
+
+    test('does NOT fire onAuthFailure on non-401 responses', () async {
+      var handlerCalled = false;
+      client.onAuthFailure = () async {
+        handlerCalled = true;
+      };
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async =>
+            responseWith('{"success": false, "message": "Not found"}', 404),
+      );
+
+      await expectLater(client.get('x'), throwsA(isA<ApiException>()));
+      await Future<void>.delayed(Duration.zero);
+      expect(handlerCalled, isFalse);
+    });
+
+    // FFSS answers a write carrying a dead token with
+    // `403 {"error":"Forbiden","message":"Invalid token"}` — never a 401 — and
+    // serves reads to that same dead token as an anonymous 200. Without this,
+    // nothing ever tells the operator the session is over: the app keeps a
+    // token it believes valid and every write fails as a server fault.
+    test(
+      'on a 403 saying the token is invalid, signs the session out',
+      () async {
+        var handlerCalled = false;
+        client.onAuthFailure = () async {
+          handlerCalled = true;
+        };
+        when(
+          () => httpMock.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          ),
+        ).thenAnswer(
+          (_) async => responseWith(
+            '{"error":"Forbiden","message":"Invalid token"}',
+            403,
+          ),
+        );
+
+        await expectLater(client.post('x'), throwsA(isA<AuthException>()));
+        await Future<void>.delayed(Duration.zero);
+        expect(handlerCalled, isTrue);
+      },
+    );
+
+    test(
+      'the wording is matched loosely, since only FFSS controls it',
+      () async {
+        when(
+          () => httpMock.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          ),
+        ).thenAnswer(
+          (_) async => responseWith('{"message":"INVALID TOKEN"}', 403),
+        );
+
+        await expectLater(client.post('x'), throwsA(isA<AuthException>()));
+      },
+    );
+
+    test('a 403 that is a genuine refusal stays an ApiException', () async {
+      var handlerCalled = false;
+      client.onAuthFailure = () async {
+        handlerCalled = true;
+      };
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async => responseWith(
+          '{"error":"Forbiden","message":"Compétition verrouillée"}',
+          403,
+        ),
+      );
+
+      // Signing the operator out because one action was refused would be far
+      // worse than reporting the refusal.
+      await expectLater(client.get('x'), throwsA(isA<ApiException>()));
+      await Future<void>.delayed(Duration.zero);
+      expect(handlerCalled, isFalse);
+    });
+
+    test(
+      'errors thrown inside the handler do not mask the AuthException',
+      () async {
+        client.onAuthFailure = () async {
+          throw StateError('handler exploded');
+        };
+        when(
+          () => httpMock.get(any(), headers: any(named: 'headers')),
+        ).thenAnswer(
+          (_) async => responseWith(
+            '{"success": false, "message": "Token expired"}',
+            401,
+          ),
+        );
+
+        await expectLater(client.get('x'), throwsA(isA<AuthException>()));
+      },
+    );
+
+    test('without a handler set, 401 still throws AuthException', () async {
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async =>
+            responseWith('{"success": false, "message": "Token expired"}', 401),
+      );
+
+      await expectLater(client.get('x'), throwsA(isA<AuthException>()));
+    });
+  });
+
+  group('HttpClient TokenStorage failures', () {
+    test('TokenStorage exception is wrapped as UnknownException', () async {
+      when(() => tokens.getToken()).thenThrow(StateError('keystore broken'));
+
+      expect(client.get('x'), throwsA(isA<UnknownException>()));
+    });
+  });
+
+  group('HttpClient bare-boolean bodies', () {
+    // Every FFSS delete endpoint answers with a bare `true` instead of the
+    // usual envelope — verified in production on creneau, partie and reunion
+    // deletes, all `HTTP 201` with a body of exactly `true`. Rejecting that
+    // shape made a delete that had genuinely succeeded look like a failure:
+    // the item stayed on screen, an error was shown, and only a refresh
+    // revealed it was gone all along.
+    test('a bare true reads as a success envelope', () async {
+      when(
+        () => httpMock.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => responseWith('true', 201));
+
+      expect(await client.post('x'), {'success': true});
+    });
+
+    test('a bare false is a refusal, not a success', () async {
+      when(
+        () => httpMock.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => responseWith('false', 201));
+
+      await expectLater(client.post('x'), throwsA(isA<ApiException>()));
+    });
+
+    test('any other shape is still rejected', () async {
+      // Normalising a boolean is a documented quirk of two endpoints, not a
+      // licence to accept whatever arrives.
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('[1, 2]', 200));
+
+      await expectLater(
+        client.get('x'),
+        throwsA(
+          isA<ApiException>().having(
+            (e) => e.message,
+            'message',
+            'Unexpected response shape',
+          ),
+        ),
+      );
+    });
+  });
+
+  group('delai de requete', () {
+    test('une requete que le serveur ne repond jamais devient une '
+        'NetworkException', () async {
+      // Une socket laissee en suspens : sans delai arme, ce future ne se
+      // resout jamais et l'ecran appelant tourne en rond pour toujours. C'est
+      // le mecanisme qui transformait un incident reseau en spinner eternel
+      // sur l'onglet Structure d'une grosse competition.
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) => Completer<http.Response>().future);
+      client = HttpClient(
+        config: config,
+        tokenStorage: tokens,
+        inner: httpMock,
+        requestTimeout: const Duration(milliseconds: 50),
+      );
+
+      await expectLater(
+        client.get('competition/1/epreuve'),
+        throwsA(isA<NetworkException>()),
+      );
+    });
+
+    test('une reponse arrivee dans le delai passe normalement', () async {
+      // Garde-fou : le delai ne doit pas transformer une requete saine en
+      // echec.
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+      client = HttpClient(
+        config: config,
+        tokenStorage: tokens,
+        inner: httpMock,
+        requestTimeout: const Duration(seconds: 5),
+      );
+
+      final body = await client.get('competition/1/epreuve');
+
+      expect(body['success'], isTrue);
+    });
+  });
+}
