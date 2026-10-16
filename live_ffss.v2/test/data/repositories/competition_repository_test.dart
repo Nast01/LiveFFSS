@@ -22,7 +22,7 @@ void main() {
     repository = CompetitionRepositoryImpl(http);
   });
 
-  void answerPages(List<List<Map<String, dynamic>>> pages) {
+  void answerPages(List<List<Object?>> pages) {
     var call = 0;
     when(
       () => http.get(any(), query: any(named: 'query')),
@@ -75,6 +75,27 @@ void main() {
       ).captured.map((q) => (q as Map<String, dynamic>)['start']).toList();
       expect(starts, [0, CompetitionRepositoryImpl.pageSize]);
     });
+
+    test(
+      'une entrée non-objet dans une page pleine ne la fait pas passer pour la dernière',
+      () async {
+        final full = <Object?>[
+          'x',
+          for (var i = 1; i < CompetitionRepositoryImpl.pageSize; i++) row(i),
+        ];
+        answerPages([
+          full,
+          [row(1000)],
+        ]);
+
+        final result = await repository.getCompetitionsFrom(
+          DateTime(2026, 10, 3),
+        );
+
+        expect(result.length, CompetitionRepositoryImpl.pageSize);
+        verify(() => http.get(any(), query: any(named: 'query'))).called(2);
+      },
+    );
 
     test(
       'compte les lignes brutes, pas les lignes retenues, pour paginer',

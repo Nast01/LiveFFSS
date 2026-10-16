@@ -44,8 +44,8 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
         'length': pageSize,
       });
       all.addAll(_summaries(rows));
-      // Compté sur les lignes brutes : une ligne écartée par le mapper ne
-      // doit pas faire passer une page pleine pour la dernière.
+      // Compté sur les entrées brutes : une entrée non-objet ou écartée par le
+      // mapper ne doit pas faire passer une page pleine pour la dernière.
       if (rows.length < pageSize) return all;
     }
   }
@@ -63,15 +63,16 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
     return _summaries(rows)..sort((a, b) => b.startDate.compareTo(a.startDate));
   }
 
-  Future<List<Map<String, dynamic>>> _rows(Map<String, dynamic> query) async {
+  /// Les entrées brutes de `data`, non filtrées : le compte de page en dépend.
+  Future<List<Object?>> _rows(Map<String, dynamic> query) async {
     final body = await _http.get(ApiEndpoints.competitionList, query: query);
     final data = body['data'];
-    return data is List ? data.whereType<Map<String, dynamic>>().toList() : [];
+    return data is List ? data : const [];
   }
 
-  List<CompetitionSummary> _summaries(List<Map<String, dynamic>> rows) {
+  List<CompetitionSummary> _summaries(List<Object?> rows) {
     final summaries = <CompetitionSummary>[];
-    for (final row in rows) {
+    for (final row in rows.whereType<Map<String, dynamic>>()) {
       final EvenementDto dto;
       try {
         dto = EvenementDto.fromJson(row);
