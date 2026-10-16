@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+> **Référence v1 — ne pas modifier.** Cette application (épreuves côtières, testée en live) est gelée au tag `v1-cotier-final`. La v2 se développe dans `../live_ffss.v2/`, qui en copie le code utile sans jamais l'importer. `docs/FFSS_API.md` a été déplacé à la racine du dépôt : `../docs/FFSS_API.md` ; la section « API contract » ci-dessous y est reprise dans `../docs/FFSS_API_CONTRACT.md`.
+
 Rules and conventions for working in this codebase. Reference for future Claude sessions.
 
 ## Architecture (3-layer pragmatic)

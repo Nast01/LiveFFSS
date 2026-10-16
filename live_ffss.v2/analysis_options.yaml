@@ -1,0 +1,20 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-raw-types: true
+  # Code généré : il n'est pas écrit à la main, donc ses écarts de style ne se
+  # corrigent pas à la main non plus.
+  exclude:
+    - lib/**/*.freezed.dart
+    - lib/**/*.g.dart
+    - lib/core/l10n/gen/**
+
+linter:
+  rules:
+    # flutter_lints 6 a retiré ces trois règles de son jeu ; on les garde, comme
+    # en v1, pour qu'une montée de version ne soit pas un relâchement déguisé.
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
