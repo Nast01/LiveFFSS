@@ -78,7 +78,9 @@ LiveFFSS/
 
 ### Copié depuis la v1
 
-`HttpClient` (jeton passé en paramètre `token`, décodage UTF-8 de `bodyBytes`, `success: false` / `"false"`, 403 « Invalid token »), `api_envelope` (`assignedId`, `wasAccepted`), `ffss_season`, `AppEnvironment` et `owner`, la famille `AppException`, et la lecture de l'arbre des réunions avec son contournement de `creneau/:id/course`.
+`HttpClient` (jeton passé en paramètre `token`, décodage UTF-8 de `bodyBytes`, `success: false` / `"false"`, 403 « Invalid token »), `TokenStorage`, `AppEnvironment` et `owner`, la famille `AppException`, et la lecture de l'arbre des réunions avec son contournement de `creneau/:id/course`. Le journal HTTP de debug n'est pas repris au lot 1.
+
+Ce qui ne sert à rien au lot 1 est copié **au lot qui en a besoin**, pas avant : `api_envelope` (`assignedId`, `wasAccepted`) et `ffss_season` arrivent avec les premières écritures (lot 4). Au lot 1, l'application parle **uniquement à la production**, debug compris : le choix de l'environnement arrive au lot 4 (voir § 9).
 
 Le contrat API (section « API contract » du CLAUDE.md v1 et `docs/FFSS_API.md`) **remonte dans `LiveFFSS/docs/`**. Ce sont des faits constatés sur de vraies réponses du serveur, et ils valent pour les deux apps.
 
