@@ -1,0 +1,368 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_en.dart';
+import 'app_localizations_fr.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'gen/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('fr'),
+  ];
+
+  /// No description provided for @appTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'FFSS-LIVE'**
+  String get appTitle;
+
+  /// No description provided for @appTagline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvetage sportif en direct'**
+  String get appTagline;
+
+  /// No description provided for @signIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se connecter'**
+  String get signIn;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compétition, ville, club…'**
+  String get searchHint;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get filterAll;
+
+  /// No description provided for @filterFlatWater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Eau plate'**
+  String get filterFlatWater;
+
+  /// No description provided for @filterCoastal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Côtier'**
+  String get filterCoastal;
+
+  /// No description provided for @filterFavorites.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes favoris'**
+  String get filterFavorites;
+
+  /// No description provided for @disciplineFlatWater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Eau plate'**
+  String get disciplineFlatWater;
+
+  /// No description provided for @disciplineCoastal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Côtier'**
+  String get disciplineCoastal;
+
+  /// No description provided for @disciplineMixed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mixte'**
+  String get disciplineMixed;
+
+  /// No description provided for @liveBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'EN DIRECT'**
+  String get liveBadge;
+
+  /// No description provided for @dayOfTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour {current}/{total}'**
+  String dayOfTotal(int current, int total);
+
+  /// No description provided for @nowRunning.
+  ///
+  /// In fr, this message translates to:
+  /// **'MAINTENANT'**
+  String get nowRunning;
+
+  /// No description provided for @nextUp.
+  ///
+  /// In fr, this message translates to:
+  /// **'À SUIVRE'**
+  String get nextUp;
+
+  /// No description provided for @heatOfTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série {position}/{total}'**
+  String heatOfTotal(int position, int total);
+
+  /// No description provided for @genderFemale.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dames'**
+  String get genderFemale;
+
+  /// No description provided for @genderMale.
+  ///
+  /// In fr, this message translates to:
+  /// **'Messieurs'**
+  String get genderMale;
+
+  /// No description provided for @genderMixed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mixte'**
+  String get genderMixed;
+
+  /// No description provided for @upcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'À venir'**
+  String get upcoming;
+
+  /// No description provided for @seeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout voir'**
+  String get seeAll;
+
+  /// No description provided for @recentlyFinished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminées récemment'**
+  String get recentlyFinished;
+
+  /// No description provided for @allCompetitions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compétitions'**
+  String get allCompetitions;
+
+  /// No description provided for @noCompetition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune compétition'**
+  String get noCompetition;
+
+  /// No description provided for @loadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les compétitions.'**
+  String get loadError;
+
+  /// No description provided for @retry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get retry;
+
+  /// No description provided for @refreshFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mise à jour impossible : les données affichées sont conservées.'**
+  String get refreshFailed;
+
+  /// No description provided for @addFavorite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter aux favoris'**
+  String get addFavorite;
+
+  /// No description provided for @removeFavorite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer des favoris'**
+  String get removeFavorite;
+
+  /// No description provided for @tabHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accueil'**
+  String get tabHome;
+
+  /// No description provided for @tabProgramme.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programme'**
+  String get tabProgramme;
+
+  /// No description provided for @tabLive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Live'**
+  String get tabLive;
+
+  /// No description provided for @tabResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats'**
+  String get tabResults;
+
+  /// No description provided for @tabMySpace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon espace'**
+  String get tabMySpace;
+
+  /// No description provided for @availableInLot.
+  ///
+  /// In fr, this message translates to:
+  /// **'Disponible au lot {lot}'**
+  String availableInLot(int lot);
+
+  /// No description provided for @chooseCompetition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une compétition'**
+  String get chooseCompetition;
+
+  /// No description provided for @chooseCompetitionHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrez une compétition depuis l\'accueil pour suivre son programme, son live et ses résultats.'**
+  String get chooseCompetitionHint;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bientôt'**
+  String get comingSoon;
+
+  /// No description provided for @mySpaceComingSoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'La connexion et votre espace arrivent bientôt.'**
+  String get mySpaceComingSoon;
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['en', 'fr'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'en':
+      return AppLocalizationsEn();
+    case 'fr':
+      return AppLocalizationsFr();
+  }
+
+  throw FlutterError(
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
+}

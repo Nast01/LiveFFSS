@@ -1,0 +1,59 @@
+{
+  "@@locale": "fr",
+  "appTitle": "FFSS-LIVE",
+  "appTagline": "Sauvetage sportif en direct",
+  "signIn": "Se connecter",
+  "searchHint": "Compétition, ville, club…",
+  "filterAll": "Toutes",
+  "filterFlatWater": "Eau plate",
+  "filterCoastal": "Côtier",
+  "filterFavorites": "Mes favoris",
+  "disciplineFlatWater": "Eau plate",
+  "disciplineCoastal": "Côtier",
+  "disciplineMixed": "Mixte",
+  "liveBadge": "EN DIRECT",
+  "dayOfTotal": "Jour {current}/{total}",
+  "@dayOfTotal": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "nowRunning": "MAINTENANT",
+  "nextUp": "À SUIVRE",
+  "heatOfTotal": "Série {position}/{total}",
+  "@heatOfTotal": {
+    "placeholders": {
+      "position": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "genderFemale": "Dames",
+  "genderMale": "Messieurs",
+  "genderMixed": "Mixte",
+  "upcoming": "À venir",
+  "seeAll": "Tout voir",
+  "recentlyFinished": "Terminées récemment",
+  "allCompetitions": "Compétitions",
+  "noCompetition": "Aucune compétition",
+  "loadError": "Impossible de charger les compétitions.",
+  "retry": "Réessayer",
+  "refreshFailed": "Mise à jour impossible : les données affichées sont conservées.",
+  "addFavorite": "Ajouter aux favoris",
+  "removeFavorite": "Retirer des favoris",
+  "tabHome": "Accueil",
+  "tabProgramme": "Programme",
+  "tabLive": "Live",
+  "tabResults": "Résultats",
+  "tabMySpace": "Mon espace",
+  "availableInLot": "Disponible au lot {lot}",
+  "@availableInLot": {
+    "placeholders": {
+      "lot": {"type": "int"}
+    }
+  },
+  "chooseCompetition": "Choisir une compétition",
+  "chooseCompetitionHint": "Ouvrez une compétition depuis l'accueil pour suivre son programme, son live et ses résultats.",
+  "comingSoon": "Bientôt",
+  "mySpaceComingSoon": "La connexion et votre espace arrivent bientôt."
+}
