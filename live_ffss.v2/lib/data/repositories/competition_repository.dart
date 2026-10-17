@@ -15,6 +15,10 @@ abstract class CompetitionRepository {
   /// La recherche de l'API : une page, sans filtre de date, de la plus récente
   /// à la plus ancienne.
   Future<List<CompetitionSummary>> search(String query);
+
+  /// Une compétition par son id ; nulle si la réponse n'en donne pas de
+  /// lisible.
+  Future<CompetitionSummary?> getCompetition(int id);
 }
 
 class CompetitionRepositoryImpl implements CompetitionRepository {
@@ -68,6 +72,20 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
       'length': searchLimit,
     });
     return _summaries(rows)..sort((a, b) => b.startDate.compareTo(a.startDate));
+  }
+
+  @override
+  Future<CompetitionSummary?> getCompetition(int id) async {
+    final path = ApiEndpoints.replacePath(ApiEndpoints.competition, {
+      'id': id.toString(),
+    });
+    final data = (await _http.get(path))['data'];
+    if (data is! Map<String, dynamic>) return null;
+    try {
+      return EvenementDto.fromJson(data).toDomain();
+    } on TypeError {
+      return null;
+    }
   }
 
   /// Les entrées brutes de `data`, non filtrées : le compte de page en dépend.

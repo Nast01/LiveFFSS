@@ -4,6 +4,8 @@ import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/data/repositories/competition_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../support/fixtures.dart';
+
 class _MockHttpClient extends Mock implements HttpClient {}
 
 Map<String, dynamic> row(int id, {String start = '2026-10-20'}) => {
@@ -217,6 +219,31 @@ void main() {
     test('une recherche vide n\'appelle pas l\'API', () async {
       expect(await repository.search('   '), isEmpty);
       verifyNever(() => http.get(any(), query: any(named: 'query')));
+    });
+  });
+
+  group('getCompetition', () {
+    test('lit la compétition 1416', () async {
+      when(
+        () => http.get(any(), query: any(named: 'query')),
+      ).thenAnswer((_) async => fixture('evenement_1416'));
+
+      final competition = await repository.getCompetition(1416);
+
+      verify(
+        () =>
+            http.get('competition/evenement/1416', query: any(named: 'query')),
+      ).called(1);
+      expect(competition?.id, 1416);
+      expect(competition?.name, 'Championnats de France N1 2026');
+    });
+
+    test('rend nul pour une réponse sans compétition', () async {
+      when(
+        () => http.get(any(), query: any(named: 'query')),
+      ).thenAnswer((_) async => <String, dynamic>{'data': <Object?>[]});
+
+      expect(await repository.getCompetition(1), isNull);
     });
   });
 }

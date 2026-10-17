@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
@@ -287,5 +289,122 @@ void main() {
     final ids = [for (final m in meetings) m.id];
     expect(ids.toSet().length, ids.length);
     expect(ids.length, MeetingRepositoryImpl.pageSize);
+  });
+
+  group('getMeetingItem', () {
+    test('lit le créneau 177 et pose ses heures sur le jour donné', () async {
+      when(
+        () => http.get(any(), query: any(named: 'query')),
+      ).thenAnswer((_) async => fixture('creneau_177'));
+
+      final item = await repository.getMeetingItem(
+        177,
+        day: DateTime(2026, 3, 27),
+      );
+
+      verify(
+        () => http.get(
+          'competition/reunion/creneau/177',
+          query: any(named: 'query'),
+        ),
+      ).called(1);
+      expect(item?.heats.length, 2);
+      expect(item?.roundId, 142);
+      expect(item?.startTime, DateTime(2026, 3, 27, 8, 0));
+    });
+
+    test('rend nul pour une réponse sans créneau', () async {
+      when(
+        () => http.get(any(), query: any(named: 'query')),
+      ).thenAnswer((_) async => <String, dynamic>{'data': <Object?>[]});
+
+      expect(
+        await repository.getMeetingItem(1, day: DateTime(2026, 3, 27)),
+        isNull,
+      );
+    });
+  });
+
+  group('getLanes', () {
+    Map<String, dynamic> place(int id, {bool empty = false}) {
+      final data = Map<String, dynamic>.from(
+        fixture('place_2816')['data'] as Map<String, dynamic>,
+      );
+      data['id'] = id;
+      if (empty) data.remove('engagement');
+      return {'success': true, 'data': data};
+    }
+
+    int idOf(Invocation invocation) => int.parse(
+      (invocation.positionalArguments.first as String).split('/').last,
+    );
+
+    test('jamais plus de 6 places en même temps', () async {
+      final pending = <int, Completer<Map<String, dynamic>>>{};
+      var inFlight = 0;
+      var maxInFlight = 0;
+      when(() => http.get(any(), query: any(named: 'query'))).thenAnswer((
+        invocation,
+      ) {
+        final id = idOf(invocation);
+        inFlight++;
+        if (inFlight > maxInFlight) maxInFlight = inFlight;
+        final completer = Completer<Map<String, dynamic>>();
+        pending[id] = completer;
+        return completer.future;
+      });
+
+      final ids = [for (var i = 1; i <= 14; i++) i];
+      var finished = false;
+      final future = repository.getLanes(ids).whenComplete(() {
+        finished = true;
+      });
+
+      // Relâche par lots : chaque lot libéré en laisse démarrer d'autres.
+      while (!finished) {
+        await Future<void>.delayed(Duration.zero);
+        final batch = pending.entries.toList();
+        pending.clear();
+        for (final entry in batch) {
+          inFlight--;
+          entry.value.complete(place(entry.key));
+        }
+      }
+      final result = await future;
+
+      expect(maxInFlight, MeetingRepositoryImpl.maxConcurrentLanes);
+      expect(maxInFlight, 6);
+      expect(result.length, 14);
+    });
+
+    test(
+      'une place en échec est absente du résultat, les autres sont là',
+      () async {
+        when(() => http.get(any(), query: any(named: 'query'))).thenAnswer((
+          invocation,
+        ) async {
+          final id = idOf(invocation);
+          if (id == 2) throw const NetworkException('hors ligne');
+          if (id == 3) return <String, dynamic>{'data': 'corrompue'};
+          return place(id);
+        });
+
+        final result = await repository.getLanes([1, 2, 3, 4]);
+
+        expect(result.keys, unorderedEquals([1, 4]));
+        expect(result[1]?.id, 1);
+      },
+    );
+
+    test('une place vide est présente avec la valeur nulle', () async {
+      when(
+        () => http.get(any(), query: any(named: 'query')),
+      ).thenAnswer((invocation) async => place(idOf(invocation), empty: true));
+
+      final result = await repository.getLanes([7]);
+
+      expect(result.containsKey(7), isTrue);
+      expect(result[7], isNull);
+    });
   });
 }
