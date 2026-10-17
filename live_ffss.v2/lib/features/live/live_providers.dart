@@ -69,7 +69,11 @@ class LiveNotifier extends AsyncNotifier<LiveView>
     final fetched = placeIds.isEmpty || !runRef.mounted
         ? const <int, LaneAssignment?>{}
         : await repository.getLanes(placeIds);
-    _recordReads(selected, {for (final heat in selected) heat.id}, fetched);
+    // Une construction remplacée (page fermée, ou `invalidateSelf`) ne doit
+    // pas écrire dans le registre de celle qui l'a remplacée.
+    if (runRef.mounted) {
+      _recordReads(selected, {for (final heat in selected) heat.id}, fetched);
+    }
 
     return LiveView(
       meetings: programme.meetings,
@@ -100,12 +104,14 @@ class LiveNotifier extends AsyncNotifier<LiveView>
       final selection = liveSelection(programme.meetings);
       final selected = _heats(selection);
       // Le registre date du tour précédent : une course redevenue temporaire
-      // depuis y figure encore.
+      // depuis y figure encore, et une course validée peut avoir reçu une
+      // place jamais lue.
       final due = {
         for (final heat in selected)
           if (everything ||
               isProvisional(heat) ||
-              !_validatedRead.contains(heat.id))
+              !_validatedRead.contains(heat.id) ||
+              !heat.placeIds.every(current.lanes.containsKey))
             heat.id,
       };
       final placeIds = _placeIds([

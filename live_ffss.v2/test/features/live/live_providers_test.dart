@@ -375,7 +375,7 @@ void main() {
     });
   });
 
-  test('la page fermée pendant une relecture : rien ne casse', () {
+  test('la page fermée pendant la relecture des places : rien ne casse', () {
     fakeAsync((async) {
       final c = container();
       final subscription = listen(c);
@@ -386,11 +386,118 @@ void main() {
       async.elapse(liveRefresh);
       async.flushMicrotasks();
 
+      clearInteractions(repository);
       subscription.close();
+      // Riverpod libère un fournisseur `autoDispose` sur un `Timer` nul, pas
+      // sur une microtâche.
+      async.elapse(Duration.zero);
+      expect(c.exists(liveProvider(competitionId)), isFalse);
+
+      pending.complete({21: lane(21, 1, 'Chloé tardive')});
       async.flushMicrotasks();
-      pending.complete(const {});
+      async.elapse(liveRefresh * 2);
       async.flushMicrotasks();
+
+      verifyNever(() => repository.getProgramme(any()));
+      verifyNever(() => repository.getLanes(any()));
+      c.dispose();
+    });
+  });
+
+  test('la page fermée pendant la relecture du programme : rien ne casse', () {
+    fakeAsync((async) {
+      final c = container();
+      final subscription = listen(c);
+      async.flushMicrotasks();
+
+      final pending = Completer<Programme>();
+      when(
+        () => repository.getProgramme(any()),
+      ).thenAnswer((_) => pending.future);
       async.elapse(liveRefresh);
+      async.flushMicrotasks();
+
+      clearInteractions(repository);
+      subscription.close();
+      async.elapse(Duration.zero);
+      expect(c.exists(liveProvider(competitionId)), isFalse);
+
+      pending.complete(programme());
+      async.flushMicrotasks();
+
+      // Les places ne seraient montrées à personne.
+      verifyNever(() => repository.getLanes(any()));
+      c.dispose();
+    });
+  });
+
+  test('une course validée qui reçoit une nouvelle place est relue', () {
+    fakeAsync((async) {
+      final c = container();
+      listen(c);
+      async.flushMicrotasks();
+
+      heats = [
+        heats[0],
+        heats[1].copyWith(placeIds: [21, 22, 23]),
+        heats[2],
+      ];
+      lanes[23] = lane(23, 3, 'Emma');
+      laneRequests.clear();
+      async.elapse(liveRefresh);
+      async.flushMicrotasks();
+
+      expect(laneRequests, [
+        {11, 12, 21, 22, 23},
+      ]);
+      expect(view(c).lanesOf(heats[1]).map((l) => l.athletes.single), [
+        'Chloé',
+        'Emma',
+      ]);
+
+      laneRequests.clear();
+      async.elapse(liveRefresh);
+      async.flushMicrotasks();
+      expect(laneRequests, [
+        {11, 12},
+      ]);
+
+      c.dispose();
+    });
+  });
+
+  test('une course sortie du Live puis revenue est relue', () {
+    fakeAsync((async) {
+      final c = container();
+      listen(c);
+      async.flushMicrotasks();
+
+      final validated = heats[1];
+      heats = [
+        heats[0],
+        validated.copyWith(status: RunStatus.waiting),
+        heats[2],
+      ];
+      laneRequests.clear();
+      async.elapse(liveRefresh);
+      async.flushMicrotasks();
+      expect(laneRequests, [
+        {11, 12},
+      ]);
+      expect(view(c).recent, isEmpty);
+      expect(view(c).lanes.keys, isNot(contains(21)));
+
+      heats = [heats[0], validated, heats[2]];
+      lanes[21] = lane(21, 1, 'Chloé 2');
+      laneRequests.clear();
+      async.elapse(liveRefresh);
+      async.flushMicrotasks();
+
+      expect(laneRequests, [
+        {11, 12, 21, 22},
+      ]);
+      expect(view(c).lanesOf(validated).single.athletes.single, 'Chloé 2');
+
       c.dispose();
     });
   });

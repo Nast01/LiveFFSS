@@ -380,10 +380,10 @@ void main() {
     });
   });
 
-  test('la page fermée pendant une relecture : rien ne casse', () {
+  test('la page fermée pendant la relecture du créneau : rien ne casse', () {
     fakeAsync((async) {
       final c = container(async);
-      c.listen(meetingItemDetailProvider(key), (_, _) {});
+      final subscription = c.listen(meetingItemDetailProvider(key), (_, _) {});
       async.flushMicrotasks();
 
       final pending = Completer<MeetingItem?>();
@@ -393,10 +393,45 @@ void main() {
       async.elapse(itemDetailRefresh);
       async.flushMicrotasks();
 
-      c.dispose();
+      clearInteractions(repository);
+      subscription.close();
+      // Riverpod libère un fournisseur `autoDispose` sur un `Timer` nul, pas
+      // sur une microtâche.
+      async.elapse(Duration.zero);
+      expect(c.exists(meetingItemDetailProvider(key)), isFalse);
+
       pending.complete(item);
       async.flushMicrotasks();
+      async.elapse(itemDetailRefresh * 2);
+      async.flushMicrotasks();
+
+      // Ni les places du créneau, ni un nouveau tour : la page est fermée.
+      verifyNever(() => repository.getLanes(any()));
+      verifyNever(
+        () => repository.getMeetingItem(any(), day: any(named: 'day')),
+      );
+      c.dispose();
+    });
+  });
+
+  test('la page fermée pendant la relecture des places : rien ne casse', () {
+    fakeAsync((async) {
+      final c = container(async);
+      final subscription = c.listen(meetingItemDetailProvider(key), (_, _) {});
+      async.flushMicrotasks();
+
+      final pending = Completer<Map<int, LaneAssignment?>>();
+      when(() => repository.getLanes(any())).thenAnswer((_) => pending.future);
       async.elapse(itemDetailRefresh);
+      async.flushMicrotasks();
+
+      subscription.close();
+      async.elapse(Duration.zero);
+      expect(c.exists(meetingItemDetailProvider(key)), isFalse);
+
+      pending.complete({11: lane(11, 2, 'Alice tardive')});
+      async.flushMicrotasks();
+      c.dispose();
     });
   });
 
