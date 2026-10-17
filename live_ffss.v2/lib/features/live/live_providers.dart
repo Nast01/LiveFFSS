@@ -8,6 +8,7 @@ import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/live.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
+import 'package:live_ffss_v2/features/common/serial_refresh.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_refresh.dart';
 
 part 'live_providers.freezed.dart';
@@ -32,16 +33,14 @@ abstract class LiveView with _$LiveView {
   }) = _LiveView;
 
   /// Les places occupées de [heat], dans l'ordre des couloirs.
-  List<LaneAssignment> lanesOf(Heat heat) => [
-    for (final id in heat.placeIds)
-      if (lanes[id] case final lane? when !lane.isEmpty) lane,
-  ]..sort((a, b) => a.lane.compareTo(b.lane));
+  List<LaneAssignment> lanesOf(Heat heat) => lanesOfHeat(heat, lanes);
 }
 
 final liveProvider = AsyncNotifierProvider.autoDispose
     .family<LiveNotifier, LiveView, int>(LiveNotifier.new);
 
-class LiveNotifier extends AsyncNotifier<LiveView> {
+class LiveNotifier extends AsyncNotifier<LiveView>
+    with SerialRefresh<LiveView> {
   LiveNotifier(this.competitionId);
 
   final int competitionId;
@@ -51,14 +50,10 @@ class LiveNotifier extends AsyncNotifier<LiveView> {
   /// manuel le fait (le juge principal peut encore les corriger).
   final Set<int> _validatedRead = {};
 
-  /// Deux relectures qui se chevauchent écriraient l'une sur l'autre, la plus
-  /// lente gagnant avec des données plus vieilles.
-  Future<void>? _inFlight;
-
   @override
   Future<LiveView> build() async {
     _validatedRead.clear();
-    final timer = Timer.periodic(liveRefresh, (_) => _tick());
+    final timer = Timer.periodic(liveRefresh, (_) => tick());
     ref.onDispose(timer.cancel);
     // Lu avant toute attente : si la page se ferme pendant une requête,
     // `ref` ne peut plus servir.
@@ -86,47 +81,11 @@ class LiveNotifier extends AsyncNotifier<LiveView> {
 
   /// Relit le programme et toutes les places, validées comprises : le juge
   /// principal peut encore corriger une série validée.
-  Future<void> refresh() async {
-    final runRef = ref;
-    // En boucle : un autre `refresh` peut avoir pris la place entre-temps.
-    for (var running = _inFlight; running != null; running = _inFlight) {
-      await running;
-      // Page fermée pendant l'attente : `state` et `ref` ne servent plus.
-      if (!runRef.mounted) return;
-    }
-    await _run(
-      state.hasValue ? () => _reload(everything: true) : _reloadFromScratch,
-    );
-  }
+  @override
+  Future<void> reloadAll() => _reload(everything: true);
 
-  /// La minuterie tient aussi lieu de nouvel essai après un premier
-  /// chargement en échec.
-  void _tick() {
-    if (_inFlight != null) return;
-    if (state.hasValue) {
-      _run(() => _reload(everything: false));
-    } else if (state.hasError && !state.isLoading) {
-      _run(_reloadFromScratch);
-    }
-  }
-
-  Future<void> _run(Future<void> Function() reload) {
-    late final Future<void> run;
-    run = reload().whenComplete(() {
-      if (identical(_inFlight, run)) _inFlight = null;
-    });
-    _inFlight = run;
-    return run;
-  }
-
-  Future<void> _reloadFromScratch() async {
-    ref.invalidateSelf();
-    try {
-      await future;
-    } on AppException {
-      // L'échec est déjà dans l'état, que la page affiche.
-    }
-  }
+  @override
+  Future<void> reloadIncremental() => _reload(everything: false);
 
   Future<void> _reload({required bool everything}) async {
     final current = state.value;

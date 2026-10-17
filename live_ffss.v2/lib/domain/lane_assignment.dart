@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:live_ffss_v2/domain/heat.dart';
 
 part 'lane_assignment.freezed.dart';
 
@@ -47,6 +48,14 @@ abstract class LaneAssignment with _$LaneAssignment {
 
   bool get isEmpty => athletes.isEmpty;
 }
+
+/// Les places occupées de [heat], dans l'ordre des couloirs. [lanes] est
+/// indexé par id de place ; une place jamais lue ou vide n'apparaît pas.
+List<LaneAssignment> lanesOfHeat(Heat heat, Map<int, LaneAssignment?> lanes) =>
+    [
+      for (final id in heat.placeIds)
+        if (lanes[id] case final lane? when !lane.isEmpty) lane,
+    ]..sort((a, b) => a.lane.compareTo(b.lane));
 
 /// La place de chaque nageur dans sa série (id de la place → place), calculée
 /// sur les temps de la série : FFSS publie un rang par catégorie, alors qu'une
