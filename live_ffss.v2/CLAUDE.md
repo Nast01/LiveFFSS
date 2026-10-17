@@ -48,7 +48,6 @@ Règles et conventions de la v2 de l'application mobile. Référence pour les se
 
 ## Lacunes connues
 
-- Une compétition ouverte depuis la recherche et absente de l'accueil est oubliée au redémarrage (seul l'id est enregistré) : les onglets retombent sur le choix par défaut. Le lot 2 la relira par `GET competition/evenement/:id`.
 - Le paramètre `saison` n'est pas envoyé (la doc le dit désactivé). À vérifier au journal réseau si la liste de l'accueil semble incomplète.
 
 ## Commandes
