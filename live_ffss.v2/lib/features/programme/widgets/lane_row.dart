@@ -81,7 +81,9 @@ class LaneRow extends StatelessWidget {
                     result,
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: performance!.isOk
+                      // Un forfait sans performance est une anomalie,
+                      // comme un statut publié.
+                      color: performance?.isOk ?? false
                           ? AppColors.textPrimary
                           : AppColors.red,
                     ),

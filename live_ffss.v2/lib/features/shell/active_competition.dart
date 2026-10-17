@@ -52,8 +52,11 @@ final activeCompetitionProvider =
 ///
 /// Relue à chaque rechargement de l'accueil (tirer pour rafraîchir) : sans
 /// cela, un premier essai hors ligne resterait en cache toute la session.
-/// Écouté plutôt que surveillé : `ref.watch` la relirait aussi au début du
-/// rechargement, pour rien.
+/// C'est surtout `autoDispose` qui la relit : `currentCompetitionProvider`
+/// cesse de la surveiller pendant le chargement de l'accueil, elle est donc
+/// libérée puis recréée. L'écoute couvre le cas où l'accueil revient avant
+/// cette libération ; écouter plutôt que surveiller évite une relecture
+/// inutile au début du rechargement.
 final competitionByIdProvider = FutureProvider.autoDispose
     .family<CompetitionSummary?, int>((ref, id) {
       ref.listen(homeCompetitionsProvider, (_, next) {
