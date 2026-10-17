@@ -11,8 +11,9 @@ import 'package:live_ffss_v2/features/home/widgets/competition_row.dart';
 import 'package:live_ffss_v2/features/home/widgets/filter_bar.dart';
 
 /// La liste complète. Sans recherche : les compétitions de l'accueil, par
-/// date de début. Avec au moins [searchMinLength] caractères : la recherche
-/// de l'API. Le filtre de l'accueil s'applique dans les deux cas.
+/// date de début ; avec « Mes favoris », tous les favoris, même anciens. Avec
+/// au moins [searchMinLength] caractères : la recherche de l'API. Le filtre de
+/// l'accueil s'applique dans tous les cas.
 class AllCompetitionsPage extends ConsumerStatefulWidget {
   const AllCompetitionsPage({super.key});
 
@@ -35,8 +36,13 @@ class _AllCompetitionsPageState extends ConsumerState<AllCompetitionsPage> {
     final l10n = AppLocalizations.of(context);
     final text = _query.text.trim();
     final searching = text.length >= searchMinLength;
+    final filter = ref.watch(homeFilterProvider);
+    // Les favoris ont leur propre liste : beaucoup sont plus anciens que la
+    // fenêtre de l'accueil.
     final AsyncValue<List<CompetitionSummary>> source = searching
         ? ref.watch(searchResultsProvider(text))
+        : filter == HomeFilter.favorites
+        ? ref.watch(favoriteCompetitionsProvider)
         : ref
               .watch(homeCompetitionsProvider)
               .whenData(
@@ -44,7 +50,6 @@ class _AllCompetitionsPageState extends ConsumerState<AllCompetitionsPage> {
                     [...list]
                       ..sort((a, b) => a.startDate.compareTo(b.startDate)),
               );
-    final filter = ref.watch(homeFilterProvider);
     final favorites = ref.watch(favoritesProvider).value ?? const <int>{};
 
     return Scaffold(

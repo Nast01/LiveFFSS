@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/competition_repository.dart';
 import 'package:live_ffss_v2/domain/competition_summary.dart';
@@ -29,6 +30,42 @@ final homeCompetitionsProvider = FutureProvider<List<CompetitionSummary>>((
         ),
       );
 });
+
+/// Toutes les compétitions favorites, par date de début. Celles de la liste de
+/// l'accueil en viennent ; les autres, plus anciennes que sa fenêtre de 45
+/// jours, sont relues par leur id. Un favori illisible est écarté seul.
+final favoriteCompetitionsProvider =
+    FutureProvider.autoDispose<List<CompetitionSummary>>((ref) async {
+      final ids = await ref.watch(favoritesProvider.future);
+      if (ids.isEmpty) return const [];
+      List<CompetitionSummary> home;
+      try {
+        home = await ref.watch(homeCompetitionsProvider.future);
+      } on AppException {
+        home = const [];
+      }
+      final known = {
+        for (final c in home)
+          if (ids.contains(c.id)) c.id: c,
+      };
+      final repository = ref.read(competitionRepositoryProvider);
+      Future<CompetitionSummary?> fetch(int id) async {
+        try {
+          return await repository.getCompetition(id);
+        } on AppException {
+          return null;
+        }
+      }
+
+      final fetched = await Future.wait([
+        for (final id in ids)
+          if (!known.containsKey(id)) fetch(id),
+      ]);
+      return [...known.values, ...fetched.nonNulls]..sort((a, b) {
+        final byDate = a.startDate.compareTo(b.startDate);
+        return byDate != 0 ? byDate : a.name.compareTo(b.name);
+      });
+    });
 
 class HomeFilterNotifier extends Notifier<HomeFilter> {
   @override
