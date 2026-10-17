@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
+import 'package:live_ffss_v2/domain/run_status.dart';
 
 LaneAssignment lane(
   int lane, {
@@ -58,5 +60,29 @@ void main() {
 
   test('aucun temps publié : aucune place', () {
     expect(heatPlaces([lane(1), lane(2)]), isEmpty);
+  });
+
+  group('lanesRead', () {
+    const heat = Heat(
+      id: 1,
+      name: 'Série 1',
+      number: 1,
+      status: RunStatus.finished,
+      placeIds: [101, 102],
+    );
+
+    test('aucune place lue : pas lue', () {
+      expect(lanesRead(heat, const {}), isFalse);
+      expect(lanesRead(heat, {999: lane(9)}), isFalse);
+    });
+
+    test('une place lue, même vide : lue', () {
+      expect(lanesRead(heat, const {101: null}), isTrue);
+      expect(lanesRead(heat, {102: lane(2)}), isTrue);
+    });
+
+    test("une série sans place n'a rien à attendre", () {
+      expect(lanesRead(heat.copyWith(placeIds: const []), const {}), isTrue);
+    });
   });
 }

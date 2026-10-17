@@ -47,6 +47,12 @@ mixin SerialRefresh<T> on AsyncNotifier<T> {
     }
   }
 
+  /// Une lecture qui ne vient ni de la minuterie ni du rafraîchissement
+  /// manuel (la suite d'un premier chargement) : eux l'attendent au lieu de
+  /// la chevaucher.
+  @protected
+  void runInSeries(Future<void> Function() reload) => _run(reload);
+
   Future<void> _run(Future<void> Function() reload) {
     late final Future<void> run;
     run = reload().whenComplete(() {

@@ -34,6 +34,10 @@ abstract class LiveView with _$LiveView {
 
   /// Les places occupées de [heat], dans l'ordre des couloirs.
   List<LaneAssignment> lanesOf(Heat heat) => lanesOfHeat(heat, lanes);
+
+  /// Faux tant qu'aucune place de [heat] n'est lue : la carte ne doit pas
+  /// encore annoncer une série sans résultat.
+  bool lanesReadFor(Heat heat) => lanesRead(heat, lanes);
 }
 
 final liveProvider = AsyncNotifierProvider.autoDispose
@@ -62,25 +66,54 @@ class LiveNotifier extends AsyncNotifier<LiveView>
 
     final programme = await repository.getProgramme(competitionId);
     final selection = liveSelection(programme.meetings);
-    final selected = _heats(selection);
-    final placeIds = _placeIds(selected);
     // Page fermée pendant la lecture du programme : ses places ne seraient
     // montrées à personne.
-    final fetched = placeIds.isEmpty || !runRef.mounted
-        ? const <int, LaneAssignment?>{}
-        : await repository.getLanes(placeIds);
-    // Une construction remplacée (page fermée, ou `invalidateSelf`) ne doit
-    // pas écrire dans le registre de celle qui l'a remplacée.
     if (runRef.mounted) {
-      _recordReads(selected, {for (final heat in selected) heat.id}, fetched);
+      // Une centaine de places à lire : le Live s'affiche sans attendre.
+      runInSeries(() => _readFirstLanes(runRef, repository, selection));
     }
 
     return LiveView(
       meetings: programme.meetings,
       running: selection.running,
       recent: selection.recent,
-      lanes: mergeLanes(const {}, fetched, placeIds),
     );
+  }
+
+  /// Les places du premier affichage : d'abord celles des séries en cours,
+  /// que le spectateur est venu voir, puis celles des dernières séries.
+  Future<void> _readFirstLanes(
+    Ref runRef,
+    MeetingRepository repository,
+    ({List<LiveEntry> running, List<LiveEntry> recent}) selection,
+  ) async {
+    // La vue n'est installée qu'après le retour de `build` : écrire avant
+    // serait écrasé par elle.
+    await Future<void>.microtask(() {});
+    if (!runRef.mounted) return;
+    try {
+      await future;
+    } on AppException {
+      return;
+    }
+    final selected = _heats(selection);
+    for (final batch in [selection.running, selection.recent]) {
+      // Une construction remplacée (page fermée, ou `invalidateSelf`) ne doit
+      // ni lire pour personne ni écrire dans le registre de celle qui l'a
+      // remplacée.
+      if (!runRef.mounted) return;
+      final heats = [for (final entry in batch) entry.heat];
+      final placeIds = _placeIds(heats);
+      if (placeIds.isEmpty) continue;
+      final fetched = await repository.getLanes(placeIds);
+      if (!runRef.mounted) return;
+      final current = state.value;
+      if (current == null) return;
+      _recordReads(selected, {for (final heat in heats) heat.id}, fetched);
+      state = AsyncData(
+        current.copyWith(lanes: mergeLanes(current.lanes, fetched, placeIds)),
+      );
+    }
   }
 
   /// Relit le programme et toutes les places, validées comprises : le juge

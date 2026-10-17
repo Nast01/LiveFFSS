@@ -57,6 +57,12 @@ List<LaneAssignment> lanesOfHeat(Heat heat, Map<int, LaneAssignment?> lanes) =>
         if (lanes[id] case final lane? when !lane.isEmpty) lane,
     ]..sort((a, b) => a.lane.compareTo(b.lane));
 
+/// Vrai dès qu'une place de [heat] a été lue, même vide : tant qu'aucune ne
+/// l'est (lecture en cours ou en échec), rien ne dit que la série est sans
+/// résultat. Une série sans place n'a rien à attendre.
+bool lanesRead(Heat heat, Map<int, LaneAssignment?> lanes) =>
+    heat.placeIds.isEmpty || heat.placeIds.any(lanes.containsKey);
+
 /// La place de chaque nageur dans sa série (id de la place → place), calculée
 /// sur les temps de la série : FFSS publie un rang par catégorie, alors qu'une
 /// série mêle souvent plusieurs catégories. Un ex aequo partage la place et

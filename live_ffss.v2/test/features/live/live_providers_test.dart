@@ -111,7 +111,8 @@ void main() {
 
       verify(() => repository.getProgramme(competitionId)).called(1);
       expect(laneRequests, [
-        {11, 12, 21, 22},
+        {11, 12},
+        {21, 22},
       ]);
       final live = view(c);
       expect(live.meetings.single.id, 1);
@@ -124,6 +125,127 @@ void main() {
       expect(live.lanesOf(heats[1]).map((l) => l.id), [21]);
 
       c.dispose();
+    });
+  });
+
+  group('premier affichage avant les places', () {
+    late List<Completer<Map<int, LaneAssignment?>>> pending;
+
+    setUp(() {
+      pending = [];
+      when(() => repository.getLanes(any())).thenAnswer((invocation) {
+        laneRequests.add(
+          (invocation.positionalArguments.first as Iterable<int>).toSet(),
+        );
+        final completer = Completer<Map<int, LaneAssignment?>>();
+        pending.add(completer);
+        return completer.future;
+      });
+    });
+
+    Map<int, LaneAssignment?> answer(Iterable<int> ids) => {
+      for (final id in ids) id: lanes[id],
+    };
+
+    test('les séries sans places, puis les places : en cours d\'abord', () {
+      fakeAsync((async) {
+        final c = container();
+        listen(c);
+        async.flushMicrotasks();
+
+        final first = view(c);
+        expect(first.running.map((e) => e.heat.id), [1]);
+        expect(first.recent.map((e) => e.heat.id), [2]);
+        expect(first.lanes, isEmpty);
+        expect(first.lanesReadFor(heats[0]), isFalse);
+        expect(laneRequests, [
+          {11, 12},
+        ]);
+
+        pending[0].complete(answer([11, 12]));
+        async.flushMicrotasks();
+        expect(view(c).lanesOf(heats[0]).map((l) => l.athletes.single), [
+          'Bea',
+          'Alice',
+        ]);
+        expect(view(c).lanesReadFor(heats[1]), isFalse);
+        expect(laneRequests, [
+          {11, 12},
+          {21, 22},
+        ]);
+
+        pending[1].complete(answer([21, 22]));
+        async.flushMicrotasks();
+        expect(view(c).lanesOf(heats[1]).map((l) => l.id), [21]);
+        expect(view(c).lanesReadFor(heats[1]), isTrue);
+
+        c.dispose();
+      });
+    });
+
+    test('la minuterie attend la fin de la lecture des places', () {
+      fakeAsync((async) {
+        final c = container();
+        listen(c);
+        async.flushMicrotasks();
+        clearInteractions(repository);
+
+        async.elapse(liveRefresh);
+        async.flushMicrotasks();
+        verifyNever(() => repository.getProgramme(any()));
+
+        pending[0].complete(answer([11, 12]));
+        async.flushMicrotasks();
+        pending[1].complete(answer([21, 22]));
+        async.flushMicrotasks();
+        async.elapse(liveRefresh);
+        async.flushMicrotasks();
+        verify(() => repository.getProgramme(competitionId)).called(1);
+
+        c.dispose();
+      });
+    });
+
+    test('refresh attend la fin de la lecture des places', () {
+      fakeAsync((async) {
+        final c = container();
+        listen(c);
+        async.flushMicrotasks();
+        clearInteractions(repository);
+
+        c.read(liveProvider(competitionId).notifier).refresh();
+        async.flushMicrotasks();
+        verifyNever(() => repository.getProgramme(any()));
+
+        pending[0].complete(answer([11, 12]));
+        async.flushMicrotasks();
+        pending[1].complete(answer([21, 22]));
+        async.flushMicrotasks();
+        verify(() => repository.getProgramme(competitionId)).called(1);
+
+        c.dispose();
+      });
+    });
+
+    test('page fermée pendant la lecture des places : la suite n\'est pas '
+        'lue', () {
+      fakeAsync((async) {
+        final c = container();
+        final subscription = listen(c);
+        async.flushMicrotasks();
+
+        subscription.close();
+        async.elapse(Duration.zero);
+        expect(c.exists(liveProvider(competitionId)), isFalse);
+
+        pending[0].complete(answer([11, 12]));
+        async.flushMicrotasks();
+        expect(laneRequests, [
+          {11, 12},
+        ]);
+
+        c.dispose();
+      });
     });
   });
 
