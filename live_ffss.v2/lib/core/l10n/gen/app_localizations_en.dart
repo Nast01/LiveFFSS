@@ -132,4 +132,81 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mySpaceComingSoon =>
       'Sign-in and your personal space are coming soon.';
+
+  @override
+  String get programmeTitle => 'Programme';
+
+  @override
+  String get programmeEmpty => 'Programme not published yet';
+
+  @override
+  String get programmeLoadError => 'Couldn\'t load the programme.';
+
+  @override
+  String get itemLoadError => 'Couldn\'t load this slot.';
+
+  @override
+  String get itemNotFound => 'This slot is no longer in the programme.';
+
+  @override
+  String get noLanes => 'Lane draw not published yet';
+
+  @override
+  String get recordBadge => 'Record';
+
+  @override
+  String get nationalRecordBadge => 'French record';
+
+  @override
+  String get chooseFinal => 'Choose the race';
+
+  @override
+  String get progressionToggle => 'Format';
+
+  @override
+  String get statusFinished => 'Finished';
+
+  @override
+  String get seriesPending => 'Heats to come';
+
+  @override
+  String get statusUpcoming => 'Upcoming';
+
+  @override
+  String get qualificationByStage => 'Ranked on time, all heats combined';
+
+  @override
+  String qualificationByHeat(int n) {
+    return 'Top $n of each heat';
+  }
+
+  @override
+  String get qualificationByHeatUnknown => 'Qualification by heat';
+
+  @override
+  String progressionCollapsed(String first, String following) {
+    return '$first › $following';
+  }
+
+  @override
+  String followingFinals(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count finals',
+      one: '1 final',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String followingStages(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stages',
+      one: '1 stage',
+    );
+    return '$_temp0';
+  }
 }

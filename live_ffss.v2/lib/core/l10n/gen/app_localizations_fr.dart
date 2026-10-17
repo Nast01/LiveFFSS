@@ -133,4 +133,82 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get mySpaceComingSoon =>
       'La connexion et votre espace arrivent bientôt.';
+
+  @override
+  String get programmeTitle => 'Programme';
+
+  @override
+  String get programmeEmpty => 'Programme pas encore publié';
+
+  @override
+  String get programmeLoadError => 'Impossible de charger le programme.';
+
+  @override
+  String get itemLoadError => 'Impossible de charger ce créneau.';
+
+  @override
+  String get itemNotFound => 'Ce créneau n\'est plus au programme.';
+
+  @override
+  String get noLanes => 'Composition pas encore publiée';
+
+  @override
+  String get recordBadge => 'Record';
+
+  @override
+  String get nationalRecordBadge => 'Record de France';
+
+  @override
+  String get chooseFinal => 'Choisir la course';
+
+  @override
+  String get progressionToggle => 'Déroulement';
+
+  @override
+  String get statusFinished => 'Terminé';
+
+  @override
+  String get seriesPending => 'Séries à venir';
+
+  @override
+  String get statusUpcoming => 'À venir';
+
+  @override
+  String get qualificationByStage =>
+      'Classement au temps, toutes séries confondues';
+
+  @override
+  String qualificationByHeat(int n) {
+    return 'Les $n premiers de chaque série';
+  }
+
+  @override
+  String get qualificationByHeatUnknown => 'Qualification par série';
+
+  @override
+  String progressionCollapsed(String first, String following) {
+    return '$first › $following';
+  }
+
+  @override
+  String followingFinals(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count finales',
+      one: '1 finale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String followingStages(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count étapes',
+      one: '1 étape',
+    );
+    return '$_temp0';
+  }
 }

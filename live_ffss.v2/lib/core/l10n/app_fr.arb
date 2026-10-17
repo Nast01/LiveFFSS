@@ -55,5 +55,45 @@
   "chooseCompetition": "Choisir une compétition",
   "chooseCompetitionHint": "Ouvrez une compétition depuis l'accueil pour suivre son programme, son live et ses résultats.",
   "comingSoon": "Bientôt",
-  "mySpaceComingSoon": "La connexion et votre espace arrivent bientôt."
+  "mySpaceComingSoon": "La connexion et votre espace arrivent bientôt.",
+  "programmeTitle": "Programme",
+  "programmeEmpty": "Programme pas encore publié",
+  "programmeLoadError": "Impossible de charger le programme.",
+  "itemLoadError": "Impossible de charger ce créneau.",
+  "itemNotFound": "Ce créneau n'est plus au programme.",
+  "noLanes": "Composition pas encore publiée",
+  "recordBadge": "Record",
+  "nationalRecordBadge": "Record de France",
+  "chooseFinal": "Choisir la course",
+  "progressionToggle": "Déroulement",
+  "statusFinished": "Terminé",
+  "seriesPending": "Séries à venir",
+  "statusUpcoming": "À venir",
+  "qualificationByStage": "Classement au temps, toutes séries confondues",
+  "qualificationByHeat": "Les {n} premiers de chaque série",
+  "qualificationByHeatUnknown": "Qualification par série",
+  "progressionCollapsed": "{first} › {following}",
+  "followingFinals": "{count, plural, one{1 finale} other{{count} finales}}",
+  "followingStages": "{count, plural, one{1 étape} other{{count} étapes}}",
+  "@qualificationByHeat": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "@progressionCollapsed": {
+    "placeholders": {
+      "first": {"type": "String"},
+      "following": {"type": "String"}
+    }
+  },
+  "@followingFinals": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "@followingStages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

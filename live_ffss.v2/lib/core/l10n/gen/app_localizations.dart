@@ -331,6 +331,120 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'La connexion et votre espace arrivent bientôt.'**
   String get mySpaceComingSoon;
+
+  /// No description provided for @programmeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programme'**
+  String get programmeTitle;
+
+  /// No description provided for @programmeEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programme pas encore publié'**
+  String get programmeEmpty;
+
+  /// No description provided for @programmeLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger le programme.'**
+  String get programmeLoadError;
+
+  /// No description provided for @itemLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger ce créneau.'**
+  String get itemLoadError;
+
+  /// No description provided for @itemNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce créneau n\'est plus au programme.'**
+  String get itemNotFound;
+
+  /// No description provided for @noLanes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Composition pas encore publiée'**
+  String get noLanes;
+
+  /// No description provided for @recordBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Record'**
+  String get recordBadge;
+
+  /// No description provided for @nationalRecordBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Record de France'**
+  String get nationalRecordBadge;
+
+  /// No description provided for @chooseFinal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir la course'**
+  String get chooseFinal;
+
+  /// No description provided for @progressionToggle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déroulement'**
+  String get progressionToggle;
+
+  /// No description provided for @statusFinished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get statusFinished;
+
+  /// No description provided for @seriesPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Séries à venir'**
+  String get seriesPending;
+
+  /// No description provided for @statusUpcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'À venir'**
+  String get statusUpcoming;
+
+  /// No description provided for @qualificationByStage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Classement au temps, toutes séries confondues'**
+  String get qualificationByStage;
+
+  /// No description provided for @qualificationByHeat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les {n} premiers de chaque série'**
+  String qualificationByHeat(int n);
+
+  /// No description provided for @qualificationByHeatUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Qualification par série'**
+  String get qualificationByHeatUnknown;
+
+  /// No description provided for @progressionCollapsed.
+  ///
+  /// In fr, this message translates to:
+  /// **'{first} › {following}'**
+  String progressionCollapsed(String first, String following);
+
+  /// No description provided for @followingFinals.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 finale} other{{count} finales}}'**
+  String followingFinals(int count);
+
+  /// No description provided for @followingStages.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 étape} other{{count} étapes}}'**
+  String followingStages(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -38,5 +38,45 @@
   "chooseCompetition": "Choose a competition",
   "chooseCompetitionHint": "Open a competition from the home screen to follow its programme, live heats and results.",
   "comingSoon": "Coming soon",
-  "mySpaceComingSoon": "Sign-in and your personal space are coming soon."
+  "mySpaceComingSoon": "Sign-in and your personal space are coming soon.",
+  "programmeTitle": "Programme",
+  "programmeEmpty": "Programme not published yet",
+  "programmeLoadError": "Couldn't load the programme.",
+  "itemLoadError": "Couldn't load this slot.",
+  "itemNotFound": "This slot is no longer in the programme.",
+  "noLanes": "Lane draw not published yet",
+  "recordBadge": "Record",
+  "nationalRecordBadge": "French record",
+  "chooseFinal": "Choose the race",
+  "progressionToggle": "Format",
+  "statusFinished": "Finished",
+  "seriesPending": "Heats to come",
+  "statusUpcoming": "Upcoming",
+  "qualificationByStage": "Ranked on time, all heats combined",
+  "qualificationByHeat": "Top {n} of each heat",
+  "qualificationByHeatUnknown": "Qualification by heat",
+  "progressionCollapsed": "{first} › {following}",
+  "followingFinals": "{count, plural, one{1 final} other{{count} finals}}",
+  "followingStages": "{count, plural, one{1 stage} other{{count} stages}}",
+  "@qualificationByHeat": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "@progressionCollapsed": {
+    "placeholders": {
+      "first": {"type": "String"},
+      "following": {"type": "String"}
+    }
+  },
+  "@followingFinals": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "@followingStages": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }
