@@ -5,16 +5,20 @@ import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 
 class LaneRow extends StatelessWidget {
-  const LaneRow({super.key, required this.lane});
+  const LaneRow({super.key, required this.lane, this.place});
 
   final LaneAssignment lane;
+
+  /// La place dans la série, calculée par [heatPlaces] ; nulle sans temps.
+  final int? place;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final performance = lane.performance;
     final result = performanceText(lane, l10n);
-    final rank = rankText(lane);
+    final place = this.place;
+    final rank = place == null ? null : l10n.heatPlace('$place');
     // Un relais s'annonce sous le nom de son club ; ses relayeurs dessous.
     final title = lane.isRelay ? lane.club : lane.athletes.join(', ');
     final subtitle = lane.isRelay
@@ -93,7 +97,8 @@ class LaneRow extends StatelessWidget {
                     rank,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navy,
                     ),
                   ),
               ],

@@ -7,7 +7,7 @@
 Un spectateur a choisi une compétition. Dans l'onglet **Programme**, il voit **tout le planning, jour par jour**, que les séries soient générées ou non : les réunions de chaque jour et leurs créneaux. Un créneau qui porte une épreuve s'ouvre sur un **détail** qui montre :
 
 - le **déroulement** de l'épreuve (comment on passe des séries aux finales), sous forme de frise ;
-- le **contenu des séries** : couloir, nageur ou équipe, club, puis temps, rang officiel et statut dès qu'ils sont publiés.
+- le **contenu des séries** : couloir, nageur ou équipe, club, puis temps, place dans la série et statut dès qu'ils sont publiés.
 
 Le lot 2 est **en lecture seule** et public : aucune connexion.
 
@@ -88,10 +88,10 @@ Ouvert par une route enfant de la branche Programme (le bouton retour ramène au
    - Épreuve à une seule étape : une seule case. Créneau sans partie (cas imprévu) : pas de frise.
 3. **Une carte par course** (série), dans l'ordre de l'API : nom (« Série 1 », « Finale A »), heure prévue, badge d'état de la course. Dans la carte, **une ligne par place occupée**, triées par couloir :
    - couloir, nom du nageur (`publicLabel`) ou, pour un relais, le club et les noms des relayeurs, club, catégorie ;
-   - quand un résultat est publié : temps (`tempsLabel`) ou statut (`statutLabel` quand ce n'est pas « OK » : DQ, forfait…), **rang officiel avec sa catégorie** (« 5e · Cadet », tiré de `rangLabel` et de la catégorie de l'engagement : le rang est publié par catégorie, pas pour toute la course), et un badge **record** ou **record de France** (`isRecord`, `isRecordDeFrance`) ;
+   - quand un résultat est publié : temps (`tempsLabel`) ou statut (`statutLabel` quand ce n'est pas « OK » : DQ, forfait…), **place dans la série** (« 1er », « 2e »), *amendé le 2026-10-17 :* recalculée par l'app sur les temps de la série, toutes catégories ensemble, sans afficher la catégorie ; le `rangLabel` publié (par catégorie) n'est plus lu, et un badge **record** ou **record de France** (`isRecord`, `isRecordDeFrance`) ;
    - **pas de badge de qualification au lot 2** : la place ne porte pas le `complement` (demande n° 1 à l'API) ;
    - les places vides ne s'affichent pas.
-   - L'app **ne calcule aucun rang** (choix de l'utilisateur) : elle affiche le rang publié. Les lignes restent triées par couloir.
+   - Les lignes restent triées par couloir. Ex aequo : même place, la suivante sautée ; sans temps, DQ ou statut autre que OK : pas de place.
 4. **Avant la génération des séries** (aucune course n'a de série) : « Séries à venir » à la place des cartes ; la frise reste visible.
 
 ## 5. Modèle de domaine
@@ -105,7 +105,7 @@ On reprend les noms de FFSSCompetition V3 (`Core/Domain`), en version réduite �
 | `MeetingItem` | créneau | ajout de `startTime`, `endTime`. Le `roundId` du lot 1 désigne en fait la partie FFSS : à renommer selon V3 si besoin (dans V3, un créneau pointe vers un `Round`, tour généré, alors que FFSS pointe vers une partie, c'est-à-dire un `Stage`) |
 | `Heat` | course | inchangé, plus `lanes` |
 | `LaneAssignment` | place | `lane`, les athlètes (nom public, nationalité), club, catégorie, forfait, `performance` |
-| `Performance` | résultat | `statusLabel`, `isDisqualified`, temps affiché, rang affiché (`rangLabel`), `isRecord`, `isNationalRecord`. Pas de `PerformanceStatus` au lot 2 : la place ne donne pas le code de statut |
+| `Performance` | résultat | `statusLabel`, `isDisqualified`, temps affiché et sa valeur en centièmes (tirée de `tempsLabel`), `isRecord`, `isNationalRecord`. Pas de `PerformanceStatus` au lot 2 : la place ne donne pas le code de statut |
 
 Fonctions pures du domaine, testées sans simulation :
 - **`dayTabs(meetings)`** et le choix du jour initial à partir de la date du jour ;

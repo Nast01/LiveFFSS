@@ -166,27 +166,15 @@ void main() {
     });
   });
 
-  group('rankText', () {
-    LaneAssignment lane({String? category, String? rank}) => LaneAssignment(
-      id: 1,
-      lane: 1,
-      category: category,
-      performance: rank == null ? null : Performance(rankLabel: rank),
-    );
-
-    test('rang et catégorie', () {
-      expect(rankText(lane(rank: '1er', category: 'Cadet')), '1er · Cadet');
-    });
-
-    test('rang seul', () {
-      expect(rankText(lane(rank: '1er')), '1er');
-      expect(rankText(lane(rank: '1er', category: '')), '1er');
-    });
-
-    test('sans rang', () {
-      expect(rankText(lane(category: 'Cadet')), isNull);
-      expect(rankText(lane(rank: '')), isNull);
-    });
+  test('heatPlace : la place en ordinal, sans catégorie', () {
+    final fr = lookupAppLocalizations(const Locale('fr'));
+    final en = lookupAppLocalizations(const Locale('en'));
+    expect(fr.heatPlace('1'), '1er');
+    expect(fr.heatPlace('2'), '2e');
+    expect(fr.heatPlace('10'), '10e');
+    expect(en.heatPlace('1'), '1st');
+    expect(en.heatPlace('3'), '3rd');
+    expect(en.heatPlace('4'), '4th');
   });
 
   group('performanceText', () {

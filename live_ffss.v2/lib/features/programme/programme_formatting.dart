@@ -63,15 +63,6 @@ String collapsedProgression(Progression progression, AppLocalizations l10n) {
   );
 }
 
-/// Le rang publié par FFSS ; l'app n'en calcule aucun.
-String? rankText(LaneAssignment lane) {
-  final rank = lane.performance?.rankLabel;
-  if (rank == null || rank.isEmpty) return null;
-  final category = lane.category;
-  if (category == null || category.isEmpty) return rank;
-  return '$rank · $category';
-}
-
 /// Le temps d'une place, ou le statut publié quand elle n'a pas de temps
 /// valable (« DSQ », « Abandon »). Un forfait sans résultat publié le dit :
 /// sans cela, sa ligne ressemblerait à celle d'un nageur pas encore parti.

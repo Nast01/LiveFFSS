@@ -14,7 +14,7 @@
 
 - Règles du [`CLAUDE.md`](../../CLAUDE.md) de la v2 : architecture, `clockProvider` (jamais `DateTime.now()` dans un fournisseur ou une page), `retry: noRetry` dans les tests, pas de test de widget, une page sans logique testable, `AppException` seulement, commentaires qui disent pourquoi.
 - Noms du domaine : ceux de FFSSCompetition V3 (`Progression`, `Stage`, `StageLevel`, `QualificationMethod`, `LaneAssignment`, `Performance`). Jamais de nom français de l'API dans le domaine.
-- L'app **ne calcule aucun classement ni aucun rang** : elle affiche le `rangLabel` publié.
+- L'app **ne calcule aucun classement d'épreuve**. *Amendé le 2026-10-17 :* elle recalcule la place dans la série à partir des temps (`heatPlaces`) au lieu d'afficher le `rangLabel` publié.
 - L'app parle **à la production**. Pour essayer à la main sur la recette 1416, changer localement `appConfigProvider` en `AppConfig.forEnvironment(AppEnvironment.<recette>)`, **sans le commiter**.
 - Aucune donnée personnelle (e-mail, date de naissance, numéro de licence, adresse, téléphone) dans `test/fixtures/` : le dépôt est sur GitHub.
 - Traductions : `app_fr.arb` fait référence, `app_en.arb` a les mêmes clés ; `flutter gen-l10n` après chaque modification.

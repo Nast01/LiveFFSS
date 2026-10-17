@@ -1,4 +1,5 @@
 import 'package:live_ffss_v2/data/ffss/dtos/place_dto.dart';
+import 'package:live_ffss_v2/data/ffss/mappers/ffss_times.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 
 String? _nonBlank(String? value) {
@@ -32,7 +33,7 @@ extension PlaceMapper on PlaceDto {
           : Performance(
               time: _nonBlank(result.time),
               statusLabel: _nonBlank(result.statusLabel),
-              rankLabel: _nonBlank(result.rankLabel),
+              timeHundredths: parseFfssTime(result.time),
               isDisqualified: result.isDisqualified ?? false,
               isRecord: result.isRecord ?? false,
               isNationalRecord: result.isNationalRecord ?? false,

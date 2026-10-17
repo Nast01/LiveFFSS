@@ -356,6 +356,12 @@ abstract class AppLocalizations {
   /// **'English'**
   String get languageEnglish;
 
+  /// No description provided for @heatPlace.
+  ///
+  /// In fr, this message translates to:
+  /// **'{place, select, 1{1er} other{{place}e}}'**
+  String heatPlace(String place);
+
   /// No description provided for @durationMinutes.
   ///
   /// In fr, this message translates to:

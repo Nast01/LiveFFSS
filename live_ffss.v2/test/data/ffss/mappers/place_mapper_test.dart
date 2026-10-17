@@ -19,7 +19,7 @@ void main() {
     expect(place.forfeit, false);
     expect(place.isEmpty, false);
     expect(place.performance!.time, '02\'55"77');
-    expect(place.performance!.rankLabel, '5ème');
+    expect(place.performance!.timeHundredths, 17577);
     expect(place.performance!.isOk, true);
   });
 

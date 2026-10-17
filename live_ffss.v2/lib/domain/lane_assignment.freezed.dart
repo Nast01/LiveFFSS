@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Performance {
 
- String? get time; String? get statusLabel; String? get rankLabel; bool get isDisqualified; bool get isRecord; bool get isNationalRecord;
+ String? get time; String? get statusLabel; int? get timeHundredths; bool get isDisqualified; bool get isRecord; bool get isNationalRecord;
 /// Create a copy of Performance
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $PerformanceCopyWith<Performance> get copyWith => _$PerformanceCopyWithImpl<Perf
 @override
 bool operator ==(Object other) {
   final _this = this as Performance;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Performance&&(identical(other.time, _this.time) || other.time == _this.time)&&(identical(other.statusLabel, _this.statusLabel) || other.statusLabel == _this.statusLabel)&&(identical(other.rankLabel, _this.rankLabel) || other.rankLabel == _this.rankLabel)&&(identical(other.isDisqualified, _this.isDisqualified) || other.isDisqualified == _this.isDisqualified)&&(identical(other.isRecord, _this.isRecord) || other.isRecord == _this.isRecord)&&(identical(other.isNationalRecord, _this.isNationalRecord) || other.isNationalRecord == _this.isNationalRecord));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Performance&&(identical(other.time, _this.time) || other.time == _this.time)&&(identical(other.statusLabel, _this.statusLabel) || other.statusLabel == _this.statusLabel)&&(identical(other.timeHundredths, _this.timeHundredths) || other.timeHundredths == _this.timeHundredths)&&(identical(other.isDisqualified, _this.isDisqualified) || other.isDisqualified == _this.isDisqualified)&&(identical(other.isRecord, _this.isRecord) || other.isRecord == _this.isRecord)&&(identical(other.isNationalRecord, _this.isNationalRecord) || other.isNationalRecord == _this.isNationalRecord));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Performance;
-  return Object.hash(runtimeType,_this.time,_this.statusLabel,_this.rankLabel,_this.isDisqualified,_this.isRecord,_this.isNationalRecord);
+  return Object.hash(runtimeType,_this.time,_this.statusLabel,_this.timeHundredths,_this.isDisqualified,_this.isRecord,_this.isNationalRecord);
 }
 
 @override
 String toString() {
   final _this = this as Performance;
-  return 'Performance(time: ${_this.time}, statusLabel: ${_this.statusLabel}, rankLabel: ${_this.rankLabel}, isDisqualified: ${_this.isDisqualified}, isRecord: ${_this.isRecord}, isNationalRecord: ${_this.isNationalRecord})';
+  return 'Performance(time: ${_this.time}, statusLabel: ${_this.statusLabel}, timeHundredths: ${_this.timeHundredths}, isDisqualified: ${_this.isDisqualified}, isRecord: ${_this.isRecord}, isNationalRecord: ${_this.isNationalRecord})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $PerformanceCopyWith<$Res>  {
   factory $PerformanceCopyWith(Performance value, $Res Function(Performance) _then) = _$PerformanceCopyWithImpl;
 @useResult
 $Res call({
- String? time, String? statusLabel, String? rankLabel, bool isDisqualified, bool isRecord, bool isNationalRecord
+ String? time, String? statusLabel, int? timeHundredths, bool isDisqualified, bool isRecord, bool isNationalRecord
 });
 
 
@@ -68,12 +68,12 @@ class _$PerformanceCopyWithImpl<$Res>
 
 /// Create a copy of Performance
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? time = freezed,Object? statusLabel = freezed,Object? rankLabel = freezed,Object? isDisqualified = null,Object? isRecord = null,Object? isNationalRecord = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? time = freezed,Object? statusLabel = freezed,Object? timeHundredths = freezed,Object? isDisqualified = null,Object? isRecord = null,Object? isNationalRecord = null,}) {
   return _then(Performance(
 time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as String?,statusLabel: freezed == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
-as String?,rankLabel: freezed == rankLabel ? _self.rankLabel : rankLabel // ignore: cast_nullable_to_non_nullable
-as String?,isDisqualified: null == isDisqualified ? _self.isDisqualified : isDisqualified // ignore: cast_nullable_to_non_nullable
+as String?,timeHundredths: freezed == timeHundredths ? _self.timeHundredths : timeHundredths // ignore: cast_nullable_to_non_nullable
+as int?,isDisqualified: null == isDisqualified ? _self.isDisqualified : isDisqualified // ignore: cast_nullable_to_non_nullable
 as bool,isRecord: null == isRecord ? _self.isRecord : isRecord // ignore: cast_nullable_to_non_nullable
 as bool,isNationalRecord: null == isNationalRecord ? _self.isNationalRecord : isNationalRecord // ignore: cast_nullable_to_non_nullable
 as bool,
@@ -161,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? time,  String? statusLabel,  String? rankLabel,  bool isDisqualified,  bool isRecord,  bool isNationalRecord)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? time,  String? statusLabel,  int? timeHundredths,  bool isDisqualified,  bool isRecord,  bool isNationalRecord)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Performance() when $default != null:
-return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
+return $default(_that.time,_that.statusLabel,_that.timeHundredths,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
   return orElse();
 
 }
@@ -182,10 +182,10 @@ return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.isDisqualifie
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? time,  String? statusLabel,  String? rankLabel,  bool isDisqualified,  bool isRecord,  bool isNationalRecord)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? time,  String? statusLabel,  int? timeHundredths,  bool isDisqualified,  bool isRecord,  bool isNationalRecord)  $default,) {final _that = this;
 switch (_that) {
 case _Performance():
-return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
+return $default(_that.time,_that.statusLabel,_that.timeHundredths,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +202,10 @@ return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.isDisqualifie
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? time,  String? statusLabel,  String? rankLabel,  bool isDisqualified,  bool isRecord,  bool isNationalRecord)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? time,  String? statusLabel,  int? timeHundredths,  bool isDisqualified,  bool isRecord,  bool isNationalRecord)?  $default,) {final _that = this;
 switch (_that) {
 case _Performance() when $default != null:
-return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
+return $default(_that.time,_that.statusLabel,_that.timeHundredths,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
   return null;
 
 }
@@ -217,12 +217,12 @@ return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.isDisqualifie
 
 
 class _Performance extends Performance {
-  const _Performance({this.time, this.statusLabel, this.rankLabel, this.isDisqualified = false, this.isRecord = false, this.isNationalRecord = false}): super._();
+  const _Performance({this.time, this.statusLabel, this.timeHundredths, this.isDisqualified = false, this.isRecord = false, this.isNationalRecord = false}): super._();
   
 
 @override final  String? time;
 @override final  String? statusLabel;
-@override final  String? rankLabel;
+@override final  int? timeHundredths;
 @override@JsonKey() final  bool isDisqualified;
 @override@JsonKey() final  bool isRecord;
 @override@JsonKey() final  bool isNationalRecord;
@@ -237,18 +237,18 @@ _$PerformanceCopyWith<_Performance> get copyWith => __$PerformanceCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Performance&&(identical(other.time, time) || other.time == time)&&(identical(other.statusLabel, statusLabel) || other.statusLabel == statusLabel)&&(identical(other.rankLabel, rankLabel) || other.rankLabel == rankLabel)&&(identical(other.isDisqualified, isDisqualified) || other.isDisqualified == isDisqualified)&&(identical(other.isRecord, isRecord) || other.isRecord == isRecord)&&(identical(other.isNationalRecord, isNationalRecord) || other.isNationalRecord == isNationalRecord));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Performance&&(identical(other.time, time) || other.time == time)&&(identical(other.statusLabel, statusLabel) || other.statusLabel == statusLabel)&&(identical(other.timeHundredths, timeHundredths) || other.timeHundredths == timeHundredths)&&(identical(other.isDisqualified, isDisqualified) || other.isDisqualified == isDisqualified)&&(identical(other.isRecord, isRecord) || other.isRecord == isRecord)&&(identical(other.isNationalRecord, isNationalRecord) || other.isNationalRecord == isNationalRecord));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,time,statusLabel,rankLabel,isDisqualified,isRecord,isNationalRecord);
+    return Object.hash(runtimeType,time,statusLabel,timeHundredths,isDisqualified,isRecord,isNationalRecord);
 }
 
 @override
 String toString() {
-    return 'Performance(time: $time, statusLabel: $statusLabel, rankLabel: $rankLabel, isDisqualified: $isDisqualified, isRecord: $isRecord, isNationalRecord: $isNationalRecord)';
+    return 'Performance(time: $time, statusLabel: $statusLabel, timeHundredths: $timeHundredths, isDisqualified: $isDisqualified, isRecord: $isRecord, isNationalRecord: $isNationalRecord)';
 }
 
 
@@ -259,7 +259,7 @@ abstract mixin class _$PerformanceCopyWith<$Res> implements $PerformanceCopyWith
   factory _$PerformanceCopyWith(_Performance value, $Res Function(_Performance) _then) = __$PerformanceCopyWithImpl;
 @override @useResult
 $Res call({
- String? time, String? statusLabel, String? rankLabel, bool isDisqualified, bool isRecord, bool isNationalRecord
+ String? time, String? statusLabel, int? timeHundredths, bool isDisqualified, bool isRecord, bool isNationalRecord
 });
 
 
@@ -276,12 +276,12 @@ class __$PerformanceCopyWithImpl<$Res>
 
 /// Create a copy of Performance
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? time = freezed,Object? statusLabel = freezed,Object? rankLabel = freezed,Object? isDisqualified = null,Object? isRecord = null,Object? isNationalRecord = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? time = freezed,Object? statusLabel = freezed,Object? timeHundredths = freezed,Object? isDisqualified = null,Object? isRecord = null,Object? isNationalRecord = null,}) {
   return _then(_Performance(
 time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as String?,statusLabel: freezed == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
-as String?,rankLabel: freezed == rankLabel ? _self.rankLabel : rankLabel // ignore: cast_nullable_to_non_nullable
-as String?,isDisqualified: null == isDisqualified ? _self.isDisqualified : isDisqualified // ignore: cast_nullable_to_non_nullable
+as String?,timeHundredths: freezed == timeHundredths ? _self.timeHundredths : timeHundredths // ignore: cast_nullable_to_non_nullable
+as int?,isDisqualified: null == isDisqualified ? _self.isDisqualified : isDisqualified // ignore: cast_nullable_to_non_nullable
 as bool,isRecord: null == isRecord ? _self.isRecord : isRecord // ignore: cast_nullable_to_non_nullable
 as bool,isNationalRecord: null == isNationalRecord ? _self.isNationalRecord : isNationalRecord // ignore: cast_nullable_to_non_nullable
 as bool,

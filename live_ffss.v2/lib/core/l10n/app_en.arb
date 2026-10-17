@@ -43,6 +43,8 @@
   "languageSystem": "Phone language",
   "languageFrench": "Français",
   "languageEnglish": "English",
+  "heatPlace": "{place, select, 1{1st} 2{2nd} 3{3rd} other{{place}th}}",
+  "@heatPlace": {"placeholders": {"place": {"type": "String"}}},
   "durationMinutes": "≈ {minutes} min",
   "durationHours": "≈ {hours} h",
   "durationHoursMinutes": "≈ {hours} h {minutes}",

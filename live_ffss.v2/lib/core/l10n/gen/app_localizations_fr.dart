@@ -147,6 +147,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
+  String heatPlace(String place) {
+    String _temp0 = intl.Intl.selectLogic(place, {
+      '1': '1er',
+      'other': '${place}e',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String durationMinutes(int minutes) {
     return '≈ $minutes min';
   }

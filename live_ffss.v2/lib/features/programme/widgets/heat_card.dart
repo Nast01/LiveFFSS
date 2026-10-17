@@ -17,6 +17,7 @@ class HeatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final places = heatPlaces(lanes);
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       color: AppColors.surface,
@@ -54,7 +55,8 @@ class HeatCard extends StatelessWidget {
               ),
             )
           else
-            for (final lane in lanes) LaneRow(lane: lane),
+            for (final lane in lanes)
+              LaneRow(lane: lane, place: places[lane.id]),
           const SizedBox(height: 4),
         ],
       ),

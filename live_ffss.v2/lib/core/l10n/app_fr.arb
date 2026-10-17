@@ -60,6 +60,8 @@
   "languageSystem": "Langue du téléphone",
   "languageFrench": "Français",
   "languageEnglish": "English",
+  "heatPlace": "{place, select, 1{1er} other{{place}e}}",
+  "@heatPlace": {"placeholders": {"place": {"type": "String"}}},
   "durationMinutes": "≈ {minutes} min",
   "durationHours": "≈ {hours} h",
   "durationHoursMinutes": "≈ {hours} h {minutes}",

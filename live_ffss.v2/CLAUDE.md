@@ -30,7 +30,7 @@ Règles et conventions de la v2 de l'application mobile. Référence pour les se
 - **Compétition active** : `activeCompetitionProvider` (id persisté, résumé en mémoire) ; `currentCompetitionProvider` en déduit la compétition des onglets. On ouvre une compétition avec `openCompetition(...)`.
 - **Détail d'un créneau** : `meetingItemDetailProvider` relit le créneau toutes les 30 s, les couloirs des courses non terminées à chaque tick, ceux des courses terminées une fois au passage puis toutes les 2 min. Il lit le programme sans l'observer (pas de reconstruction toutes les 30 s) et vérifie `ref.mounted` après chaque `await`.
 - **Route du détail** : enfant de la branche Programme, `competition/:competitionId/creneau/:itemId` (`Routes.programmeItem`). L'ouvrir appelle `ensure` pour rendre la compétition active.
-- **Rang** : l'app affiche le `rangLabel` publié (rang par catégorie), ne calcule jamais de rang. Pas de badge de qualification : les places ne portent pas de `complement`.
+- **Place dans la série** : recalculée par l'app (`heatPlaces`) sur les temps de la série, toutes catégories ensemble (« 1er », « 2e »), décision du 2026-10-17 ; le `rangLabel` de FFSS, publié par catégorie, n'est pas lu. Le temps n'existe qu'en libellé (`MM'SS"CC`), converti en centièmes par `parseFfssTime`. Ex aequo : même place, la suivante sautée ; sans temps, DQ ou statut autre que OK : pas de place. Pas de badge de qualification : les places ne portent pas de `complement`. Le classement d'une épreuve (qualifiés pour le tour suivant) reste à l'API.
 
 ## Règles
 
