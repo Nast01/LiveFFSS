@@ -619,12 +619,12 @@ void main() {
     },
   );
 
-  test('la frise est dépliée au départ et se replie', () {
+  test('le déroulement est replié au départ et se déplie', () {
     final c = container();
     addTearDown(c.dispose);
 
-    expect(c.read(progressionExpandedProvider), isTrue);
-    c.read(progressionExpandedProvider.notifier).toggle();
     expect(c.read(progressionExpandedProvider), isFalse);
+    c.read(progressionExpandedProvider.notifier).toggle();
+    expect(c.read(progressionExpandedProvider), isTrue);
   });
 }

@@ -241,8 +241,10 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail> {
   }
 }
 
-/// La frise du déroulement, dépliée ou repliée. Sans `autoDispose` : le choix
-/// vaut pour toute la session, d'un créneau à l'autre.
+/// Le déroulement, déplié ou replié. Replié au départ : la ligne de résumé
+/// suffit le plus souvent, et les séries restent en haut de l'écran. Sans
+/// `autoDispose` : le choix vaut pour toute la session, d'un créneau à
+/// l'autre.
 final progressionExpandedProvider =
     NotifierProvider<ProgressionExpandedNotifier, bool>(
       ProgressionExpandedNotifier.new,
@@ -250,7 +252,7 @@ final progressionExpandedProvider =
 
 class ProgressionExpandedNotifier extends Notifier<bool> {
   @override
-  bool build() => true;
+  bool build() => false;
 
   void toggle() => state = !state;
 }
