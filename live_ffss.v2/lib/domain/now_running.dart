@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
+import 'package:live_ffss_v2/domain/live.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 
@@ -26,27 +27,19 @@ abstract class NowRunning with _$NowRunning {
 ///    chambre d'appel (« À SUIVRE ») ;
 /// 3. sinon rien.
 ///
-/// Le rang (« Série 4/10 ») se compte parmi les séries de la même épreuve et
-/// du même tour : V3 peut répartir les séries d'un tour sur plusieurs
-/// créneaux, d'où le regroupement par partie et non par créneau. Un créneau
-/// sans partie forme son propre groupe.
+/// Le rang (« Série 4/10 ») vient de [heatPosition].
 NowRunning? nowRunning(List<Meeting> meetings) {
-  final entries = <({Heat heat, String group})>[
+  final entries = <LiveEntry>[
     for (final meeting in meetings)
       for (final item in meeting.items)
         for (final heat in item.heats)
-          (
-            heat: heat,
-            group:
-                '${heat.raceId}|'
-                '${item.roundId != null ? 'r${item.roundId}' : 'c${item.id}'}',
-          ),
+          LiveEntry(meeting: meeting, item: item, heat: heat),
   ];
 
   final early = DateTime(0);
   final late = DateTime(9999);
 
-  ({Heat heat, String group})? current;
+  LiveEntry? current;
   for (final entry in entries) {
     if (entry.heat.status != RunStatus.inProgress) continue;
     final start = entry.heat.plannedStart ?? early;
@@ -73,20 +66,11 @@ NowRunning? nowRunning(List<Meeting> meetings) {
   }
   if (current == null) return null;
 
-  final group =
-      [
-        for (final entry in entries)
-          if (entry.group == current.group) entry.heat,
-      ]..sort((a, b) {
-        final order = a.number.compareTo(b.number);
-        if (order != 0) return order;
-        return (a.plannedStart ?? early).compareTo(b.plannedStart ?? early);
-      });
-
+  final (:position, :total) = heatPosition(meetings, current);
   return NowRunning(
     heat: current.heat,
     kind: kind,
-    position: group.indexOf(current.heat) + 1,
-    total: group.length,
+    position: position,
+    total: total,
   );
 }
