@@ -79,18 +79,34 @@ void main() {
   });
 
   group('collapsedProgression', () {
-    test('première colonne puis les finales suivantes', () {
+    const heatsName = 'Série - Cadet, Junior, Seniors et Masters';
+
+    test('noms réels : le niveau, pas le nom publié', () {
       final p = Progression(
         id: 1,
         name: 'p',
         stages: [
-          stage(1, StageLevel.heats, name: 'Séries', heatCount: 10),
-          stage(2, StageLevel.finalStage),
+          stage(1, StageLevel.heats, name: heatsName, heatCount: 14),
+          stage(2, StageLevel.finalStage, name: 'Finale - Cadet'),
+          stage(3, StageLevel.finalStage, name: 'Finale - Junior'),
+          stage(4, StageLevel.finalStage, name: 'Finale - Seniors'),
+        ],
+      );
+      expect(collapsedProgression(p, l10n), 'Séries 14 × 8 › 3 finales');
+    });
+
+    test('première colonne de deux étapes : séries additionnées', () {
+      final p = Progression(
+        id: 1,
+        name: 'p',
+        stages: [
+          stage(1, StageLevel.heats, name: heatsName, heatCount: 10),
+          stage(2, StageLevel.heats, name: 'Série - Minimes', heatCount: 4),
           stage(3, StageLevel.finalStage),
           stage(4, StageLevel.finalStage),
         ],
       );
-      expect(collapsedProgression(p, l10n), 'Séries 10 × 8 › 3 finales');
+      expect(collapsedProgression(p, l10n), 'Séries 14 × 8 › 2 finales');
     });
 
     test('une seule finale suivante', () {
@@ -98,11 +114,23 @@ void main() {
         id: 1,
         name: 'p',
         stages: [
-          stage(1, StageLevel.heats, name: 'Séries', heatCount: 4),
+          stage(1, StageLevel.heats, heatCount: 4),
           stage(2, StageLevel.finalStage),
         ],
       );
       expect(collapsedProgression(p, l10n), 'Séries 4 × 8 › 1 finale');
+    });
+
+    test('une seule étape suivante qui n est pas une finale', () {
+      final p = Progression(
+        id: 1,
+        name: 'p',
+        stages: [
+          stage(1, StageLevel.heats, heatCount: 4),
+          stage(2, StageLevel.semiFinal),
+        ],
+      );
+      expect(collapsedProgression(p, l10n), 'Séries 4 × 8 › 1 étape');
     });
 
     test('étapes qui ne sont pas toutes des finales', () {
@@ -110,7 +138,7 @@ void main() {
         id: 1,
         name: 'p',
         stages: [
-          stage(1, StageLevel.heats, name: 'Séries', heatCount: 4),
+          stage(1, StageLevel.heats, heatCount: 4),
           stage(2, StageLevel.semiFinal),
           stage(3, StageLevel.finalStage),
         ],
@@ -122,9 +150,16 @@ void main() {
       final p = Progression(
         id: 1,
         name: 'p',
-        stages: [stage(1, StageLevel.finalStage, name: 'Finale')],
+        stages: [stage(1, StageLevel.finalStage, name: 'Finale - Cadet')],
       );
       expect(collapsedProgression(p, l10n), 'Finale 1 × 8');
+    });
+
+    test('sans étape', () {
+      expect(
+        collapsedProgression(const Progression(id: 1, name: 'p'), l10n),
+        '',
+      );
     });
   });
 

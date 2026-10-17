@@ -29,13 +29,27 @@ String? qualificationText(Stage stage, AppLocalizations l10n) {
   };
 }
 
-/// « Séries 10 × 8 › 3 finales ». Le nom des suivantes dit « finales » quand
-/// elles en sont toutes, sinon « étapes » : on ne présume pas du niveau.
+extension StageLevelLabel on StageLevel {
+  String label(AppLocalizations l10n) => switch (this) {
+    StageLevel.heats => l10n.stageLevelHeats,
+    StageLevel.quarterFinal => l10n.stageLevelQuarterFinal,
+    StageLevel.semiFinal => l10n.stageLevelSemiFinal,
+    StageLevel.finalStage => l10n.stageLevelFinal,
+  };
+}
+
+/// « Séries 14 × 8 › 3 finales ». Bâtie sur le niveau et non sur le nom publié,
+/// qui porte les catégories (« Série - Cadet, Junior… »). Les étapes suivantes
+/// sont dites « finales » quand elles en sont toutes, sinon « étapes ».
 String collapsedProgression(Progression progression, AppLocalizations l10n) {
   final columns = progressionColumns(progression);
   if (columns.isEmpty) return '';
-  final head = columns.first.first;
-  final first = '${head.name} ${stageFormat(head)}';
+  final head = columns.first;
+  // Les étapes d'une colonne se courent ensemble : on additionne leurs séries,
+  // et les places par série sont celles de la première.
+  final heatCount = head.fold(0, (sum, s) => sum + s.heatCount);
+  final first =
+      '${head.first.level.label(l10n)} $heatCount × ${head.first.placesPerHeat}';
   final following = columns.skip(1).expand((column) => column).toList();
   if (following.isEmpty) return first;
   final allFinals = following.every((s) => s.level == StageLevel.finalStage);

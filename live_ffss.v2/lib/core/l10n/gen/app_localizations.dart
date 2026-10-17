@@ -428,6 +428,30 @@ abstract class AppLocalizations {
   /// **'Qualification par série'**
   String get qualificationByHeatUnknown;
 
+  /// No description provided for @stageLevelHeats.
+  ///
+  /// In fr, this message translates to:
+  /// **'Séries'**
+  String get stageLevelHeats;
+
+  /// No description provided for @stageLevelQuarterFinal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quarts de finale'**
+  String get stageLevelQuarterFinal;
+
+  /// No description provided for @stageLevelSemiFinal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demi-finales'**
+  String get stageLevelSemiFinal;
+
+  /// No description provided for @stageLevelFinal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Finale'**
+  String get stageLevelFinal;
+
   /// No description provided for @progressionCollapsed.
   ///
   /// In fr, this message translates to:

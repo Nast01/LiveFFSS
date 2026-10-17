@@ -184,6 +184,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get qualificationByHeatUnknown => 'Qualification by heat';
 
   @override
+  String get stageLevelHeats => 'Heats';
+
+  @override
+  String get stageLevelQuarterFinal => 'Quarter-finals';
+
+  @override
+  String get stageLevelSemiFinal => 'Semi-finals';
+
+  @override
+  String get stageLevelFinal => 'Final';
+
+  @override
   String progressionCollapsed(String first, String following) {
     return '$first › $following';
   }

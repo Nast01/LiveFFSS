@@ -186,6 +186,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get qualificationByHeatUnknown => 'Qualification par série';
 
   @override
+  String get stageLevelHeats => 'Séries';
+
+  @override
+  String get stageLevelQuarterFinal => 'Quarts de finale';
+
+  @override
+  String get stageLevelSemiFinal => 'Demi-finales';
+
+  @override
+  String get stageLevelFinal => 'Finale';
+
+  @override
   String progressionCollapsed(String first, String following) {
     return '$first › $following';
   }
