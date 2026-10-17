@@ -47,9 +47,12 @@ extension CreneauMapper on CreneauDto {
 }
 
 // Le site FFSS n'a pas de champ « validé » : seul le libellé de la série le dit.
+// Libellé saisi à la main : accent perdu, capitales ou espaces doublés ne
+// doivent pas faire passer une série temporaire pour validée.
 final _provisionalMarker = RegExp(
-  'Résultats temporaires',
+  r'r[ée]sultats\s+temporaires',
   caseSensitive: false,
+  unicode: true,
 );
 
 extension CourseMapper on CourseDto {

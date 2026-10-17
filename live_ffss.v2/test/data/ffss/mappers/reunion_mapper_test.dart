@@ -219,6 +219,22 @@ void main() {
       );
     });
 
+    test('le repère tolère l\'accent manquant ou en capitale, et les '
+        'espaces', () {
+      expect(
+        provisional({'id': 1, 'label': 'Série 1 - Resultats temporaires'}),
+        isTrue,
+      );
+      expect(
+        provisional({'id': 1, 'label': 'Série 1 - RÉSULTATS  TEMPORAIRES'}),
+        isTrue,
+      );
+    });
+
+    test('un libellé neutre valide', () {
+      expect(provisional({'id': 1, 'label': 'Série 1'}), isFalse);
+    });
+
     test('une série sans libellé reste temporaire', () {
       expect(provisional({'id': 1}), isTrue);
     });

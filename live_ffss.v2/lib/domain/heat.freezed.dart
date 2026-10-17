@@ -18,8 +18,8 @@ mixin _$Heat {
  int get id; String get name; int get number; RunStatus get status; DateTime? get plannedStart; DateTime? get plannedEnd; int? get raceId; String get raceName; Gender? get gender;/// Ids FFSS des places, dans l'ordre où l'API les sert : le tri par
 /// couloir se fait à l'affichage (`MeetingItemDetail.lanesOf`).
  List<int> get placeIds;/// Nul tant que la série n'est pas générée (finale à venir).
- int? get seriesId;/// Vrai tant que le libellé de la série ne dit pas autre chose que
-/// « Résultats temporaires » : sans libellé, on ne prétend pas valider.
+ int? get seriesId;/// Vrai sans série, sans libellé, ou si le libellé contient « Résultats
+/// temporaires » : sans libellé, on ne prétend pas valider.
  bool get resultsProvisional;
 /// Create a copy of Heat
 /// with the given fields replaced by the non-null parameter values.
@@ -253,8 +253,8 @@ class _Heat implements Heat {
 
 /// Nul tant que la série n'est pas générée (finale à venir).
 @override final  int? seriesId;
-/// Vrai tant que le libellé de la série ne dit pas autre chose que
-/// « Résultats temporaires » : sans libellé, on ne prétend pas valider.
+/// Vrai sans série, sans libellé, ou si le libellé contient « Résultats
+/// temporaires » : sans libellé, on ne prétend pas valider.
 @override@JsonKey() final  bool resultsProvisional;
 
 /// Create a copy of Heat
