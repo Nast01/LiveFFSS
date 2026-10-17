@@ -16,8 +16,8 @@ final nowRunningProvider = FutureProvider.autoDispose.family<NowRunning?, int>((
 ) async {
   final timer = Timer(nowRunningRefresh, ref.invalidateSelf);
   ref.onDispose(timer.cancel);
-  final meetings = await ref
+  final programme = await ref
       .watch(meetingRepositoryProvider)
-      .getMeetings(competitionId);
-  return nowRunning(meetings);
+      .getProgramme(competitionId);
+  return nowRunning(programme.meetings);
 });

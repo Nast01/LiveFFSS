@@ -1,15 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:live_ffss_v2/core/config/app_config.dart';
+import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/core/providers.dart';
+import 'package:live_ffss_v2/data/ffss/dtos/deroulement_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/reunion_dto.dart';
+import 'package:live_ffss_v2/data/ffss/mappers/deroulement_mapper.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/reunion_mapper.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
+import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/domain/progression.dart';
 
 abstract class MeetingRepository {
-  /// Les réunions d'une compétition, avec leurs créneaux et leurs séries,
-  /// triées par jour puis par heure de début.
-  Future<List<Meeting>> getMeetings(int competitionId);
+  /// Les réunions d'une compétition (triées par jour puis par heure de début,
+  /// avec leurs créneaux et leurs séries) et le déroulement de ses épreuves.
+  Future<Programme> getProgramme(int competitionId);
 }
 
 class MeetingRepositoryImpl implements MeetingRepository {
@@ -31,34 +36,34 @@ class MeetingRepositoryImpl implements MeetingRepository {
   /// Avec un rafraîchissement toutes les 30 s, l'appeler quand même ajouterait
   /// une requête vouée à l'échec par créneau et par passage.
   @override
-  Future<List<Meeting>> getMeetings(int competitionId) async {
-    final path = ApiEndpoints.replacePath(ApiEndpoints.meetingList, {
-      'id': competitionId.toString(),
-    });
+  Future<Programme> getProgramme(int competitionId) async {
+    final meetings = await _meetings(competitionId);
+    // Le programme passe avant la frise : sans déroulement, les séries restent
+    // sans épreuve mais la page s'affiche.
+    final progressions = await _progressions(competitionId).catchError(
+      (Object _) => const <Progression>[],
+      test: (error) => error is AppException,
+    );
+    return Programme(
+      meetings: withRaces(meetings, progressions),
+      progressions: progressions,
+    );
+  }
+
+  Future<List<Meeting>> _meetings(int competitionId) async {
     final byId = <int, Meeting>{};
-    for (var page = 0; page < maxPages; page++) {
-      final start = page * pageSize;
-      final body = await _http.get(
-        path,
-        query: {'start': start, 'length': pageSize},
-      );
-      final data = body['data'];
-      final raw = data is List ? data : const <Object?>[];
-      for (final row in raw.whereType<Map<String, dynamic>>()) {
-        final ReunionDto dto;
-        try {
-          dto = ReunionDto.fromJson(row);
-        } on TypeError {
-          // Une valeur au mauvais type (`Nom: 123`) : la réunion est écartée
-          // seule, plutôt que de faire échouer tout le programme.
-          continue;
-        }
-        final meeting = dto.toDomain();
-        if (meeting != null) byId.putIfAbsent(meeting.id, () => meeting);
+    final rows = await _pagedRows(ApiEndpoints.meetingList, competitionId);
+    for (final row in rows) {
+      final ReunionDto dto;
+      try {
+        dto = ReunionDto.fromJson(row);
+      } on TypeError {
+        // Une valeur au mauvais type (`Nom: 123`) : la réunion est écartée
+        // seule, plutôt que de faire échouer tout le programme.
+        continue;
       }
-      // Compté sur les entrées brutes : une entrée non-objet ne doit pas faire
-      // passer une page pleine pour la dernière.
-      if (raw.length < pageSize) break;
+      final meeting = dto.toDomain();
+      if (meeting != null) byId.putIfAbsent(meeting.id, () => meeting);
     }
     return byId.values.toList()..sort((a, b) {
       final byDay = a.day.compareTo(b.day);
@@ -66,6 +71,49 @@ class MeetingRepositoryImpl implements MeetingRepository {
       final byTime = (a.startTime ?? a.day).compareTo(b.startTime ?? b.day);
       return byTime != 0 ? byTime : a.id.compareTo(b.id);
     });
+  }
+
+  Future<List<Progression>> _progressions(int competitionId) async {
+    final byId = <int, Progression>{};
+    final rows = await _pagedRows(ApiEndpoints.progressionList, competitionId);
+    for (final row in rows) {
+      final DeroulementDto dto;
+      try {
+        dto = DeroulementDto.fromJson(row);
+      } on TypeError {
+        // Une partie qui n'est pas un objet : le déroulement est écarté seul.
+        continue;
+      }
+      final progression = dto.toDomain();
+      if (progression != null) {
+        byId.putIfAbsent(progression.id, () => progression);
+      }
+    }
+    return byId.values.toList();
+  }
+
+  /// Les lignes objet de toutes les pages d'une liste de la compétition.
+  Future<List<Map<String, dynamic>>> _pagedRows(
+    String endpoint,
+    int competitionId,
+  ) async {
+    final path = ApiEndpoints.replacePath(endpoint, {
+      'id': competitionId.toString(),
+    });
+    final rows = <Map<String, dynamic>>[];
+    for (var page = 0; page < maxPages; page++) {
+      final body = await _http.get(
+        path,
+        query: {'start': page * pageSize, 'length': pageSize},
+      );
+      final data = body['data'];
+      final raw = data is List ? data : const <Object?>[];
+      rows.addAll(raw.whereType<Map<String, dynamic>>());
+      // Compté sur les entrées brutes : une entrée non-objet ne doit pas faire
+      // passer une page pleine pour la dernière.
+      if (raw.length < pageSize) break;
+    }
+    return rows;
   }
 }
 
