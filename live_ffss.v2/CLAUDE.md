@@ -57,6 +57,7 @@ Règles et conventions de la v2 de l'application mobile. Référence pour les se
 
 ## Lacunes connues
 
+- Les minuteries de 30 s ne s'arrêtent pas quand leur écran est caché : l'`IndexedStack` du `StatefulShellRoute` garde les branches montées, donc le programme d'un onglet quitté continue d'être relu, et un détail de créneau resté ouvert sous un autre onglet continue de relire ses places. La carte en direct n'ajoute pas d'appel : `nowRunningProvider` se tire de `programmeProvider`.
 - Le paramètre `saison` n'est pas envoyé (la doc le dit désactivé). À vérifier au journal réseau si la liste de l'accueil semble incomplète.
 
 ## Commandes

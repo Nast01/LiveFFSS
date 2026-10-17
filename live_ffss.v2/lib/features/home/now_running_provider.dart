@@ -1,23 +1,16 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/domain/now_running.dart';
+import 'package:live_ffss_v2/features/programme/programme_providers.dart';
 
-/// L'API ne pousse rien : la carte en direct se relit à ce rythme.
-const Duration nowRunningRefresh = Duration(seconds: 30);
-
-/// La série à afficher pour une compétition en direct. Libéré dès que sa
-/// carte n'est plus affichée (`autoDispose`), ce qui annule la minuterie :
-/// aucun appel ne part pour une carte que personne ne regarde.
+/// La série à afficher pour une compétition en direct. Tirée du programme,
+/// sans requête ni minuterie propres : la carte et l'onglet Programme d'une
+/// même compétition partagent ainsi une seule lecture toutes les 30 s. Libéré
+/// dès que sa carte n'est plus affichée (`autoDispose`), ce qui libère aussi
+/// le programme si rien d'autre ne l'écoute.
 final nowRunningProvider = FutureProvider.autoDispose.family<NowRunning?, int>((
   ref,
   competitionId,
 ) async {
-  final timer = Timer(nowRunningRefresh, ref.invalidateSelf);
-  ref.onDispose(timer.cancel);
-  final programme = await ref
-      .watch(meetingRepositoryProvider)
-      .getProgramme(competitionId);
+  final programme = await ref.watch(programmeProvider(competitionId).future);
   return nowRunning(programme.meetings);
 });
