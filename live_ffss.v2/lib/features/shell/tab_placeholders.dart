@@ -8,7 +8,6 @@ import 'package:live_ffss_v2/features/shell/current_competition.dart';
 
 /// Les onglets qui suivent la compétition active, avec le lot qui les livre.
 enum CompetitionTab {
-  live(3),
   results(5);
 
   const CompetitionTab(this.lot);
@@ -16,7 +15,6 @@ enum CompetitionTab {
   final int lot;
 
   String title(AppLocalizations l10n) => switch (this) {
-    CompetitionTab.live => l10n.tabLive,
     CompetitionTab.results => l10n.tabResults,
   };
 }
