@@ -62,4 +62,4 @@ Depuis `live_ffss.v2/` :
     flutter gen-l10n
     flutter run -d chrome
 
-Outils : Flutter 3.41.9 / Dart 3.11.5 (voir la section Tooling pins du CLAUDE.md v1). Les fichiers générés (`.freezed.dart`, `.g.dart`, `lib/core/l10n/gen/`) sont commités.
+Outils : Flutter 3.47.7 / Dart 3.13.5 depuis le 2026-10-17 (go_router 18, freezed 4). Le SDK est le clone git décrit dans la section Tooling pins du CLAUDE.md v1, partagé avec la v1, qui a été gelée en 3.41.9 : pour la recompiler, `git -C <flutterRoot> checkout 3.41.9` puis `flutter --version`. Les fichiers générés (`.freezed.dart`, `.g.dart`, `lib/core/l10n/gen/`) sont commités.
