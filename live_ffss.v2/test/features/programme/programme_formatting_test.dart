@@ -189,36 +189,6 @@ void main() {
     });
   });
 
-  group('opensStage', () {
-    final heats = stage(1, StageLevel.heats);
-    final finalA = stage(2, StageLevel.finalStage);
-    final finalB = stage(3, StageLevel.finalStage);
-    final meetings = [
-      Meeting(
-        id: 1,
-        name: 'R1',
-        day: DateTime(2026, 3, 27),
-        items: const [
-          MeetingItem(id: 10, name: 'Séries', roundId: 1),
-          MeetingItem(id: 11, name: 'Finale A', roundId: 2),
-        ],
-      ),
-    ];
-
-    test('une étape avec un créneau au programme se touche', () {
-      expect(opensStage(meetings, finalA, current: heats), isTrue);
-    });
-
-    test('une étape sans créneau, ou celle déjà ouverte, non', () {
-      expect(opensStage(meetings, finalB, current: heats), isFalse);
-      expect(opensStage(meetings, heats, current: heats), isFalse);
-    });
-
-    test('programme pas encore chargé : rien ne se touche', () {
-      expect(opensStage(null, finalA, current: heats), isFalse);
-    });
-  });
-
   group('performanceText', () {
     String? text(Performance? performance, {bool forfeit = false}) =>
         performanceText(

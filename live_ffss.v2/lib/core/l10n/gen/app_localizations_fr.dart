@@ -208,9 +208,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nationalRecordBadge => 'Record de France';
 
   @override
-  String get chooseFinal => 'Choisir la course';
-
-  @override
   String get progressionToggle => 'Déroulement';
 
   @override

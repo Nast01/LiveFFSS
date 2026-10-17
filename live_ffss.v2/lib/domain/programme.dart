@@ -191,3 +191,22 @@ bool meetingFinished(Meeting meeting, DateTime now) {
   items: meeting.items.length,
   events: meeting.items.where((i) => i.heats.isNotEmpty).length,
 );
+
+/// L'état d'une étape d'après ses créneaux au programme (finales A et B
+/// comprises) : en direct dès qu'un créneau l'est, terminée quand tous le sont.
+ItemStatus stageStatus(List<MeetingItem> items) {
+  final statuses = [
+    for (final item in items)
+      if (itemStatus(item) case final status when status != ItemStatus.none)
+        status,
+  ];
+  if (statuses.isEmpty) return ItemStatus.none;
+  if (statuses.contains(ItemStatus.live)) return ItemStatus.live;
+  if (statuses.every((s) => s == ItemStatus.finished)) {
+    return ItemStatus.finished;
+  }
+  if (statuses.every((s) => s == ItemStatus.seriesPending)) {
+    return ItemStatus.seriesPending;
+  }
+  return ItemStatus.upcoming;
+}

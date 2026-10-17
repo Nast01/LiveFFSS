@@ -10,8 +10,10 @@ import 'package:live_ffss_v2/domain/progression.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_providers.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 import 'package:live_ffss_v2/features/programme/programme_providers.dart';
+import 'package:live_ffss_v2/features/programme/widgets/status_badge.dart';
 
-/// Le déroulement de l'épreuve, avec l'étape du créneau ouvert en jaune.
+/// Le déroulement de l'épreuve en chronologie : une étape par ligne, avec ses
+/// horaires et son état, l'étape du créneau ouvert surlignée.
 class ProgressionStrip extends ConsumerWidget {
   const ProgressionStrip({
     super.key,
@@ -31,8 +33,6 @@ class ProgressionStrip extends ConsumerWidget {
     final meetings = ref.watch(
       programmeProvider(competitionId).select((p) => p.value?.meetings),
     );
-    final columns = progressionColumns(progression);
-    final qualification = qualificationText(stage, l10n);
 
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -43,7 +43,7 @@ class ProgressionStrip extends ConsumerWidget {
         side: const BorderSide(color: AppColors.border),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           InkWell(
             borderRadius: BorderRadius.circular(12),
@@ -71,156 +71,188 @@ class ProgressionStrip extends ConsumerWidget {
               ),
             ),
           ),
-          if (expanded) ...[
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          if (expanded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (var i = 0; i < columns.length; i++) ...[
-                    if (i > 0)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: Text(
-                          '›',
-                          style: TextStyle(color: AppColors.textSecondary),
-                        ),
+                  for (var i = 0; i < progression.stages.length; i++)
+                    _StageStep(
+                      stage: progression.stages[i],
+                      current: progression.stages[i].id == stage.id,
+                      last: i == progression.stages.length - 1,
+                      items: meetings == null
+                          ? const []
+                          : itemsOfStage(meetings, progression.stages[i].id),
+                      onOpen: (item) => context.push(
+                        Routes.programmeItem(competitionId, item.id),
                       ),
-                    Column(
-                      children: [
-                        for (final box in columns[i])
-                          _StageBox(
-                            stage: box,
-                            current: box.id == stage.id,
-                            onTap: opensStage(meetings, box, current: stage)
-                                ? () => _open(context, ref, box)
-                                : null,
-                          ),
-                      ],
                     ),
-                  ],
                 ],
               ),
             ),
-            if (qualification != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                child: Text(
-                  qualification,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-            const SizedBox(height: 12),
-          ],
         ],
       ),
     );
   }
-
-  void _open(BuildContext context, WidgetRef ref, Stage target) {
-    final meetings = ref.read(programmeProvider(competitionId)).value?.meetings;
-    if (meetings == null) return;
-    final items = itemsOfStage(meetings, target.id);
-    switch (items.length) {
-      case 0:
-        return;
-      case 1:
-        context.push(Routes.programmeItem(competitionId, items.single.id));
-      default:
-        showModalBottomSheet<void>(
-          context: context,
-          builder: (sheet) => _ItemChoice(
-            items: items,
-            onSelect: (item) {
-              Navigator.of(sheet).pop();
-              context.push(Routes.programmeItem(competitionId, item.id));
-            },
-          ),
-        );
-    }
-  }
 }
 
-class _StageBox extends StatelessWidget {
-  const _StageBox({
+/// Une étape de la chronologie. Une étape tenue en un seul créneau affiche
+/// son jour et ses heures et s'ouvre d'un toucher ; une étape répartie sur
+/// plusieurs créneaux (finales B et A) propose une pastille par créneau.
+class _StageStep extends StatelessWidget {
+  const _StageStep({
     required this.stage,
     required this.current,
-    required this.onTap,
+    required this.last,
+    required this.items,
+    required this.onOpen,
   });
 
   final Stage stage;
   final bool current;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 4),
-    child: Material(
-      color: current ? AppColors.yellow : AppColors.dateBox,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                stage.name,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: current ? FontWeight.w700 : FontWeight.w500,
-                  color: AppColors.navy,
-                ),
-              ),
-              if (stage.heatCount > 0 && stage.placesPerHeat > 0)
-                Text(
-                  stageFormat(stage),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-class _ItemChoice extends StatelessWidget {
-  const _ItemChoice({required this.items, required this.onSelect});
-
+  final bool last;
   final List<MeetingItem> items;
-  final ValueChanged<MeetingItem> onSelect;
+  final ValueChanged<MeetingItem> onOpen;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return SafeArea(
+    final locale = Localizations.localeOf(context).toString();
+    final status = stageStatus(items);
+    final categories = stageCategories(stage);
+    final format = stage.heatCount > 0 && stage.placesPerHeat > 0
+        ? stageFormat(stage)
+        : '';
+    final single = items.length == 1 ? items.single : null;
+    final details = [
+      format,
+      if (single != null) stageScheduleLabel(single, locale),
+    ].where((part) => part.isNotEmpty).join(' · ');
+    final qualification = qualificationText(stage, l10n);
+
+    final dotColor = current
+        ? AppColors.yellow
+        : status == ItemStatus.finished
+        ? AppColors.coastalText
+        : AppColors.surface;
+
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              l10n.chooseFinal,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  [stage.level.label(l10n), ?categories].join(' · '),
+                  style: TextStyle(
+                    fontWeight: current ? FontWeight.w800 : FontWeight.w700,
+                    color: AppColors.navy,
+                  ),
+                ),
+              ),
+              StatusBadge(status: status),
+            ],
+          ),
+          if (details.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                details,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          if (items.length > 1)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final item in items)
+                    ActionChip(
+                      label: Text(itemChipLabel(item)),
+                      labelStyle: const TextStyle(fontSize: 12),
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: AppColors.dateBox,
+                      side: const BorderSide(color: AppColors.border),
+                      onPressed: () => onOpen(item),
+                    ),
+                ],
+              ),
+            ),
+          if (qualification != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                qualification,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    // La ligne de l'étape ouverte n'a rien à ouvrir ; une étape sans créneau
+    // au programme non plus.
+    final tappable = !current && single != null;
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 20,
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: dotColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: current
+                          ? AppColors.navy
+                          : status == ItemStatus.finished
+                          ? AppColors.coastalText
+                          : AppColors.textSecondary,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                if (!last)
+                  Expanded(child: Container(width: 2, color: AppColors.border)),
+              ],
             ),
           ),
-          for (final item in items)
-            ListTile(
-              title: Text(item.name),
-              trailing: Text(timeLabel(item.startTime)),
-              onTap: () => onSelect(item),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Material(
+                color: current
+                    ? AppColors.yellow.withValues(alpha: 0.18)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: tappable ? () => onOpen(single) : null,
+                  child: content,
+                ),
+              ),
             ),
+          ),
         ],
       ),
     );

@@ -434,12 +434,6 @@ abstract class AppLocalizations {
   /// **'Record de France'**
   String get nationalRecordBadge;
 
-  /// No description provided for @chooseFinal.
-  ///
-  /// In fr, this message translates to:
-  /// **'Choisir la course'**
-  String get chooseFinal;
-
   /// No description provided for @progressionToggle.
   ///
   /// In fr, this message translates to:

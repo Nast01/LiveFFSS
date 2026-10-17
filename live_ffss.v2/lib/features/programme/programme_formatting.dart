@@ -63,18 +63,6 @@ String collapsedProgression(Progression progression, AppLocalizations l10n) {
   );
 }
 
-/// Une case de la frise ne se touche que si elle mène à un créneau : une
-/// étape sans créneau au programme, ou celle déjà ouverte, n'a ni toucher ni
-/// effet d'encre.
-bool opensStage(
-  List<Meeting>? meetings,
-  Stage target, {
-  required Stage current,
-}) =>
-    target.id != current.id &&
-    meetings != null &&
-    itemsOfStage(meetings, target.id).isNotEmpty;
-
 /// Le rang publié par FFSS ; l'app n'en calcule aucun.
 String? rankText(LaneAssignment lane) {
   final rank = lane.performance?.rankLabel;
@@ -135,3 +123,29 @@ String meetingSummaryLabel(
   l10n.meetingItemCount(summary.items),
   if (summary.events > 0) l10n.meetingEventCount(summary.events),
 ].join(' · ');
+
+/// Les catégories d'une étape, telles que FFSS les écrit après le niveau
+/// (« Finale - Cadet » → « Cadet »). Nul quand le nom n'en porte pas.
+String? stageCategories(Stage stage) {
+  final index = stage.name.indexOf(' - ');
+  if (index < 0) return null;
+  final categories = stage.name.substring(index + 3).trim();
+  return categories.isEmpty ? null : categories;
+}
+
+/// La pastille d'un créneau dans la chronologie : le début de son nom
+/// (« Finale B ») et son heure.
+String itemChipLabel(MeetingItem item) => [
+  item.name.split(' · ').first.trim(),
+  timeLabel(item.startTime),
+].where((part) => part.isNotEmpty).join(' · ');
+
+/// Le jour et la plage horaire d'une étape qui tient en un seul créneau.
+String stageScheduleLabel(MeetingItem item, String locale) {
+  final start = item.startTime;
+  if (start == null) return '';
+  return [
+    dayTabLabel(start, locale),
+    timeRangeLabel(start, item.endTime),
+  ].join(' · ');
+}
