@@ -106,7 +106,9 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       if (gender != null) genderLabel(gender, l10n),
     ].join(' · ');
     final time = timeRangeLabel(item.startTime, item.endTime);
-    final pending = item.heats.every((heat) => heat.seriesId == null);
+    final pending =
+        item.heats.isNotEmpty &&
+        item.heats.every((heat) => heat.seriesId == null);
 
     return RefreshIndicator(
       onRefresh: _refresh,

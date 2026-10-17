@@ -163,13 +163,26 @@ class _StageBox extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Text(
-            stage.name,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: current ? FontWeight.w700 : FontWeight.w500,
-              color: AppColors.navy,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                stage.name,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: current ? FontWeight.w700 : FontWeight.w500,
+                  color: AppColors.navy,
+                ),
+              ),
+              if (stage.heatCount > 0 && stage.placesPerHeat > 0)
+                Text(
+                  stageFormat(stage),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+            ],
           ),
         ),
       ),
