@@ -51,3 +51,28 @@ class SelectedDayNotifier extends Notifier<DateTime?> {
     state = day;
   }
 }
+
+/// Les réunions que l'utilisateur a dépliées ou repliées à la main (id →
+/// dépliée). Sans geste, une réunion suit [isMeetingExpanded]. Pas
+/// d'autoDispose : le choix tient tant que l'application est ouverte, d'un
+/// jour et d'une compétition à l'autre.
+class MeetingExpansionNotifier extends Notifier<Map<int, bool>> {
+  @override
+  Map<int, bool> build() => const {};
+
+  void toggle(int meetingId, {required bool currentlyExpanded}) =>
+      state = {...state, meetingId: !currentlyExpanded};
+}
+
+final meetingExpansionProvider =
+    NotifierProvider<MeetingExpansionNotifier, Map<int, bool>>(
+      MeetingExpansionNotifier.new,
+    );
+
+/// Une réunion terminée se replie d'office ; un geste de l'utilisateur
+/// l'emporte.
+bool isMeetingExpanded(
+  Map<int, bool> expansion,
+  int meetingId, {
+  required bool finished,
+}) => expansion[meetingId] ?? !finished;

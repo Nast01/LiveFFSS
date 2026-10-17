@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
+import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
@@ -98,6 +99,8 @@ class _ProgrammeBody extends ConsumerWidget {
     final meetings = selected == null
         ? const <Meeting>[]
         : meetingsOfDay(value.meetings, selected);
+    final expansion = ref.watch(meetingExpansionProvider);
+    final now = ref.watch(clockProvider)();
 
     return RefreshIndicator(
       onRefresh: () => _refresh(ref),
@@ -133,6 +136,14 @@ class _ProgrammeBody extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: MeetingCard(
                   meeting: meeting,
+                  expanded: isMeetingExpanded(
+                    expansion,
+                    meeting.id,
+                    finished: meetingFinished(meeting, now),
+                  ),
+                  onToggle: (expanded) => ref
+                      .read(meetingExpansionProvider.notifier)
+                      .toggle(meeting.id, currentlyExpanded: expanded),
                   onOpen: (item) =>
                       context.go(Routes.programmeItem(competitionId, item.id)),
                 ),

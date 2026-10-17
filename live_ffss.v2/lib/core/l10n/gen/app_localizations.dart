@@ -356,6 +356,36 @@ abstract class AppLocalizations {
   /// **'English'**
   String get languageEnglish;
 
+  /// No description provided for @durationMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'≈ {minutes} min'**
+  String durationMinutes(int minutes);
+
+  /// No description provided for @durationHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'≈ {hours} h'**
+  String durationHours(int hours);
+
+  /// No description provided for @durationHoursMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'≈ {hours} h {minutes}'**
+  String durationHoursMinutes(int hours, String minutes);
+
+  /// No description provided for @meetingItemCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 créneau} other{{count} créneaux}}'**
+  String meetingItemCount(int count);
+
+  /// No description provided for @meetingEventCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 épreuve} other{{count} épreuves}}'**
+  String meetingEventCount(int count);
+
   /// No description provided for @programmeTitle.
   ///
   /// In fr, this message translates to:

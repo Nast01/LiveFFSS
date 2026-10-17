@@ -164,3 +164,30 @@ enum QualificationRuleKind { byStage, byHeat }
       ),
       QualificationMethod.none => null,
     };
+
+/// Le temps prévu d'un créneau, tel que FFSSCompetition publie son début et
+/// sa fin. Inconnu sans l'une des deux heures, ou si la fin précède le début :
+/// une durée négative n'aurait aucun sens à l'écran.
+Duration? itemDuration(MeetingItem item) {
+  final start = item.startTime;
+  final end = item.endTime;
+  if (start == null || end == null || end.isBefore(start)) return null;
+  return end.difference(start);
+}
+
+/// Une réunion est terminée quand toutes ses épreuves le sont, ou quand son
+/// heure de fin est passée : sur la recette, des courses passées restent « En
+/// attente », et la réunion ne se replierait jamais.
+bool meetingFinished(Meeting meeting, DateTime now) {
+  final end = meeting.endTime;
+  if (end != null && end.isBefore(now)) return true;
+  final events = meeting.items.where((i) => i.heats.isNotEmpty);
+  return events.isNotEmpty &&
+      events.every((i) => itemStatus(i) == ItemStatus.finished);
+}
+
+/// Ce qu'une réunion repliée résume : tous ses créneaux, dont ses épreuves.
+({int items, int events}) meetingSummary(Meeting meeting) => (
+  items: meeting.items.length,
+  events: meeting.items.where((i) => i.heats.isNotEmpty).length,
+);

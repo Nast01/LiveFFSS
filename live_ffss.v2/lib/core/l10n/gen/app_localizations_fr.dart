@@ -147,6 +147,43 @@ class AppLocalizationsFr extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
+  String durationMinutes(int minutes) {
+    return '≈ $minutes min';
+  }
+
+  @override
+  String durationHours(int hours) {
+    return '≈ $hours h';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, String minutes) {
+    return '≈ $hours h $minutes';
+  }
+
+  @override
+  String meetingItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count créneaux',
+      one: '1 créneau',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String meetingEventCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count épreuves',
+      one: '1 épreuve',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get programmeTitle => 'Programme';
 
   @override

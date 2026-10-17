@@ -115,3 +115,23 @@ String timeLabel(DateTime? time) =>
 /// « 06:45 – 13:45 », sans le morceau inconnu.
 String timeRangeLabel(DateTime? start, DateTime? end) =>
     [timeLabel(start), timeLabel(end)].where((t) => t.isNotEmpty).join(' – ');
+
+String durationLabel(Duration duration, AppLocalizations l10n) {
+  final minutes = duration.inMinutes;
+  if (minutes < 60) return l10n.durationMinutes(minutes);
+  final hours = minutes ~/ 60;
+  final rest = minutes % 60;
+  return rest == 0
+      ? l10n.durationHours(hours)
+      : l10n.durationHoursMinutes(hours, rest.toString().padLeft(2, '0'));
+}
+
+String endTimeLabel(DateTime? end) => end == null ? '' : '→ ${timeLabel(end)}';
+
+String meetingSummaryLabel(
+  ({int items, int events}) summary,
+  AppLocalizations l10n,
+) => [
+  l10n.meetingItemCount(summary.items),
+  if (summary.events > 0) l10n.meetingEventCount(summary.events),
+].join(' · ');
