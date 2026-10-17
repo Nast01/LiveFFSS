@@ -12,8 +12,8 @@ class AppConfig {
       apiVersion = 'api/v1.0',
       environment = AppEnvironment.production;
 
-  /// Réservé aux tests au lot 1 : l'app ne parle qu'à la production tant que
-  /// le choix de l'environnement n'existe pas (lot 4).
+  /// L'environnement de [appConfigProvider] ; le choix dans l'app arrive au
+  /// lot 4.
   factory AppConfig.forEnvironment(AppEnvironment environment) => AppConfig(
     baseUrl: environment.baseUrl,
     apiVersion: environment.apiVersion,

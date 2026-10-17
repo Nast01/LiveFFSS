@@ -135,6 +135,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'La connexion et votre espace arrivent bientôt.';
 
   @override
+  String get languageTitle => 'Langue';
+
+  @override
+  String get languageSystem => 'Langue du téléphone';
+
+  @override
+  String get languageFrench => 'Français';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
   String get programmeTitle => 'Programme';
 
   @override

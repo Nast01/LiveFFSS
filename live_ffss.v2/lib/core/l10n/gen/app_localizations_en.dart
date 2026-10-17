@@ -134,6 +134,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sign-in and your personal space are coming soon.';
 
   @override
+  String get languageTitle => 'Language';
+
+  @override
+  String get languageSystem => 'Phone language';
+
+  @override
+  String get languageFrench => 'Français';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
   String get programmeTitle => 'Programme';
 
   @override

@@ -46,7 +46,8 @@ Règles et conventions de la v2 de l'application mobile. Référence pour les se
 ## API FFSS
 
 - Surface : `../docs/FFSS_API.md`. Faits vérifiés (qui l'emportent sur la doc) : `../docs/FFSS_API_CONTRACT.md`. Les lire avant d'ajouter un appel.
-- Au lot 1, l'app ne parle **qu'à la production**, debug compris ; le choix de l'environnement arrive au lot 4.
+- **Pour le moment, l'app parle à la recette** (`site.ffss.io`, `AppEnvironment.development`), debug comme release : c'est là que FFSSCompetition V3 publie ses compétitions de test (décision du 2026-10-17, `appConfigProvider`). Le choix de l'environnement dans l'app arrive au lot 4 ; repasser en production avant toute diffusion. Les préférences liées au serveur (favoris, compétition active) sont préfixées `dev_` ; la langue est une clé globale.
+- **Langue** : `appLanguageProvider` (onglet Mon espace) — langue du téléphone, français ou anglais, enregistrée sous la clé globale `language`. Langue du téléphone non prise en charge → français (`resolveAppLocale`).
 - `type=3` sur `competition/evenement` rend les trois spécialités.
 - `MeetingRepository` lit les courses **dans la réponse `reunion`**, sans appeler `creneau/:id/course` (cassée depuis le 2026-08-31). À revoir si la route est réparée et que les courses portées par `reunion` s'avèrent tronquées.
 - **Couloirs** : les réponses `reunion` et `creneau` portent des places vides ; `getLanes` lit `course/place/:id` une à une, 6 au plus en vol ; clé absente = échec. Retirer ce contournement (dans le repository seul) quand `creneau/:id` rend les places complètes (demande envoyée au développeur de l'API le 2026-10-17, avec `complement` et le code `Statut`).

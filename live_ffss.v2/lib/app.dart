@@ -4,6 +4,7 @@ import 'package:live_ffss_v2/core/l10n/app_locale.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_theme.dart';
+import 'package:live_ffss_v2/features/settings/app_language.dart';
 
 class LiveFfssApp extends ConsumerWidget {
   const LiveFfssApp({super.key});
@@ -15,6 +16,8 @@ class LiveFfssApp extends ConsumerWidget {
       theme: buildAppTheme(),
       routerConfig: ref.watch(routerProvider),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
+      // Nulle pour « Langue du téléphone » : la résolution ci-dessous décide.
+      locale: ref.watch(appLanguageProvider).value?.locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localeListResolutionCallback: resolveAppLocale,
       debugShowCheckedModeBanner: false,

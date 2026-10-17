@@ -1,4 +1,4 @@
-/// Les deux backends FFSS. Le second n'est pas choisi au lot 1.
+/// Les deux backends FFSS : la production et la recette (`development`).
 enum AppEnvironment {
   production(
     baseUrl: 'https://ffss.fr',

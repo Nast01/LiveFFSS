@@ -332,6 +332,30 @@ abstract class AppLocalizations {
   /// **'La connexion et votre espace arrivent bientôt.'**
   String get mySpaceComingSoon;
 
+  /// No description provided for @languageTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langue'**
+  String get languageTitle;
+
+  /// No description provided for @languageSystem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langue du téléphone'**
+  String get languageSystem;
+
+  /// No description provided for @languageFrench.
+  ///
+  /// In fr, this message translates to:
+  /// **'Français'**
+  String get languageFrench;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In fr, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
   /// No description provided for @programmeTitle.
   ///
   /// In fr, this message translates to:
