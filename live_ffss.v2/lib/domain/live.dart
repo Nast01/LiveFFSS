@@ -105,19 +105,27 @@ bool hasPublishedResults(Iterable<LaneAssignment> lanes) => lanes.any(
 
 /// Les places occupées : d'abord celles qui ont une place dans la série, par
 /// place croissante (un ex aequo garde l'ordre des couloirs), puis les autres
-/// par couloir.
-List<LaneAssignment> resultOrder(List<LaneAssignment> lanes) {
-  final places = heatPlaces(lanes);
+/// par couloir. [places] évite de recalculer `heatPlaces` quand l'appelant
+/// l'a déjà.
+List<LaneAssignment> resultOrder(
+  List<LaneAssignment> lanes, {
+  Map<int, int>? places,
+}) {
+  final placeOf = places ?? heatPlaces(lanes);
   final occupied = [
     for (final lane in lanes)
       if (!lane.isEmpty) lane,
   ]..sort((a, b) => a.lane.compareTo(b.lane));
-  final placed = occupied.where((l) => places.containsKey(l.id)).toList()
-    ..sort((a, b) => places[a.id]!.compareTo(places[b.id]!));
+  final placed = occupied.where((l) => placeOf.containsKey(l.id)).toList()
+    // `List.sort` n'est pas stable : le couloir départage les ex aequo.
+    ..sort((a, b) {
+      final byPlace = placeOf[a.id]!.compareTo(placeOf[b.id]!);
+      return byPlace != 0 ? byPlace : a.lane.compareTo(b.lane);
+    });
   return [
     ...placed,
     for (final lane in occupied)
-      if (!places.containsKey(lane.id)) lane,
+      if (!placeOf.containsKey(lane.id)) lane,
   ];
 }
 

@@ -211,6 +211,28 @@ void main() {
     expect(ordered.map((l) => l.id), [4, 2, 6, 1, 3]);
   });
 
+  test('resultOrder : des ex aequo nombreux restent dans l\'ordre des '
+      'couloirs', () {
+    // Au-delà de 32 éléments, `List.sort` n'est plus stable : seul un
+    // départage explicite garde l'ordre.
+    final lanes = [
+      for (var n = 1; n <= 40; n++) lane(n, n, performance: time(5000)),
+    ];
+
+    expect(resultOrder(lanes).map((l) => l.lane), [
+      for (var n = 1; n <= 40; n++) n,
+    ]);
+  });
+
+  test('resultOrder : les places données servent telles quelles', () {
+    final lanes = [
+      lane(1, 1, performance: time(5000)),
+      lane(2, 2, performance: time(5100)),
+    ];
+
+    expect(resultOrder(lanes, places: {2: 1, 1: 2}).map((l) => l.id), [2, 1]);
+  });
+
   group('nextScheduled', () {
     test('la première série en attente dans l\'ordre du programme', () {
       final next = nextScheduled([

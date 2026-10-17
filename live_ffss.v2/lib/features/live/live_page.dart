@@ -110,6 +110,7 @@ class _LiveBody extends ConsumerWidget {
       entry: entry,
       position: heatPosition(value.meetings, entry),
       lanes: value.lanesOf(entry.heat),
+      lanesRead: value.lanesReadFor(entry.heat),
       onOpen: () => context.go(Routes.liveItem(competitionId, entry.item.id)),
     );
 
@@ -156,15 +157,10 @@ class _LiveBody extends ConsumerWidget {
                   if (next != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      l10n.liveNext(
-                        [
-                          liveCardTitle(next, l10n),
-                          liveCardSubtitle(
-                            next,
-                            heatPosition(value.meetings, next),
-                            l10n,
-                          ),
-                        ].where((part) => part.isNotEmpty).join(' · '),
+                      liveNextLabel(
+                        next,
+                        heatPosition(value.meetings, next),
+                        l10n,
                       ),
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontWeight: FontWeight.w600),

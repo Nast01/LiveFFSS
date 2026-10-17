@@ -4,7 +4,6 @@ import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/live.dart';
-import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/features/live/live_formatting.dart';
 import 'package:live_ffss_v2/features/programme/widgets/lane_row.dart';
 
@@ -15,6 +14,7 @@ class LiveHeatCard extends StatelessWidget {
     required this.entry,
     required this.position,
     required this.lanes,
+    required this.lanesRead,
     required this.onOpen,
   });
 
@@ -23,14 +23,16 @@ class LiveHeatCard extends StatelessWidget {
 
   /// Les places occupées de la série, dans l'ordre des couloirs.
   final List<LaneAssignment> lanes;
+
+  /// Une place au moins a été lue (`LiveView.lanesReadFor`).
+  final bool lanesRead;
   final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final heat = entry.heat;
-    final published = hasPublishedResults(lanes);
-    final places = heatPlaces(lanes);
+    final body = liveCardBody(heat, lanes, lanesRead: lanesRead);
 
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -72,11 +74,14 @@ class LiveHeatCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          if (!published) ...[
-            // Le départ d'une série à venir ou en cours : sans temps, les
-            // places ne disent que qui nage où.
-            if (heat.status != RunStatus.finished)
-              for (final lane in lanes) LaneRow(lane: lane),
+          if (body == LiveCardBody.loading)
+            const LinearProgressIndicator(minHeight: 2),
+          // Le départ d'une série qui se court : sans temps, les places ne
+          // disent que qui nage où.
+          if (body == LiveCardBody.startList)
+            for (final lane in lanes) LaneRow(lane: lane),
+          if (body == LiveCardBody.startList ||
+              body == LiveCardBody.waitingResults)
             Padding(
               padding: const EdgeInsets.all(12),
               child: Text(
@@ -87,29 +92,32 @@ class LiveHeatCard extends StatelessWidget {
                 ),
               ),
             ),
-          ] else ...[
-            if (isProvisional(heat))
-              Container(
-                color: AppColors.yellow.withValues(alpha: 0.25),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                child: Text(
-                  l10n.livePendingValidation,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.navy,
-                  ),
+          if (livePendingBanner(heat, body))
+            Container(
+              color: AppColors.yellow.withValues(alpha: 0.25),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Text(
+                l10n.livePendingValidation,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navy,
                 ),
               ),
-            for (final lane in resultOrder(lanes))
-              LaneRow(lane: lane, place: places[lane.id]),
-          ],
+            ),
+          if (body == LiveCardBody.results) ..._results(),
         ],
       ),
     );
+  }
+
+  /// `heatPlaces` calculé une fois pour l'ordre et pour l'affichage.
+  List<Widget> _results() {
+    final places = heatPlaces(lanes);
+    return [
+      for (final lane in resultOrder(lanes, places: places))
+        LaneRow(lane: lane, place: places[lane.id]),
+    ];
   }
 }
 
@@ -121,19 +129,19 @@ class _HeatBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final (label, background, foreground) = switch (heat.status) {
-      RunStatus.inProgress => (l10n.liveBadge, AppColors.red, Colors.white),
-      RunStatus.marshalling => (
+    final (label, background, foreground) = switch (liveBadge(heat)) {
+      LiveBadge.live => (l10n.liveBadge, AppColors.red, Colors.white),
+      LiveBadge.marshalling => (
         l10n.liveMarshalling,
         AppColors.dateBox,
         AppColors.textSecondary,
       ),
-      _ when isProvisional(heat) => (
+      LiveBadge.provisional => (
         l10n.liveProvisional,
         AppColors.yellow,
         AppColors.navy,
       ),
-      _ => (
+      LiveBadge.validated => (
         l10n.liveValidated,
         AppColors.coastalBackground,
         AppColors.coastalText,
