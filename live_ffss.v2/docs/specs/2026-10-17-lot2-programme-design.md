@@ -7,7 +7,7 @@
 Un spectateur a choisi une compétition. Dans l'onglet **Programme**, il voit **tout le planning, jour par jour**, que les séries soient générées ou non : les réunions de chaque jour et leurs créneaux. Un créneau qui porte une épreuve s'ouvre sur un **détail** qui montre :
 
 - le **déroulement** de l'épreuve (comment on passe des séries aux finales), sous forme de frise ;
-- le **contenu des séries** : couloir, nageur ou équipe, club, puis temps et qualification dès qu'ils sont publiés.
+- le **contenu des séries** : couloir, nageur ou équipe, club, puis temps, rang officiel et statut dès qu'ils sont publiés.
 
 Le lot 2 est **en lecture seule** et public : aucune connexion.
 
@@ -25,7 +25,7 @@ Ces constats l'emportent sur `../docs/FFSS_API.md`. Ils sont à reporter dans `.
 |---|---|---|
 | `GET competition/:id/reunion` | Toutes les réunions (`Jour`, `Debut`, `Fin`, `Nom`), leurs créneaux (`Nom`, `Debut`, `Fin`), les courses de chaque créneau (`id`, `Nom`, `statut`, `statutLabel`, `debut`, `fin`), pour les courses dont la série est générée un objet `serie` réduit (`id`, `nom`, `niveau`, `fullLabel`, **sans `Numero` ni `epreuve`**), et pour chaque créneau d'épreuve sa **`partie`** (`id`, `ordre`, `niveau`, `nbCourses`, `nbPlaceParCourse`, `nbPlaceQualificative`, `logiqueQualification`), **sans le `deroulement`** | La `partie` est `null` pour les créneaux sans épreuve. Les places des courses ont leur `Numero` mais **`engagement`, `resultat` et `athletes` à `null`** |
 | `GET competition/reunion/creneau/:id` | Le créneau, ses courses, et **sa `partie` avec le `deroulement` complet et toutes ses `parties`** (ordre, niveau, `nbCourses`, `nbPlaceParCourse`, `nbPlaceQualificative`, `logiqueQualification`, catégories) | Places vides, comme ci-dessus. **Ni la réunion ni la compétition** : seulement `Id`, `Nom`, `Debut`, `Fin` (heures `HH:mm`), `courses`, `partie` |
-| `GET competition/reunion/creneau/course/place/:id` | La place complète : `Numero`, `engagement` (athlètes avec `publicLabel`, nationalité, `clubLabel`, catégorie, `isForfait`), `resultat` (`Temps`, `tempsLabel`, `Statut`, `statutLabel`, `complement`, `complementLabel`) | **`resultat.Rang` vaut toujours `null`** (vérifié sur les 8 places de deux séries terminées de la course 479/480), alors que `serie/:id` publie le rang. Elle porte aussi des **données personnelles** du licencié (e-mail, date de naissance, numéro de licence) que l'app ne lit pas |
+| `GET competition/reunion/creneau/course/place/:id` | La place complète : `Numero`, `engagement` (`athletes[]` avec `publicLabel`, `nationaliteCode`, `clubLabel` ; `clubLabel` ; `isForfait` ; `EpreuveCategorie.Epreuve` avec `label` « 200m Obstacles Femme (Cadet) », `genre`, `Discipline.Nom`), `resultat` (`statutLabel`, `tempsLabel`, **`rangLabel`** « 5ème », `performanceLabel`, `isDisqualifie`, `isRecord`, `isRecordDeFrance`) | Le résultat n'a **ni `Rang` numérique, ni code `Statut`, ni `complement`** (QFA, QFB, FF). `rangLabel` est le rang officiel **par catégorie** (ATHLETE Un : « 5ème », 5e des Cadettes de la série 94894). Elle porte aussi des **données personnelles** du licencié (e-mail, date de naissance, numéro de licence) que l'app ne lit pas |
 | `GET competition/evenement/:id` | La compétition (essayé sur 1416 : répond) | — |
 | `GET competition/serie/:id` | Les résultats d'**une** série FFSS avec leur `Rang` | Pas de couloir. Une course qui mélange plusieurs catégories n'est liée qu'à **la série d'une seule catégorie** (la course 479 « Série 1 » → série 94894, Cadettes seulement) |
 | `GET competition/reunion/creneau/:id/course` | — | **Cassée** : `success: false`, « filterByCreneau() only accepts arguments of type … Creneau or Collection » |
@@ -39,7 +39,7 @@ Autres constats :
 - **Écart avec le lot 1** : `SerieDto` (`lib/data/ffss/dtos/reunion_dto.dart`) lit `Numero` et `epreuve`, absents de l'objet `serie` de la réponse `reunion`. La carte « MAINTENANT » de l'accueil n'a donc ni nom d'épreuve, ni sexe, ni numéro fiables. Le lot 2 corrige ce mapper à partir de l'extrait réel (numéro tiré du `nom` de la course, épreuve et sexe tirés de la `partie` ou du `fullLabel`, au choix du rédacteur du plan, avec tests).
 - `GET competition/:id/deroulement` fonctionne (36 déroulements) mais n'est pas nécessaire : `creneau/:id` porte déjà le déroulement du créneau.
 
-Une demande a été faite au développeur de l'API (2026-10-17) : (1) `engagement` et `resultat` dans les places de `creneau/:id` ; (2) ~~la `partie` dans la liste des réunions~~ — **demande retirée** : la liste la porte déjà, une première lecture erronée l'avait donnée pour `null` ; (3) la réparation de `creneau/:id/course`. Le lot 2 **n'attend pas** ces changements (§ 6).
+Une demande a été faite au développeur de l'API (2026-10-17) : (1) `engagement` et `resultat` dans les places de `creneau/:id`, avec dans `resultat` le `complement` et le code `Statut` ; (2) ~~la `partie` dans la liste des réunions~~ — **demande retirée** : la liste la porte déjà, une première lecture erronée l'avait donnée pour `null` ; (3) la réparation de `creneau/:id/course`. Le lot 2 **n'attend pas** ces changements (§ 6).
 
 ## 3. Décisions
 
@@ -88,9 +88,10 @@ Ouvert par une route enfant de la branche Programme (le bouton retour ramène au
    - Épreuve à une seule étape : une seule case. Créneau sans partie (cas imprévu) : pas de frise.
 3. **Une carte par course** (série), dans l'ordre de l'API : nom (« Série 1 », « Finale A »), heure prévue, badge d'état de la course. Dans la carte, **une ligne par place occupée**, triées par couloir :
    - couloir, nom du nageur (`publicLabel`) ou, pour un relais, le club et les noms des relayeurs, club, catégorie ;
-   - quand un résultat est publié : temps (`tempsLabel`) ou statut (DQ, forfait…), et un badge **Q** si `complement` est un code de qualification (`QFA`, `QFB`…) ;
+   - quand un résultat est publié : temps (`tempsLabel`) ou statut (`statutLabel` quand ce n'est pas « OK » : DQ, forfait…), **rang officiel avec sa catégorie** (« 5e · Cadet », tiré de `rangLabel` et de la catégorie de l'engagement : le rang est publié par catégorie, pas pour toute la course), et un badge **record** ou **record de France** (`isRecord`, `isRecordDeFrance`) ;
+   - **pas de badge de qualification au lot 2** : la place ne porte pas le `complement` (demande n° 1 à l'API) ;
    - les places vides ne s'affichent pas.
-   - **Pas de rang au lot 2** (choix de l'utilisateur) : les places ne le portent pas, et le rang officiel est publié par catégorie dans la série. L'app ne calcule pas de classement ; les lignes restent triées par couloir. Le rang reviendra avec le classement d'épreuve (§ 9).
+   - L'app **ne calcule aucun rang** (choix de l'utilisateur) : elle affiche le rang publié. Les lignes restent triées par couloir.
 4. **Avant la génération des séries** (aucune course n'a de série) : « Séries à venir » à la place des cartes ; la frise reste visible.
 
 ## 5. Modèle de domaine
@@ -104,7 +105,7 @@ On reprend les noms de FFSSCompetition V3 (`Core/Domain`), en version réduite �
 | `MeetingItem` | créneau | ajout de `startTime`, `endTime`. Le `roundId` du lot 1 désigne en fait la partie FFSS : à renommer selon V3 si besoin (dans V3, un créneau pointe vers un `Round`, tour généré, alors que FFSS pointe vers une partie, c'est-à-dire un `Stage`) |
 | `Heat` | course | inchangé, plus `lanes` |
 | `LaneAssignment` | place | `lane`, les athlètes (nom public, nationalité), club, catégorie, forfait, `performance` |
-| `Performance` | résultat | `status` (`PerformanceStatus` : pending, finished, disqualified, forfeit, finalForfeit, outOfTime), temps affiché, complément |
+| `Performance` | résultat | `statusLabel`, `isDisqualified`, temps affiché, rang affiché (`rangLabel`), `isRecord`, `isNationalRecord`. Pas de `PerformanceStatus` au lot 2 : la place ne donne pas le code de statut |
 
 Fonctions pures du domaine, testées sans simulation :
 - **`dayTabs(meetings)`** et le choix du jour initial à partir de la date du jour ;
@@ -168,5 +169,4 @@ Comme au lot 1 : pas de test de widget. On teste :
 
 - Le découpage en tâches et l'ordre des commits.
 - Les noms exacts des fournisseurs, routes et fichiers, dans les conventions du CLAUDE.md.
-- Le mapping exact des codes `Statut` de résultat vers `PerformanceStatus`, à lire dans `Core/Ffss` de V3.
 - La forme visuelle fine (espacements, icônes), conforme au thème du lot 1.
