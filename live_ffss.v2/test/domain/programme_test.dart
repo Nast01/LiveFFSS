@@ -114,6 +114,19 @@ void main() {
     });
   });
 
+  test('meetingsOfDay ne garde que les réunions du jour', () {
+    final meetings = [
+      Meeting(id: 1, name: 'a', day: DateTime(2026, 3, 27, 8)),
+      Meeting(id: 2, name: 'b', day: DateTime(2026, 3, 28)),
+      Meeting(id: 3, name: 'c', day: DateTime(2026, 3, 27, 15)),
+    ];
+
+    expect(meetingsOfDay(meetings, DateTime(2026, 3, 27)).map((m) => m.id), [
+      1,
+      3,
+    ]);
+  });
+
   group('initialDay', () {
     final days = [DateTime(2026, 3, 27), DateTime(2026, 3, 28)];
 

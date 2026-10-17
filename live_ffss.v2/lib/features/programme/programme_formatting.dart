@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
@@ -69,3 +70,15 @@ String? rankText(LaneAssignment lane) {
   if (category == null || category.isEmpty) return rank;
   return '$rank · $category';
 }
+
+/// « ven. 27 » : le libellé court d'un onglet de jour.
+String dayTabLabel(DateTime day, String locale) =>
+    DateFormat('EEE d', locale).format(day);
+
+/// « 06:45 », ou rien quand l'heure n'est pas publiée.
+String timeLabel(DateTime? time) =>
+    time == null ? '' : DateFormat('HH:mm').format(time);
+
+/// « 06:45 – 13:45 », sans le morceau inconnu.
+String timeRangeLabel(DateTime? start, DateTime? end) =>
+    [timeLabel(start), timeLabel(end)].where((t) => t.isNotEmpty).join(' – ');

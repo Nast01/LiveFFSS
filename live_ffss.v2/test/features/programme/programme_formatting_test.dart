@@ -185,4 +185,16 @@ void main() {
       expect(rankText(lane(rank: '')), isNull);
     });
   });
+
+  test('timeRangeLabel', () {
+    expect(
+      timeRangeLabel(
+        DateTime(2026, 3, 27, 6, 45),
+        DateTime(2026, 3, 27, 13, 45),
+      ),
+      '06:45 – 13:45',
+    );
+    expect(timeRangeLabel(DateTime(2026, 3, 27, 6, 45), null), '06:45');
+    expect(timeRangeLabel(null, null), '');
+  });
 }

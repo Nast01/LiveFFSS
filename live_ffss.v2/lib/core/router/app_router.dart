@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/features/home/all_competitions_page.dart';
 import 'package:live_ffss_v2/features/home/home_page.dart';
+import 'package:live_ffss_v2/features/programme/programme_page.dart';
 import 'package:live_ffss_v2/features/shell/app_shell.dart';
 import 'package:live_ffss_v2/features/shell/tab_placeholders.dart';
 
@@ -9,6 +11,8 @@ abstract final class Routes {
   static const home = '/';
   static const allCompetitions = '/competitions';
   static const programme = '/programme';
+  static String programmeItem(int competitionId, int itemId) =>
+      '$programme/competition/$competitionId/creneau/$itemId';
   static const live = '/live';
   static const results = '/resultats';
   static const mySpace = '/espace';
@@ -41,9 +45,22 @@ final routerProvider = Provider<GoRouter>(
             routes: [
               GoRoute(
                 path: Routes.programme,
-                builder: (context, state) => const CompetitionTabPlaceholder(
-                  tab: CompetitionTab.programme,
-                ),
+                builder: (context, state) => const ProgrammePage(),
+                routes: [
+                  GoRoute(
+                    path: 'competition/:competitionId/creneau/:itemId',
+                    // Provisoire : la page de détail remplace ce Scaffold.
+                    builder: (context, state) => Scaffold(
+                      appBar: AppBar(),
+                      body: Center(
+                        child: Text(
+                          '${state.pathParameters['competitionId']} / '
+                          '${state.pathParameters['itemId']}',
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

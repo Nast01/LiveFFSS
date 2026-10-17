@@ -80,6 +80,15 @@ List<DateTime> programmeDays(List<Meeting> meetings) {
   return days.toList()..sort();
 }
 
+/// Les réunions d'un jour, dans l'ordre reçu.
+List<Meeting> meetingsOfDay(List<Meeting> meetings, DateTime day) => [
+  for (final meeting in meetings)
+    if (meeting.day.year == day.year &&
+        meeting.day.month == day.month &&
+        meeting.day.day == day.day)
+      meeting,
+];
+
 /// Le jour à montrer à l'ouverture : aujourd'hui s'il est au programme, sinon
 /// le plus proche côté début (avant la compétition) ou côté fin (après).
 DateTime? initialDay(List<DateTime> days, DateTime today) {

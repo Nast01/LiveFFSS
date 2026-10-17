@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
-import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
+import 'package:live_ffss_v2/features/shell/choose_competition_prompt.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
 
 /// Les onglets qui suivent la compétition active, avec le lot qui les livre.
 enum CompetitionTab {
-  programme(2),
   live(3),
   results(5);
 
@@ -17,7 +15,6 @@ enum CompetitionTab {
   final int lot;
 
   String title(AppLocalizations l10n) => switch (this) {
-    CompetitionTab.programme => l10n.tabProgramme,
     CompetitionTab.live => l10n.tabLive,
     CompetitionTab.results => l10n.tabResults,
   };
@@ -53,21 +50,7 @@ class CompetitionTabPlaceholder extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: competition == null
-              ? Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l10n.chooseCompetitionHint,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () => context.go(Routes.home),
-                      child: Text(l10n.chooseCompetition),
-                    ),
-                  ],
-                )
+              ? const ChooseCompetitionPrompt()
               : Text(
                   l10n.availableInLot(tab.lot),
                   style: const TextStyle(
