@@ -15,7 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Heat {
 
- int get id; String get name; int get number; RunStatus get status; DateTime? get plannedStart; DateTime? get plannedEnd; int? get raceId; String get raceName; Gender? get gender;
+ int get id; String get name; int get number; RunStatus get status; DateTime? get plannedStart; DateTime? get plannedEnd; int? get raceId; String get raceName; Gender? get gender;/// Ids FFSS des places, dans l'ordre des couloirs.
+ List<int> get placeIds;/// Nul tant que la série n'est pas générée (finale à venir).
+ int? get seriesId;
 /// Create a copy of Heat
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +29,20 @@ $HeatCopyWith<Heat> get copyWith => _$HeatCopyWithImpl<Heat>(this as Heat, _$ide
 @override
 bool operator ==(Object other) {
   final _this = this as Heat;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Heat&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.plannedStart, _this.plannedStart) || other.plannedStart == _this.plannedStart)&&(identical(other.plannedEnd, _this.plannedEnd) || other.plannedEnd == _this.plannedEnd)&&(identical(other.raceId, _this.raceId) || other.raceId == _this.raceId)&&(identical(other.raceName, _this.raceName) || other.raceName == _this.raceName)&&(identical(other.gender, _this.gender) || other.gender == _this.gender));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Heat&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.plannedStart, _this.plannedStart) || other.plannedStart == _this.plannedStart)&&(identical(other.plannedEnd, _this.plannedEnd) || other.plannedEnd == _this.plannedEnd)&&(identical(other.raceId, _this.raceId) || other.raceId == _this.raceId)&&(identical(other.raceName, _this.raceName) || other.raceName == _this.raceName)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&const DeepCollectionEquality().equals(other.placeIds, _this.placeIds)&&(identical(other.seriesId, _this.seriesId) || other.seriesId == _this.seriesId));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Heat;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.number,_this.status,_this.plannedStart,_this.plannedEnd,_this.raceId,_this.raceName,_this.gender);
+  return Object.hash(runtimeType,_this.id,_this.name,_this.number,_this.status,_this.plannedStart,_this.plannedEnd,_this.raceId,_this.raceName,_this.gender,const DeepCollectionEquality().hash(_this.placeIds),_this.seriesId);
 }
 
 @override
 String toString() {
   final _this = this as Heat;
-  return 'Heat(id: ${_this.id}, name: ${_this.name}, number: ${_this.number}, status: ${_this.status}, plannedStart: ${_this.plannedStart}, plannedEnd: ${_this.plannedEnd}, raceId: ${_this.raceId}, raceName: ${_this.raceName}, gender: ${_this.gender})';
+  return 'Heat(id: ${_this.id}, name: ${_this.name}, number: ${_this.number}, status: ${_this.status}, plannedStart: ${_this.plannedStart}, plannedEnd: ${_this.plannedEnd}, raceId: ${_this.raceId}, raceName: ${_this.raceName}, gender: ${_this.gender}, placeIds: ${_this.placeIds}, seriesId: ${_this.seriesId})';
 }
 
 
@@ -51,7 +53,7 @@ abstract mixin class $HeatCopyWith<$Res>  {
   factory $HeatCopyWith(Heat value, $Res Function(Heat) _then) = _$HeatCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, int number, RunStatus status, DateTime? plannedStart, DateTime? plannedEnd, int? raceId, String raceName, Gender? gender
+ int id, String name, int number, RunStatus status, DateTime? plannedStart, DateTime? plannedEnd, int? raceId, String raceName, Gender? gender, List<int> placeIds, int? seriesId
 });
 
 
@@ -68,7 +70,7 @@ class _$HeatCopyWithImpl<$Res>
 
 /// Create a copy of Heat
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? number = null,Object? status = null,Object? plannedStart = freezed,Object? plannedEnd = freezed,Object? raceId = freezed,Object? raceName = null,Object? gender = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? number = null,Object? status = null,Object? plannedStart = freezed,Object? plannedEnd = freezed,Object? raceId = freezed,Object? raceName = null,Object? gender = freezed,Object? placeIds = null,Object? seriesId = freezed,}) {
   return _then(Heat(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -79,7 +81,9 @@ as DateTime?,plannedEnd: freezed == plannedEnd ? _self.plannedEnd : plannedEnd /
 as DateTime?,raceId: freezed == raceId ? _self.raceId : raceId // ignore: cast_nullable_to_non_nullable
 as int?,raceName: null == raceName ? _self.raceName : raceName // ignore: cast_nullable_to_non_nullable
 as String,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
-as Gender?,
+as Gender?,placeIds: null == placeIds ? _self.placeIds : placeIds // ignore: cast_nullable_to_non_nullable
+as List<int>,seriesId: freezed == seriesId ? _self.seriesId : seriesId // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
@@ -164,10 +168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  int number,  RunStatus status,  DateTime? plannedStart,  DateTime? plannedEnd,  int? raceId,  String raceName,  Gender? gender)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  int number,  RunStatus status,  DateTime? plannedStart,  DateTime? plannedEnd,  int? raceId,  String raceName,  Gender? gender,  List<int> placeIds,  int? seriesId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Heat() when $default != null:
-return $default(_that.id,_that.name,_that.number,_that.status,_that.plannedStart,_that.plannedEnd,_that.raceId,_that.raceName,_that.gender);case _:
+return $default(_that.id,_that.name,_that.number,_that.status,_that.plannedStart,_that.plannedEnd,_that.raceId,_that.raceName,_that.gender,_that.placeIds,_that.seriesId);case _:
   return orElse();
 
 }
@@ -185,10 +189,10 @@ return $default(_that.id,_that.name,_that.number,_that.status,_that.plannedStart
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  int number,  RunStatus status,  DateTime? plannedStart,  DateTime? plannedEnd,  int? raceId,  String raceName,  Gender? gender)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  int number,  RunStatus status,  DateTime? plannedStart,  DateTime? plannedEnd,  int? raceId,  String raceName,  Gender? gender,  List<int> placeIds,  int? seriesId)  $default,) {final _that = this;
 switch (_that) {
 case _Heat():
-return $default(_that.id,_that.name,_that.number,_that.status,_that.plannedStart,_that.plannedEnd,_that.raceId,_that.raceName,_that.gender);case _:
+return $default(_that.id,_that.name,_that.number,_that.status,_that.plannedStart,_that.plannedEnd,_that.raceId,_that.raceName,_that.gender,_that.placeIds,_that.seriesId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +209,10 @@ return $default(_that.id,_that.name,_that.number,_that.status,_that.plannedStart
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  int number,  RunStatus status,  DateTime? plannedStart,  DateTime? plannedEnd,  int? raceId,  String raceName,  Gender? gender)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  int number,  RunStatus status,  DateTime? plannedStart,  DateTime? plannedEnd,  int? raceId,  String raceName,  Gender? gender,  List<int> placeIds,  int? seriesId)?  $default,) {final _that = this;
 switch (_that) {
 case _Heat() when $default != null:
-return $default(_that.id,_that.name,_that.number,_that.status,_that.plannedStart,_that.plannedEnd,_that.raceId,_that.raceName,_that.gender);case _:
+return $default(_that.id,_that.name,_that.number,_that.status,_that.plannedStart,_that.plannedEnd,_that.raceId,_that.raceName,_that.gender,_that.placeIds,_that.seriesId);case _:
   return null;
 
 }
@@ -220,7 +224,7 @@ return $default(_that.id,_that.name,_that.number,_that.status,_that.plannedStart
 
 
 class _Heat implements Heat {
-  const _Heat({required this.id, required this.name, required this.number, required this.status, this.plannedStart, this.plannedEnd, this.raceId, this.raceName = '', this.gender});
+  const _Heat({required this.id, required this.name, required this.number, required this.status, this.plannedStart, this.plannedEnd, this.raceId, this.raceName = '', this.gender,  List<int> placeIds = const <int>[], this.seriesId}): _placeIds = placeIds;
   
 
 @override final  int id;
@@ -232,6 +236,17 @@ class _Heat implements Heat {
 @override final  int? raceId;
 @override@JsonKey() final  String raceName;
 @override final  Gender? gender;
+/// Ids FFSS des places, dans l'ordre des couloirs.
+ final  List<int> _placeIds;
+/// Ids FFSS des places, dans l'ordre des couloirs.
+@override@JsonKey() List<int> get placeIds {
+  if (_placeIds is EqualUnmodifiableListView) return _placeIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_placeIds);
+}
+
+/// Nul tant que la série n'est pas générée (finale à venir).
+@override final  int? seriesId;
 
 /// Create a copy of Heat
 /// with the given fields replaced by the non-null parameter values.
@@ -243,18 +258,18 @@ _$HeatCopyWith<_Heat> get copyWith => __$HeatCopyWithImpl<_Heat>(this, _$identit
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Heat&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.number, number) || other.number == number)&&(identical(other.status, status) || other.status == status)&&(identical(other.plannedStart, plannedStart) || other.plannedStart == plannedStart)&&(identical(other.plannedEnd, plannedEnd) || other.plannedEnd == plannedEnd)&&(identical(other.raceId, raceId) || other.raceId == raceId)&&(identical(other.raceName, raceName) || other.raceName == raceName)&&(identical(other.gender, gender) || other.gender == gender));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Heat&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.number, number) || other.number == number)&&(identical(other.status, status) || other.status == status)&&(identical(other.plannedStart, plannedStart) || other.plannedStart == plannedStart)&&(identical(other.plannedEnd, plannedEnd) || other.plannedEnd == plannedEnd)&&(identical(other.raceId, raceId) || other.raceId == raceId)&&(identical(other.raceName, raceName) || other.raceName == raceName)&&(identical(other.gender, gender) || other.gender == gender)&&const DeepCollectionEquality().equals(other.placeIds, _placeIds)&&(identical(other.seriesId, seriesId) || other.seriesId == seriesId));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,number,status,plannedStart,plannedEnd,raceId,raceName,gender);
+    return Object.hash(runtimeType,id,name,number,status,plannedStart,plannedEnd,raceId,raceName,gender,const DeepCollectionEquality().hash(_placeIds),seriesId);
 }
 
 @override
 String toString() {
-    return 'Heat(id: $id, name: $name, number: $number, status: $status, plannedStart: $plannedStart, plannedEnd: $plannedEnd, raceId: $raceId, raceName: $raceName, gender: $gender)';
+    return 'Heat(id: $id, name: $name, number: $number, status: $status, plannedStart: $plannedStart, plannedEnd: $plannedEnd, raceId: $raceId, raceName: $raceName, gender: $gender, placeIds: $placeIds, seriesId: $seriesId)';
 }
 
 
@@ -265,7 +280,7 @@ abstract mixin class _$HeatCopyWith<$Res> implements $HeatCopyWith<$Res> {
   factory _$HeatCopyWith(_Heat value, $Res Function(_Heat) _then) = __$HeatCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, int number, RunStatus status, DateTime? plannedStart, DateTime? plannedEnd, int? raceId, String raceName, Gender? gender
+ int id, String name, int number, RunStatus status, DateTime? plannedStart, DateTime? plannedEnd, int? raceId, String raceName, Gender? gender, List<int> placeIds, int? seriesId
 });
 
 
@@ -282,7 +297,7 @@ class __$HeatCopyWithImpl<$Res>
 
 /// Create a copy of Heat
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? number = null,Object? status = null,Object? plannedStart = freezed,Object? plannedEnd = freezed,Object? raceId = freezed,Object? raceName = null,Object? gender = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? number = null,Object? status = null,Object? plannedStart = freezed,Object? plannedEnd = freezed,Object? raceId = freezed,Object? raceName = null,Object? gender = freezed,Object? placeIds = null,Object? seriesId = freezed,}) {
   return _then(_Heat(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -293,7 +308,9 @@ as DateTime?,plannedEnd: freezed == plannedEnd ? _self.plannedEnd : plannedEnd /
 as DateTime?,raceId: freezed == raceId ? _self.raceId : raceId // ignore: cast_nullable_to_non_nullable
 as int?,raceName: null == raceName ? _self.raceName : raceName // ignore: cast_nullable_to_non_nullable
 as String,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
-as Gender?,
+as Gender?,placeIds: null == placeIds ? _self._placeIds : placeIds // ignore: cast_nullable_to_non_nullable
+as List<int>,seriesId: freezed == seriesId ? _self.seriesId : seriesId // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

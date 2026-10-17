@@ -19,5 +19,11 @@ abstract class Heat with _$Heat {
     int? raceId,
     @Default('') String raceName,
     Gender? gender,
+
+    /// Ids FFSS des places, dans l'ordre des couloirs.
+    @Default(<int>[]) List<int> placeIds,
+
+    /// Nul tant que la série n'est pas générée (finale à venir).
+    int? seriesId,
   }) = _Heat;
 }

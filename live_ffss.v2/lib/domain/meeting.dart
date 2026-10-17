@@ -11,9 +11,12 @@ abstract class MeetingItem with _$MeetingItem {
     required int id,
     required String name,
 
-    /// La « partie » FFSS que le créneau couvre, comme `MeetingItem.RoundId`
-    /// dans V3. Nulle pour un créneau sans tour.
+    /// Id de la « partie » FFSS que le créneau couvre, comme
+    /// `MeetingItem.RoundId` dans V3 (la partie FFSS est le `Stage` de V3).
+    /// Nul pour un créneau sans épreuve.
     int? roundId,
+    DateTime? startTime,
+    DateTime? endTime,
     @Default(<Heat>[]) List<Heat> heats,
   }) = _MeetingItem;
 }

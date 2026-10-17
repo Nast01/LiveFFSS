@@ -39,6 +39,8 @@ extension CreneauMapper on CreneauDto {
       id: id,
       name: name?.trim() ?? '',
       roundId: partie?.id,
+      startTime: atFfssTime(day, start),
+      endTime: atFfssTime(day, end),
       heats: [for (final course in courses) ?course.toDomain(day)],
     );
   }
@@ -49,16 +51,21 @@ extension CourseMapper on CourseDto {
     final id = this.id;
     if (id == null) return null;
     final epreuve = serie?.epreuve;
+    // Les listes de réunions ne servent pas `Numero` : le nom de la course
+    // finit par le numéro (`Série 3`).
+    final nameNumber = RegExp(r'(\d+)\s*$').firstMatch(name ?? '')?.group(1);
     return Heat(
       id: id,
       name: name?.trim() ?? '',
-      number: serie?.number ?? 0,
+      number: serie?.number ?? int.tryParse(nameNumber ?? '') ?? 0,
       status: RunStatus.fromCode(status),
       plannedStart: atFfssTime(day, start),
       plannedEnd: atFfssTime(day, end),
       raceId: epreuve?.id,
       raceName: epreuve?.discipline?.name?.trim() ?? '',
       gender: parseGender(epreuve?.gender),
+      placeIds: [for (final place in places) ?place.id],
+      seriesId: serie?.id,
     );
   }
 }

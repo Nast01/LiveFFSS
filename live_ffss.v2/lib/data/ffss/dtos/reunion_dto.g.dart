@@ -32,9 +32,11 @@ Map<String, dynamic> _$ReunionDtoToJson(_ReunionDto instance) =>
 _CreneauDto _$CreneauDtoFromJson(Map<String, dynamic> json) => _CreneauDto(
   id: (readInt(json, 'id') as num?)?.toInt(),
   name: json['Nom'] as String?,
+  start: json['Debut'] as String?,
+  end: json['Fin'] as String?,
   partie: readMap(json, 'partie') == null
       ? null
-      : PartieRefDto.fromJson(readMap(json, 'partie') as Map<String, dynamic>),
+      : PartieDto.fromJson(readMap(json, 'partie') as Map<String, dynamic>),
   courses:
       (json['courses'] as List<dynamic>?)
           ?.map((e) => CourseDto.fromJson(e as Map<String, dynamic>))
@@ -46,15 +48,11 @@ Map<String, dynamic> _$CreneauDtoToJson(_CreneauDto instance) =>
     <String, dynamic>{
       'id': instance.id,
       'Nom': instance.name,
+      'Debut': instance.start,
+      'Fin': instance.end,
       'partie': instance.partie,
       'courses': instance.courses,
     };
-
-_PartieRefDto _$PartieRefDtoFromJson(Map<String, dynamic> json) =>
-    _PartieRefDto(id: (readInt(json, 'id') as num?)?.toInt());
-
-Map<String, dynamic> _$PartieRefDtoToJson(_PartieRefDto instance) =>
-    <String, dynamic>{'id': instance.id};
 
 _CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => _CourseDto(
   id: (readInt(json, 'id') as num?)?.toInt(),
@@ -62,6 +60,11 @@ _CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => _CourseDto(
   status: (readInt(json, 'statut') as num?)?.toInt(),
   start: json['debut'] as String?,
   end: json['fin'] as String?,
+  places:
+      (json['places'] as List<dynamic>?)
+          ?.map((e) => PlaceRefDto.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <PlaceRefDto>[],
   serie: readMap(json, 'serie') == null
       ? null
       : SerieDto.fromJson(readMap(json, 'serie') as Map<String, dynamic>),
@@ -74,11 +77,20 @@ Map<String, dynamic> _$CourseDtoToJson(_CourseDto instance) =>
       'statut': instance.status,
       'debut': instance.start,
       'fin': instance.end,
+      'places': instance.places,
       'serie': instance.serie,
     };
 
+_PlaceRefDto _$PlaceRefDtoFromJson(Map<String, dynamic> json) => _PlaceRefDto(
+  id: (readInt(json, 'id') as num?)?.toInt(),
+  number: (readInt(json, 'Numero') as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$PlaceRefDtoToJson(_PlaceRefDto instance) =>
+    <String, dynamic>{'id': instance.id, 'Numero': instance.number};
+
 _SerieDto _$SerieDtoFromJson(Map<String, dynamic> json) => _SerieDto(
-  id: (readInt(json, 'Id') as num?)?.toInt(),
+  id: (_readSerieId(json, 'Id') as num?)?.toInt(),
   name: json['Nom'] as String?,
   number: (readInt(json, 'Numero') as num?)?.toInt(),
   epreuve: readMap(json, 'epreuve') == null

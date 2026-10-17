@@ -2,7 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/reunion_dto.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/reunion_mapper.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
+import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
+
+import '../../../support/fixtures.dart';
 
 Map<String, dynamic> course([Map<String, dynamic> overrides = const {}]) => {
   'id': 20,
@@ -95,20 +98,23 @@ void main() {
     expect(heat.plannedEnd, isNull);
   });
 
-  test('une course sans série : numéro 0, sans épreuve ni genre', () {
-    final heat = ReunionDto.fromJson(
-      reunion(
-        courses: [
-          course({'serie': null}),
-        ],
-      ),
-    ).toDomain()!.items.single.heats.single;
+  test(
+    'une course sans série ni numéro dans son nom : numéro 0, sans épreuve ni genre',
+    () {
+      final heat = ReunionDto.fromJson(
+        reunion(
+          courses: [
+            course({'serie': null, 'Nom': 'Finale A'}),
+          ],
+        ),
+      ).toDomain()!.items.single.heats.single;
 
-    expect(heat.number, 0);
-    expect(heat.raceId, isNull);
-    expect(heat.raceName, '');
-    expect(heat.gender, isNull);
-  });
+      expect(heat.number, 0);
+      expect(heat.raceId, isNull);
+      expect(heat.raceName, '');
+      expect(heat.gender, isNull);
+    },
+  );
 
   test('partie ou série servies en tableau vide (PHP)', () {
     final json = reunion(
@@ -143,6 +149,63 @@ void main() {
       ReunionDto.fromJson({...reunion(), 'Jour': null}).toDomain(),
       isNull,
     );
+  });
+
+  group('recette 1416', () {
+    List<ReunionDto> reunions() => [
+      for (final r in fixture('reunion')['data'] as List<Object?>)
+        ReunionDto.fromJson(r as Map<String, dynamic>),
+    ];
+    MeetingItem item(int id) => [
+      for (final r in reunions()) ...r.toDomain()!.items,
+    ].firstWhere((i) => i.id == id);
+
+    test('heures des créneaux posées sur le jour de la réunion', () {
+      expect(item(177).startTime, DateTime(2026, 3, 27, 8, 0));
+      expect(item(177).endTime, DateTime(2026, 3, 27, 8, 40));
+    });
+
+    test("un créneau sans épreuve n'a ni partie ni course", () {
+      expect(item(174).roundId, isNull);
+      expect(item(174).heats, isEmpty);
+    });
+
+    test("la partie d'un créneau d'épreuve vient de la liste", () {
+      expect(item(177).roundId, 142);
+    });
+
+    test("places de la course, dans l'ordre des couloirs", () {
+      final heat = item(177).heats.firstWhere((h) => h.id == 479);
+      expect(heat.placeIds, [2816, 2817, 2818, 2819, 2820, 2821]);
+      expect(heat.seriesId, 94894);
+      expect(heat.number, 1);
+    });
+
+    test("une finale pas encore générée n'a pas de série", () {
+      expect(item(347).heats, isNotEmpty);
+      expect(item(347).heats.every((h) => h.seriesId == null), isTrue);
+    });
+  });
+
+  test('une heure illisible laisse le créneau affiché sans heure', () {
+    final json = reunion();
+    (json['creneaus'] as List<Map<String, dynamic>>).single['Debut'] = '8h';
+
+    final item = ReunionDto.fromJson(json).toDomain()!.items.single;
+
+    expect(item.startTime, isNull);
+  });
+
+  test('une course sans série prend son numéro à la fin de son nom', () {
+    final heat = ReunionDto.fromJson(
+      reunion(
+        courses: [
+          course({'serie': null, 'Nom': 'Série 3'}),
+        ],
+      ),
+    ).toDomain()!.items.single.heats.single;
+
+    expect(heat.number, 3);
   });
 
   test('parseGender : H, F, M et le reste', () {

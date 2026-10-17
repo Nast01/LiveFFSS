@@ -15,9 +15,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MeetingItem {
 
- int get id; String get name;/// La « partie » FFSS que le créneau couvre, comme `MeetingItem.RoundId`
-/// dans V3. Nulle pour un créneau sans tour.
- int? get roundId; List<Heat> get heats;
+ int get id; String get name;/// Id de la « partie » FFSS que le créneau couvre, comme
+/// `MeetingItem.RoundId` dans V3 (la partie FFSS est le `Stage` de V3).
+/// Nul pour un créneau sans épreuve.
+ int? get roundId; DateTime? get startTime; DateTime? get endTime; List<Heat> get heats;
 /// Create a copy of MeetingItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,20 +30,20 @@ $MeetingItemCopyWith<MeetingItem> get copyWith => _$MeetingItemCopyWithImpl<Meet
 @override
 bool operator ==(Object other) {
   final _this = this as MeetingItem;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MeetingItem&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.roundId, _this.roundId) || other.roundId == _this.roundId)&&const DeepCollectionEquality().equals(other.heats, _this.heats));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MeetingItem&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.roundId, _this.roundId) || other.roundId == _this.roundId)&&(identical(other.startTime, _this.startTime) || other.startTime == _this.startTime)&&(identical(other.endTime, _this.endTime) || other.endTime == _this.endTime)&&const DeepCollectionEquality().equals(other.heats, _this.heats));
 }
 
 
 @override
 int get hashCode {
   final _this = this as MeetingItem;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.roundId,const DeepCollectionEquality().hash(_this.heats));
+  return Object.hash(runtimeType,_this.id,_this.name,_this.roundId,_this.startTime,_this.endTime,const DeepCollectionEquality().hash(_this.heats));
 }
 
 @override
 String toString() {
   final _this = this as MeetingItem;
-  return 'MeetingItem(id: ${_this.id}, name: ${_this.name}, roundId: ${_this.roundId}, heats: ${_this.heats})';
+  return 'MeetingItem(id: ${_this.id}, name: ${_this.name}, roundId: ${_this.roundId}, startTime: ${_this.startTime}, endTime: ${_this.endTime}, heats: ${_this.heats})';
 }
 
 
@@ -53,7 +54,7 @@ abstract mixin class $MeetingItemCopyWith<$Res>  {
   factory $MeetingItemCopyWith(MeetingItem value, $Res Function(MeetingItem) _then) = _$MeetingItemCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, int? roundId, List<Heat> heats
+ int id, String name, int? roundId, DateTime? startTime, DateTime? endTime, List<Heat> heats
 });
 
 
@@ -70,12 +71,14 @@ class _$MeetingItemCopyWithImpl<$Res>
 
 /// Create a copy of MeetingItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? roundId = freezed,Object? heats = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? roundId = freezed,Object? startTime = freezed,Object? endTime = freezed,Object? heats = null,}) {
   return _then(MeetingItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,roundId: freezed == roundId ? _self.roundId : roundId // ignore: cast_nullable_to_non_nullable
-as int?,heats: null == heats ? _self.heats : heats // ignore: cast_nullable_to_non_nullable
+as int?,startTime: freezed == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
+as DateTime?,endTime: freezed == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
+as DateTime?,heats: null == heats ? _self.heats : heats // ignore: cast_nullable_to_non_nullable
 as List<Heat>,
   ));
 }
@@ -161,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  int? roundId,  List<Heat> heats)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  int? roundId,  DateTime? startTime,  DateTime? endTime,  List<Heat> heats)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MeetingItem() when $default != null:
-return $default(_that.id,_that.name,_that.roundId,_that.heats);case _:
+return $default(_that.id,_that.name,_that.roundId,_that.startTime,_that.endTime,_that.heats);case _:
   return orElse();
 
 }
@@ -182,10 +185,10 @@ return $default(_that.id,_that.name,_that.roundId,_that.heats);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  int? roundId,  List<Heat> heats)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  int? roundId,  DateTime? startTime,  DateTime? endTime,  List<Heat> heats)  $default,) {final _that = this;
 switch (_that) {
 case _MeetingItem():
-return $default(_that.id,_that.name,_that.roundId,_that.heats);case _:
+return $default(_that.id,_that.name,_that.roundId,_that.startTime,_that.endTime,_that.heats);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +205,10 @@ return $default(_that.id,_that.name,_that.roundId,_that.heats);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  int? roundId,  List<Heat> heats)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  int? roundId,  DateTime? startTime,  DateTime? endTime,  List<Heat> heats)?  $default,) {final _that = this;
 switch (_that) {
 case _MeetingItem() when $default != null:
-return $default(_that.id,_that.name,_that.roundId,_that.heats);case _:
+return $default(_that.id,_that.name,_that.roundId,_that.startTime,_that.endTime,_that.heats);case _:
   return null;
 
 }
@@ -217,14 +220,17 @@ return $default(_that.id,_that.name,_that.roundId,_that.heats);case _:
 
 
 class _MeetingItem implements MeetingItem {
-  const _MeetingItem({required this.id, required this.name, this.roundId,  List<Heat> heats = const <Heat>[]}): _heats = heats;
+  const _MeetingItem({required this.id, required this.name, this.roundId, this.startTime, this.endTime,  List<Heat> heats = const <Heat>[]}): _heats = heats;
   
 
 @override final  int id;
 @override final  String name;
-/// La « partie » FFSS que le créneau couvre, comme `MeetingItem.RoundId`
-/// dans V3. Nulle pour un créneau sans tour.
+/// Id de la « partie » FFSS que le créneau couvre, comme
+/// `MeetingItem.RoundId` dans V3 (la partie FFSS est le `Stage` de V3).
+/// Nul pour un créneau sans épreuve.
 @override final  int? roundId;
+@override final  DateTime? startTime;
+@override final  DateTime? endTime;
  final  List<Heat> _heats;
 @override@JsonKey() List<Heat> get heats {
   if (_heats is EqualUnmodifiableListView) return _heats;
@@ -243,18 +249,18 @@ _$MeetingItemCopyWith<_MeetingItem> get copyWith => __$MeetingItemCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MeetingItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.roundId, roundId) || other.roundId == roundId)&&const DeepCollectionEquality().equals(other.heats, _heats));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MeetingItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.roundId, roundId) || other.roundId == roundId)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&const DeepCollectionEquality().equals(other.heats, _heats));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,roundId,const DeepCollectionEquality().hash(_heats));
+    return Object.hash(runtimeType,id,name,roundId,startTime,endTime,const DeepCollectionEquality().hash(_heats));
 }
 
 @override
 String toString() {
-    return 'MeetingItem(id: $id, name: $name, roundId: $roundId, heats: $heats)';
+    return 'MeetingItem(id: $id, name: $name, roundId: $roundId, startTime: $startTime, endTime: $endTime, heats: $heats)';
 }
 
 
@@ -265,7 +271,7 @@ abstract mixin class _$MeetingItemCopyWith<$Res> implements $MeetingItemCopyWith
   factory _$MeetingItemCopyWith(_MeetingItem value, $Res Function(_MeetingItem) _then) = __$MeetingItemCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, int? roundId, List<Heat> heats
+ int id, String name, int? roundId, DateTime? startTime, DateTime? endTime, List<Heat> heats
 });
 
 
@@ -282,12 +288,14 @@ class __$MeetingItemCopyWithImpl<$Res>
 
 /// Create a copy of MeetingItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? roundId = freezed,Object? heats = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? roundId = freezed,Object? startTime = freezed,Object? endTime = freezed,Object? heats = null,}) {
   return _then(_MeetingItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,roundId: freezed == roundId ? _self.roundId : roundId // ignore: cast_nullable_to_non_nullable
-as int?,heats: null == heats ? _self._heats : heats // ignore: cast_nullable_to_non_nullable
+as int?,startTime: freezed == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
+as DateTime?,endTime: freezed == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
+as DateTime?,heats: null == heats ? _self._heats : heats // ignore: cast_nullable_to_non_nullable
 as List<Heat>,
   ));
 }
