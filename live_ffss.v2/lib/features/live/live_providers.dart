@@ -49,14 +49,16 @@ class LiveNotifier extends AsyncNotifier<LiveView>
 
   final int competitionId;
 
-  /// Les courses validées dont toutes les places ont été lues depuis leur
-  /// validation : la minuterie ne les relit plus, seul le rafraîchissement
-  /// manuel le fait (le juge principal peut encore les corriger).
-  final Set<int> _validatedRead = {};
+  /// Les séries à relire au prochain tour même hors course : celles qui
+  /// étaient en cours à la dernière lecture (une fois terminées, leurs
+  /// résultats finaux restent à lire, une dernière fois) et celles dont une
+  /// place a échoué (sinon il leur manquerait un nageur jusqu'au
+  /// rafraîchissement manuel).
+  final Set<int> _readNextTick = {};
 
   @override
   Future<LiveView> build() async {
-    _validatedRead.clear();
+    _readNextTick.clear();
     final timer = Timer.periodic(liveRefresh, (_) => tick());
     ref.onDispose(timer.cancel);
     // Lu avant toute attente : si la page se ferme pendant une requête,
@@ -69,6 +71,9 @@ class LiveNotifier extends AsyncNotifier<LiveView>
     // Page fermée pendant la lecture du programme : ses places ne seraient
     // montrées à personne.
     if (runRef.mounted) {
+      _readNextTick.addAll([
+        for (final entry in selection.running) entry.heat.id,
+      ]);
       // Une centaine de places à lire : le Live s'affiche sans attendre.
       runInSeries(() => _readFirstLanes(runRef, repository, selection));
     }
@@ -96,7 +101,6 @@ class LiveNotifier extends AsyncNotifier<LiveView>
     } on AppException {
       return;
     }
-    final selected = _heats(selection);
     for (final batch in [selection.running, selection.recent]) {
       // Une construction remplacée (page fermée, ou `invalidateSelf`) ne doit
       // ni lire pour personne ni écrire dans le registre de celle qui l'a
@@ -109,7 +113,7 @@ class LiveNotifier extends AsyncNotifier<LiveView>
       if (!runRef.mounted) return;
       final current = state.value;
       if (current == null) return;
-      _recordReads(selected, {for (final heat in heats) heat.id}, fetched);
+      _readNextTick.addAll(_incomplete(heats, fetched));
       state = AsyncData(
         current.copyWith(lanes: mergeLanes(current.lanes, fetched, placeIds)),
       );
@@ -121,6 +125,10 @@ class LiveNotifier extends AsyncNotifier<LiveView>
   @override
   Future<void> reloadAll() => _reload(everything: true);
 
+  /// Le programme, puis les places des seules séries qui peuvent avoir
+  /// changé : les autres (dernières courues, validées ou non) attendent le
+  /// rafraîchissement manuel, décision du 2026-10-18 qui épargne une centaine
+  /// de requêtes par minute.
   @override
   Future<void> reloadIncremental() => _reload(everything: false);
 
@@ -136,26 +144,26 @@ class LiveNotifier extends AsyncNotifier<LiveView>
       if (!runRef.mounted) return;
       final selection = liveSelection(programme.meetings);
       final selected = _heats(selection);
-      // Le registre date du tour précédent : une course redevenue temporaire
-      // depuis y figure encore, et une course validée peut avoir reçu une
-      // place jamais lue.
-      final due = {
+      final running = {for (final entry in selection.running) entry.heat.id};
+      // Une série sans aucune place lue (nouvelle venue, ou tout en échec)
+      // laisserait sa carte en chargement.
+      final due = [
         for (final heat in selected)
           if (everything ||
-              isProvisional(heat) ||
-              !_validatedRead.contains(heat.id) ||
-              !heat.placeIds.every(current.lanes.containsKey))
-            heat.id,
-      };
-      final placeIds = _placeIds([
-        for (final heat in selected)
-          if (due.contains(heat.id)) heat,
-      ]);
+              running.contains(heat.id) ||
+              _readNextTick.contains(heat.id) ||
+              !lanesRead(heat, current.lanes))
+            heat,
+      ];
+      final placeIds = _placeIds(due);
       final fetched = placeIds.isEmpty
           ? const <int, LaneAssignment?>{}
           : await repository.getLanes(placeIds);
       if (!runRef.mounted) return;
-      _recordReads(selected, due, fetched);
+      _readNextTick
+        ..clear()
+        ..addAll(running)
+        ..addAll(_incomplete(due, fetched));
       // Les places des séries sorties du Live ne servent plus.
       final kept = {for (final heat in selected) ...heat.placeIds};
       final merged = mergeLanes(current.lanes, fetched, placeIds)
@@ -185,26 +193,13 @@ class LiveNotifier extends AsyncNotifier<LiveView>
       if (heat.seriesId != null) ...heat.placeIds,
   ];
 
-  /// Une course qui n'est pas (ou plus) validée, ou sortie du Live, quitte
-  /// le registre : redevenue temporaire, elle est relue à chaque tour.
-  /// Une course dont une place a échoué n'y entre pas : sinon il lui
-  /// manquerait un nageur jusqu'au prochain rafraîchissement manuel.
-  void _recordReads(
-    List<Heat> selected,
-    Set<int> due,
+  /// Les séries de [heats] dont une place manque à [fetched].
+  Iterable<int> _incomplete(
+    Iterable<Heat> heats,
     Map<int, LaneAssignment?> fetched,
-  ) {
-    final validated = {
-      for (final heat in selected)
-        if (!isProvisional(heat)) heat.id,
-    };
-    _validatedRead.removeWhere((id) => !validated.contains(id));
-    for (final heat in selected) {
-      if (validated.contains(heat.id) &&
-          due.contains(heat.id) &&
-          heat.placeIds.every(fetched.containsKey)) {
-        _validatedRead.add(heat.id);
-      }
-    }
-  }
+  ) => [
+    for (final heat in heats)
+      if (heat.seriesId != null && !heat.placeIds.every(fetched.containsKey))
+        heat.id,
+  ];
 }

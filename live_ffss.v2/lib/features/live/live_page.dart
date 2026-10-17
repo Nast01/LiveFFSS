@@ -13,13 +13,25 @@ import 'package:live_ffss_v2/features/live/widgets/live_heat_card.dart';
 import 'package:live_ffss_v2/features/shell/choose_competition_prompt.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
 
-class LivePage extends ConsumerWidget {
+class LivePage extends ConsumerStatefulWidget {
   const LivePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LivePage> createState() => _LivePageState();
+}
+
+class _LivePageState extends ConsumerState<LivePage> {
+  // Le bouton passe par l'indicateur du geste : même rond de chargement, et
+  // un appui pendant un rafraîchissement n'en lance pas un second.
+  final _refreshKey = GlobalKey<RefreshIndicatorState>();
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final competition = ref.watch(currentCompetitionProvider);
+    final flatWater =
+        competition != null &&
+        competition.disciplines.contains(Discipline.flatWater);
 
     return Scaffold(
       appBar: AppBar(
@@ -37,6 +49,17 @@ class LivePage extends ConsumerWidget {
             ),
           ],
         ),
+        actions: [
+          if (flatWater)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: l10n.liveRefresh,
+              // Sans liste (chargement ou échec), pas d'indicateur à montrer.
+              onPressed: () =>
+                  _refreshKey.currentState?.show() ??
+                  _refreshLive(ref, competition.id),
+            ),
+        ],
       ),
       body: competition == null
           ? const Center(
@@ -59,15 +82,16 @@ class LivePage extends ConsumerWidget {
                 ),
               ),
             )
-          : _LiveBody(competitionId: competition.id),
+          : _LiveBody(competitionId: competition.id, refreshKey: _refreshKey),
     );
   }
 }
 
 class _LiveBody extends ConsumerWidget {
-  const _LiveBody({required this.competitionId});
+  const _LiveBody({required this.competitionId, required this.refreshKey});
 
   final int competitionId;
+  final GlobalKey<RefreshIndicatorState> refreshKey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -126,7 +150,8 @@ class _LiveBody extends ConsumerWidget {
     final empty = value.running.isEmpty && value.recent.isEmpty;
 
     return RefreshIndicator(
-      onRefresh: () => _refresh(ref),
+      key: refreshKey,
+      onRefresh: () => _refreshLive(ref, competitionId),
       child: ListView(
         // Toujours défilable : sans cela, le geste de rafraîchissement ne
         // part pas sur un direct plus court que l'écran.
@@ -180,13 +205,13 @@ class _LiveBody extends ConsumerWidget {
       ),
     );
   }
+}
 
-  /// Relit tout : le juge principal peut corriger une série validée.
-  Future<void> _refresh(WidgetRef ref) async {
-    try {
-      await ref.read(liveProvider(competitionId).notifier).refresh();
-    } on AppException {
-      // Signalé par le `ref.listen` de build, qui garde le direct affiché.
-    }
+/// Relit tout : le juge principal peut corriger une série validée.
+Future<void> _refreshLive(WidgetRef ref, int competitionId) async {
+  try {
+    await ref.read(liveProvider(competitionId).notifier).refresh();
+  } on AppException {
+    // Signalé par le `ref.listen` de `_LiveBody`, qui garde le direct affiché.
   }
 }

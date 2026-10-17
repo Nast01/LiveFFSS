@@ -187,6 +187,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get liveLoadError => 'Impossible de charger le direct.';
 
   @override
+  String get liveRefresh => 'Rafraîchir';
+
+  @override
   String get coastalComingSoon => 'Côtier : bientôt disponible';
 
   @override

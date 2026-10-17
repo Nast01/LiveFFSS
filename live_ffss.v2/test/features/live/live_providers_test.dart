@@ -325,30 +325,88 @@ void main() {
     });
   });
 
-  test('une course redevenue temporaire est relue à chaque tour', () {
+  test('au tour de minuterie, seules les places des séries en cours sont '
+      'relues : une dernière série temporaire ne l\'est pas', () {
     fakeAsync((async) {
+      heats = defaultHeats(secondProvisional: true);
       final c = container();
       listen(c);
       async.flushMicrotasks();
 
-      heats = defaultHeats(secondProvisional: true);
+      lanes[21] = lane(21, 1, 'Chloé corrigée');
       for (var i = 0; i < 2; i++) {
         laneRequests.clear();
         async.elapse(liveRefresh);
         async.flushMicrotasks();
         expect(laneRequests, [
-          {11, 12, 21, 22},
+          {11, 12},
         ]);
       }
+      expect(view(c).lanesOf(heats[1]).single.athletes.single, 'Chloé');
 
-      // Validée de nouveau : lue une fois à ce tour (déjà fait), puis plus.
-      heats = defaultHeats();
+      c.dispose();
+    });
+  });
+
+  test('une série qui vient de se terminer est relue une fois au tour '
+      'suivant, puis plus du tout', () {
+    fakeAsync((async) {
+      final c = container();
+      listen(c);
+      async.flushMicrotasks();
+
+      heats = [
+        heats[0].copyWith(status: RunStatus.finished),
+        heats[1],
+        heats[2],
+      ];
+      lanes[11] = lane(11, 2, 'Alice finale');
+      laneRequests.clear();
+      async.elapse(liveRefresh);
+      async.flushMicrotasks();
+      expect(laneRequests, [
+        {11, 12},
+      ]);
+      expect(view(c).running, isEmpty);
+      expect(view(c).lanesOf(heats[0]).map((l) => l.athletes.single), [
+        'Bea',
+        'Alice finale',
+      ]);
+
+      laneRequests.clear();
+      for (var i = 0; i < 2; i++) {
+        async.elapse(liveRefresh);
+        async.flushMicrotasks();
+      }
+      expect(laneRequests, isEmpty);
+
+      c.dispose();
+    });
+  });
+
+  test('une série affichée dont aucune place n\'a été lue est relue au tour '
+      'suivant', () {
+    fakeAsync((async) {
+      lanes
+        ..remove(21)
+        ..remove(22);
+      final c = container();
+      listen(c);
+      async.flushMicrotasks();
+      expect(view(c).lanesReadFor(heats[1]), isFalse);
+
+      lanes
+        ..[21] = lane(21, 1, 'Chloé')
+        ..[22] = null;
       laneRequests.clear();
       async.elapse(liveRefresh);
       async.flushMicrotasks();
       expect(laneRequests, [
         {11, 12, 21, 22},
       ]);
+      expect(view(c).lanesReadFor(heats[1]), isTrue);
+      expect(view(c).lanesOf(heats[1]).single.athletes.single, 'Chloé');
+
       laneRequests.clear();
       async.elapse(liveRefresh);
       async.flushMicrotasks();
@@ -361,7 +419,7 @@ void main() {
   });
 
   test(
-    'une course validée dont une place a échoué est relue au tour suivant',
+    'une série terminée dont une place a échoué est relue au tour suivant',
     () {
       fakeAsync((async) {
         lanes.remove(22);
@@ -553,7 +611,8 @@ void main() {
     });
   });
 
-  test('une course validée qui reçoit une nouvelle place est relue', () {
+  test('une série terminée qui reçoit une nouvelle place n\'est relue que '
+      'par refresh', () {
     fakeAsync((async) {
       final c = container();
       listen(c);
@@ -568,20 +627,19 @@ void main() {
       laneRequests.clear();
       async.elapse(liveRefresh);
       async.flushMicrotasks();
+      expect(laneRequests, [
+        {11, 12},
+      ]);
 
+      laneRequests.clear();
+      c.read(liveProvider(competitionId).notifier).refresh();
+      async.flushMicrotasks();
       expect(laneRequests, [
         {11, 12, 21, 22, 23},
       ]);
       expect(view(c).lanesOf(heats[1]).map((l) => l.athletes.single), [
         'Chloé',
         'Emma',
-      ]);
-
-      laneRequests.clear();
-      async.elapse(liveRefresh);
-      async.flushMicrotasks();
-      expect(laneRequests, [
-        {11, 12},
       ]);
 
       c.dispose();

@@ -30,7 +30,7 @@ L'onglet **Live** sert à **suivre en direct, ou presque, les résultats de la c
 | Carte d'une série courue | **Résultats complets** : tous les nageurs, triés par place (place recalculée, lot 2), DQ et sans-temps en fin de liste | Utilisateur (maquette A) |
 | Série en cours | **Liste de départ** (couloir, nageurs, club) et un **texte d'attente** tant qu'aucun résultat n'est publié ; les temps s'affichent dès qu'ils arrivent | Utilisateur |
 | Temporaire / validé | **Temporaire** si le libellé de la série contient « Résultats temporaires » **ou** si la course n'est pas « Terminé » ; **validé** sinon. Badge « Temporaire » + bandeau « Résultats en attente de validation par les juges » ; badge « Validé » ensuite | Utilisateur (intention) ; règle : rédacteur, d'après la recette |
-| Rafraîchissement | **Toutes les 60 s** tant que l'onglet est affiché ; rafraîchissement manuel en tirant | Utilisateur |
+| Rafraîchissement | **Toutes les 60 s** tant que l'onglet est affiché, mais seules les places de la **série en cours** sont relues (plus une dernière lecture d'une série qui vient de se terminer) ; tout le reste par le rafraîchissement manuel : en tirant, ou par le bouton **« Rafraîchir »** de l'en-tête (§ 6) | Utilisateur (2026-10-18) |
 
 ## 4. Écran
 
@@ -75,8 +75,15 @@ De haut en bas :
 - **Fournisseur** `liveProvider(competitionId)` : lit le programme (`getProgramme`), sélectionne les courses en cours et les 10 dernières courues, lit leurs places, et se relit **toutes les 60 s** tant qu'il est écouté (`autoDispose`), plus le rafraîchissement manuel. Il rend des entrées aplaties (réunion, créneau, course, places) : l'en-tête d'une carte ouvre `Routes.liveItem(competitionId, item.id)`.
   - *Choix du rédacteur* : un `AsyncNotifier` qui garde en mémoire les places déjà lues (comme le détail du lot 2) ; tout est perdu à la fermeture de l'onglet, et relu au retour — acceptable.
   - *Choix du rédacteur* : comme au lot 2, la minuterie tourne tant que la page est montée ; sous l'`IndexedStack` du `StatefulShellRoute`, c'est tant que l'onglet a été ouvert (lacune déjà notée dans le CLAUDE.md : la mise en pause des onglets cachés viendra plus tard).
-  - *Choix du rédacteur* : à chaque passage de la minuterie, les places d'une course **validée** déjà lue ne sont pas relues ; celles des courses en cours ou temporaires le sont. Une place en échec garde sa dernière valeur (règle du lot 2).
-  - **Une série validée peut encore changer** sur décision du juge principal (précision de l'utilisateur, 2026-10-17) : le **rafraîchissement manuel** (tirer vers le bas) relit **toutes** les places, validées comprises, et rouvrir l'onglet relit tout (l'état est perdu à la fermeture). Si le libellé d'une série redevient « Résultats temporaires », elle redevient temporaire et ses places sont relues à chaque passage.
+  - **Seule la série en cours s'actualise seule** (décision de l'utilisateur, 2026-10-18, qui remplace la règle « validée déjà lue » du 2026-10-17) : à chaque passage, la minuterie relit le programme (pour savoir quelle série démarre ou se termine), puis les places **uniquement** :
+    1. des séries **en cours** (`marshalling` ou `inProgress`) ;
+    2. d'une série qui **était en cours au passage précédent et ne l'est plus** : une dernière lecture, puis plus aucune relecture automatique ;
+    3. d'une série affichée dont **aucune place n'a encore été lue** (`lanesReadFor` faux : nouvelle venue, ou places en échec au premier chargement), pour ne jamais laisser une carte en chargement.
+
+    *Choix du rédacteur* : une série lue avec une place en échec est relue au passage suivant, jusqu'à ce que toutes ses places soient lues (sinon la dernière lecture d'une série terminée pourrait manquer un nageur). Une place en échec garde sa dernière valeur (règle du lot 2).
+
+    Les dernières séries courues, temporaires ou validées, ne sont plus relues par la minuterie : une série qui redevient « Résultats temporaires », ou qui reçoit une nouvelle place, attend le rafraîchissement manuel.
+  - **Une série validée peut encore changer** sur décision du juge principal (précision de l'utilisateur, 2026-10-17) : le **rafraîchissement manuel** relit **toutes** les places, validées comprises, et rouvrir l'onglet relit tout (l'état est perdu à la fermeture). Il part du geste tirer vers le bas ou du bouton **« Rafraîchir »** (`Icons.refresh`, info-bulle `liveRefresh`) de l'en-tête du Live, qui passe par le même indicateur : un appui pendant un rafraîchissement n'en lance pas un second.
 - La carte « MAINTENANT » de l'accueil mène déjà à l'onglet Live (lot 1) : rien à changer.
 
 ## 7. Tests

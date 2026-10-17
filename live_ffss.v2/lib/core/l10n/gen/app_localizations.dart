@@ -428,6 +428,12 @@ abstract class AppLocalizations {
   /// **'Impossible de charger le direct.'**
   String get liveLoadError;
 
+  /// No description provided for @liveRefresh.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rafraîchir'**
+  String get liveRefresh;
+
   /// No description provided for @coastalComingSoon.
   ///
   /// In fr, this message translates to:

@@ -186,6 +186,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liveLoadError => 'Could not load the live feed.';
 
   @override
+  String get liveRefresh => 'Refresh';
+
+  @override
   String get coastalComingSoon => 'Coastal: coming soon';
 
   @override

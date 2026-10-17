@@ -56,6 +56,7 @@
   "@liveNext": {"placeholders": {"label": {"type": "String"}}},
   "liveSeeProgramme": "See the full programme",
   "liveLoadError": "Could not load the live feed.",
+  "liveRefresh": "Refresh",
   "coastalComingSoon": "Coastal: coming soon",
   "heatPlace": "{place, select, 1{1st} 2{2nd} 3{3rd} other{{place}th}}",
   "@heatPlace": {"placeholders": {"place": {"type": "String"}}},
