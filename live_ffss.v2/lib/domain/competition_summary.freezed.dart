@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'competition_summary.dart';
@@ -9,6 +9,7 @@ part of 'competition_summary.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $CompetitionSummaryCopyWith<CompetitionSummary> get copyWith => _$CompetitionSum
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompetitionSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other.disciplines, disciplines)&&(identical(other.organizer, organizer) || other.organizer == organizer)&&(identical(other.location, location) || other.location == location));
+  final _this = this as CompetitionSummary;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompetitionSummary&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.startDate, _this.startDate) || other.startDate == _this.startDate)&&(identical(other.endDate, _this.endDate) || other.endDate == _this.endDate)&&const DeepCollectionEquality().equals(other.disciplines, _this.disciplines)&&(identical(other.organizer, _this.organizer) || other.organizer == _this.organizer)&&(identical(other.location, _this.location) || other.location == _this.location));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,startDate,endDate,const DeepCollectionEquality().hash(disciplines),organizer,location);
+int get hashCode {
+  final _this = this as CompetitionSummary;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.startDate,_this.endDate,const DeepCollectionEquality().hash(_this.disciplines),_this.organizer,_this.location);
+}
 
 @override
 String toString() {
-  return 'CompetitionSummary(id: $id, name: $name, startDate: $startDate, endDate: $endDate, disciplines: $disciplines, organizer: $organizer, location: $location)';
+  final _this = this as CompetitionSummary;
+  return 'CompetitionSummary(id: ${_this.id}, name: ${_this.name}, startDate: ${_this.startDate}, endDate: ${_this.endDate}, disciplines: ${_this.disciplines}, organizer: ${_this.organizer}, location: ${_this.location})';
 }
 
 
@@ -63,7 +69,7 @@ class _$CompetitionSummaryCopyWithImpl<$Res>
 /// Create a copy of CompetitionSummary
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? startDate = null,Object? endDate = null,Object? disciplines = null,Object? organizer = freezed,Object? location = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(CompetitionSummary(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,startDate: null == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
@@ -212,7 +218,7 @@ return $default(_that.id,_that.name,_that.startDate,_that.endDate,_that.discipli
 
 
 class _CompetitionSummary implements CompetitionSummary {
-  const _CompetitionSummary({required this.id, required this.name, required this.startDate, required this.endDate, required final  Set<Discipline> disciplines, this.organizer, this.location}): _disciplines = disciplines;
+  const _CompetitionSummary({required this.id, required this.name, required this.startDate, required this.endDate, required  Set<Discipline> disciplines, this.organizer, this.location}): _disciplines = disciplines;
   
 
 @override final  int id;
@@ -239,16 +245,18 @@ _$CompetitionSummaryCopyWith<_CompetitionSummary> get copyWith => __$Competition
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompetitionSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other._disciplines, _disciplines)&&(identical(other.organizer, organizer) || other.organizer == organizer)&&(identical(other.location, location) || other.location == location));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompetitionSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other.disciplines, _disciplines)&&(identical(other.organizer, organizer) || other.organizer == organizer)&&(identical(other.location, location) || other.location == location));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,startDate,endDate,const DeepCollectionEquality().hash(_disciplines),organizer,location);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,startDate,endDate,const DeepCollectionEquality().hash(_disciplines),organizer,location);
+}
 
 @override
 String toString() {
-  return 'CompetitionSummary(id: $id, name: $name, startDate: $startDate, endDate: $endDate, disciplines: $disciplines, organizer: $organizer, location: $location)';
+    return 'CompetitionSummary(id: $id, name: $name, startDate: $startDate, endDate: $endDate, disciplines: $disciplines, organizer: $organizer, location: $location)';
 }
 
 

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'now_running.dart';
@@ -9,6 +9,7 @@ part of 'now_running.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $NowRunningCopyWith<NowRunning> get copyWith => _$NowRunningCopyWithImpl<NowRunn
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NowRunning&&(identical(other.heat, heat) || other.heat == heat)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.position, position) || other.position == position)&&(identical(other.total, total) || other.total == total));
+  final _this = this as NowRunning;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NowRunning&&(identical(other.heat, _this.heat) || other.heat == _this.heat)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.position, _this.position) || other.position == _this.position)&&(identical(other.total, _this.total) || other.total == _this.total));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,heat,kind,position,total);
+int get hashCode {
+  final _this = this as NowRunning;
+  return Object.hash(runtimeType,_this.heat,_this.kind,_this.position,_this.total);
+}
 
 @override
 String toString() {
-  return 'NowRunning(heat: $heat, kind: $kind, position: $position, total: $total)';
+  final _this = this as NowRunning;
+  return 'NowRunning(heat: ${_this.heat}, kind: ${_this.kind}, position: ${_this.position}, total: ${_this.total})';
 }
 
 
@@ -63,7 +69,7 @@ class _$NowRunningCopyWithImpl<$Res>
 /// Create a copy of NowRunning
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? heat = null,Object? kind = null,Object? position = null,Object? total = null,}) {
-  return _then(_self.copyWith(
+  return _then(NowRunning(
 heat: null == heat ? _self.heat : heat // ignore: cast_nullable_to_non_nullable
 as Heat,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as NowRunningKind,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
@@ -236,16 +242,18 @@ _$NowRunningCopyWith<_NowRunning> get copyWith => __$NowRunningCopyWithImpl<_Now
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NowRunning&&(identical(other.heat, heat) || other.heat == heat)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.position, position) || other.position == position)&&(identical(other.total, total) || other.total == total));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NowRunning&&(identical(other.heat, heat) || other.heat == heat)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.position, position) || other.position == position)&&(identical(other.total, total) || other.total == total));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,heat,kind,position,total);
+int get hashCode {
+    return Object.hash(runtimeType,heat,kind,position,total);
+}
 
 @override
 String toString() {
-  return 'NowRunning(heat: $heat, kind: $kind, position: $position, total: $total)';
+    return 'NowRunning(heat: $heat, kind: $kind, position: $position, total: $total)';
 }
 
 

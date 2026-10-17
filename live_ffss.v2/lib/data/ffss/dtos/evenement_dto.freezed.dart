@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'evenement_dto.dart';
@@ -9,14 +9,14 @@ part of 'evenement_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$EvenementDto {
 
-@JsonKey(name: 'Id', readValue: readInt) int? get id;@JsonKey(name: 'Nom') String? get name;@JsonKey(name: 'Debut') String? get startDate;@JsonKey(name: 'Fin') String? get endDate;@JsonKey(name: 'Specialite', readValue: readInt) int? get speciality;@JsonKey(name: 'specialiteLabel') String? get specialityLabel;// Absent de docs/FFSS_API.md, présent dans les vraies réponses : V3 le lit.
-@JsonKey(name: 'Lieu') String? get location;@JsonKey(name: 'Organisme', readValue: readMap) OrganismeRefDto? get organisme;
+@JsonKey(name: 'Id', readValue: readInt) int? get id;@JsonKey(name: 'Nom') String? get name;@JsonKey(name: 'Debut') String? get startDate;@JsonKey(name: 'Fin') String? get endDate;@JsonKey(name: 'Specialite', readValue: readInt) int? get speciality;@JsonKey(name: 'specialiteLabel') String? get specialityLabel;@JsonKey(name: 'Lieu') String? get location;@JsonKey(name: 'Organisme', readValue: readMap) OrganismeRefDto? get organisme;
 /// Create a copy of EvenementDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,21 @@ $EvenementDtoCopyWith<EvenementDto> get copyWith => _$EvenementDtoCopyWithImpl<E
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EvenementDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.speciality, speciality) || other.speciality == speciality)&&(identical(other.specialityLabel, specialityLabel) || other.specialityLabel == specialityLabel)&&(identical(other.location, location) || other.location == location)&&(identical(other.organisme, organisme) || other.organisme == organisme));
+  final _this = this as EvenementDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EvenementDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.startDate, _this.startDate) || other.startDate == _this.startDate)&&(identical(other.endDate, _this.endDate) || other.endDate == _this.endDate)&&(identical(other.speciality, _this.speciality) || other.speciality == _this.speciality)&&(identical(other.specialityLabel, _this.specialityLabel) || other.specialityLabel == _this.specialityLabel)&&(identical(other.location, _this.location) || other.location == _this.location)&&(identical(other.organisme, _this.organisme) || other.organisme == _this.organisme));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,startDate,endDate,speciality,specialityLabel,location,organisme);
+int get hashCode {
+  final _this = this as EvenementDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.startDate,_this.endDate,_this.speciality,_this.specialityLabel,_this.location,_this.organisme);
+}
 
 @override
 String toString() {
-  return 'EvenementDto(id: $id, name: $name, startDate: $startDate, endDate: $endDate, speciality: $speciality, specialityLabel: $specialityLabel, location: $location, organisme: $organisme)';
+  final _this = this as EvenementDto;
+  return 'EvenementDto(id: ${_this.id}, name: ${_this.name}, startDate: ${_this.startDate}, endDate: ${_this.endDate}, speciality: ${_this.speciality}, specialityLabel: ${_this.specialityLabel}, location: ${_this.location}, organisme: ${_this.organisme})';
 }
 
 
@@ -67,7 +72,7 @@ class _$EvenementDtoCopyWithImpl<$Res>
 /// Create a copy of EvenementDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? speciality = freezed,Object? specialityLabel = freezed,Object? location = freezed,Object? organisme = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(EvenementDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,startDate: freezed == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
@@ -238,7 +243,6 @@ class _EvenementDto implements EvenementDto {
 @override@JsonKey(name: 'Fin') final  String? endDate;
 @override@JsonKey(name: 'Specialite', readValue: readInt) final  int? speciality;
 @override@JsonKey(name: 'specialiteLabel') final  String? specialityLabel;
-// Absent de docs/FFSS_API.md, présent dans les vraies réponses : V3 le lit.
 @override@JsonKey(name: 'Lieu') final  String? location;
 @override@JsonKey(name: 'Organisme', readValue: readMap) final  OrganismeRefDto? organisme;
 
@@ -255,16 +259,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EvenementDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.speciality, speciality) || other.speciality == speciality)&&(identical(other.specialityLabel, specialityLabel) || other.specialityLabel == specialityLabel)&&(identical(other.location, location) || other.location == location)&&(identical(other.organisme, organisme) || other.organisme == organisme));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _EvenementDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.speciality, speciality) || other.speciality == speciality)&&(identical(other.specialityLabel, specialityLabel) || other.specialityLabel == specialityLabel)&&(identical(other.location, location) || other.location == location)&&(identical(other.organisme, organisme) || other.organisme == organisme));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,startDate,endDate,speciality,specialityLabel,location,organisme);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,startDate,endDate,speciality,specialityLabel,location,organisme);
+}
 
 @override
 String toString() {
-  return 'EvenementDto(id: $id, name: $name, startDate: $startDate, endDate: $endDate, speciality: $speciality, specialityLabel: $specialityLabel, location: $location, organisme: $organisme)';
+    return 'EvenementDto(id: $id, name: $name, startDate: $startDate, endDate: $endDate, speciality: $speciality, specialityLabel: $specialityLabel, location: $location, organisme: $organisme)';
 }
 
 
@@ -338,16 +344,21 @@ $OrganismeRefDtoCopyWith<OrganismeRefDto> get copyWith => _$OrganismeRefDtoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrganismeRefDto&&(identical(other.name, name) || other.name == name)&&(identical(other.label, label) || other.label == label));
+  final _this = this as OrganismeRefDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrganismeRefDto&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.label, _this.label) || other.label == _this.label));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,label);
+int get hashCode {
+  final _this = this as OrganismeRefDto;
+  return Object.hash(runtimeType,_this.name,_this.label);
+}
 
 @override
 String toString() {
-  return 'OrganismeRefDto(name: $name, label: $label)';
+  final _this = this as OrganismeRefDto;
+  return 'OrganismeRefDto(name: ${_this.name}, label: ${_this.label})';
 }
 
 
@@ -376,7 +387,7 @@ class _$OrganismeRefDtoCopyWithImpl<$Res>
 /// Create a copy of OrganismeRefDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = freezed,Object? label = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(OrganismeRefDto(
 name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -539,16 +550,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrganismeRefDto&&(identical(other.name, name) || other.name == name)&&(identical(other.label, label) || other.label == label));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrganismeRefDto&&(identical(other.name, name) || other.name == name)&&(identical(other.label, label) || other.label == label));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,label);
+int get hashCode {
+    return Object.hash(runtimeType,name,label);
+}
 
 @override
 String toString() {
-  return 'OrganismeRefDto(name: $name, label: $label)';
+    return 'OrganismeRefDto(name: $name, label: $label)';
 }
 
 

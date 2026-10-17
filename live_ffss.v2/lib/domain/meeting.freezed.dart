@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'meeting.dart';
@@ -9,6 +9,7 @@ part of 'meeting.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -27,16 +28,21 @@ $MeetingItemCopyWith<MeetingItem> get copyWith => _$MeetingItemCopyWithImpl<Meet
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MeetingItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.roundId, roundId) || other.roundId == roundId)&&const DeepCollectionEquality().equals(other.heats, heats));
+  final _this = this as MeetingItem;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MeetingItem&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.roundId, _this.roundId) || other.roundId == _this.roundId)&&const DeepCollectionEquality().equals(other.heats, _this.heats));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,roundId,const DeepCollectionEquality().hash(heats));
+int get hashCode {
+  final _this = this as MeetingItem;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.roundId,const DeepCollectionEquality().hash(_this.heats));
+}
 
 @override
 String toString() {
-  return 'MeetingItem(id: $id, name: $name, roundId: $roundId, heats: $heats)';
+  final _this = this as MeetingItem;
+  return 'MeetingItem(id: ${_this.id}, name: ${_this.name}, roundId: ${_this.roundId}, heats: ${_this.heats})';
 }
 
 
@@ -65,7 +71,7 @@ class _$MeetingItemCopyWithImpl<$Res>
 /// Create a copy of MeetingItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? roundId = freezed,Object? heats = null,}) {
-  return _then(_self.copyWith(
+  return _then(MeetingItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,roundId: freezed == roundId ? _self.roundId : roundId // ignore: cast_nullable_to_non_nullable
@@ -211,7 +217,7 @@ return $default(_that.id,_that.name,_that.roundId,_that.heats);case _:
 
 
 class _MeetingItem implements MeetingItem {
-  const _MeetingItem({required this.id, required this.name, this.roundId, final  List<Heat> heats = const <Heat>[]}): _heats = heats;
+  const _MeetingItem({required this.id, required this.name, this.roundId,  List<Heat> heats = const <Heat>[]}): _heats = heats;
   
 
 @override final  int id;
@@ -237,16 +243,18 @@ _$MeetingItemCopyWith<_MeetingItem> get copyWith => __$MeetingItemCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MeetingItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.roundId, roundId) || other.roundId == roundId)&&const DeepCollectionEquality().equals(other._heats, _heats));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MeetingItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.roundId, roundId) || other.roundId == roundId)&&const DeepCollectionEquality().equals(other.heats, _heats));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,roundId,const DeepCollectionEquality().hash(_heats));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,roundId,const DeepCollectionEquality().hash(_heats));
+}
 
 @override
 String toString() {
-  return 'MeetingItem(id: $id, name: $name, roundId: $roundId, heats: $heats)';
+    return 'MeetingItem(id: $id, name: $name, roundId: $roundId, heats: $heats)';
 }
 
 
@@ -301,16 +309,21 @@ $MeetingCopyWith<Meeting> get copyWith => _$MeetingCopyWithImpl<Meeting>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Meeting&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.day, day) || other.day == day)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&const DeepCollectionEquality().equals(other.items, items));
+  final _this = this as Meeting;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Meeting&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.day, _this.day) || other.day == _this.day)&&(identical(other.startTime, _this.startTime) || other.startTime == _this.startTime)&&(identical(other.endTime, _this.endTime) || other.endTime == _this.endTime)&&const DeepCollectionEquality().equals(other.items, _this.items));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,day,startTime,endTime,const DeepCollectionEquality().hash(items));
+int get hashCode {
+  final _this = this as Meeting;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.day,_this.startTime,_this.endTime,const DeepCollectionEquality().hash(_this.items));
+}
 
 @override
 String toString() {
-  return 'Meeting(id: $id, name: $name, day: $day, startTime: $startTime, endTime: $endTime, items: $items)';
+  final _this = this as Meeting;
+  return 'Meeting(id: ${_this.id}, name: ${_this.name}, day: ${_this.day}, startTime: ${_this.startTime}, endTime: ${_this.endTime}, items: ${_this.items})';
 }
 
 
@@ -339,7 +352,7 @@ class _$MeetingCopyWithImpl<$Res>
 /// Create a copy of Meeting
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? day = null,Object? startTime = freezed,Object? endTime = freezed,Object? items = null,}) {
-  return _then(_self.copyWith(
+  return _then(Meeting(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,day: null == day ? _self.day : day // ignore: cast_nullable_to_non_nullable
@@ -487,7 +500,7 @@ return $default(_that.id,_that.name,_that.day,_that.startTime,_that.endTime,_tha
 
 
 class _Meeting implements Meeting {
-  const _Meeting({required this.id, required this.name, required this.day, this.startTime, this.endTime, final  List<MeetingItem> items = const <MeetingItem>[]}): _items = items;
+  const _Meeting({required this.id, required this.name, required this.day, this.startTime, this.endTime,  List<MeetingItem> items = const <MeetingItem>[]}): _items = items;
   
 
 @override final  int id;
@@ -513,16 +526,18 @@ _$MeetingCopyWith<_Meeting> get copyWith => __$MeetingCopyWithImpl<_Meeting>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Meeting&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.day, day) || other.day == day)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&const DeepCollectionEquality().equals(other._items, _items));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Meeting&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.day, day) || other.day == day)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&const DeepCollectionEquality().equals(other.items, _items));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,day,startTime,endTime,const DeepCollectionEquality().hash(_items));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,day,startTime,endTime,const DeepCollectionEquality().hash(_items));
+}
 
 @override
 String toString() {
-  return 'Meeting(id: $id, name: $name, day: $day, startTime: $startTime, endTime: $endTime, items: $items)';
+    return 'Meeting(id: $id, name: $name, day: $day, startTime: $startTime, endTime: $endTime, items: $items)';
 }
 
 

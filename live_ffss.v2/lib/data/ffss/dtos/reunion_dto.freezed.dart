@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'reunion_dto.dart';
@@ -9,6 +9,7 @@ part of 'reunion_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $ReunionDtoCopyWith<ReunionDto> get copyWith => _$ReunionDtoCopyWithImpl<Reunion
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReunionDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.day, day) || other.day == day)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&const DeepCollectionEquality().equals(other.creneaus, creneaus));
+  final _this = this as ReunionDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReunionDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.day, _this.day) || other.day == _this.day)&&(identical(other.start, _this.start) || other.start == _this.start)&&(identical(other.end, _this.end) || other.end == _this.end)&&const DeepCollectionEquality().equals(other.creneaus, _this.creneaus));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,day,start,end,const DeepCollectionEquality().hash(creneaus));
+int get hashCode {
+  final _this = this as ReunionDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.day,_this.start,_this.end,const DeepCollectionEquality().hash(_this.creneaus));
+}
 
 @override
 String toString() {
-  return 'ReunionDto(id: $id, name: $name, day: $day, start: $start, end: $end, creneaus: $creneaus)';
+  final _this = this as ReunionDto;
+  return 'ReunionDto(id: ${_this.id}, name: ${_this.name}, day: ${_this.day}, start: ${_this.start}, end: ${_this.end}, creneaus: ${_this.creneaus})';
 }
 
 
@@ -66,7 +72,7 @@ class _$ReunionDtoCopyWithImpl<$Res>
 /// Create a copy of ReunionDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = freezed,Object? day = freezed,Object? start = freezed,Object? end = freezed,Object? creneaus = null,}) {
-  return _then(_self.copyWith(
+  return _then(ReunionDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,day: freezed == day ? _self.day : day // ignore: cast_nullable_to_non_nullable
@@ -214,7 +220,7 @@ return $default(_that.id,_that.name,_that.day,_that.start,_that.end,_that.crenea
 @JsonSerializable()
 
 class _ReunionDto implements ReunionDto {
-  const _ReunionDto({@JsonKey(name: 'Id', readValue: readInt) this.id, @JsonKey(name: 'Nom') this.name, @JsonKey(name: 'Jour') this.day, @JsonKey(name: 'Debut') this.start, @JsonKey(name: 'Fin') this.end, @JsonKey(name: 'creneaus') final  List<CreneauDto> creneaus = const <CreneauDto>[]}): _creneaus = creneaus;
+  const _ReunionDto({@JsonKey(name: 'Id', readValue: readInt) this.id, @JsonKey(name: 'Nom') this.name, @JsonKey(name: 'Jour') this.day, @JsonKey(name: 'Debut') this.start, @JsonKey(name: 'Fin') this.end, @JsonKey(name: 'creneaus')  List<CreneauDto> creneaus = const <CreneauDto>[]}): _creneaus = creneaus;
   factory _ReunionDto.fromJson(Map<String, dynamic> json) => _$ReunionDtoFromJson(json);
 
 @override@JsonKey(name: 'Id', readValue: readInt) final  int? id;
@@ -243,16 +249,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReunionDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.day, day) || other.day == day)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&const DeepCollectionEquality().equals(other._creneaus, _creneaus));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReunionDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.day, day) || other.day == day)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&const DeepCollectionEquality().equals(other.creneaus, _creneaus));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,day,start,end,const DeepCollectionEquality().hash(_creneaus));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,day,start,end,const DeepCollectionEquality().hash(_creneaus));
+}
 
 @override
 String toString() {
-  return 'ReunionDto(id: $id, name: $name, day: $day, start: $start, end: $end, creneaus: $creneaus)';
+    return 'ReunionDto(id: $id, name: $name, day: $day, start: $start, end: $end, creneaus: $creneaus)';
 }
 
 
@@ -312,16 +320,21 @@ $CreneauDtoCopyWith<CreneauDto> get copyWith => _$CreneauDtoCopyWithImpl<Creneau
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreneauDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.partie, partie) || other.partie == partie)&&const DeepCollectionEquality().equals(other.courses, courses));
+  final _this = this as CreneauDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreneauDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.partie, _this.partie) || other.partie == _this.partie)&&const DeepCollectionEquality().equals(other.courses, _this.courses));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,partie,const DeepCollectionEquality().hash(courses));
+int get hashCode {
+  final _this = this as CreneauDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.partie,const DeepCollectionEquality().hash(_this.courses));
+}
 
 @override
 String toString() {
-  return 'CreneauDto(id: $id, name: $name, partie: $partie, courses: $courses)';
+  final _this = this as CreneauDto;
+  return 'CreneauDto(id: ${_this.id}, name: ${_this.name}, partie: ${_this.partie}, courses: ${_this.courses})';
 }
 
 
@@ -350,7 +363,7 @@ class _$CreneauDtoCopyWithImpl<$Res>
 /// Create a copy of CreneauDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = freezed,Object? partie = freezed,Object? courses = null,}) {
-  return _then(_self.copyWith(
+  return _then(CreneauDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,partie: freezed == partie ? _self.partie : partie // ignore: cast_nullable_to_non_nullable
@@ -508,7 +521,7 @@ return $default(_that.id,_that.name,_that.partie,_that.courses);case _:
 @JsonSerializable()
 
 class _CreneauDto implements CreneauDto {
-  const _CreneauDto({@JsonKey(name: 'id', readValue: readInt) this.id, @JsonKey(name: 'Nom') this.name, @JsonKey(name: 'partie', readValue: readMap) this.partie, @JsonKey(name: 'courses') final  List<CourseDto> courses = const <CourseDto>[]}): _courses = courses;
+  const _CreneauDto({@JsonKey(name: 'id', readValue: readInt) this.id, @JsonKey(name: 'Nom') this.name, @JsonKey(name: 'partie', readValue: readMap) this.partie, @JsonKey(name: 'courses')  List<CourseDto> courses = const <CourseDto>[]}): _courses = courses;
   factory _CreneauDto.fromJson(Map<String, dynamic> json) => _$CreneauDtoFromJson(json);
 
 @override@JsonKey(name: 'id', readValue: readInt) final  int? id;
@@ -535,16 +548,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreneauDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.partie, partie) || other.partie == partie)&&const DeepCollectionEquality().equals(other._courses, _courses));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreneauDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.partie, partie) || other.partie == partie)&&const DeepCollectionEquality().equals(other.courses, _courses));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,partie,const DeepCollectionEquality().hash(_courses));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,partie,const DeepCollectionEquality().hash(_courses));
+}
 
 @override
 String toString() {
-  return 'CreneauDto(id: $id, name: $name, partie: $partie, courses: $courses)';
+    return 'CreneauDto(id: $id, name: $name, partie: $partie, courses: $courses)';
 }
 
 
@@ -614,16 +629,21 @@ $PartieRefDtoCopyWith<PartieRefDto> get copyWith => _$PartieRefDtoCopyWithImpl<P
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PartieRefDto&&(identical(other.id, id) || other.id == id));
+  final _this = this as PartieRefDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PartieRefDto&&(identical(other.id, _this.id) || other.id == _this.id));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id);
+int get hashCode {
+  final _this = this as PartieRefDto;
+  return Object.hash(runtimeType,_this.id);
+}
 
 @override
 String toString() {
-  return 'PartieRefDto(id: $id)';
+  final _this = this as PartieRefDto;
+  return 'PartieRefDto(id: ${_this.id})';
 }
 
 
@@ -652,7 +672,7 @@ class _$PartieRefDtoCopyWithImpl<$Res>
 /// Create a copy of PartieRefDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PartieRefDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
@@ -813,16 +833,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PartieRefDto&&(identical(other.id, id) || other.id == id));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PartieRefDto&&(identical(other.id, id) || other.id == id));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id);
+int get hashCode {
+    return Object.hash(runtimeType,id);
+}
 
 @override
 String toString() {
-  return 'PartieRefDto(id: $id)';
+    return 'PartieRefDto(id: $id)';
 }
 
 
@@ -877,16 +899,21 @@ $CourseDtoCopyWith<CourseDto> get copyWith => _$CourseDtoCopyWithImpl<CourseDto>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CourseDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.serie, serie) || other.serie == serie));
+  final _this = this as CourseDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CourseDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.start, _this.start) || other.start == _this.start)&&(identical(other.end, _this.end) || other.end == _this.end)&&(identical(other.serie, _this.serie) || other.serie == _this.serie));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,status,start,end,serie);
+int get hashCode {
+  final _this = this as CourseDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.status,_this.start,_this.end,_this.serie);
+}
 
 @override
 String toString() {
-  return 'CourseDto(id: $id, name: $name, status: $status, start: $start, end: $end, serie: $serie)';
+  final _this = this as CourseDto;
+  return 'CourseDto(id: ${_this.id}, name: ${_this.name}, status: ${_this.status}, start: ${_this.start}, end: ${_this.end}, serie: ${_this.serie})';
 }
 
 
@@ -915,7 +942,7 @@ class _$CourseDtoCopyWithImpl<$Res>
 /// Create a copy of CourseDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = freezed,Object? status = freezed,Object? start = freezed,Object? end = freezed,Object? serie = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(CourseDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -1098,16 +1125,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CourseDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.serie, serie) || other.serie == serie));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CourseDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.serie, serie) || other.serie == serie));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,status,start,end,serie);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,status,start,end,serie);
+}
 
 @override
 String toString() {
-  return 'CourseDto(id: $id, name: $name, status: $status, start: $start, end: $end, serie: $serie)';
+    return 'CourseDto(id: $id, name: $name, status: $status, start: $start, end: $end, serie: $serie)';
 }
 
 
@@ -1179,16 +1208,21 @@ $SerieDtoCopyWith<SerieDto> get copyWith => _$SerieDtoCopyWithImpl<SerieDto>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SerieDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.number, number) || other.number == number)&&(identical(other.epreuve, epreuve) || other.epreuve == epreuve));
+  final _this = this as SerieDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SerieDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.epreuve, _this.epreuve) || other.epreuve == _this.epreuve));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,number,epreuve);
+int get hashCode {
+  final _this = this as SerieDto;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.number,_this.epreuve);
+}
 
 @override
 String toString() {
-  return 'SerieDto(id: $id, name: $name, number: $number, epreuve: $epreuve)';
+  final _this = this as SerieDto;
+  return 'SerieDto(id: ${_this.id}, name: ${_this.name}, number: ${_this.number}, epreuve: ${_this.epreuve})';
 }
 
 
@@ -1217,7 +1251,7 @@ class _$SerieDtoCopyWithImpl<$Res>
 /// Create a copy of SerieDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = freezed,Object? number = freezed,Object? epreuve = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SerieDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,number: freezed == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
@@ -1396,16 +1430,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SerieDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.number, number) || other.number == number)&&(identical(other.epreuve, epreuve) || other.epreuve == epreuve));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SerieDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.number, number) || other.number == number)&&(identical(other.epreuve, epreuve) || other.epreuve == epreuve));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,number,epreuve);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,number,epreuve);
+}
 
 @override
 String toString() {
-  return 'SerieDto(id: $id, name: $name, number: $number, epreuve: $epreuve)';
+    return 'SerieDto(id: $id, name: $name, number: $number, epreuve: $epreuve)';
 }
 
 
@@ -1475,16 +1511,21 @@ $EpreuveRefDtoCopyWith<EpreuveRefDto> get copyWith => _$EpreuveRefDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EpreuveRefDto&&(identical(other.id, id) || other.id == id)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.discipline, discipline) || other.discipline == discipline));
+  final _this = this as EpreuveRefDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EpreuveRefDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.discipline, _this.discipline) || other.discipline == _this.discipline));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,gender,discipline);
+int get hashCode {
+  final _this = this as EpreuveRefDto;
+  return Object.hash(runtimeType,_this.id,_this.gender,_this.discipline);
+}
 
 @override
 String toString() {
-  return 'EpreuveRefDto(id: $id, gender: $gender, discipline: $discipline)';
+  final _this = this as EpreuveRefDto;
+  return 'EpreuveRefDto(id: ${_this.id}, gender: ${_this.gender}, discipline: ${_this.discipline})';
 }
 
 
@@ -1513,7 +1554,7 @@ class _$EpreuveRefDtoCopyWithImpl<$Res>
 /// Create a copy of EpreuveRefDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? gender = freezed,Object? discipline = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(EpreuveRefDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String?,discipline: freezed == discipline ? _self.discipline : discipline // ignore: cast_nullable_to_non_nullable
@@ -1690,16 +1731,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EpreuveRefDto&&(identical(other.id, id) || other.id == id)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.discipline, discipline) || other.discipline == discipline));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _EpreuveRefDto&&(identical(other.id, id) || other.id == id)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.discipline, discipline) || other.discipline == discipline));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,gender,discipline);
+int get hashCode {
+    return Object.hash(runtimeType,id,gender,discipline);
+}
 
 @override
 String toString() {
-  return 'EpreuveRefDto(id: $id, gender: $gender, discipline: $discipline)';
+    return 'EpreuveRefDto(id: $id, gender: $gender, discipline: $discipline)';
 }
 
 
@@ -1768,16 +1811,21 @@ $DisciplineRefDtoCopyWith<DisciplineRefDto> get copyWith => _$DisciplineRefDtoCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DisciplineRefDto&&(identical(other.name, name) || other.name == name));
+  final _this = this as DisciplineRefDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DisciplineRefDto&&(identical(other.name, _this.name) || other.name == _this.name));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name);
+int get hashCode {
+  final _this = this as DisciplineRefDto;
+  return Object.hash(runtimeType,_this.name);
+}
 
 @override
 String toString() {
-  return 'DisciplineRefDto(name: $name)';
+  final _this = this as DisciplineRefDto;
+  return 'DisciplineRefDto(name: ${_this.name})';
 }
 
 
@@ -1806,7 +1854,7 @@ class _$DisciplineRefDtoCopyWithImpl<$Res>
 /// Create a copy of DisciplineRefDto
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(DisciplineRefDto(
 name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -1967,16 +2015,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DisciplineRefDto&&(identical(other.name, name) || other.name == name));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DisciplineRefDto&&(identical(other.name, name) || other.name == name));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name);
+int get hashCode {
+    return Object.hash(runtimeType,name);
+}
 
 @override
 String toString() {
-  return 'DisciplineRefDto(name: $name)';
+    return 'DisciplineRefDto(name: $name)';
 }
 
 
