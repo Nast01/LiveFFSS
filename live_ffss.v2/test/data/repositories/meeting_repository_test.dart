@@ -145,6 +145,45 @@ void main() {
     expect(programme.meetings.single.id, 1);
   });
 
+  test('réunions et déroulements sont demandés ensemble', () async {
+    final reunions = Completer<Map<String, dynamic>>();
+    when(() => http.get(any(), query: any(named: 'query'))).thenAnswer((
+      invocation,
+    ) {
+      final path = invocation.positionalArguments.first as String;
+      if (path.endsWith('/deroulement')) {
+        return Future.value(<String, dynamic>{'data': <Object?>[]});
+      }
+      return reunions.future;
+    });
+
+    final programme = repository.getProgramme(1453);
+    await Future<void>.delayed(Duration.zero);
+
+    verify(
+      () =>
+          http.get('competition/1453/deroulement', query: any(named: 'query')),
+    ).called(1);
+    reunions.complete(one(reunion(1)));
+    expect((await programme).meetings.single.id, 1);
+  });
+
+  test('réunions en échec : programme en échec, même si les déroulements '
+      'échouent aussi', () async {
+    when(() => http.get(any(), query: any(named: 'query'))).thenAnswer((
+      invocation,
+    ) async {
+      final path = invocation.positionalArguments.first as String;
+      if (path.endsWith('/deroulement')) throw StateError('inattendue');
+      throw const NetworkException('hors ligne');
+    });
+
+    await expectLater(
+      repository.getProgramme(1453),
+      throwsA(isA<NetworkException>()),
+    );
+  });
+
   test('déroulements vides : programme sans épreuves', () async {
     stub(reunions: (_) => one(reunion(1)));
 

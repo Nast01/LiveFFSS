@@ -20,7 +20,8 @@ abstract class Heat with _$Heat {
     @Default('') String raceName,
     Gender? gender,
 
-    /// Ids FFSS des places, dans l'ordre des couloirs.
+    /// Ids FFSS des places, dans l'ordre où l'API les sert : le tri par
+    /// couloir se fait à l'affichage (`MeetingItemDetail.lanesOf`).
     @Default(<int>[]) List<int> placeIds,
 
     /// Nul tant que la série n'est pas générée (finale à venir).

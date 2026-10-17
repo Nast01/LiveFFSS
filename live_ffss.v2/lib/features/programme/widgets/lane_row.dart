@@ -13,7 +13,7 @@ class LaneRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final performance = lane.performance;
-    final result = performanceText(performance);
+    final result = performanceText(lane, l10n);
     final rank = rankText(lane);
     // Un relais s'annonce sous le nom de son club ; ses relayeurs dessous.
     final title = lane.isRelay ? lane.club : lane.athletes.join(', ');

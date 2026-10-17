@@ -63,6 +63,18 @@ String collapsedProgression(Progression progression, AppLocalizations l10n) {
   );
 }
 
+/// Une case de la frise ne se touche que si elle mène à un créneau : une
+/// étape sans créneau au programme, ou celle déjà ouverte, n'a ni toucher ni
+/// effet d'encre.
+bool opensStage(
+  List<Meeting>? meetings,
+  Stage target, {
+  required Stage current,
+}) =>
+    target.id != current.id &&
+    meetings != null &&
+    itemsOfStage(meetings, target.id).isNotEmpty;
+
 /// Le rang publié par FFSS ; l'app n'en calcule aucun.
 String? rankText(LaneAssignment lane) {
   final rank = lane.performance?.rankLabel;
@@ -73,11 +85,15 @@ String? rankText(LaneAssignment lane) {
 }
 
 /// Le temps d'une place, ou le statut publié quand elle n'a pas de temps
-/// valable (« DSQ », « Abandon »).
-String? performanceText(Performance? performance) {
-  if (performance == null) return null;
-  final text = performance.isOk ? performance.time : performance.statusLabel;
-  return text == null || text.trim().isEmpty ? null : text.trim();
+/// valable (« DSQ », « Abandon »). Un forfait sans résultat publié le dit :
+/// sans cela, sa ligne ressemblerait à celle d'un nageur pas encore parti.
+String? performanceText(LaneAssignment lane, AppLocalizations l10n) {
+  final performance = lane.performance;
+  final text = performance == null
+      ? null
+      : (performance.isOk ? performance.time : performance.statusLabel)?.trim();
+  if (text != null && text.isNotEmpty) return text;
+  return lane.forfeit ? l10n.forfeit : null;
 }
 
 /// « Programme · sam. 28 · Réunion 2 - Finales ».

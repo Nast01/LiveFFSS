@@ -53,13 +53,19 @@ class MeetingRepositoryImpl implements MeetingRepository {
   /// une requête vouée à l'échec par créneau et par passage.
   @override
   Future<Programme> getProgramme(int competitionId) async {
-    final meetings = await _meetings(competitionId);
+    // Lancés ensemble : deux listes paginées l'une après l'autre doubleraient
+    // l'attente à chaque passage de la minuterie.
     // Le programme passe avant la frise : sans déroulement, les séries restent
     // sans épreuve mais la page s'affiche.
-    final progressions = await _progressions(competitionId).catchError(
+    final pendingProgressions = _progressions(competitionId).catchError(
       (Object _) => const <Progression>[],
       test: (error) => error is AppException,
     );
+    // Si les réunions échouent, personne n'attendra plus les déroulements :
+    // leur échec ne doit pas remonter comme une erreur non traitée.
+    pendingProgressions.ignore();
+    final meetings = await _meetings(competitionId);
+    final progressions = await pendingProgressions;
     return Programme(
       meetings: withRaces(meetings, progressions),
       progressions: progressions,

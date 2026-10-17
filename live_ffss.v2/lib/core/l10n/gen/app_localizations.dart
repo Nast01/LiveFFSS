@@ -398,6 +398,12 @@ abstract class AppLocalizations {
   /// **'Terminé'**
   String get statusFinished;
 
+  /// No description provided for @forfeit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfait'**
+  String get forfeit;
+
   /// No description provided for @seriesPending.
   ///
   /// In fr, this message translates to:

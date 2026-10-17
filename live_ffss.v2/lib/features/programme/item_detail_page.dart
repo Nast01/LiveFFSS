@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
+import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/features/home/competition_formatting.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_providers.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
@@ -118,9 +119,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       if (gender != null) genderLabel(gender, l10n),
     ].join(' · ');
     final time = timeRangeLabel(item.startTime, item.endTime);
-    final pending =
-        item.heats.isNotEmpty &&
-        item.heats.every((heat) => heat.seriesId == null);
+    final pending = itemStatus(item) == ItemStatus.seriesPending;
 
     return RefreshIndicator(
       onRefresh: _refresh,

@@ -28,6 +28,9 @@ class ProgressionStrip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final expanded = ref.watch(progressionExpandedProvider);
+    final meetings = ref.watch(
+      programmeProvider(competitionId).select((p) => p.value?.meetings),
+    );
     final columns = progressionColumns(progression);
     final qualification = qualificationText(stage, l10n);
 
@@ -90,7 +93,9 @@ class ProgressionStrip extends ConsumerWidget {
                           _StageBox(
                             stage: box,
                             current: box.id == stage.id,
-                            onTap: () => _open(context, ref, box),
+                            onTap: opensStage(meetings, box, current: stage)
+                                ? () => _open(context, ref, box)
+                                : null,
                           ),
                       ],
                     ),
@@ -117,7 +122,6 @@ class ProgressionStrip extends ConsumerWidget {
   }
 
   void _open(BuildContext context, WidgetRef ref, Stage target) {
-    if (target.id == stage.id) return;
     final meetings = ref.read(programmeProvider(competitionId)).value?.meetings;
     if (meetings == null) return;
     final items = itemsOfStage(meetings, target.id);
@@ -150,7 +154,7 @@ class _StageBox extends StatelessWidget {
 
   final Stage stage;
   final bool current;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Padding(

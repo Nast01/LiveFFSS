@@ -167,6 +167,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusFinished => 'Finished';
 
   @override
+  String get forfeit => 'Withdrawn';
+
+  @override
   String get seriesPending => 'Heats to come';
 
   @override

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/features/home/all_competitions_page.dart';
 import 'package:live_ffss_v2/features/home/home_page.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_page.dart';
+import 'package:live_ffss_v2/features/programme/item_detail_providers.dart';
 import 'package:live_ffss_v2/features/programme/programme_page.dart';
 import 'package:live_ffss_v2/features/shell/app_shell.dart';
 import 'package:live_ffss_v2/features/shell/tab_placeholders.dart';
@@ -16,6 +17,15 @@ abstract final class Routes {
   static const live = '/live';
   static const results = '/resultats';
   static const mySpace = '/espace';
+}
+
+/// Le créneau désigné par un lien, ou rien s'il est mal formé : un lien venu
+/// d'ailleurs (partagé, tapé) ne doit pas faire planter la page.
+ItemKey? programmeItemKey(Map<String, String> pathParameters) {
+  final competitionId = int.tryParse(pathParameters['competitionId'] ?? '');
+  final itemId = int.tryParse(pathParameters['itemId'] ?? '');
+  if (competitionId == null || itemId == null) return null;
+  return (competitionId: competitionId, itemId: itemId);
 }
 
 /// Une branche par onglet : chacune garde sa propre pile, donc sa position
@@ -49,12 +59,17 @@ final routerProvider = Provider<GoRouter>(
                 routes: [
                   GoRoute(
                     path: 'competition/:competitionId/creneau/:itemId',
-                    builder: (context, state) => ItemDetailPage(
-                      competitionId: int.parse(
-                        state.pathParameters['competitionId']!,
-                      ),
-                      itemId: int.parse(state.pathParameters['itemId']!),
-                    ),
+                    redirect: (context, state) =>
+                        programmeItemKey(state.pathParameters) == null
+                        ? Routes.programme
+                        : null,
+                    builder: (context, state) {
+                      final key = programmeItemKey(state.pathParameters)!;
+                      return ItemDetailPage(
+                        competitionId: key.competitionId,
+                        itemId: key.itemId,
+                      );
+                    },
                   ),
                 ],
               ),

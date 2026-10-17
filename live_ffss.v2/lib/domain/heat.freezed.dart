@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Heat {
 
- int get id; String get name; int get number; RunStatus get status; DateTime? get plannedStart; DateTime? get plannedEnd; int? get raceId; String get raceName; Gender? get gender;/// Ids FFSS des places, dans l'ordre des couloirs.
+ int get id; String get name; int get number; RunStatus get status; DateTime? get plannedStart; DateTime? get plannedEnd; int? get raceId; String get raceName; Gender? get gender;/// Ids FFSS des places, dans l'ordre où l'API les sert : le tri par
+/// couloir se fait à l'affichage (`MeetingItemDetail.lanesOf`).
  List<int> get placeIds;/// Nul tant que la série n'est pas générée (finale à venir).
  int? get seriesId;
 /// Create a copy of Heat
@@ -236,9 +237,11 @@ class _Heat implements Heat {
 @override final  int? raceId;
 @override@JsonKey() final  String raceName;
 @override final  Gender? gender;
-/// Ids FFSS des places, dans l'ordre des couloirs.
+/// Ids FFSS des places, dans l'ordre où l'API les sert : le tri par
+/// couloir se fait à l'affichage (`MeetingItemDetail.lanesOf`).
  final  List<int> _placeIds;
-/// Ids FFSS des places, dans l'ordre des couloirs.
+/// Ids FFSS des places, dans l'ordre où l'API les sert : le tri par
+/// couloir se fait à l'affichage (`MeetingItemDetail.lanesOf`).
 @override@JsonKey() List<int> get placeIds {
   if (_placeIds is EqualUnmodifiableListView) return _placeIds;
   // ignore: implicit_dynamic_type
