@@ -22,20 +22,25 @@ jobs:
       TZ: Europe/Paris
     strategy:
       fail-fast: false
+      # Chaque application garde sa version de Flutter : la v1 est gelée en
+      # 3.41.9, la v2 a monté en 3.47.7 (son pubspec.lock exige Dart 3.13).
+      # Le poste de développement n'a qu'un SDK, sur la version de la v2 —
+      # voir la ligne Outils du CLAUDE.md v2.
       matrix:
-        project: [live_ffss, live_ffss.v2]
+        include:
+          - project: live_ffss
+            flutter: 3.41.9
+          - project: live_ffss.v2
+            flutter: 3.47.7
     defaults:
       run:
         working-directory: ${{ matrix.project }}
     steps:
       - uses: actions/checkout@v4
 
-      # Épinglée sur la version du poste de développement. Le dossier
-      # d'installation s'appelle flutter_windows_3.22.2-stable mais le clone
-      # est sur le tag 3.41.9 — voir la section Tooling pins du CLAUDE.md v1.
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.41.9
+          flutter-version: ${{ matrix.flutter }}
           channel: stable
           cache: true
 
