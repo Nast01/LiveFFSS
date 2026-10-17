@@ -26,5 +26,9 @@ abstract class Heat with _$Heat {
 
     /// Nul tant que la série n'est pas générée (finale à venir).
     int? seriesId,
+
+    /// Vrai tant que le libellé de la série ne dit pas autre chose que
+    /// « Résultats temporaires » : sans libellé, on ne prétend pas valider.
+    @Default(true) bool resultsProvisional,
   }) = _Heat;
 }

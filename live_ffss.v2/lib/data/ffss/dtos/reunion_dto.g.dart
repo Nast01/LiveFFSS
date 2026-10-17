@@ -98,6 +98,7 @@ _SerieDto _$SerieDtoFromJson(Map<String, dynamic> json) => _SerieDto(
       : EpreuveRefDto.fromJson(
           readMap(json, 'epreuve') as Map<String, dynamic>,
         ),
+  label: json['label'] as String?,
 );
 
 Map<String, dynamic> _$SerieDtoToJson(_SerieDto instance) => <String, dynamic>{
@@ -105,6 +106,7 @@ Map<String, dynamic> _$SerieDtoToJson(_SerieDto instance) => <String, dynamic>{
   'Nom': instance.name,
   'Numero': instance.number,
   'epreuve': instance.epreuve,
+  'label': instance.label,
 };
 
 _EpreuveRefDto _$EpreuveRefDtoFromJson(Map<String, dynamic> json) =>

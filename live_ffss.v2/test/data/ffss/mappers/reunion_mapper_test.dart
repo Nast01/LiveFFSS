@@ -185,6 +185,43 @@ void main() {
       expect(item(347).heats, isNotEmpty);
       expect(item(347).heats.every((h) => h.seriesId == null), isTrue);
     });
+
+    test('résultats temporaires lus dans le libellé de la série', () {
+      final heat = item(177).heats.firstWhere((h) => h.id == 479);
+      expect(heat.resultsProvisional, isTrue);
+    });
+
+    test('une course sans série a des résultats temporaires', () {
+      expect(item(347).heats.every((h) => h.resultsProvisional), isTrue);
+    });
+  });
+
+  group('résultats temporaires ou validés', () {
+    bool provisional(Object? serie) => ReunionDto.fromJson(
+      reunion(
+        courses: [
+          course({'serie': serie}),
+        ],
+      ),
+    ).toDomain()!.items.single.heats.single.resultsProvisional;
+
+    test('un libellé « Résultats officiels » les valide', () {
+      expect(
+        provisional({'id': 1, 'label': 'Série 1 - Résultats officiels'}),
+        isFalse,
+      );
+    });
+
+    test('un libellé « Résultats temporaires » les garde temporaires', () {
+      expect(
+        provisional({'id': 1, 'label': 'Série 1 - RÉSULTATS TEMPORAIRES'}),
+        isTrue,
+      );
+    });
+
+    test('une série sans libellé reste temporaire', () {
+      expect(provisional({'id': 1}), isTrue);
+    });
   });
 
   test('une heure illisible laisse le créneau affiché sans heure', () {

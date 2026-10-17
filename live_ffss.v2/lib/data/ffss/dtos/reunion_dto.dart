@@ -81,6 +81,7 @@ abstract class SerieDto with _$SerieDto {
     @JsonKey(name: 'Nom') String? name,
     @JsonKey(name: 'Numero', readValue: readInt) int? number,
     @JsonKey(name: 'epreuve', readValue: readMap) EpreuveRefDto? epreuve,
+    @JsonKey(name: 'label') String? label,
   }) = _SerieDto;
 
   factory SerieDto.fromJson(Map<String, dynamic> json) =>

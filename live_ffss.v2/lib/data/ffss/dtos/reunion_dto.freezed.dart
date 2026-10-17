@@ -1213,7 +1213,7 @@ as int?,
 /// @nodoc
 mixin _$SerieDto {
 
-@JsonKey(name: 'Id', readValue: _readSerieId) int? get id;@JsonKey(name: 'Nom') String? get name;@JsonKey(name: 'Numero', readValue: readInt) int? get number;@JsonKey(name: 'epreuve', readValue: readMap) EpreuveRefDto? get epreuve;
+@JsonKey(name: 'Id', readValue: _readSerieId) int? get id;@JsonKey(name: 'Nom') String? get name;@JsonKey(name: 'Numero', readValue: readInt) int? get number;@JsonKey(name: 'epreuve', readValue: readMap) EpreuveRefDto? get epreuve;@JsonKey(name: 'label') String? get label;
 /// Create a copy of SerieDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1227,20 +1227,20 @@ $SerieDtoCopyWith<SerieDto> get copyWith => _$SerieDtoCopyWithImpl<SerieDto>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as SerieDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SerieDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.epreuve, _this.epreuve) || other.epreuve == _this.epreuve));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SerieDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.number, _this.number) || other.number == _this.number)&&(identical(other.epreuve, _this.epreuve) || other.epreuve == _this.epreuve)&&(identical(other.label, _this.label) || other.label == _this.label));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as SerieDto;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.number,_this.epreuve);
+  return Object.hash(runtimeType,_this.id,_this.name,_this.number,_this.epreuve,_this.label);
 }
 
 @override
 String toString() {
   final _this = this as SerieDto;
-  return 'SerieDto(id: ${_this.id}, name: ${_this.name}, number: ${_this.number}, epreuve: ${_this.epreuve})';
+  return 'SerieDto(id: ${_this.id}, name: ${_this.name}, number: ${_this.number}, epreuve: ${_this.epreuve}, label: ${_this.label})';
 }
 
 
@@ -1251,7 +1251,7 @@ abstract mixin class $SerieDtoCopyWith<$Res>  {
   factory $SerieDtoCopyWith(SerieDto value, $Res Function(SerieDto) _then) = _$SerieDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: _readSerieId) int? id,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'Numero', readValue: readInt) int? number,@JsonKey(name: 'epreuve', readValue: readMap) EpreuveRefDto? epreuve
+@JsonKey(name: 'Id', readValue: _readSerieId) int? id,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'Numero', readValue: readInt) int? number,@JsonKey(name: 'epreuve', readValue: readMap) EpreuveRefDto? epreuve,@JsonKey(name: 'label') String? label
 });
 
 
@@ -1268,13 +1268,14 @@ class _$SerieDtoCopyWithImpl<$Res>
 
 /// Create a copy of SerieDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = freezed,Object? number = freezed,Object? epreuve = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = freezed,Object? number = freezed,Object? epreuve = freezed,Object? label = freezed,}) {
   return _then(SerieDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,number: freezed == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as int?,epreuve: freezed == epreuve ? _self.epreuve : epreuve // ignore: cast_nullable_to_non_nullable
-as EpreuveRefDto?,
+as EpreuveRefDto?,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 /// Create a copy of SerieDto
@@ -1371,10 +1372,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readSerieId)  int? id, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveRefDto? epreuve)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readSerieId)  int? id, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveRefDto? epreuve, @JsonKey(name: 'label')  String? label)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SerieDto() when $default != null:
-return $default(_that.id,_that.name,_that.number,_that.epreuve);case _:
+return $default(_that.id,_that.name,_that.number,_that.epreuve,_that.label);case _:
   return orElse();
 
 }
@@ -1392,10 +1393,10 @@ return $default(_that.id,_that.name,_that.number,_that.epreuve);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readSerieId)  int? id, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveRefDto? epreuve)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readSerieId)  int? id, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveRefDto? epreuve, @JsonKey(name: 'label')  String? label)  $default,) {final _that = this;
 switch (_that) {
 case _SerieDto():
-return $default(_that.id,_that.name,_that.number,_that.epreuve);case _:
+return $default(_that.id,_that.name,_that.number,_that.epreuve,_that.label);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1412,10 +1413,10 @@ return $default(_that.id,_that.name,_that.number,_that.epreuve);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: _readSerieId)  int? id, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveRefDto? epreuve)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: _readSerieId)  int? id, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveRefDto? epreuve, @JsonKey(name: 'label')  String? label)?  $default,) {final _that = this;
 switch (_that) {
 case _SerieDto() when $default != null:
-return $default(_that.id,_that.name,_that.number,_that.epreuve);case _:
+return $default(_that.id,_that.name,_that.number,_that.epreuve,_that.label);case _:
   return null;
 
 }
@@ -1427,13 +1428,14 @@ return $default(_that.id,_that.name,_that.number,_that.epreuve);case _:
 @JsonSerializable()
 
 class _SerieDto implements SerieDto {
-  const _SerieDto({@JsonKey(name: 'Id', readValue: _readSerieId) this.id, @JsonKey(name: 'Nom') this.name, @JsonKey(name: 'Numero', readValue: readInt) this.number, @JsonKey(name: 'epreuve', readValue: readMap) this.epreuve});
+  const _SerieDto({@JsonKey(name: 'Id', readValue: _readSerieId) this.id, @JsonKey(name: 'Nom') this.name, @JsonKey(name: 'Numero', readValue: readInt) this.number, @JsonKey(name: 'epreuve', readValue: readMap) this.epreuve, @JsonKey(name: 'label') this.label});
   factory _SerieDto.fromJson(Map<String, dynamic> json) => _$SerieDtoFromJson(json);
 
 @override@JsonKey(name: 'Id', readValue: _readSerieId) final  int? id;
 @override@JsonKey(name: 'Nom') final  String? name;
 @override@JsonKey(name: 'Numero', readValue: readInt) final  int? number;
 @override@JsonKey(name: 'epreuve', readValue: readMap) final  EpreuveRefDto? epreuve;
+@override@JsonKey(name: 'label') final  String? label;
 
 /// Create a copy of SerieDto
 /// with the given fields replaced by the non-null parameter values.
@@ -1448,18 +1450,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SerieDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.number, number) || other.number == number)&&(identical(other.epreuve, epreuve) || other.epreuve == epreuve));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SerieDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.number, number) || other.number == number)&&(identical(other.epreuve, epreuve) || other.epreuve == epreuve)&&(identical(other.label, label) || other.label == label));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,number,epreuve);
+    return Object.hash(runtimeType,id,name,number,epreuve,label);
 }
 
 @override
 String toString() {
-    return 'SerieDto(id: $id, name: $name, number: $number, epreuve: $epreuve)';
+    return 'SerieDto(id: $id, name: $name, number: $number, epreuve: $epreuve, label: $label)';
 }
 
 
@@ -1470,7 +1472,7 @@ abstract mixin class _$SerieDtoCopyWith<$Res> implements $SerieDtoCopyWith<$Res>
   factory _$SerieDtoCopyWith(_SerieDto value, $Res Function(_SerieDto) _then) = __$SerieDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: _readSerieId) int? id,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'Numero', readValue: readInt) int? number,@JsonKey(name: 'epreuve', readValue: readMap) EpreuveRefDto? epreuve
+@JsonKey(name: 'Id', readValue: _readSerieId) int? id,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'Numero', readValue: readInt) int? number,@JsonKey(name: 'epreuve', readValue: readMap) EpreuveRefDto? epreuve,@JsonKey(name: 'label') String? label
 });
 
 
@@ -1487,13 +1489,14 @@ class __$SerieDtoCopyWithImpl<$Res>
 
 /// Create a copy of SerieDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = freezed,Object? number = freezed,Object? epreuve = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = freezed,Object? number = freezed,Object? epreuve = freezed,Object? label = freezed,}) {
   return _then(_SerieDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,number: freezed == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as int?,epreuve: freezed == epreuve ? _self.epreuve : epreuve // ignore: cast_nullable_to_non_nullable
-as EpreuveRefDto?,
+as EpreuveRefDto?,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

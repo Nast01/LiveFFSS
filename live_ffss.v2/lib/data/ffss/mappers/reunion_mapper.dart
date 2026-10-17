@@ -46,11 +46,18 @@ extension CreneauMapper on CreneauDto {
   }
 }
 
+// Le site FFSS n'a pas de champ « validé » : seul le libellé de la série le dit.
+final _provisionalMarker = RegExp(
+  'Résultats temporaires',
+  caseSensitive: false,
+);
+
 extension CourseMapper on CourseDto {
   Heat? toDomain(DateTime day) {
     final id = this.id;
     if (id == null) return null;
     final epreuve = serie?.epreuve;
+    final label = serie?.label;
     // Les listes de réunions ne servent pas `Numero` : le nom de la course
     // finit par le numéro (`Série 3`).
     final nameNumber = RegExp(r'(\d+)\s*$').firstMatch(name ?? '')?.group(1);
@@ -66,6 +73,7 @@ extension CourseMapper on CourseDto {
       gender: parseGender(epreuve?.gender),
       placeIds: [for (final place in places) ?place.id],
       seriesId: serie?.id,
+      resultsProvisional: label == null || _provisionalMarker.hasMatch(label),
     );
   }
 }
