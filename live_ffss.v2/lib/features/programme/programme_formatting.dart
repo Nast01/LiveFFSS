@@ -70,7 +70,12 @@ String? performanceText(LaneAssignment lane, AppLocalizations l10n) {
   final performance = lane.performance;
   final text = performance == null
       ? null
-      : (performance.isOk ? performance.time : performance.statusLabel)?.trim();
+      : performance.isOk
+      ? performance.time?.trim()
+      : [
+          performance.statusLabel?.trim(),
+          performance.disqualificationCode,
+        ].where((part) => part != null && part.isNotEmpty).join(' ');
   if (text != null && text.isNotEmpty) return text;
   return lane.forfeit ? l10n.forfeit : null;
 }

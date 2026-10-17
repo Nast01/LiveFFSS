@@ -108,6 +108,8 @@ _PlaceResultDto _$PlaceResultDtoFromJson(Map<String, dynamic> json) =>
     _PlaceResultDto(
       time: json['tempsLabel'] as String?,
       statusLabel: json['statutLabel'] as String?,
+      rankLabel: json['rangLabel'] as String?,
+      disqualificationCode: json['disqualificationCode'] as String?,
       isDisqualified: json['isDisqualifie'] as bool?,
       isRecord: json['isRecord'] as bool?,
       isNationalRecord: json['isRecordDeFrance'] as bool?,
@@ -117,6 +119,8 @@ Map<String, dynamic> _$PlaceResultDtoToJson(_PlaceResultDto instance) =>
     <String, dynamic>{
       'tempsLabel': instance.time,
       'statutLabel': instance.statusLabel,
+      'rangLabel': instance.rankLabel,
+      'disqualificationCode': instance.disqualificationCode,
       'isDisqualifie': instance.isDisqualified,
       'isRecord': instance.isRecord,
       'isRecordDeFrance': instance.isNationalRecord,

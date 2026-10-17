@@ -91,6 +91,8 @@ abstract class PlaceResultDto with _$PlaceResultDto {
   const factory PlaceResultDto({
     @JsonKey(name: 'tempsLabel') String? time,
     @JsonKey(name: 'statutLabel') String? statusLabel,
+    @JsonKey(name: 'rangLabel') String? rankLabel,
+    @JsonKey(name: 'disqualificationCode') String? disqualificationCode,
     @JsonKey(name: 'isDisqualifie') bool? isDisqualified,
     @JsonKey(name: 'isRecord') bool? isRecord,
     @JsonKey(name: 'isRecordDeFrance') bool? isNationalRecord,

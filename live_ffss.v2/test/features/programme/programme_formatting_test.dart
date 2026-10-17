@@ -204,6 +204,23 @@ void main() {
       );
     });
 
+    test('une DQ avec son code, sur la même ligne', () {
+      expect(
+        text(
+          const Performance(
+            statusLabel: 'DQ',
+            isDisqualified: true,
+            disqualificationCode: '12',
+          ),
+        ),
+        'DQ 12',
+      );
+      expect(
+        text(const Performance(statusLabel: 'DQ', isDisqualified: true)),
+        'DQ',
+      );
+    });
+
     test('rien sans performance ni temps', () {
       expect(text(null), isNull);
       expect(text(const Performance()), isNull);

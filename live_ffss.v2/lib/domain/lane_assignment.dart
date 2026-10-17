@@ -13,6 +13,9 @@ abstract class Performance with _$Performance {
     String? time,
     String? statusLabel,
     int? timeHundredths,
+
+    /// Le code de disqualification, affiché à côté de « DQ ».
+    String? disqualificationCode,
     @Default(false) bool isDisqualified,
     @Default(false) bool isRecord,
     @Default(false) bool isNationalRecord,

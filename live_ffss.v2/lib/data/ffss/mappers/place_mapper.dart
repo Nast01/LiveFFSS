@@ -34,6 +34,14 @@ extension PlaceMapper on PlaceDto {
               time: _nonBlank(result.time),
               statusLabel: _nonBlank(result.statusLabel),
               timeHundredths: parseFfssTime(result.time),
+              // Sur une DQ, FFSS sert le code dans `rangLabel` et laisse
+              // `disqualificationCode` vide (place 2903 de la recette 1416).
+              // Hors DQ, `rangLabel` est un rang, que l'app ne lit pas.
+              disqualificationCode:
+                  _nonBlank(result.disqualificationCode) ??
+                  ((result.isDisqualified ?? false)
+                      ? _nonBlank(result.rankLabel)
+                      : null),
               isDisqualified: result.isDisqualified ?? false,
               isRecord: result.isRecord ?? false,
               isNationalRecord: result.isNationalRecord ?? false,

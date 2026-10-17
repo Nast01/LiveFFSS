@@ -63,4 +63,53 @@ void main() {
     expect(place.performance!.isOk, false);
     expect(place.performance!.isDisqualified, true);
   });
+
+  test(
+    'une DQ : FFSS sert son code dans rangLabel (place 2903 de la recette)',
+    () {
+      final place = PlaceDto.fromJson({
+        'id': 2903,
+        'Numero': 5,
+        'resultat': {
+          'statutLabel': 'DQ',
+          'tempsLabel': '',
+          'rangLabel': '12',
+          'performanceLabel': '12 - ',
+          'isDisqualifie': true,
+          'disqualificationCode': null,
+        },
+      }).toDomain()!;
+
+      expect(place.performance!.disqualificationCode, '12');
+    },
+  );
+
+  test("disqualificationCode, quand FFSS le sert, l'emporte", () {
+    final place = PlaceDto.fromJson({
+      'id': 1,
+      'Numero': 4,
+      'resultat': {
+        'statutLabel': 'DQ',
+        'rangLabel': '12',
+        'isDisqualifie': true,
+        'disqualificationCode': 'P7',
+      },
+    }).toDomain()!;
+
+    expect(place.performance!.disqualificationCode, 'P7');
+  });
+
+  test("hors DQ, rangLabel n'est pas un code", () {
+    final place = PlaceDto.fromJson({
+      'id': 1,
+      'Numero': 4,
+      'resultat': {
+        'statutLabel': 'OK',
+        'tempsLabel': '02\'55"77',
+        'rangLabel': '5ème',
+      },
+    }).toDomain()!;
+
+    expect(place.performance!.disqualificationCode, isNull);
+  });
 }
