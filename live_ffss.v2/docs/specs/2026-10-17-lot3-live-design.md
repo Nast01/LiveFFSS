@@ -75,7 +75,8 @@ De haut en bas :
 - **Fournisseur** `liveProvider(competitionId)` : lit le programme (`getProgramme`), sélectionne les courses en cours et les 10 dernières courues, lit leurs places, et se relit **toutes les 60 s** tant qu'il est écouté (`autoDispose`), plus le rafraîchissement manuel. Il rend des entrées aplaties (réunion, créneau, course, places) : l'en-tête d'une carte ouvre `Routes.programmeItem(competitionId, item.id)`.
   - *Choix du rédacteur* : un `AsyncNotifier` qui garde en mémoire les places déjà lues (comme le détail du lot 2) ; tout est perdu à la fermeture de l'onglet, et relu au retour — acceptable.
   - *Choix du rédacteur* : comme au lot 2, la minuterie tourne tant que la page est montée ; sous l'`IndexedStack` du `StatefulShellRoute`, c'est tant que l'onglet a été ouvert (lacune déjà notée dans le CLAUDE.md : la mise en pause des onglets cachés viendra plus tard).
-  - *Choix du rédacteur* : les places d'une course **validée** déjà lue ne sont plus relues (elles ne changent plus) ; celles des courses en cours ou temporaires le sont à chaque passage. Une place en échec garde sa dernière valeur (règle du lot 2).
+  - *Choix du rédacteur* : à chaque passage de la minuterie, les places d'une course **validée** déjà lue ne sont pas relues ; celles des courses en cours ou temporaires le sont. Une place en échec garde sa dernière valeur (règle du lot 2).
+  - **Une série validée peut encore changer** sur décision du juge principal (précision de l'utilisateur, 2026-10-17) : le **rafraîchissement manuel** (tirer vers le bas) relit **toutes** les places, validées comprises, et rouvrir l'onglet relit tout (l'état est perdu à la fermeture). Si le libellé d'une série redevient « Résultats temporaires », elle redevient temporaire et ses places sont relues à chaque passage.
 - La carte « MAINTENANT » de l'accueil mène déjà à l'onglet Live (lot 1) : rien à changer.
 
 ## 7. Tests
