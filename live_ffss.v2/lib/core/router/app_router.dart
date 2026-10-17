@@ -16,6 +16,11 @@ abstract final class Routes {
   static String programmeItem(int competitionId, int itemId) =>
       '$programme/competition/$competitionId/creneau/$itemId';
   static const live = '/live';
+
+  /// Le détail d'un créneau ouvert depuis le Live : dans la branche du Live,
+  /// le retour y ramène au lieu de laisser dans l'onglet Programme.
+  static String liveItem(int competitionId, int itemId) =>
+      '$live/competition/$competitionId/creneau/$itemId';
   static const results = '/resultats';
   static const mySpace = '/espace';
 }
@@ -28,6 +33,21 @@ ItemKey? programmeItemKey(Map<String, String> pathParameters) {
   if (competitionId == null || itemId == null) return null;
   return (competitionId: competitionId, itemId: itemId);
 }
+
+/// Un lien de créneau mal formé retombe sur l'onglet qui le porte
+/// ([fallback]) ; nul pour un lien lisible.
+String? itemRedirect(Map<String, String> pathParameters, String fallback) =>
+    programmeItemKey(pathParameters) == null ? fallback : null;
+
+/// Le détail d'un créneau, sous l'onglet qui l'a ouvert.
+GoRoute _itemRoute({required String fallback}) => GoRoute(
+  path: 'competition/:competitionId/creneau/:itemId',
+  redirect: (context, state) => itemRedirect(state.pathParameters, fallback),
+  builder: (context, state) {
+    final key = programmeItemKey(state.pathParameters)!;
+    return ItemDetailPage(competitionId: key.competitionId, itemId: key.itemId);
+  },
+);
 
 /// Une branche par onglet : chacune garde sa propre pile, donc sa position
 /// quand on passe d'un onglet à l'autre.
@@ -57,22 +77,7 @@ final routerProvider = Provider<GoRouter>(
               GoRoute(
                 path: Routes.programme,
                 builder: (context, state) => const ProgrammePage(),
-                routes: [
-                  GoRoute(
-                    path: 'competition/:competitionId/creneau/:itemId',
-                    redirect: (context, state) =>
-                        programmeItemKey(state.pathParameters) == null
-                        ? Routes.programme
-                        : null,
-                    builder: (context, state) {
-                      final key = programmeItemKey(state.pathParameters)!;
-                      return ItemDetailPage(
-                        competitionId: key.competitionId,
-                        itemId: key.itemId,
-                      );
-                    },
-                  ),
-                ],
+                routes: [_itemRoute(fallback: Routes.programme)],
               ),
             ],
           ),
@@ -81,6 +86,7 @@ final routerProvider = Provider<GoRouter>(
               GoRoute(
                 path: Routes.live,
                 builder: (context, state) => const LivePage(),
+                routes: [_itemRoute(fallback: Routes.live)],
               ),
             ],
           ),

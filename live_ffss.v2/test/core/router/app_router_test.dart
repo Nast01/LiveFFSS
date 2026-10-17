@@ -19,4 +19,28 @@ void main() {
       expect(programmeItemKey({}), isNull);
     });
   });
+
+  group('Routes.liveItem', () {
+    test('le détail d\'un créneau reste dans la branche du Live', () {
+      expect(Routes.liveItem(1453, 177), '/live/competition/1453/creneau/177');
+      expect(Routes.liveItem(1453, 177), startsWith('${Routes.live}/'));
+    });
+  });
+
+  group('itemRedirect', () {
+    test('un lien bien formé reste où il est', () {
+      expect(
+        itemRedirect({'competitionId': '1453', 'itemId': '177'}, Routes.live),
+        isNull,
+      );
+    });
+
+    test('un lien mal formé retombe sur l\'onglet qui le porte', () {
+      expect(
+        itemRedirect({'competitionId': 'abc', 'itemId': '177'}, Routes.live),
+        Routes.live,
+      );
+      expect(itemRedirect({}, Routes.programme), Routes.programme);
+    });
+  });
 }

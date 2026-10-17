@@ -110,8 +110,7 @@ class _LiveBody extends ConsumerWidget {
       entry: entry,
       position: heatPosition(value.meetings, entry),
       lanes: value.lanesOf(entry.heat),
-      onOpen: () =>
-          context.go(Routes.programmeItem(competitionId, entry.item.id)),
+      onOpen: () => context.go(Routes.liveItem(competitionId, entry.item.id)),
     );
 
     Widget section(String title) => Padding(
