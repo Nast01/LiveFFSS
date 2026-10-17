@@ -64,13 +64,15 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail> {
   /// lente gagnant avec des données plus vieilles.
   Future<void>? _inFlight;
 
-  MeetingRepository get _repository => ref.read(meetingRepositoryProvider);
-
   @override
   Future<MeetingItemDetail> build() async {
     _finishedReadAt.clear();
     final timer = Timer.periodic(itemDetailRefresh, (_) => _tick());
     ref.onDispose(timer.cancel);
+    // Lus avant toute attente : si la page se ferme pendant une requête,
+    // `ref` ne peut plus servir.
+    final repository = ref.read(meetingRepositoryProvider);
+    final clock = ref.read(clockProvider);
 
     // Le programme se relit seul toutes les 30 s : le surveiller par
     // `ref.watch` reconstruirait le détail, et relirait toutes ses places, à
@@ -84,14 +86,15 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail> {
 
     final found = programme.findItem(key.itemId);
     if (found == null) throw NotFoundException('meeting item ${key.itemId}');
-    final item = await _readItem(found.meeting.day);
+    final readAt = clock();
+    final item = await _readItem(repository, found.meeting.day);
     final roundId = item.roundId;
     final progression = roundId == null
         ? null
         : programme.progressionOfStage(roundId);
     final placeIds = _placeIds(item.heats);
-    final lanes = await _repository.getLanes(placeIds);
-    _recordReads(item.heats, {for (final heat in item.heats) heat.id});
+    final lanes = await repository.getLanes(placeIds);
+    _recordReads(item.heats, {for (final heat in item.heats) heat.id}, readAt);
 
     return MeetingItemDetail(
       meeting: found.meeting,
@@ -104,47 +107,76 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail> {
 
   /// Relit le créneau et toutes ses places, quel que soit l'état des courses.
   Future<void> refresh() async {
-    if (!state.hasValue) {
-      ref.invalidateSelf();
-      try {
-        await future;
-      } on AppException {
-        // L'échec est déjà dans l'état, que la page affiche.
-      }
-      return;
+    // En boucle : un autre `refresh` peut avoir pris la place entre-temps.
+    for (var running = _inFlight; running != null; running = _inFlight) {
+      await running;
     }
-    await _inFlight;
-    await _run(everything: true);
+    await _run(
+      state.hasValue ? () => _reload(everything: true) : _reloadFromScratch,
+    );
   }
 
+  /// La minuterie tient aussi lieu de nouvel essai après un premier
+  /// chargement en échec.
   void _tick() {
-    if (_inFlight != null || !state.hasValue) return;
-    _run(everything: false);
+    if (_inFlight != null) return;
+    if (state.hasValue) {
+      _run(() => _reload(everything: false));
+    } else if (state.hasError && !state.isLoading) {
+      _run(_reloadFromScratch);
+    }
   }
 
-  Future<void> _run({required bool everything}) {
-    final run = _reload(everything: everything);
+  Future<void> _run(Future<void> Function() reload) {
+    late final Future<void> run;
+    run = reload().whenComplete(() {
+      if (identical(_inFlight, run)) _inFlight = null;
+    });
     _inFlight = run;
-    return run.whenComplete(() => _inFlight = null);
+    return run;
+  }
+
+  Future<void> _reloadFromScratch() async {
+    final competitionId = key.competitionId;
+    // Un programme en échec garderait son échec en cache : le relire aussi,
+    // sans quoi le détail retomberait sur la même erreur.
+    final programme = ref.read(programmeProvider(competitionId));
+    if (programme.hasError || !programme.hasValue) {
+      ref.invalidate(programmeProvider(competitionId));
+    }
+    ref.invalidateSelf();
+    try {
+      await future;
+    } on AppException {
+      // L'échec est déjà dans l'état, que la page affiche.
+    }
   }
 
   Future<void> _reload({required bool everything}) async {
     final current = state.value;
     if (current == null) return;
+    // Cette lecture peut survivre à la page, ou à une reconstruction du
+    // détail : seul le `Ref` de son départ dit si son résultat compte encore,
+    // et rien de `ref` ne doit servir après une attente sans l'avoir vérifié.
+    final runRef = ref;
+    final repository = ref.read(meetingRepositoryProvider);
+    final clock = ref.read(clockProvider);
     try {
-      final item = await _readItem(current.meeting.day);
+      final item = await _readItem(repository, current.meeting.day);
+      if (!runRef.mounted) return;
+      final readAt = clock();
       final due = everything
           ? {for (final heat in item.heats) heat.id}
-          : heatsToRefresh(item.heats, _finishedReadAt, _now());
+          : heatsToRefresh(item.heats, _finishedReadAt, readAt);
       final placeIds = _placeIds([
         for (final heat in item.heats)
           if (due.contains(heat.id)) heat,
       ]);
       final fetched = placeIds.isEmpty
           ? const <int, LaneAssignment?>{}
-          : await _repository.getLanes(placeIds);
-      if (!ref.mounted) return;
-      _recordReads(item.heats, due);
+          : await repository.getLanes(placeIds);
+      if (!runRef.mounted) return;
+      _recordReads(item.heats, due, readAt);
       state = AsyncData(
         current.copyWith(
           item: item,
@@ -152,16 +184,17 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail> {
         ),
       );
     } on AppException catch (error, stackTrace) {
-      if (!ref.mounted) return;
+      if (!runRef.mounted) return;
       state = AsyncError(error, stackTrace);
     }
   }
 
-  Future<MeetingItem> _readItem(DateTime day) async =>
-      await _repository.getMeetingItem(key.itemId, day: day) ??
+  Future<MeetingItem> _readItem(
+    MeetingRepository repository,
+    DateTime day,
+  ) async =>
+      await repository.getMeetingItem(key.itemId, day: day) ??
       (throw NotFoundException('meeting item ${key.itemId}'));
-
-  DateTime _now() => ref.read(clockProvider)();
 
   List<int> _placeIds(Iterable<Heat> heats) => [
     for (final heat in heats) ...heat.placeIds,
@@ -169,15 +202,14 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail> {
 
   /// Une course qui n'est pas (ou plus) terminée sort du registre : à son
   /// passage à « Terminé », elle sera relue tout de suite.
-  void _recordReads(List<Heat> heats, Set<int> read) {
-    final now = _now();
+  void _recordReads(List<Heat> heats, Set<int> read, DateTime readAt) {
     final finished = {
       for (final heat in heats)
         if (heat.status == RunStatus.finished) heat.id,
     };
     _finishedReadAt.removeWhere((id, _) => !finished.contains(id));
     for (final id in read.intersection(finished)) {
-      _finishedReadAt[id] = now;
+      _finishedReadAt[id] = readAt;
     }
   }
 }

@@ -231,13 +231,18 @@ void main() {
       c.listen(meetingItemDetailProvider(key), (_, _) {});
       async.flushMicrotasks();
 
-      lanes = {12: lane(12, 1, 'Bea'), 21: lane(21, 1, 'Chloé'), 22: null};
+      lanes = {12: lane(12, 1, 'Bea2'), 21: lane(21, 1, 'Chloé'), 22: null};
+      laneRequests.clear();
       async.elapse(itemDetailRefresh);
       async.flushMicrotasks();
 
+      verify(() => repository.getMeetingItem(10, day: day)).called(2);
+      expect(laneRequests, [
+        {11, 12, 21, 22},
+      ]);
       final detail = c.read(meetingItemDetailProvider(key)).value!;
       expect(detail.lanesOf(item.heats[0]).map((l) => l.athletes.single), [
-        'Bea',
+        'Bea2',
         'Alice',
       ]);
 
@@ -363,6 +368,100 @@ void main() {
       async.flushMicrotasks();
 
       expect(c.read(meetingItemDetailProvider(key)).value?.item, item);
+
+      c.dispose();
+    });
+  });
+
+  test('la page fermée pendant une relecture : rien ne casse', () {
+    fakeAsync((async) {
+      final c = container(async);
+      c.listen(meetingItemDetailProvider(key), (_, _) {});
+      async.flushMicrotasks();
+
+      final pending = Completer<MeetingItem?>();
+      when(
+        () => repository.getMeetingItem(any(), day: any(named: 'day')),
+      ).thenAnswer((_) => pending.future);
+      async.elapse(itemDetailRefresh);
+      async.flushMicrotasks();
+
+      c.dispose();
+      pending.complete(item);
+      async.flushMicrotasks();
+      async.elapse(itemDetailRefresh);
+    });
+  });
+
+  test('premier chargement en échec : la minuterie fait un nouvel essai', () {
+    fakeAsync((async) {
+      when(
+        () => repository.getMeetingItem(any(), day: any(named: 'day')),
+      ).thenAnswer((_) async => throw const NetworkException('hors ligne'));
+      final c = container(async);
+      c.listen(meetingItemDetailProvider(key), (_, _) {});
+      async.flushMicrotasks();
+      expect(c.read(meetingItemDetailProvider(key)).hasError, isTrue);
+
+      when(
+        () => repository.getMeetingItem(any(), day: any(named: 'day')),
+      ).thenAnswer((_) async => item);
+      async.elapse(itemDetailRefresh);
+      async.flushMicrotasks();
+
+      final state = c.read(meetingItemDetailProvider(key));
+      expect(state.hasError, isFalse);
+      expect(state.value?.item, item);
+
+      c.dispose();
+    });
+  });
+
+  test('refresh après un programme en échec relit le programme', () {
+    fakeAsync((async) {
+      when(
+        () => repository.getProgramme(any()),
+      ).thenAnswer((_) async => throw const NetworkException('hors ligne'));
+      final c = container(async);
+      c.listen(meetingItemDetailProvider(key), (_, _) {});
+      async.flushMicrotasks();
+      expect(c.read(meetingItemDetailProvider(key)).hasError, isTrue);
+
+      when(
+        () => repository.getProgramme(any()),
+      ).thenAnswer((_) async => programme());
+      c.read(meetingItemDetailProvider(key).notifier).refresh();
+      async.flushMicrotasks();
+
+      expect(c.read(meetingItemDetailProvider(key)).value?.item, item);
+
+      c.dispose();
+    });
+  });
+
+  test('deux refresh simultanés ne lancent pas deux lectures à la fois', () {
+    fakeAsync((async) {
+      final c = container(async);
+      c.listen(meetingItemDetailProvider(key), (_, _) {});
+      async.flushMicrotasks();
+      clearInteractions(repository);
+
+      final first = Completer<MeetingItem?>();
+      when(
+        () => repository.getMeetingItem(any(), day: any(named: 'day')),
+      ).thenAnswer((_) => first.future);
+      final notifier = c.read(meetingItemDetailProvider(key).notifier);
+      notifier.refresh();
+      notifier.refresh();
+      async.flushMicrotasks();
+      verify(() => repository.getMeetingItem(10, day: day)).called(1);
+
+      when(
+        () => repository.getMeetingItem(any(), day: any(named: 'day')),
+      ).thenAnswer((_) async => item);
+      first.complete(item);
+      async.flushMicrotasks();
+      verify(() => repository.getMeetingItem(10, day: day)).called(1);
 
       c.dispose();
     });
