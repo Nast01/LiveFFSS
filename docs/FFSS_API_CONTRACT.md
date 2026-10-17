@@ -20,3 +20,15 @@
 - **`visibility` est nullable, et nul veut dire « pas de filtre »** — ce qui n'est pas la même chose que `incoming` ou `passed`. Le paramètre traversait toute la chaîne sans jamais être envoyé ; l'accueil demandait `passed` tout en comptant afficher les compétitions à venir, donc il n'en demande plus aucune. Les deux noms de l'enum sont exactement ceux que l'API attend.
 - Clés du secure storage préfixées par environnement : production `''`, développement `'dev_'`. Six clés sont cloisonnées (`token`, `user`, `favorite_competitions`, `last_viewed_competitions`, `race_attendance`, `programme_<id>`), trois restent globales (`language`, `api_environment`, `debug_http_log`). La règle unique est `AppEnvironment.owner(key)` — ne pas la dupliquer ailleurs. Le préfixe de production est vide, ce qui rend le cloisonnement rétro-compatible : ne pas lui en donner un.
 
+
+## Programme, vérifié le 2026-10-17 sur la recette 1416
+
+Constats faits sur de vraies réponses de la recette (`https://site.ffss.io/api/v1.0/`, compétition 1416). Extraits dans `live_ffss.v2/test/fixtures/recette_1416/`. Ils l'emportent sur `FFSS_API.md`.
+
+- **`competition/:id/reunion` porte déjà la `partie` de chaque créneau d'épreuve**, mais sans son `deroulement`. Elle est `null` pour les créneaux sans épreuve (ouverture des portes, échauffement, pause, cérémonie).
+- **Les places des listes sont vides** (`reunion` comme `creneau/:id`) : `Numero` et `id` seulement, `engagement`, `resultat` et `athletes` à `null`.
+- **`competition/reunion/creneau/course/place/:id` rend la place complète**, avec `resultat.rangLabel` (« 5ème »), rang officiel **par catégorie**. Le résultat n'a **ni `complement`, ni code `Statut`**. La réponse porte aussi des données personnelles du licencié (e-mail, date de naissance, numéro de licence, dossard) que l'app ne lit pas et que les extraits de test ont retirées.
+- **`competition/reunion/creneau/:id` ne porte pas la réunion** : `Id`, `Nom`, `Debut`, `Fin` (`HH:mm`), `courses` et `partie` avec le `deroulement` complet et toutes ses `parties`.
+- **`competition/reunion/creneau/:id/course` échoue** : `success: false`, message « filterByCreneau() only accepts arguments of type … Creneau or Collection ».
+- **Deux formes de déroulement.** Dans la liste `competition/:id/deroulement`, `Discipline` (objet) et `Genre` (`H`/`F`). Imbriqué dans une `partie` (`creneau/:id`), `discipline` et `genreLabel`. Même objet, clés différentes.
+- **L'objet `serie` d'une course de `reunion` est réduit** : `id`, `nom`, `niveau`, `fullLabel`, **sans `Numero` ni `epreuve`**. Les courses d'une finale non générée ont `serie: null`.

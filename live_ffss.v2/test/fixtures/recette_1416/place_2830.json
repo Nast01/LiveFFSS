@@ -1,0 +1,102 @@
+{
+  "success": true,
+  "data": {
+    "id": 2830,
+    "Numero": 1,
+    "label": "Place 1",
+    "fullLabel": "Place 1 - Place 1",
+    "engagement": {
+      "id": 565725,
+      "label": "ATHLETE Deux / 200m Obstacles Femme (Seniors et Masters)",
+      "statut": 0,
+      "statutLabel": "Validé",
+      "clubLabel": "Capbreton Sauvetage Côtier Cefssa40",
+      "isForcedClubLabel": false,
+      "isForfait": false,
+      "athletesLabel": "ATHLETE Deux",
+      "athletes": [
+        {
+          "Id": 631932,
+          "isLicencie": true,
+          "idInvite": null,
+          "isInvite": false,
+          "label": "ATHLETE Deux",
+          "clubLabel": "Capbreton Sauvetage Côtier Cefssa40",
+          "isForcedClubLabel": false,
+          "publicLabel": "ATHLETE Deux",
+          "sexe": "F",
+          "isRemplacant": false,
+          "nationaliteLabel": "Française",
+          "nationaliteCode": "FRA"
+        }
+      ],
+      "EpreuveCategorie": {
+        "Id": 69010,
+        "Epreuve": {
+          "id": 36075,
+          "Id": 36075,
+          "label": "200m Obstacles Femme (Seniors et Masters)",
+          "shortLabel": "200m Obstacles - F (Seniors et Masters)",
+          "genre": "F",
+          "genreLabel": "Femme",
+          "unrestricted": false,
+          "restricted": true,
+          "Discipline": {
+            "id": 24,
+            "Id": 24,
+            "Nom": "200m Obstacles",
+            "specialite": 2,
+            "specialiteLabel": "Eau-plate",
+            "distance": 200,
+            "distanceLabel": "200m",
+            "nbAthleteParEquipe": 1,
+            "isRelais": false,
+            "hasTemps": true
+          }
+        },
+        "Categorie": {
+          "Id": 2,
+          "Nom": "Seniors et Masters",
+          "NomEn": "Seniors et Masters",
+          "AgeMin": 19,
+          "AgeMax": null,
+          "Relais": false,
+          "ExcludedForIndividualRecord": false,
+          "ExcludedForRelaisRecord": false,
+          "label": "Seniors et Masters",
+          "helper": "à partir de 19 ans"
+        },
+        "hasEngagement": true
+      }
+    },
+    "resultat": {
+      "id": 572559,
+      "Id": 572559,
+      "statutLabel": "OK",
+      "tempsLabel": "02'44\"66",
+      "isRecord": false,
+      "isRecordDeFrance": false,
+      "rangLabel": "3ème",
+      "hasRemplacants": false,
+      "performanceLabel": "3ème - 02'44\"66",
+      "isDisqualifie": false
+    },
+    "athletes": [
+      {
+        "Id": 631932,
+        "isLicencie": true,
+        "idInvite": null,
+        "isInvite": false,
+        "label": "ATHLETE Deux",
+        "clubLabel": "Capbreton Sauvetage Côtier Cefssa40",
+        "isForcedClubLabel": false,
+        "publicLabel": "ATHLETE Deux",
+        "sexe": "F",
+        "isRemplacant": false,
+        "nationaliteLabel": "Française",
+        "nationaliteCode": "FRA"
+      }
+    ],
+    "remplacants": []
+  }
+}

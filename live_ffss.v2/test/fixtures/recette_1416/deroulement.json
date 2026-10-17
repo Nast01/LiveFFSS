@@ -1,0 +1,196 @@
+{
+  "success": true,
+  "recordsTotal": 122,
+  "recordsFiltered": 36,
+  "data": [
+    {
+      "Id": 501,
+      "IdEvenement": 1416,
+      "IdDiscipline": 24,
+      "Genre": "F",
+      "label": "200m Obstacles - Femme",
+      "fullLabel": "200m Obstacles - Femme - Cadet, Junior, Seniors et Masters",
+      "genreLabel": "Femme",
+      "Discipline": {
+        "id": 24,
+        "Id": 24,
+        "Nom": "200m Obstacles",
+        "specialite": 2,
+        "specialiteLabel": "Eau-plate",
+        "distance": 200,
+        "distanceLabel": "200m",
+        "nbAthleteParEquipe": 1,
+        "isRelais": false,
+        "hasTemps": true
+      },
+      "categories": [
+        {
+          "Id": 1005,
+          "id": 1005,
+          "Nom": "Cadet",
+          "IdCategorie": 13,
+          "categorie": {
+            "Id": 13,
+            "Nom": "Cadet",
+            "NomEn": "Cadet",
+            "AgeMin": 15,
+            "AgeMax": 16,
+            "Relais": false,
+            "ExcludedForIndividualRecord": false,
+            "ExcludedForRelaisRecord": false,
+            "label": "Cadet",
+            "helper": "de 15 ans à 16 ans"
+          }
+        },
+        {
+          "Id": 1006,
+          "id": 1006,
+          "Nom": "Junior",
+          "IdCategorie": 14,
+          "categorie": {
+            "Id": 14,
+            "Nom": "Junior",
+            "NomEn": "Junior",
+            "AgeMin": 17,
+            "AgeMax": 18,
+            "Relais": false,
+            "ExcludedForIndividualRecord": false,
+            "ExcludedForRelaisRecord": false,
+            "label": "Junior",
+            "helper": "de 17 ans à 18 ans"
+          }
+        },
+        {
+          "Id": 1007,
+          "id": 1007,
+          "Nom": "Seniors et Masters",
+          "IdCategorie": 2,
+          "categorie": {
+            "Id": 2,
+            "Nom": "Seniors et Masters",
+            "NomEn": "Seniors et Masters",
+            "AgeMin": 19,
+            "AgeMax": null,
+            "Relais": false,
+            "ExcludedForIndividualRecord": false,
+            "ExcludedForRelaisRecord": false,
+            "label": "Seniors et Masters",
+            "helper": "à partir de 19 ans"
+          }
+        }
+      ],
+      "parties": [
+        {
+          "id": 142,
+          "ordre": 1,
+          "label": "Série - Cadet, Junior, Seniors et Masters",
+          "fullLabel": "200m Obstacles - Femme - Série - Cadet, Junior, Seniors et Masters",
+          "niveauLabel": "Série",
+          "niveau": "heat",
+          "nbCourses": 10,
+          "logiqueQualification": "partie",
+          "logiqueQualificationLabel": "Par partie (toute course confondue)",
+          "nbPlaceParCourse": 8,
+          "nbPlaceQualificative": 0
+        },
+        {
+          "id": 143,
+          "ordre": 2,
+          "label": "Finale - Cadet",
+          "fullLabel": "200m Obstacles - Femme - Finale - Cadet",
+          "niveauLabel": "Finale",
+          "niveau": "final",
+          "nbCourses": 2,
+          "logiqueQualification": "none",
+          "logiqueQualificationLabel": "N/A",
+          "nbPlaceParCourse": 8,
+          "nbPlaceQualificative": 0
+        },
+        {
+          "id": 144,
+          "ordre": 3,
+          "label": "Finale - Junior",
+          "fullLabel": "200m Obstacles - Femme - Finale - Junior",
+          "niveauLabel": "Finale",
+          "niveau": "final",
+          "nbCourses": 2,
+          "logiqueQualification": "none",
+          "logiqueQualificationLabel": "N/A",
+          "nbPlaceParCourse": 8,
+          "nbPlaceQualificative": 0
+        },
+        {
+          "id": 145,
+          "ordre": 4,
+          "label": "Finale - Seniors et Masters",
+          "fullLabel": "200m Obstacles - Femme - Finale - Seniors et Masters",
+          "niveauLabel": "Finale",
+          "niveau": "final",
+          "nbCourses": 2,
+          "logiqueQualification": "none",
+          "logiqueQualificationLabel": "N/A",
+          "nbPlaceParCourse": 8,
+          "nbPlaceQualificative": 0
+        }
+      ]
+    },
+    {
+      "Id": 502,
+      "IdEvenement": 1416,
+      "IdDiscipline": 15,
+      "Genre": "H",
+      "label": "Lancer de Corde - Homme",
+      "fullLabel": "Lancer de Corde - Homme - Youth",
+      "genreLabel": "Homme",
+      "Discipline": {
+        "id": 15,
+        "Id": 15,
+        "Nom": "Lancer de Corde",
+        "specialite": 2,
+        "specialiteLabel": "Eau-plate",
+        "distance": 100,
+        "distanceLabel": "100m",
+        "nbAthleteParEquipe": 2,
+        "isRelais": true,
+        "hasTemps": true
+      },
+      "categories": [
+        {
+          "Id": 1008,
+          "id": 1008,
+          "Nom": "Youth",
+          "IdCategorie": 22,
+          "categorie": {
+            "Id": 22,
+            "Nom": "Youth",
+            "NomEn": "Youth",
+            "AgeMin": 15,
+            "AgeMax": 18,
+            "Relais": false,
+            "ExcludedForIndividualRecord": false,
+            "ExcludedForRelaisRecord": false,
+            "label": "Youth",
+            "helper": "de 15 ans à 18 ans"
+          }
+        }
+      ],
+      "parties": [
+        {
+          "id": 146,
+          "ordre": 1,
+          "label": "Série - Youth",
+          "fullLabel": "Lancer de Corde - Homme - Série - Youth",
+          "niveauLabel": "Série",
+          "niveau": "heat",
+          "nbCourses": 4,
+          "logiqueQualification": "none",
+          "logiqueQualificationLabel": "N/A",
+          "nbPlaceParCourse": 8,
+          "nbPlaceQualificative": 0
+        }
+      ]
+    }
+  ],
+  "version": 1,
+  "draw": 1
+}

@@ -1,0 +1,102 @@
+{
+  "success": true,
+  "data": {
+    "id": 2816,
+    "Numero": 2,
+    "label": "Place 2",
+    "fullLabel": "Place 2 - Place 2",
+    "engagement": {
+      "id": 566311,
+      "label": "ATHLETE Un / 200m Obstacles Femme (Cadet)",
+      "statut": 0,
+      "statutLabel": "Validé",
+      "clubLabel": "Biscarrosse Olympique Sauvetage et Secourisme",
+      "isForcedClubLabel": false,
+      "isForfait": false,
+      "athletesLabel": "ATHLETE Un",
+      "athletes": [
+        {
+          "Id": 633044,
+          "isLicencie": true,
+          "idInvite": null,
+          "isInvite": false,
+          "label": "ATHLETE Un",
+          "clubLabel": "Biscarrosse Olympique Sauvetage et Secourisme",
+          "isForcedClubLabel": false,
+          "publicLabel": "ATHLETE Un",
+          "sexe": "F",
+          "isRemplacant": false,
+          "nationaliteLabel": "Française",
+          "nationaliteCode": "FRA"
+        }
+      ],
+      "EpreuveCategorie": {
+        "Id": 69008,
+        "Epreuve": {
+          "id": 36073,
+          "Id": 36073,
+          "label": "200m Obstacles Femme (Cadet)",
+          "shortLabel": "200m Obstacles - F (Cadet)",
+          "genre": "F",
+          "genreLabel": "Femme",
+          "unrestricted": false,
+          "restricted": true,
+          "Discipline": {
+            "id": 24,
+            "Id": 24,
+            "Nom": "200m Obstacles",
+            "specialite": 2,
+            "specialiteLabel": "Eau-plate",
+            "distance": 200,
+            "distanceLabel": "200m",
+            "nbAthleteParEquipe": 1,
+            "isRelais": false,
+            "hasTemps": true
+          }
+        },
+        "Categorie": {
+          "Id": 13,
+          "Nom": "Cadet",
+          "NomEn": "Cadet",
+          "AgeMin": 15,
+          "AgeMax": 16,
+          "Relais": false,
+          "ExcludedForIndividualRecord": false,
+          "ExcludedForRelaisRecord": false,
+          "label": "Cadet",
+          "helper": "de 15 ans à 16 ans"
+        },
+        "hasEngagement": true
+      }
+    },
+    "resultat": {
+      "id": 572548,
+      "Id": 572548,
+      "statutLabel": "OK",
+      "tempsLabel": "02'55\"77",
+      "isRecord": false,
+      "isRecordDeFrance": false,
+      "rangLabel": "5ème",
+      "hasRemplacants": false,
+      "performanceLabel": "5ème - 02'55\"77",
+      "isDisqualifie": false
+    },
+    "athletes": [
+      {
+        "Id": 633044,
+        "isLicencie": true,
+        "idInvite": null,
+        "isInvite": false,
+        "label": "ATHLETE Un",
+        "clubLabel": "Biscarrosse Olympique Sauvetage et Secourisme",
+        "isForcedClubLabel": false,
+        "publicLabel": "ATHLETE Un",
+        "sexe": "F",
+        "isRemplacant": false,
+        "nationaliteLabel": "Française",
+        "nationaliteCode": "FRA"
+      }
+    ],
+    "remplacants": []
+  }
+}

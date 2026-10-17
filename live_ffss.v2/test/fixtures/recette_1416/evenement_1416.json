@@ -1,0 +1,201 @@
+{
+  "success": true,
+  "data": {
+    "Id": 1416,
+    "IdOrganisme": 245,
+    "Organisme": {
+      "NomOrga": "FFSS 75",
+      "label": "FEDERATION FRANCAISE DE SAUVETAGE ET DE SECOURISME"
+    },
+    "Nom": "Championnats de France N1 2026",
+    "Statut": 1,
+    "statutLabel": "Valide",
+    "Specialite": 2,
+    "specialiteLabel": "Eau-plate",
+    "Niveau": 10,
+    "niveauLabel": "Fédéral",
+    "Debut": "2026-03-27",
+    "Fin": "2026-03-29",
+    "dateLabel": "Du 27/03/2026 au 29/03/2026",
+    "Lieu": "Centre UCPA Aquastadium à Mérignac (33)",
+    "DebutEngagement": "2026-03-17",
+    "FinEngagement": "2026-03-23",
+    "engagementLabel": "Du 17/03/2026 au 23/03/2026",
+    "TarifParClub": 0,
+    "TarifParAthlete": 0,
+    "TarifParEngagement": 5,
+    "Description": "Cette compétition, regroupe les Championnats de France des catégories cadets, juniors et seniors licenciés à la FFSS dans un Club.\r\nCes championnats regroupent l'ensemble des épreuves individuelles et des relais\r\nSeront sélectionnés pour une épreuve les sauveteurs se retrouvant dans le classement jusqu'à la 24ème place (incluse) de cette dernière (hormis les collectifs qualifiés d'office). Les qualifications seront réalisées entre le 1er octobre 2025 et le 16 mars 2026.\r\nLes temps devront, obligatoirement, être réalisés sur des compétitions inscrites au calendrier National de la FFSS\r\nLes sportifs listés sont automatiquement qualifiés sur ces Championnats.",
+    "NbMaxEngagementIndividuelParEpreuve": 100,
+    "NbMaxEngagementEquipeParEpreuve": 2,
+    "hasBegun": true,
+    "hasResultat": true,
+    "hasPassed": true,
+    "bassin": "bassin 50m",
+    "water": "N/A",
+    "chronoLabel": "Électronique",
+    "isEligibleToNationalRecord": true,
+    "parametres": [
+      {
+        "Id": 15899,
+        "Cle": "water",
+        "cleLabel": "Plan d'eau",
+        "Valeur": "1",
+        "valeurLabel": "Mer"
+      },
+      {
+        "Id": 15900,
+        "Cle": "costal_restriction",
+        "cleLabel": "Restrictions des engagements",
+        "Valeur": "libre",
+        "valeurLabel": "Libre"
+      },
+      {
+        "Id": 15901,
+        "Cle": "doneFrom",
+        "cleLabel": "Participation à partir du",
+        "Valeur": "",
+        "valeurLabel": ""
+      },
+      {
+        "Id": 15902,
+        "Cle": "doneTo",
+        "cleLabel": "Participation avant le",
+        "Valeur": "",
+        "valeurLabel": ""
+      },
+      {
+        "Id": 15903,
+        "Cle": "minDoneLevel",
+        "cleLabel": "Niveau minimum de compétition",
+        "Valeur": "1",
+        "valeurLabel": "Départemental"
+      },
+      {
+        "Id": 15904,
+        "Cle": "minDoneSerieLevel",
+        "cleLabel": "Niveau de série minimum",
+        "Valeur": "heat",
+        "valeurLabel": "Tout niveau"
+      },
+      {
+        "Id": 15905,
+        "Cle": "circuit",
+        "cleLabel": "Circuit",
+        "Valeur": "",
+        "valeurLabel": ""
+      },
+      {
+        "Id": 15906,
+        "Cle": "minCircuitSerieLevel",
+        "cleLabel": "Niveau de série minimum",
+        "Valeur": "heat",
+        "valeurLabel": "Tout niveau"
+      },
+      {
+        "Id": 15907,
+        "Cle": "pool",
+        "cleLabel": "Type de bassin",
+        "Valeur": "2",
+        "valeurLabel": "bassin 50m"
+      },
+      {
+        "Id": 15908,
+        "Cle": "nbLines",
+        "cleLabel": "Nombre de lignes",
+        "Valeur": "10",
+        "valeurLabel": "10"
+      },
+      {
+        "Id": 15909,
+        "Cle": "plainwater_restriction",
+        "cleLabel": "Restrictions des engagements",
+        "Valeur": "classement",
+        "valeurLabel": "Classement"
+      },
+      {
+        "Id": 15910,
+        "Cle": "maxRank",
+        "cleLabel": "Rang minimum",
+        "Valeur": "1",
+        "valeurLabel": "1"
+      },
+      {
+        "Id": 15911,
+        "Cle": "minRank",
+        "cleLabel": "Rang maximum",
+        "Valeur": "24",
+        "valeurLabel": "24"
+      },
+      {
+        "Id": 15912,
+        "Cle": "rankedFrom",
+        "cleLabel": "Classement calculé à partir du",
+        "Valeur": "01/10/2025",
+        "valeurLabel": "01/10/2025"
+      },
+      {
+        "Id": 15913,
+        "Cle": "rankedTo",
+        "cleLabel": "Classement calculé jusqu'au",
+        "Valeur": "16/03/2026",
+        "valeurLabel": "16/03/2026"
+      },
+      {
+        "Id": 15914,
+        "Cle": "minRankLevel",
+        "cleLabel": "Niveau minimum de compétition",
+        "Valeur": "1",
+        "valeurLabel": "Départemental"
+      },
+      {
+        "Id": 15915,
+        "Cle": "minimaGrid",
+        "cleLabel": "Grille de minima",
+        "Valeur": "",
+        "valeurLabel": ""
+      },
+      {
+        "Id": 15916,
+        "Cle": "minMinimalLevel",
+        "cleLabel": "Niveau minimum de compétition",
+        "Valeur": "1",
+        "valeurLabel": "Départemental"
+      },
+      {
+        "Id": 15917,
+        "Cle": "minimaFrom",
+        "cleLabel": "Performances réalisées depuis le",
+        "Valeur": "",
+        "valeurLabel": ""
+      },
+      {
+        "Id": 15918,
+        "Cle": "minimaTo",
+        "cleLabel": "Performances réalisées jusqu'au",
+        "Valeur": "",
+        "valeurLabel": ""
+      },
+      {
+        "Id": 16163,
+        "Cle": "rankOnlyFrench",
+        "cleLabel": "Reservé aux athlètes français uniquement",
+        "Valeur": "1",
+        "valeurLabel": "1"
+      },
+      {
+        "Id": 16165,
+        "Cle": "rankCollectifUnrestricted",
+        "cleLabel": "Membre du collectif haut-niveau autorisé sans restriction",
+        "Valeur": "1",
+        "valeurLabel": "1"
+      },
+      {
+        "Id": 16921,
+        "Cle": "rankCollectifRefused",
+        "cleLabel": "Membre du collectif haut-niveau interdit",
+        "Valeur": "0",
+        "valeurLabel": "0"
+      }
+    ]
+  }
+}

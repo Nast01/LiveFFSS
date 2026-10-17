@@ -1,0 +1,1590 @@
+{
+  "success": true,
+  "recordsTotal": 54,
+  "recordsFiltered": 6,
+  "data": [
+    {
+      "Id": 104,
+      "IdEvenement": 1416,
+      "Nom": "Réunion 1 - Séries",
+      "Jour": "2026-03-27",
+      "Description": "Réunion 1 - Séries",
+      "Debut": "06:45",
+      "Fin": "13:45",
+      "label": "Réunion 1 - Séries",
+      "fullLabel": "Réunion 1 - Séries",
+      "creneaus": [
+        {
+          "id": 174,
+          "Id": 174,
+          "Nom": "Ouverture des portes",
+          "label": "Ouverture des portes",
+          "fullLabel": "Ouverture des portes - Ouverture des portes",
+          "Debut": "06:45",
+          "Fin": "07:00",
+          "partie": null,
+          "courses": []
+        },
+        {
+          "id": 177,
+          "Id": 177,
+          "Nom": "Série · 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+          "label": "Série · 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+          "fullLabel": "Série · 200m Obstacles Dames (Cadet, Junior, Seniors et Masters) - Série · 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+          "Debut": "08:00",
+          "Fin": "08:40",
+          "partie": {
+            "id": 142,
+            "ordre": 1,
+            "label": "Série - Cadet, Junior, Seniors et Masters",
+            "fullLabel": "200m Obstacles - Femme - Série - Cadet, Junior, Seniors et Masters",
+            "niveauLabel": "Série",
+            "niveau": "heat",
+            "nbCourses": 10,
+            "logiqueQualification": "partie",
+            "logiqueQualificationLabel": "Par partie (toute course confondue)",
+            "nbPlaceParCourse": 8,
+            "nbPlaceQualificative": 0
+          },
+          "courses": [
+            {
+              "id": 479,
+              "Nom": "Série 1",
+              "label": "Série 1",
+              "fullLabel": "Série 1 - Série 1",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "08:00",
+              "fin": "08:02",
+              "places": [
+                {
+                  "id": 2816,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2817,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2818,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2819,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2820,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2821,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94894,
+                "Id": 94894,
+                "label": "Série 1 - Résultats temporaires",
+                "fullLabel": "200m Obstacles Femme (Cadet) - Série 1 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 480,
+              "Nom": "Série 2",
+              "label": "Série 2",
+              "fullLabel": "Série 2 - Série 2",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "08:04",
+              "fin": "08:07",
+              "places": [
+                {
+                  "id": 2822,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2823,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2824,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2825,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2826,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2827,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2828,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 2829,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94899,
+                "Id": 94899,
+                "label": "Série 2 - Résultats temporaires",
+                "fullLabel": "200m Obstacles Femme (Cadet) - Série 2 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            }
+          ]
+        },
+        {
+          "id": 185,
+          "Id": 185,
+          "Nom": "Série · 100m Bouée Tube Dames (Cadet, Junior, Seniors et Masters)",
+          "label": "Série · 100m Bouée Tube Dames (Cadet, Junior, Seniors et Masters)",
+          "fullLabel": "Série · 100m Bouée Tube Dames (Cadet, Junior, Seniors et Masters) - Série · 100m Bouée Tube Dames (Cadet, Junior, Seniors et Masters)",
+          "Debut": "10:21",
+          "Fin": "10:51",
+          "partie": {
+            "id": 154,
+            "ordre": 1,
+            "label": "Série - Cadet, Junior, Seniors et Masters",
+            "fullLabel": "100m Bouée Tube - Femme - Série - Cadet, Junior, Seniors et Masters",
+            "niveauLabel": "Série",
+            "niveau": "heat",
+            "nbCourses": 12,
+            "logiqueQualification": "partie",
+            "logiqueQualificationLabel": "Par partie (toute course confondue)",
+            "nbPlaceParCourse": 8,
+            "nbPlaceQualificative": 0
+          },
+          "courses": [
+            {
+              "id": 515,
+              "Nom": "Série 1",
+              "label": "Série 1",
+              "fullLabel": "Série 1 - Série 1",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:20",
+              "fin": "10:21",
+              "places": [
+                {
+                  "id": 3082,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3083,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3084,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3085,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94963,
+                "Id": 94963,
+                "label": "Série 1 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Cadet) - Série 1 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 516,
+              "Nom": "Série 2",
+              "label": "Série 2",
+              "fullLabel": "Série 2 - Série 2",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:23",
+              "fin": "10:24",
+              "places": [
+                {
+                  "id": 3086,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3087,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3088,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3089,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3090,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3091,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3092,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3093,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94964,
+                "Id": 94964,
+                "label": "Série 2 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Cadet) - Série 2 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 517,
+              "Nom": "Série 3",
+              "label": "Série 3",
+              "fullLabel": "Série 3 - Série 3",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:26",
+              "fin": "10:27",
+              "places": [
+                {
+                  "id": 3094,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3095,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3096,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3097,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3098,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3099,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3100,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3101,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94966,
+                "Id": 94966,
+                "label": "Série 3 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Cadet) - Série 3 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 518,
+              "Nom": "Série 4",
+              "label": "Série 4",
+              "fullLabel": "Série 4 - Série 4",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:28",
+              "fin": "10:30",
+              "places": [
+                {
+                  "id": 3102,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3103,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3104,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3105,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3106,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3107,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3108,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3109,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94969,
+                "Id": 94969,
+                "label": "Série 4 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Junior) - Série 4 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 519,
+              "Nom": "Série 5",
+              "label": "Série 5",
+              "fullLabel": "Série 5 - Série 5",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:31",
+              "fin": "10:32",
+              "places": [
+                {
+                  "id": 3110,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3111,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3112,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3113,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3114,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3115,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3116,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3117,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94971,
+                "Id": 94971,
+                "label": "Série 5 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Cadet) - Série 5 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 520,
+              "Nom": "Série 6",
+              "label": "Série 6",
+              "fullLabel": "Série 6 - Série 6",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:34",
+              "fin": "10:35",
+              "places": [
+                {
+                  "id": 3118,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3119,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3120,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3121,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3122,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3123,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3124,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3125,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94975,
+                "Id": 94975,
+                "label": "Série 6 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Seniors et Masters) - Série 6 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 521,
+              "Nom": "Série 7",
+              "label": "Série 7",
+              "fullLabel": "Série 7 - Série 7",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:36",
+              "fin": "10:38",
+              "places": [
+                {
+                  "id": 3126,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3127,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3128,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3129,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3130,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3131,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3132,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3133,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94977,
+                "Id": 94977,
+                "label": "Série 7 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Junior) - Série 7 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 522,
+              "Nom": "Série 8",
+              "label": "Série 8",
+              "fullLabel": "Série 8 - Série 8",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:39",
+              "fin": "10:40",
+              "places": [
+                {
+                  "id": 3134,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3135,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3136,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3137,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3138,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3139,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3140,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3141,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94979,
+                "Id": 94979,
+                "label": "Série 8 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Junior) - Série 8 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 523,
+              "Nom": "Série 9",
+              "label": "Série 9",
+              "fullLabel": "Série 9 - Série 9",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:42",
+              "fin": "10:43",
+              "places": [
+                {
+                  "id": 3142,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3143,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3144,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3145,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3146,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3147,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3148,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3149,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94982,
+                "Id": 94982,
+                "label": "Série 9 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Junior) - Série 9 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 524,
+              "Nom": "Série 10",
+              "label": "Série 10",
+              "fullLabel": "Série 10 - Série 10",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:44",
+              "fin": "10:46",
+              "places": [
+                {
+                  "id": 3150,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3151,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3152,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3153,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3154,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3155,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3156,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3157,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94986,
+                "Id": 94986,
+                "label": "Série 10 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Seniors et Masters) - Série 10 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 525,
+              "Nom": "Série 11",
+              "label": "Série 11",
+              "fullLabel": "Série 11 - Série 11",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:47",
+              "fin": "10:48",
+              "places": [
+                {
+                  "id": 3158,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3159,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3160,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3161,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3162,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3163,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3164,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3165,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94988,
+                "Id": 94988,
+                "label": "Série 11 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Seniors et Masters) - Série 11 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            },
+            {
+              "id": 526,
+              "Nom": "Série 12",
+              "label": "Série 12",
+              "fullLabel": "Série 12 - Série 12",
+              "statut": 3,
+              "statutLabel": "Terminé",
+              "site": null,
+              "debut": "10:50",
+              "fin": "10:51",
+              "places": [
+                {
+                  "id": 3166,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3167,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3168,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3169,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3170,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3171,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3172,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 3173,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": {
+                "id": 94990,
+                "Id": 94990,
+                "label": "Série 12 - Résultats temporaires",
+                "fullLabel": "100m Bouée Tube Femme (Seniors et Masters) - Série 12 (Série)",
+                "niveau": "heat",
+                "niveauLabel": "Série",
+                "niveauAsInt": 0,
+                "fini": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": 110,
+      "IdEvenement": 1416,
+      "Nom": "Réunion 1 - Finales",
+      "Jour": "2026-03-27",
+      "Description": "Réunion 1 - Finales",
+      "Debut": "13:45",
+      "Fin": "18:53",
+      "label": "Réunion 1 - Finales",
+      "fullLabel": "Réunion 1 - Finales",
+      "creneaus": [
+        {
+          "id": 347,
+          "Id": 347,
+          "Nom": "Finale A · 100m Bouée Tube Dames (Cadet)",
+          "label": "Finale A · 100m Bouée Tube Dames (Cadet)",
+          "fullLabel": "Finale A · 100m Bouée Tube Dames (Cadet) - Finale A · 100m Bouée Tube Dames (Cadet)",
+          "Debut": "17:38",
+          "Fin": "17:42",
+          "partie": {
+            "id": 155,
+            "ordre": 2,
+            "label": "Finale - Cadet",
+            "fullLabel": "100m Bouée Tube - Femme - Finale - Cadet",
+            "niveauLabel": "Finale",
+            "niveau": "final",
+            "nbCourses": 2,
+            "logiqueQualification": "none",
+            "logiqueQualificationLabel": "N/A",
+            "nbPlaceParCourse": 8,
+            "nbPlaceQualificative": 0
+          },
+          "courses": [
+            {
+              "id": 563,
+              "Nom": "Finale A - Cadet",
+              "label": "Finale A - Cadet",
+              "fullLabel": "Finale A - Cadet - Finale A - Cadet",
+              "statut": null,
+              "statutLabel": "En attente",
+              "site": null,
+              "debut": "17:37",
+              "fin": "17:41",
+              "places": [
+                {
+                  "id": 4335,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4336,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4337,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4338,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4339,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4340,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4341,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4342,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": null
+            }
+          ]
+        },
+        {
+          "id": 348,
+          "Id": 348,
+          "Nom": "Finale A · 100m Bouée Tube Messieurs (Cadet)",
+          "label": "Finale A · 100m Bouée Tube Messieurs (Cadet)",
+          "fullLabel": "Finale A · 100m Bouée Tube Messieurs (Cadet) - Finale A · 100m Bouée Tube Messieurs (Cadet)",
+          "Debut": "17:43",
+          "Fin": "17:48",
+          "partie": {
+            "id": 151,
+            "ordre": 2,
+            "label": "Finale - Cadet",
+            "fullLabel": "100m Bouée Tube - Homme - Finale - Cadet",
+            "niveauLabel": "Finale",
+            "niveau": "final",
+            "nbCourses": 2,
+            "logiqueQualification": "none",
+            "logiqueQualificationLabel": "N/A",
+            "nbPlaceParCourse": 8,
+            "nbPlaceQualificative": 0
+          },
+          "courses": [
+            {
+              "id": 564,
+              "Nom": "Finale A - Cadet",
+              "label": "Finale A - Cadet",
+              "fullLabel": "Finale A - Cadet - Finale A - Cadet",
+              "statut": null,
+              "statutLabel": "En attente",
+              "site": null,
+              "debut": "17:43",
+              "fin": "17:47",
+              "places": [
+                {
+                  "id": 4343,
+                  "Numero": 1,
+                  "label": "Place 1",
+                  "fullLabel": "Place 1 - Place 1",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4344,
+                  "Numero": 2,
+                  "label": "Place 2",
+                  "fullLabel": "Place 2 - Place 2",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4345,
+                  "Numero": 3,
+                  "label": "Place 3",
+                  "fullLabel": "Place 3 - Place 3",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4346,
+                  "Numero": 4,
+                  "label": "Place 4",
+                  "fullLabel": "Place 4 - Place 4",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4347,
+                  "Numero": 5,
+                  "label": "Place 5",
+                  "fullLabel": "Place 5 - Place 5",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4348,
+                  "Numero": 6,
+                  "label": "Place 6",
+                  "fullLabel": "Place 6 - Place 6",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4349,
+                  "Numero": 7,
+                  "label": "Place 7",
+                  "fullLabel": "Place 7 - Place 7",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                },
+                {
+                  "id": 4350,
+                  "Numero": 8,
+                  "label": "Place 8",
+                  "fullLabel": "Place 8 - Place 8",
+                  "engagement": null,
+                  "resultat": null,
+                  "athletes": null
+                }
+              ],
+              "serie": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "version": 1,
+  "draw": 1
+}

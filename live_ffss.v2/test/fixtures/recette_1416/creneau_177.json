@@ -1,0 +1,327 @@
+{
+  "success": true,
+  "data": {
+    "id": 177,
+    "Id": 177,
+    "Nom": "Série · 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+    "label": "Série · 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+    "fullLabel": "Série · 200m Obstacles Dames (Cadet, Junior, Seniors et Masters) - Série · 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+    "Debut": "08:00",
+    "Fin": "08:40",
+    "partie": {
+      "id": 142,
+      "ordre": 1,
+      "label": "Série - Cadet, Junior, Seniors et Masters",
+      "fullLabel": "200m Obstacles - Femme - Série - Cadet, Junior, Seniors et Masters",
+      "niveauLabel": "Série",
+      "niveau": "heat",
+      "nbCourses": 10,
+      "logiqueQualification": "partie",
+      "logiqueQualificationLabel": "Par partie (toute course confondue)",
+      "nbPlaceParCourse": 8,
+      "nbPlaceQualificative": 0,
+      "deroulement": {
+        "id": 501,
+        "label": "200m Obstacles - Femme",
+        "fullLabel": "200m Obstacles - Femme - Cadet, Junior, Seniors et Masters",
+        "genreLabel": "Femme",
+        "discipline": {
+          "id": 24,
+          "Id": 24,
+          "Nom": "200m Obstacles",
+          "specialite": 2,
+          "specialiteLabel": "Eau-plate",
+          "distance": 200,
+          "distanceLabel": "200m",
+          "nbAthleteParEquipe": 1,
+          "isRelais": false,
+          "hasTemps": true
+        },
+        "categories": [
+          {
+            "Id": 1005,
+            "id": 1005,
+            "Nom": "Cadet",
+            "IdCategorie": 13,
+            "categorie": {
+              "Id": 13,
+              "Nom": "Cadet",
+              "NomEn": "Cadet",
+              "AgeMin": 15,
+              "AgeMax": 16,
+              "Relais": false,
+              "ExcludedForIndividualRecord": false,
+              "ExcludedForRelaisRecord": false,
+              "label": "Cadet",
+              "helper": "de 15 ans à 16 ans"
+            }
+          },
+          {
+            "Id": 1006,
+            "id": 1006,
+            "Nom": "Junior",
+            "IdCategorie": 14,
+            "categorie": {
+              "Id": 14,
+              "Nom": "Junior",
+              "NomEn": "Junior",
+              "AgeMin": 17,
+              "AgeMax": 18,
+              "Relais": false,
+              "ExcludedForIndividualRecord": false,
+              "ExcludedForRelaisRecord": false,
+              "label": "Junior",
+              "helper": "de 17 ans à 18 ans"
+            }
+          },
+          {
+            "Id": 1007,
+            "id": 1007,
+            "Nom": "Seniors et Masters",
+            "IdCategorie": 2,
+            "categorie": {
+              "Id": 2,
+              "Nom": "Seniors et Masters",
+              "NomEn": "Seniors et Masters",
+              "AgeMin": 19,
+              "AgeMax": null,
+              "Relais": false,
+              "ExcludedForIndividualRecord": false,
+              "ExcludedForRelaisRecord": false,
+              "label": "Seniors et Masters",
+              "helper": "à partir de 19 ans"
+            }
+          }
+        ],
+        "parties": [
+          {
+            "id": 142,
+            "ordre": 1,
+            "label": "Série - Cadet, Junior, Seniors et Masters",
+            "fullLabel": "200m Obstacles - Femme - Série - Cadet, Junior, Seniors et Masters",
+            "niveauLabel": "Série",
+            "niveau": "heat",
+            "nbCourses": 10,
+            "logiqueQualification": "partie",
+            "logiqueQualificationLabel": "Par partie (toute course confondue)",
+            "nbPlaceParCourse": 8,
+            "nbPlaceQualificative": 0
+          },
+          {
+            "id": 143,
+            "ordre": 2,
+            "label": "Finale - Cadet",
+            "fullLabel": "200m Obstacles - Femme - Finale - Cadet",
+            "niveauLabel": "Finale",
+            "niveau": "final",
+            "nbCourses": 2,
+            "logiqueQualification": "none",
+            "logiqueQualificationLabel": "N/A",
+            "nbPlaceParCourse": 8,
+            "nbPlaceQualificative": 0
+          },
+          {
+            "id": 144,
+            "ordre": 3,
+            "label": "Finale - Junior",
+            "fullLabel": "200m Obstacles - Femme - Finale - Junior",
+            "niveauLabel": "Finale",
+            "niveau": "final",
+            "nbCourses": 2,
+            "logiqueQualification": "none",
+            "logiqueQualificationLabel": "N/A",
+            "nbPlaceParCourse": 8,
+            "nbPlaceQualificative": 0
+          },
+          {
+            "id": 145,
+            "ordre": 4,
+            "label": "Finale - Seniors et Masters",
+            "fullLabel": "200m Obstacles - Femme - Finale - Seniors et Masters",
+            "niveauLabel": "Finale",
+            "niveau": "final",
+            "nbCourses": 2,
+            "logiqueQualification": "none",
+            "logiqueQualificationLabel": "N/A",
+            "nbPlaceParCourse": 8,
+            "nbPlaceQualificative": 0
+          }
+        ]
+      }
+    },
+    "courses": [
+      {
+        "id": 479,
+        "Nom": "Série 1",
+        "label": "Série 1",
+        "fullLabel": "Série 1 - Série 1",
+        "statut": 3,
+        "statutLabel": "Terminé",
+        "site": null,
+        "debut": "08:00",
+        "fin": "08:02",
+        "places": [
+          {
+            "id": 2816,
+            "Numero": 2,
+            "label": "Place 2",
+            "fullLabel": "Place 2 - Place 2",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2817,
+            "Numero": 3,
+            "label": "Place 3",
+            "fullLabel": "Place 3 - Place 3",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2818,
+            "Numero": 4,
+            "label": "Place 4",
+            "fullLabel": "Place 4 - Place 4",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2819,
+            "Numero": 5,
+            "label": "Place 5",
+            "fullLabel": "Place 5 - Place 5",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2820,
+            "Numero": 6,
+            "label": "Place 6",
+            "fullLabel": "Place 6 - Place 6",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2821,
+            "Numero": 7,
+            "label": "Place 7",
+            "fullLabel": "Place 7 - Place 7",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          }
+        ],
+        "serie": {
+          "id": 94894,
+          "Id": 94894,
+          "label": "Série 1 - Résultats temporaires",
+          "fullLabel": "200m Obstacles Femme (Cadet) - Série 1 (Série)",
+          "niveau": "heat",
+          "niveauLabel": "Série",
+          "niveauAsInt": 0,
+          "fini": null
+        }
+      },
+      {
+        "id": 480,
+        "Nom": "Série 2",
+        "label": "Série 2",
+        "fullLabel": "Série 2 - Série 2",
+        "statut": 3,
+        "statutLabel": "Terminé",
+        "site": null,
+        "debut": "08:04",
+        "fin": "08:07",
+        "places": [
+          {
+            "id": 2822,
+            "Numero": 1,
+            "label": "Place 1",
+            "fullLabel": "Place 1 - Place 1",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2823,
+            "Numero": 2,
+            "label": "Place 2",
+            "fullLabel": "Place 2 - Place 2",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2824,
+            "Numero": 3,
+            "label": "Place 3",
+            "fullLabel": "Place 3 - Place 3",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2825,
+            "Numero": 4,
+            "label": "Place 4",
+            "fullLabel": "Place 4 - Place 4",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2826,
+            "Numero": 5,
+            "label": "Place 5",
+            "fullLabel": "Place 5 - Place 5",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2827,
+            "Numero": 6,
+            "label": "Place 6",
+            "fullLabel": "Place 6 - Place 6",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2828,
+            "Numero": 7,
+            "label": "Place 7",
+            "fullLabel": "Place 7 - Place 7",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          },
+          {
+            "id": 2829,
+            "Numero": 8,
+            "label": "Place 8",
+            "fullLabel": "Place 8 - Place 8",
+            "engagement": null,
+            "resultat": null,
+            "athletes": null
+          }
+        ],
+        "serie": {
+          "id": 94899,
+          "Id": 94899,
+          "label": "Série 2 - Résultats temporaires",
+          "fullLabel": "200m Obstacles Femme (Cadet) - Série 2 (Série)",
+          "niveau": "heat",
+          "niveauLabel": "Série",
+          "niveauAsInt": 0,
+          "fini": null
+        }
+      }
+    ]
+  }
+}
