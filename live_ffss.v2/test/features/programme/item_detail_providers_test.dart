@@ -13,6 +13,7 @@ import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_providers.dart';
+import 'package:live_ffss_v2/features/programme/programme_providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockMeetingRepository extends Mock implements MeetingRepository {}
@@ -43,12 +44,18 @@ void main() {
   late Map<int, LaneAssignment?> lanes;
   late List<Set<int>> laneRequests;
 
-  Heat heat(int id, RunStatus status, List<int> placeIds) => Heat(
+  Heat heat(
+    int id,
+    RunStatus status,
+    List<int> placeIds, {
+    bool generated = true,
+  }) => Heat(
     id: id,
     name: 'Série $id',
     number: id,
     status: status,
     placeIds: placeIds,
+    seriesId: generated ? 100 + id : null,
   );
 
   MeetingItem itemWith(RunStatus first, RunStatus second) => MeetingItem(
@@ -506,6 +513,111 @@ void main() {
       c.dispose();
     });
   });
+
+  test('programme en échec mais gardé en mémoire : le détail s\'ouvre', () {
+    fakeAsync((async) {
+      final c = container(async);
+      c.listen(programmeProvider(key.competitionId), (_, _) {});
+      async.flushMicrotasks();
+      when(
+        () => repository.getProgramme(any()),
+      ).thenAnswer((_) async => throw const NetworkException('hors ligne'));
+      async.elapse(programmeRefresh);
+      async.flushMicrotasks();
+      final programmeState = c.read(programmeProvider(key.competitionId));
+      expect(programmeState.hasError && programmeState.hasValue, isTrue);
+
+      c.listen(meetingItemDetailProvider(key), (_, _) {});
+      async.flushMicrotasks();
+
+      final state = c.read(meetingItemDetailProvider(key));
+      expect(state.hasError, isFalse);
+      expect(state.value?.item, item);
+
+      c.dispose();
+    });
+  });
+
+  test('programme en cours de relecture : le détail ne l\'attend pas', () {
+    fakeAsync((async) {
+      final c = container(async);
+      c.listen(programmeProvider(key.competitionId), (_, _) {});
+      async.flushMicrotasks();
+      final pending = Completer<Programme>();
+      when(
+        () => repository.getProgramme(any()),
+      ).thenAnswer((_) => pending.future);
+      async.elapse(programmeRefresh);
+      async.flushMicrotasks();
+      expect(c.read(programmeProvider(key.competitionId)).isLoading, isTrue);
+
+      c.listen(meetingItemDetailProvider(key), (_, _) {});
+      async.flushMicrotasks();
+
+      expect(c.read(meetingItemDetailProvider(key)).value?.item, item);
+
+      pending.complete(programme());
+      c.dispose();
+    });
+  });
+
+  test('les places d\'une course sans série ne sont jamais lues', () {
+    fakeAsync((async) {
+      item = MeetingItem(
+        id: 10,
+        name: '100 m bouée tube',
+        roundId: 100,
+        heats: [
+          heat(1, RunStatus.inProgress, [11, 12]),
+          heat(2, RunStatus.waiting, [21, 22], generated: false),
+        ],
+      );
+      final c = container(async);
+      c.listen(meetingItemDetailProvider(key), (_, _) {});
+      async.flushMicrotasks();
+      expect(laneRequests, [
+        {11, 12},
+      ]);
+
+      laneRequests.clear();
+      async.elapse(itemDetailRefresh);
+      async.flushMicrotasks();
+      expect(laneRequests, [
+        {11, 12},
+      ]);
+
+      laneRequests.clear();
+      c.read(meetingItemDetailProvider(key).notifier).refresh();
+      async.flushMicrotasks();
+      expect(laneRequests, [
+        {11, 12},
+      ]);
+
+      c.dispose();
+    });
+  });
+
+  test(
+    'une course terminée dont une place a échoué est relue au tour suivant',
+    () {
+      fakeAsync((async) {
+        item = itemWith(RunStatus.finished, RunStatus.waiting);
+        lanes.remove(12);
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+
+        laneRequests.clear();
+        async.elapse(itemDetailRefresh);
+        async.flushMicrotasks();
+        expect(laneRequests, [
+          {11, 12, 21, 22},
+        ]);
+
+        c.dispose();
+      });
+    },
+  );
 
   test('la frise est dépliée au départ et se replie', () {
     final c = container();

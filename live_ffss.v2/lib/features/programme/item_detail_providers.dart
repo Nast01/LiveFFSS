@@ -8,6 +8,7 @@ import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
+import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_refresh.dart';
@@ -82,7 +83,11 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail> {
     // premier chargement, et pour que l'onglet le retrouve sans le recharger.
     final competitionId = key.competitionId;
     ref.listen(programmeProvider(competitionId), (_, _) {});
-    final programme = await ref.read(programmeProvider(competitionId).future);
+    // `.future` échouerait sur un programme en échec et attendrait un
+    // programme qui se relit, alors que sa dernière valeur suffit.
+    final Programme programme =
+        ref.read(programmeProvider(competitionId)).value ??
+        await ref.read(programmeProvider(competitionId).future);
 
     final found = programme.findItem(key.itemId);
     if (found == null) throw NotFoundException('meeting item ${key.itemId}');
@@ -94,7 +99,12 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail> {
         : programme.progressionOfStage(roundId);
     final placeIds = _placeIds(item.heats);
     final lanes = await repository.getLanes(placeIds);
-    _recordReads(item.heats, {for (final heat in item.heats) heat.id}, readAt);
+    _recordReads(
+      item.heats,
+      {for (final heat in item.heats) heat.id},
+      lanes,
+      readAt,
+    );
 
     return MeetingItemDetail(
       meeting: found.meeting,
@@ -179,7 +189,7 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail> {
           ? const <int, LaneAssignment?>{}
           : await repository.getLanes(placeIds);
       if (!runRef.mounted) return;
-      _recordReads(item.heats, due, readAt);
+      _recordReads(item.heats, due, fetched, readAt);
       state = AsyncData(
         current.copyWith(
           item: item,
@@ -199,20 +209,34 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail> {
       await repository.getMeetingItem(key.itemId, day: day) ??
       (throw NotFoundException('meeting item ${key.itemId}'));
 
+  /// Une course sans série (finale pas encore générée) n'est pas affichée :
+  /// lire ses places ne servirait à rien.
   List<int> _placeIds(Iterable<Heat> heats) => [
-    for (final heat in heats) ...heat.placeIds,
+    for (final heat in heats)
+      if (heat.seriesId != null) ...heat.placeIds,
   ];
 
   /// Une course qui n'est pas (ou plus) terminée sort du registre : à son
-  /// passage à « Terminé », elle sera relue tout de suite.
-  void _recordReads(List<Heat> heats, Set<int> read, DateTime readAt) {
+  /// passage à « Terminé », elle sera relue tout de suite. Une course dont une
+  /// place a échoué n'y entre pas : sinon elle attendrait 2 minutes, avec un
+  /// nageur manquant, avant le nouvel essai.
+  void _recordReads(
+    List<Heat> heats,
+    Set<int> due,
+    Map<int, LaneAssignment?> fetched,
+    DateTime readAt,
+  ) {
     final finished = {
       for (final heat in heats)
         if (heat.status == RunStatus.finished) heat.id,
     };
     _finishedReadAt.removeWhere((id, _) => !finished.contains(id));
-    for (final id in read.intersection(finished)) {
-      _finishedReadAt[id] = readAt;
+    for (final heat in heats) {
+      if (finished.contains(heat.id) &&
+          due.contains(heat.id) &&
+          heat.placeIds.every(fetched.containsKey)) {
+        _finishedReadAt[heat.id] = readAt;
+      }
     }
   }
 }
