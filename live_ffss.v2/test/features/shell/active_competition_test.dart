@@ -6,6 +6,16 @@ import 'package:live_ffss_v2/features/shell/active_competition.dart';
 import '../../support/competitions.dart';
 import '../../support/in_memory_local_store.dart';
 
+class _CountingStore extends InMemoryLocalStore {
+  int writeCount = 0;
+
+  @override
+  Future<void> write(String key, String value) {
+    writeCount++;
+    return super.write(key, value);
+  }
+}
+
 void main() {
   late InMemoryLocalStore store;
   late ProviderContainer container;
@@ -77,5 +87,19 @@ void main() {
       summary: null,
     ));
     expect(store.values[ActiveCompetitionNotifier.storageKey], '8');
+  });
+
+  test('ensure avant la fin du chargement ne réécrit rien', () async {
+    final counting = _CountingStore()
+      ..values[ActiveCompetitionNotifier.storageKey] = '7';
+    final other = ProviderContainer(
+      overrides: [localStoreProvider.overrideWithValue(counting)],
+      retry: noRetry,
+    );
+    addTearDown(other.dispose);
+
+    await other.read(activeCompetitionProvider.notifier).ensure(7);
+
+    expect(counting.writeCount, 0);
   });
 }

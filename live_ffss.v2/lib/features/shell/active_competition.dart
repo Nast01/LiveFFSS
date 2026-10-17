@@ -32,7 +32,10 @@ class ActiveCompetitionNotifier extends AsyncNotifier<ActiveSelection?> {
   /// Pour une page ouverte par son id (lien profond) : sans effet si cette
   /// compétition est déjà la compétition active, pour ne pas perdre son résumé.
   Future<void> ensure(int id) async {
-    if (state.value?.id == id) return;
+    // Pendant le chargement initial, l'état est vide : sans attendre, on
+    // réécrirait l'id déjà enregistré et on perdrait son résumé.
+    final current = await future;
+    if (current?.id == id) return;
     state = AsyncData((id: id, summary: null));
     await ref.read(localStoreProvider).write(storageKey, id.toString());
   }

@@ -33,16 +33,18 @@ CompetitionSummary? currentCompetition({
 }
 
 final currentCompetitionProvider = Provider<CompetitionSummary?>((ref) {
-  final competitions = ref.watch(homeCompetitionsProvider).value;
+  final home = ref.watch(homeCompetitionsProvider);
+  final competitions = home.value;
   final selection = ref.watch(activeCompetitionProvider).value;
-  // On ne relit que si l'accueil est chargé : sinon toute compétition de la
-  // liste déclencherait une requête le temps du chargement. Un échec ou une
-  // attente de la relecture laisse le choix par défaut.
+  // On attend la fin du chargement de l'accueil : sinon toute compétition de
+  // la liste déclencherait une requête. Si l'accueil échoue, la relecture par
+  // id reste possible. Un échec ou une attente de la relecture laisse le choix
+  // par défaut.
   final needsFetch =
       selection != null &&
       selection.summary == null &&
-      competitions != null &&
-      !competitions.any((c) => c.id == selection.id);
+      !home.isLoading &&
+      !(competitions?.any((c) => c.id == selection.id) ?? false);
   return currentCompetition(
     competitions: competitions ?? const [],
     selection: selection,

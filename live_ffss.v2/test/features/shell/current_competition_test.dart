@@ -136,10 +136,17 @@ void main() {
       return container;
     }
 
-    Future<void> settle(ProviderContainer container) async {
+    Future<void> settle(ProviderContainer container, {int? fetchedId}) async {
       container.listen(currentCompetitionProvider, (_, _) {});
-      await container.read(homeCompetitionsProvider.future);
+      await container
+          .read(homeCompetitionsProvider.future)
+          .then((_) {}, onError: (Object _) {});
       await container.read(activeCompetitionProvider.future);
+      if (fetchedId != null) {
+        await container
+            .read(competitionByIdProvider(fetchedId).future)
+            .then((_) {}, onError: (Object _) {});
+      }
       await Future<void>.delayed(Duration.zero);
     }
 
@@ -180,9 +187,25 @@ void main() {
       ).thenAnswer((_) async => throw const NetworkException('hors ligne'));
       final container = containerWith('99');
 
-      await settle(container);
+      await settle(container, fetchedId: 99);
 
       expect(container.read(currentCompetitionProvider), liveB);
     });
+
+    test(
+      'accueil en échec : la compétition choisie est quand même relue',
+      () async {
+        final old = competition(99, name: 'Relue', start: DateTime(2025, 5, 1));
+        when(
+          () => repository.getCompetitionsFrom(any()),
+        ).thenAnswer((_) async => throw const NetworkException('hors ligne'));
+        when(() => repository.getCompetition(99)).thenAnswer((_) async => old);
+        final container = containerWith('99');
+
+        await settle(container, fetchedId: 99);
+
+        expect(container.read(currentCompetitionProvider), old);
+      },
+    );
   });
 }
