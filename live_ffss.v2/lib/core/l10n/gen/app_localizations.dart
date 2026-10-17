@@ -356,6 +356,84 @@ abstract class AppLocalizations {
   /// **'English'**
   String get languageEnglish;
 
+  /// No description provided for @liveTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Live'**
+  String get liveTitle;
+
+  /// No description provided for @liveRunning.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get liveRunning;
+
+  /// No description provided for @liveRecent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernières séries'**
+  String get liveRecent;
+
+  /// No description provided for @liveProvisional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Temporaire'**
+  String get liveProvisional;
+
+  /// No description provided for @liveValidated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validé'**
+  String get liveValidated;
+
+  /// No description provided for @liveMarshalling.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chambre d\'appel'**
+  String get liveMarshalling;
+
+  /// No description provided for @livePendingValidation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats en attente de validation par les juges'**
+  String get livePendingValidation;
+
+  /// No description provided for @liveWaitingResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats en attente : ils s\'afficheront dès leur publication'**
+  String get liveWaitingResults;
+
+  /// No description provided for @liveNothingYet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune série courue pour l\'instant'**
+  String get liveNothingYet;
+
+  /// No description provided for @liveNext.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochaine série : {label}'**
+  String liveNext(String label);
+
+  /// No description provided for @liveSeeProgramme.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tout le programme'**
+  String get liveSeeProgramme;
+
+  /// No description provided for @liveLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger le direct.'**
+  String get liveLoadError;
+
+  /// No description provided for @coastalComingSoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Côtier : bientôt disponible'**
+  String get coastalComingSoon;
+
   /// No description provided for @heatPlace.
   ///
   /// In fr, this message translates to:

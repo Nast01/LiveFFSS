@@ -146,6 +146,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
+  String get liveTitle => 'Live';
+
+  @override
+  String get liveRunning => 'Running';
+
+  @override
+  String get liveRecent => 'Latest heats';
+
+  @override
+  String get liveProvisional => 'Provisional';
+
+  @override
+  String get liveValidated => 'Validated';
+
+  @override
+  String get liveMarshalling => 'Marshalling';
+
+  @override
+  String get livePendingValidation =>
+      'Results awaiting validation by the judges';
+
+  @override
+  String get liveWaitingResults =>
+      'Results pending: they will show as soon as they are published';
+
+  @override
+  String get liveNothingYet => 'No heat has been run yet';
+
+  @override
+  String liveNext(String label) {
+    return 'Next heat: $label';
+  }
+
+  @override
+  String get liveSeeProgramme => 'See the full programme';
+
+  @override
+  String get liveLoadError => 'Could not load the live feed.';
+
+  @override
+  String get coastalComingSoon => 'Coastal: coming soon';
+
+  @override
   String heatPlace(String place) {
     String _temp0 = intl.Intl.selectLogic(place, {
       '1': '1st',

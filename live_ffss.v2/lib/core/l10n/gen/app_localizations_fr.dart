@@ -147,6 +147,49 @@ class AppLocalizationsFr extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
+  String get liveTitle => 'Live';
+
+  @override
+  String get liveRunning => 'En cours';
+
+  @override
+  String get liveRecent => 'Dernières séries';
+
+  @override
+  String get liveProvisional => 'Temporaire';
+
+  @override
+  String get liveValidated => 'Validé';
+
+  @override
+  String get liveMarshalling => 'Chambre d\'appel';
+
+  @override
+  String get livePendingValidation =>
+      'Résultats en attente de validation par les juges';
+
+  @override
+  String get liveWaitingResults =>
+      'Résultats en attente : ils s\'afficheront dès leur publication';
+
+  @override
+  String get liveNothingYet => 'Aucune série courue pour l\'instant';
+
+  @override
+  String liveNext(String label) {
+    return 'Prochaine série : $label';
+  }
+
+  @override
+  String get liveSeeProgramme => 'Voir tout le programme';
+
+  @override
+  String get liveLoadError => 'Impossible de charger le direct.';
+
+  @override
+  String get coastalComingSoon => 'Côtier : bientôt disponible';
+
+  @override
   String heatPlace(String place) {
     String _temp0 = intl.Intl.selectLogic(place, {
       '1': '1er',
