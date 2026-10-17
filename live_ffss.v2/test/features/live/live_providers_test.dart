@@ -418,8 +418,50 @@ void main() {
     });
   });
 
+  test('une série qui se termine après un tour en cours est relue une fois '
+      'au tour suivant, puis plus du tout', () {
+    fakeAsync((async) {
+      final c = container();
+      listen(c);
+      async.flushMicrotasks();
+
+      laneRequests.clear();
+      async.elapse(liveRefresh);
+      async.flushMicrotasks();
+      expect(laneRequests, [
+        {11, 12},
+      ]);
+
+      heats = [
+        heats[0].copyWith(status: RunStatus.finished),
+        heats[1],
+        heats[2],
+      ];
+      lanes[11] = lane(11, 2, 'Alice finale');
+      laneRequests.clear();
+      async.elapse(liveRefresh);
+      async.flushMicrotasks();
+      expect(laneRequests, [
+        {11, 12},
+      ]);
+      expect(view(c).lanesOf(heats[0]).map((l) => l.athletes.single), [
+        'Bea',
+        'Alice finale',
+      ]);
+
+      laneRequests.clear();
+      for (var i = 0; i < 2; i++) {
+        async.elapse(liveRefresh);
+        async.flushMicrotasks();
+      }
+      expect(laneRequests, isEmpty);
+
+      c.dispose();
+    });
+  });
+
   test(
-    'une série terminée dont une place a échoué est relue au tour suivant',
+    'une série validée dont une place a échoué est relue au tour suivant',
     () {
       fakeAsync((async) {
         lanes.remove(22);

@@ -80,7 +80,7 @@ De haut en bas :
     2. d'une série qui **était en cours au passage précédent et ne l'est plus** : une dernière lecture, puis plus aucune relecture automatique ;
     3. d'une série affichée dont **aucune place n'a encore été lue** (`lanesReadFor` faux : nouvelle venue, ou places en échec au premier chargement), pour ne jamais laisser une carte en chargement.
 
-    *Choix du rédacteur* : une série lue avec une place en échec est relue au passage suivant, jusqu'à ce que toutes ses places soient lues (sinon la dernière lecture d'une série terminée pourrait manquer un nageur). Une place en échec garde sa dernière valeur (règle du lot 2).
+    *Choix du rédacteur* : une série lue avec une place en échec est relue au passage suivant, jusqu'à ce que toutes ses places soient lues (sinon la dernière lecture d'une série terminée pourrait manquer un nageur) ; une série dont une place échoue durablement est donc relue toutes les 60 s jusqu'à ce que toutes ses places soient lues. Une place en échec garde sa dernière valeur (règle du lot 2).
 
     Les dernières séries courues, temporaires ou validées, ne sont plus relues par la minuterie : une série qui redevient « Résultats temporaires », ou qui reçoit une nouvelle place, attend le rafraîchissement manuel.
   - **Une série validée peut encore changer** sur décision du juge principal (précision de l'utilisateur, 2026-10-17) : le **rafraîchissement manuel** relit **toutes** les places, validées comprises, et rouvrir l'onglet relit tout (l'état est perdu à la fermeture). Il part du geste tirer vers le bas ou du bouton **« Rafraîchir »** (`Icons.refresh`, info-bulle `liveRefresh`) de l'en-tête du Live, qui passe par le même indicateur : un appui pendant un rafraîchissement n'en lance pas un second.

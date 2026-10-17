@@ -54,10 +54,14 @@ class _LivePageState extends ConsumerState<LivePage> {
             IconButton(
               icon: const Icon(Icons.refresh),
               tooltip: l10n.liveRefresh,
-              // Sans liste (chargement ou échec), pas d'indicateur à montrer.
-              onPressed: () =>
-                  _refreshKey.currentState?.show() ??
-                  _refreshLive(ref, competition.id),
+              // Sans liste, `refresh` relancerait le premier chargement en
+              // cours, et un échec a déjà son « Réessayer » dans la page.
+              onPressed:
+                  ref.watch(
+                    liveProvider(competition.id).select((s) => s.hasValue),
+                  )
+                  ? () => _refreshKey.currentState?.show()
+                  : null,
             ),
         ],
       ),
