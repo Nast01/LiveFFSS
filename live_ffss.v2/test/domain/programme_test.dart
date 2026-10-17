@@ -150,6 +150,19 @@ void main() {
     });
   });
 
+  test('heatStatus', () {
+    Heat heat(RunStatus status, {int? seriesId}) =>
+        Heat(id: 1, name: 'h', number: 1, status: status, seriesId: seriesId);
+    expect(heatStatus(heat(RunStatus.inProgress)), ItemStatus.live);
+    expect(heatStatus(heat(RunStatus.marshalling)), ItemStatus.live);
+    expect(heatStatus(heat(RunStatus.finished)), ItemStatus.finished);
+    expect(
+      heatStatus(heat(RunStatus.waiting, seriesId: 3)),
+      ItemStatus.upcoming,
+    );
+    expect(heatStatus(heat(RunStatus.waiting)), ItemStatus.seriesPending);
+  });
+
   group('itemStatus', () {
     Heat heat(RunStatus status, {int? seriesId}) =>
         Heat(id: 1, name: 'h', number: 1, status: status, seriesId: seriesId);

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
@@ -116,6 +117,14 @@ ItemStatus itemStatus(MeetingItem item) {
   if (heats.every((h) => h.seriesId == null)) return ItemStatus.seriesPending;
   return ItemStatus.upcoming;
 }
+
+/// L'état d'une seule course, dans les mêmes termes que celui d'un créneau.
+ItemStatus heatStatus(Heat heat) => switch (heat.status) {
+  RunStatus.marshalling || RunStatus.inProgress => ItemStatus.live,
+  RunStatus.finished => ItemStatus.finished,
+  RunStatus.waiting =>
+    heat.seriesId == null ? ItemStatus.seriesPending : ItemStatus.upcoming,
+};
 
 /// Les colonnes de la frise : des étapes consécutives de même niveau (les
 /// finales par catégorie) partagent la leur.

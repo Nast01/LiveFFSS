@@ -393,6 +393,46 @@ void main() {
     });
   });
 
+  test(
+    'refresh en attente derrière la minuterie, page fermée : sans erreur',
+    () {
+      fakeAsync((async) {
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+
+        final pending = Completer<MeetingItem?>();
+        when(
+          () => repository.getMeetingItem(any(), day: any(named: 'day')),
+        ).thenAnswer((_) => pending.future);
+        async.elapse(itemDetailRefresh);
+        async.flushMicrotasks();
+
+        var completed = false;
+        Object? failure;
+        c
+            .read(meetingItemDetailProvider(key).notifier)
+            .refresh()
+            .then(
+              (_) => completed = true,
+              onError: (Object e) {
+                failure = e;
+                return false;
+              },
+            );
+        async.flushMicrotasks();
+        expect(completed, isFalse);
+
+        c.dispose();
+        pending.complete(item);
+        async.flushMicrotasks();
+
+        expect(failure, isNull);
+        expect(completed, isTrue);
+      });
+    },
+  );
+
   test('premier chargement en échec : la minuterie fait un nouvel essai', () {
     fakeAsync((async) {
       when(

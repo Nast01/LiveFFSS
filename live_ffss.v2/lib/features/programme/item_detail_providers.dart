@@ -107,9 +107,12 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail> {
 
   /// Relit le créneau et toutes ses places, quel que soit l'état des courses.
   Future<void> refresh() async {
+    final runRef = ref;
     // En boucle : un autre `refresh` peut avoir pris la place entre-temps.
     for (var running = _inFlight; running != null; running = _inFlight) {
       await running;
+      // Page fermée pendant l'attente : `state` et `ref` ne servent plus.
+      if (!runRef.mounted) return;
     }
     await _run(
       state.hasValue ? () => _reload(everything: true) : _reloadFromScratch,

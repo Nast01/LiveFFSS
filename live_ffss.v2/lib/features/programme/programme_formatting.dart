@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
+import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
 
@@ -70,6 +71,22 @@ String? rankText(LaneAssignment lane) {
   if (category == null || category.isEmpty) return rank;
   return '$rank · $category';
 }
+
+/// Le temps d'une place, ou le statut publié quand elle n'a pas de temps
+/// valable (« DSQ », « Abandon »).
+String? performanceText(Performance? performance) {
+  if (performance == null) return null;
+  final text = performance.isOk ? performance.time : performance.statusLabel;
+  return text == null || text.trim().isEmpty ? null : text.trim();
+}
+
+/// « Programme · sam. 28 · Réunion 2 - Finales ».
+String itemBreadcrumb(Meeting meeting, AppLocalizations l10n, String locale) =>
+    [
+      l10n.programmeTitle,
+      dayTabLabel(meeting.day, locale),
+      meeting.name,
+    ].where((part) => part.isNotEmpty).join(' · ');
 
 /// « ven. 27 » : le libellé court d'un onglet de jour.
 String dayTabLabel(DateTime day, String locale) =>

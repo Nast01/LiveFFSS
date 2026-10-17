@@ -1,8 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
+import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
@@ -28,6 +30,7 @@ Stage stage(
 
 void main() {
   final l10n = lookupAppLocalizations(const Locale('fr'));
+  setUpAll(() => initializeDateFormatting('fr'));
 
   test('ItemStatus.label', () {
     expect(ItemStatus.live.label(l10n), 'EN DIRECT');
@@ -184,6 +187,41 @@ void main() {
       expect(rankText(lane(category: 'Cadet')), isNull);
       expect(rankText(lane(rank: '')), isNull);
     });
+  });
+
+  group('performanceText', () {
+    test('le temps quand le statut est OK ou absent', () {
+      expect(performanceText(const Performance(time: '0:42.10')), '0:42.10');
+      expect(
+        performanceText(const Performance(time: '0:42.10', statusLabel: 'OK')),
+        '0:42.10',
+      );
+    });
+
+    test('le statut publié sinon', () {
+      expect(
+        performanceText(const Performance(time: '0:42.10', statusLabel: 'DSQ')),
+        'DSQ',
+      );
+    });
+
+    test('rien sans performance ni temps', () {
+      expect(performanceText(null), isNull);
+      expect(performanceText(const Performance()), isNull);
+      expect(performanceText(const Performance(time: ' ')), isNull);
+    });
+  });
+
+  test('itemBreadcrumb', () {
+    final meeting = Meeting(
+      id: 1,
+      name: 'Réunion 2 - Finales',
+      day: DateTime(2026, 3, 28),
+    );
+    expect(
+      itemBreadcrumb(meeting, l10n, 'fr'),
+      'Programme · sam. 28 · Réunion 2 - Finales',
+    );
   });
 
   test('timeRangeLabel', () {

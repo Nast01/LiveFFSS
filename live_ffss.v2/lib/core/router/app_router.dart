@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/features/home/all_competitions_page.dart';
 import 'package:live_ffss_v2/features/home/home_page.dart';
+import 'package:live_ffss_v2/features/programme/item_detail_page.dart';
 import 'package:live_ffss_v2/features/programme/programme_page.dart';
 import 'package:live_ffss_v2/features/shell/app_shell.dart';
 import 'package:live_ffss_v2/features/shell/tab_placeholders.dart';
@@ -49,15 +49,11 @@ final routerProvider = Provider<GoRouter>(
                 routes: [
                   GoRoute(
                     path: 'competition/:competitionId/creneau/:itemId',
-                    // Provisoire : la page de détail remplace ce Scaffold.
-                    builder: (context, state) => Scaffold(
-                      appBar: AppBar(),
-                      body: Center(
-                        child: Text(
-                          '${state.pathParameters['competitionId']} / '
-                          '${state.pathParameters['itemId']}',
-                        ),
+                    builder: (context, state) => ItemDetailPage(
+                      competitionId: int.parse(
+                        state.pathParameters['competitionId']!,
                       ),
+                      itemId: int.parse(state.pathParameters['itemId']!),
                     ),
                   ),
                 ],
