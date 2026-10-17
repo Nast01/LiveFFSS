@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
+import 'package:live_ffss_v2/domain/run_status.dart';
 
 part 'programme.freezed.dart';
 
@@ -69,3 +70,79 @@ List<Meeting> withRaces(
       ),
   ];
 }
+
+/// Les jours distincts du programme, du plus ancien au plus récent.
+List<DateTime> programmeDays(List<Meeting> meetings) {
+  final days = {
+    for (final meeting in meetings)
+      DateTime(meeting.day.year, meeting.day.month, meeting.day.day),
+  };
+  return days.toList()..sort();
+}
+
+/// Le jour à montrer à l'ouverture : aujourd'hui s'il est au programme, sinon
+/// le plus proche côté début (avant la compétition) ou côté fin (après).
+DateTime? initialDay(List<DateTime> days, DateTime today) {
+  if (days.isEmpty) return null;
+  final midnight = DateTime(today.year, today.month, today.day);
+  if (days.contains(midnight)) return midnight;
+  return midnight.isBefore(days.first) ? days.first : days.last;
+}
+
+/// L'état d'un créneau, déduit de ses courses.
+enum ItemStatus { none, live, finished, seriesPending, upcoming }
+
+ItemStatus itemStatus(MeetingItem item) {
+  final heats = item.heats;
+  if (heats.isEmpty) return ItemStatus.none;
+  if (heats.any(
+    (h) =>
+        h.status == RunStatus.marshalling || h.status == RunStatus.inProgress,
+  )) {
+    return ItemStatus.live;
+  }
+  if (heats.every((h) => h.status == RunStatus.finished)) {
+    return ItemStatus.finished;
+  }
+  if (heats.every((h) => h.seriesId == null)) return ItemStatus.seriesPending;
+  return ItemStatus.upcoming;
+}
+
+/// Les colonnes de la frise : des étapes consécutives de même niveau (les
+/// finales par catégorie) partagent la leur.
+List<List<Stage>> progressionColumns(Progression progression) {
+  final stages = [...progression.stages]
+    ..sort((a, b) => a.order.compareTo(b.order));
+  final columns = <List<Stage>>[];
+  for (final stage in stages) {
+    if (columns.isNotEmpty && columns.last.first.level == stage.level) {
+      columns.last.add(stage);
+    } else {
+      columns.add([stage]);
+    }
+  }
+  return columns;
+}
+
+/// Les créneaux d'une partie, dans l'ordre du programme : les réunions sont
+/// déjà triées par jour puis heure.
+List<MeetingItem> itemsOfStage(List<Meeting> meetings, int stageId) => [
+  for (final meeting in meetings)
+    for (final item in meeting.items)
+      if (item.roundId == stageId) item,
+];
+
+enum QualificationRuleKind { byStage, byHeat }
+
+({QualificationRuleKind kind, int? places})? qualificationRule(Stage stage) =>
+    switch (stage.qualification) {
+      QualificationMethod.byStage => (
+        kind: QualificationRuleKind.byStage,
+        places: stage.qualifyingPlaces,
+      ),
+      QualificationMethod.byHeat => (
+        kind: QualificationRuleKind.byHeat,
+        places: stage.qualifyingPlaces,
+      ),
+      QualificationMethod.none => null,
+    };
