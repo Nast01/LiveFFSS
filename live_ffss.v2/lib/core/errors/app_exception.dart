@@ -53,3 +53,9 @@ class AuthException extends AppException {
 class UnknownException extends AppException {
   const UnknownException(super.message);
 }
+
+/// Ce qu'on demande n'existe pas, ou plus : un lien vers un créneau retiré du
+/// programme, par exemple. Distinct d'une panne, qu'un nouvel essai réglerait.
+class NotFoundException extends AppException {
+  const NotFoundException(super.message);
+}
