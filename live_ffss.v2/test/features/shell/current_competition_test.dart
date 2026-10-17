@@ -116,6 +116,17 @@ void main() {
     );
   });
 
+  group('needsActivation', () {
+    test('la compétition suivie : rien à activer', () {
+      expect(needsActivation(1453, 1453), isFalse);
+    });
+
+    test('une autre compétition, ou aucune : lien direct à activer', () {
+      expect(needsActivation(7, 1453), isTrue);
+      expect(needsActivation(null, 1453), isTrue);
+    });
+  });
+
   group('currentCompetitionProvider', () {
     late _MockCompetitionRepository repository;
 
@@ -190,6 +201,25 @@ void main() {
       await settle(container, fetchedId: 99);
 
       expect(container.read(currentCompetitionProvider), liveB);
+    });
+
+    test('relecture en échec, accueil rechargé : relue et trouvée', () async {
+      final old = competition(99, name: 'Relue', start: DateTime(2025, 5, 1));
+      var calls = 0;
+      when(() => repository.getCompetition(99)).thenAnswer((_) async {
+        calls++;
+        if (calls == 1) throw const NetworkException('hors ligne');
+        return old;
+      });
+      final container = containerWith('99');
+      await settle(container, fetchedId: 99);
+      expect(container.read(currentCompetitionProvider), liveB);
+
+      container.invalidate(homeCompetitionsProvider);
+      await settle(container, fetchedId: 99);
+
+      expect(calls, 2);
+      expect(container.read(currentCompetitionProvider), old);
     });
 
     test(

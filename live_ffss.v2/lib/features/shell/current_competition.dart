@@ -32,6 +32,12 @@ CompetitionSummary? currentCompetition({
   return live.isEmpty ? null : live.first;
 }
 
+/// Une page ouverte sur [competitionId] ne l'active que par un vrai lien
+/// direct : activer la compétition déjà suivie enregistrerait le choix par
+/// défaut (« EN DIRECT ») comme s'il avait été fait, et le figerait.
+bool needsActivation(int? currentId, int competitionId) =>
+    currentId != competitionId;
+
 final currentCompetitionProvider = Provider<CompetitionSummary?>((ref) {
   final home = ref.watch(homeCompetitionsProvider);
   final competitions = home.value;

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/competition_repository.dart';
 import 'package:live_ffss_v2/domain/competition_summary.dart';
+import 'package:live_ffss_v2/features/home/home_providers.dart';
 
 /// La compétition que suivent les onglets Programme, Live et Résultats.
 ///
@@ -48,6 +49,15 @@ final activeCompetitionProvider =
 
 /// Relit une compétition par son id : le résumé n'est pas enregistré, donc une
 /// compétition absente de l'accueil doit être redemandée après un redémarrage.
-final competitionByIdProvider = FutureProvider.family<CompetitionSummary?, int>(
-  (ref, id) => ref.watch(competitionRepositoryProvider).getCompetition(id),
-);
+///
+/// Relue à chaque rechargement de l'accueil (tirer pour rafraîchir) : sans
+/// cela, un premier essai hors ligne resterait en cache toute la session.
+/// Écouté plutôt que surveillé : `ref.watch` la relirait aussi au début du
+/// rechargement, pour rien.
+final competitionByIdProvider = FutureProvider.autoDispose
+    .family<CompetitionSummary?, int>((ref, id) {
+      ref.listen(homeCompetitionsProvider, (_, next) {
+        if (!next.isLoading) ref.invalidateSelf();
+      });
+      return ref.watch(competitionRepositoryProvider).getCompetition(id);
+    });

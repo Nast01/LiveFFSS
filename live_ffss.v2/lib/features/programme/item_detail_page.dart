@@ -11,6 +11,7 @@ import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 import 'package:live_ffss_v2/features/programme/widgets/heat_card.dart';
 import 'package:live_ffss_v2/features/programme/widgets/progression_strip.dart';
 import 'package:live_ffss_v2/features/shell/active_competition.dart';
+import 'package:live_ffss_v2/features/shell/current_competition.dart';
 
 class ItemDetailPage extends ConsumerStatefulWidget {
   const ItemDetailPage({
@@ -32,9 +33,20 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     super.initState();
     // Ouvert par un lien profond, le créneau doit aussi rendre sa compétition
     // active aux autres onglets.
-    unawaited(
-      ref.read(activeCompetitionProvider.notifier).ensure(widget.competitionId),
-    );
+    final currentId = ref.read(currentCompetitionProvider)?.id;
+    if (needsActivation(currentId, widget.competitionId)) {
+      unawaited(_activate());
+    }
+  }
+
+  Future<void> _activate() async {
+    try {
+      await ref
+          .read(activeCompetitionProvider.notifier)
+          .ensure(widget.competitionId);
+    } on AppException {
+      // Le créneau s'affiche quand même ; les onglets gardent leur compétition.
+    }
   }
 
   ItemKey get _key =>
