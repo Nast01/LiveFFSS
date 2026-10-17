@@ -18,6 +18,7 @@ Règles et conventions de la v2 de l'application mobile. Référence pour les se
 - **`lib/data/ffss/`** : DTO freezed de l'API (noms français mappés par `@JsonKey`, tout nullable) et mappers `extension XMapper on XDto { X? toDomain() }`. Un mapper **écarte** une ligne inutilisable (renvoie `null`) au lieu de faire échouer la liste. `readInt` (nombre servi en chaîne) et `readMap` (objet vide servi en `[]` par PHP) sont dans `dtos/json_readers.dart`.
 - **`lib/data/repositories/`** : `XRepository` abstrait + `XRepositoryImpl(HttpClient)` + `xRepositoryProvider`. Pagination et conversion ici. **Pas de couche datasource.**
   - Une ligne qui ne se décode pas au type attendu (`TypeError` levée par `XDto.fromJson`) est écartée seule, comme celles que le mapper rejette. Le compte de page pleine se fait sur la longueur brute de `data` : une entrée non-objet ne fait pas passer une page pleine pour la dernière.
+  - `MeetingRepository.getProgramme(id)` lit `competition/:id/reunion` et `competition/:id/deroulement`, puis `withRaces` donne à chaque série sa course (discipline, genre) d'après le déroulement de sa partie : l'objet `serie` de la liste `reunion` ne porte ni `Numero` ni `epreuve`. Un échec du déroulement laisse le programme sans courses ni frise, il ne le fait jamais échouer.
 - **`lib/features/<fonction>/`** : fournisseurs Riverpod, fonctions pures de présentation (`home_view.dart`), extensions de formatage (`competition_formatting.dart`), pages et `widgets/`.
 - **`lib/core/`** : `config/` (environnements, endpoints), `errors/` (`AppException`), `network/` (`HttpClient`, `TokenStorage`), `storage/` (`LocalStore`), `providers.dart` (fournisseurs du cœur, dont `clockProvider`), `theme/`, `l10n/`, `router/`.
 
@@ -25,8 +26,11 @@ Règles et conventions de la v2 de l'application mobile. Référence pour les se
 
 - **Riverpod 3.** Fournisseurs déclarés à la main (pas de `riverpod_generator`). Les tests créent `ProviderContainer(overrides: [...], retry: noRetry)` et `main.dart` passe le même `noRetry` (`core/providers.dart`) à `ProviderScope` : Riverpod 3 relance par défaut un fournisseur en échec pendant près de 40 s, ce qui ferait attendre un test et, hors ligne, tournerait le rafraîchissement d'autant. Le rafraîchissement manuel et la minuterie de 30 s tiennent lieu de nouvelle tentative.
 - **`clockProvider`** donne l'heure : ne jamais appeler `DateTime.now()` dans un fournisseur ou une page.
-- **go_router 17**, `StatefulShellRoute.indexedStack` : une branche par onglet. Les routes sont dans `Routes` (`core/router/app_router.dart`).
+- **go_router 18**, `StatefulShellRoute.indexedStack` : une branche par onglet. Les routes sont dans `Routes` (`core/router/app_router.dart`).
 - **Compétition active** : `activeCompetitionProvider` (id persisté, résumé en mémoire) ; `currentCompetitionProvider` en déduit la compétition des onglets. On ouvre une compétition avec `openCompetition(...)`.
+- **Détail d'un créneau** : `meetingItemDetailProvider` relit le créneau toutes les 30 s, les couloirs des courses non terminées à chaque tick, ceux des courses terminées une fois au passage puis toutes les 2 min. Il lit le programme sans l'observer (pas de reconstruction toutes les 30 s) et vérifie `ref.mounted` après chaque `await`.
+- **Route du détail** : enfant de la branche Programme, `competition/:competitionId/creneau/:itemId` (`Routes.programmeItem`). L'ouvrir appelle `ensure` pour rendre la compétition active.
+- **Rang** : l'app affiche le `rangLabel` publié (rang par catégorie), ne calcule jamais de rang. Pas de badge de qualification : les places ne portent pas de `complement`.
 
 ## Règles
 
@@ -45,6 +49,11 @@ Règles et conventions de la v2 de l'application mobile. Référence pour les se
 - Au lot 1, l'app ne parle **qu'à la production**, debug compris ; le choix de l'environnement arrive au lot 4.
 - `type=3` sur `competition/evenement` rend les trois spécialités.
 - `MeetingRepository` lit les courses **dans la réponse `reunion`**, sans appeler `creneau/:id/course` (cassée depuis le 2026-08-31). À revoir si la route est réparée et que les courses portées par `reunion` s'avèrent tronquées.
+- **Couloirs** : les réponses `reunion` et `creneau` portent des places vides ; `getLanes` lit `course/place/:id` une à une, 6 au plus en vol ; clé absente = échec. Retirer ce contournement (dans le repository seul) quand `creneau/:id` rend les places complètes (demande envoyée au développeur de l'API le 2026-10-17, avec `complement` et le code `Statut`).
+
+## Tests
+
+- `test/fixtures/recette_1416/` : vraies réponses de la recette, réduites et pseudonymisées (`ATHLETE Un`…). Ne jamais y commiter de donnée personnelle.
 
 ## Lacunes connues
 
