@@ -29,6 +29,10 @@ Règles et conventions de la v2 de l'application mobile. Référence pour les se
 - **go_router 18**, `StatefulShellRoute.indexedStack` : une branche par onglet. Les routes sont dans `Routes` (`core/router/app_router.dart`).
 - **Compétition active** : `activeCompetitionProvider` (id persisté, résumé en mémoire) ; `currentCompetitionProvider` en déduit la compétition des onglets. On ouvre une compétition avec `openCompetition(...)`.
 - **Détail d'un créneau** : `meetingItemDetailProvider` relit le créneau toutes les 30 s, les couloirs des courses non terminées à chaque tick, ceux des courses terminées une fois au passage puis toutes les 2 min. Il lit le programme sans l'observer (pas de reconstruction toutes les 30 s) et vérifie `ref.mounted` après chaque `await`.
+- **`SerialRefresh`** (`features/common/serial_refresh.dart`) : mécanique de relecture partagée par le détail d'un créneau et le Live. Une relecture à la fois (deux qui se chevauchent écriraient l'une sur l'autre, la plus lente gagnant avec des données plus vieilles), nouvel essai d'un premier chargement en échec par la minuterie ou le rafraîchissement manuel, `ref.mounted` vérifié après chaque `await`.
+- **Onglet Live** (`features/live/`) : `liveProvider` (AsyncNotifier family par compétition, relu toutes les 60 s) montre `liveSelection` : les séries en cours (chambre d'appel ou en cours) et les 10 dernières courues (`liveRecentLimit`). Les places d'une série validée dont toutes les places ont été lues ne sont plus relues par la minuterie, mais le rafraîchissement manuel les relit : le juge principal peut encore corriger une série validée.
+- **Temporaire / validé** : le site FFSS n'a pas de champ « validé ». `isProvisional(heat)` est vrai si la course n'est pas `finished` ou si `Heat.resultsProvisional` l'est, c'est-à-dire si le libellé de la série contient « Résultats temporaires », ou s'il n'y a pas de série ou de libellé. **À vérifier** : le libellé d'une série validée par un juge n'a pas encore été observé.
+- **`TempsLive1/2/3`** : saisie des temps par les chronométreurs (lot 4). L'app ne les lit pas.
 - **Route du détail** : enfant de la branche Programme, `competition/:competitionId/creneau/:itemId` (`Routes.programmeItem`). L'ouvrir appelle `ensure` pour rendre la compétition active.
 - **Place dans la série** : recalculée par l'app (`heatPlaces`) sur les temps de la série, toutes catégories ensemble (« 1er », « 2e »), décision du 2026-10-17 ; le `rangLabel` de FFSS, publié par catégorie, n'est pas lu. Le temps n'existe qu'en libellé (`MM'SS"CC`), converti en centièmes par `parseFfssTime`. Ex aequo : même place, la suivante sautée ; sans temps, DQ ou statut autre que OK : pas de place. Pas de badge de qualification : les places ne portent pas de `complement`. Le classement d'une épreuve (qualifiés pour le tour suivant) reste à l'API.
 
@@ -58,7 +62,7 @@ Règles et conventions de la v2 de l'application mobile. Référence pour les se
 
 ## Lacunes connues
 
-- Les minuteries de 30 s ne s'arrêtent pas quand leur écran est caché : l'`IndexedStack` du `StatefulShellRoute` garde les branches montées, donc le programme d'un onglet quitté continue d'être relu, et un détail de créneau resté ouvert sous un autre onglet continue de relire ses places. La carte en direct n'ajoute pas d'appel : `nowRunningProvider` se tire de `programmeProvider`.
+- Les minuteries (30 s, 60 s pour le Live) ne s'arrêtent pas quand leur écran est caché : l'`IndexedStack` du `StatefulShellRoute` garde les branches montées, donc le programme d'un onglet quitté continue d'être relu, et un détail de créneau resté ouvert sous un autre onglet continue de relire ses places ; le Live caché relit de même le programme et ses places. La carte en direct n'ajoute pas d'appel : `nowRunningProvider` se tire de `programmeProvider`.
 - Le paramètre `saison` n'est pas envoyé (la doc le dit désactivé). À vérifier au journal réseau si la liste de l'accueil semble incomplète.
 
 ## Commandes
