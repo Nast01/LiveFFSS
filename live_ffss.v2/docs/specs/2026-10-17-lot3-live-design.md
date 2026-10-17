@@ -39,7 +39,7 @@ De haut en bas :
 1. **En-tête** : « Live » et le nom de la compétition active.
 2. **Section « En cours »** (si au moins une course est `marshalling` ou `inProgress`) : une carte par course en cours, triées par heure de début prévue.
    - En-tête de carte : épreuve et sexe (`raceName`, `gender`, comme la carte « MAINTENANT »), « Série n / total » et heure prévue, badge **EN DIRECT** (`inProgress`) ou **Chambre d'appel** (`marshalling`) — *choix du rédacteur*.
-   - Corps : la liste de départ, triée par couloir (couloir, nageur ou relais, club). Tant qu'aucune place n'a de temps : le texte d'attente « Résultats en attente : ils s'afficheront dès leur publication ». Dès qu'un temps arrive, la carte passe à l'affichage des résultats (comme une série courue) avec le badge « Temporaire ».
+   - Corps : la liste de départ, triée par couloir (couloir, nageur ou relais, club). Tant qu'aucune place n'a de temps : le texte d'attente « Résultats en attente : ils s'afficheront dès leur publication ». Dès qu'un temps arrive, la carte passe à l'affichage des résultats avec le bandeau de validation, le badge reste **EN DIRECT** (ou **Chambre d'appel**) — *décision du contrôleur après la revue finale*.
 3. **Section « Dernières séries »** : les **10** courses « courues » les plus récentes (§ 5), de la plus récente à la plus ancienne. Chaque carte :
    - en-tête : épreuve et sexe, « Série n / total », heure, badge **Temporaire** ou **Validé** ;
    - si temporaire : bandeau « Résultats en attente de validation par les juges » ;
@@ -48,7 +48,7 @@ De haut en bas :
 4. **Bouton « Voir tout le programme »** : ouvre l'onglet Programme (`context.go(Routes.programme)`), sans filtre ni défilement — *choix du rédacteur*.
 5. Bas de liste : `MediaQuery.of(context).viewPadding.bottom` ajouté.
 
-**Toucher l'en-tête d'une carte** ouvre le détail du créneau (route du lot 2, `Routes.programmeItem`).
+**Toucher l'en-tête d'une carte** ouvre le détail du créneau dans la branche du Live (`Routes.liveItem`, même page que `Routes.programmeItem` du lot 2) : le retour ramène au Live.
 
 **États particuliers** (*choix du rédacteur*) :
 - sans compétition active : le bloc « Choisir une compétition » des autres onglets ;
@@ -60,7 +60,7 @@ De haut en bas :
 
 *Précisions du rédacteur après relecture.*
 
-- **En cours** : course `marshalling` ou `inProgress`. Elle reste dans « En cours » même si des temps y sont publiés (V3 la garde « En cours » tant que la série n'est pas validée) : la carte montre alors les résultats, badge « Temporaire ».
+- **En cours** : course `marshalling` ou `inProgress`. Elle reste dans « En cours » même si des temps y sont publiés (V3 la garde « En cours » tant que la série n'est pas validée) : la carte montre alors les résultats et le bandeau de validation, le badge reste EN DIRECT (ou Chambre d'appel).
 - **Courue** : course `finished` **dont la série est générée** (`seriesId` non nul). Une course `finished` sans série n'a rien à montrer : elle est écartée **avant** la limite de 10.
 - **Résultat publié** (pour passer de la liste de départ aux résultats) : au moins une place avec un temps, une DQ ou un forfait. Un statut « OK » sans temps ne compte pas.
 - **Ordre** : `Heat.plannedStart` (date et heure complètes, posées sur le jour de la réunion par le mapper ; à défaut, `MeetingItem.startTime`) décroissante ; à égalité, ordre du programme inversé (réunions, créneaux, courses tels que `getProgramme` les rend). Sans heure : en fin de liste.
@@ -72,7 +72,7 @@ De haut en bas :
 
 - **Domaine** : `Heat` reçoit `bool resultsProvisional` (nom proche de `IsPublishedProvisional` de V3), posé par le mapper de la réunion (le `SerieDto` lit `label`) : vrai sans série, sans libellé, ou avec un libellé contenant « Résultats temporaires ». La règle complète « temporaire » (§ 5) y ajoute la course non `finished`.
 - **Repository** : rien de nouveau ; `getProgramme` (réunions + déroulements) et `getLanes` (places, 6 en parallèle).
-- **Fournisseur** `liveProvider(competitionId)` : lit le programme (`getProgramme`), sélectionne les courses en cours et les 10 dernières courues, lit leurs places, et se relit **toutes les 60 s** tant qu'il est écouté (`autoDispose`), plus le rafraîchissement manuel. Il rend des entrées aplaties (réunion, créneau, course, places) : l'en-tête d'une carte ouvre `Routes.programmeItem(competitionId, item.id)`.
+- **Fournisseur** `liveProvider(competitionId)` : lit le programme (`getProgramme`), sélectionne les courses en cours et les 10 dernières courues, lit leurs places, et se relit **toutes les 60 s** tant qu'il est écouté (`autoDispose`), plus le rafraîchissement manuel. Il rend des entrées aplaties (réunion, créneau, course, places) : l'en-tête d'une carte ouvre `Routes.liveItem(competitionId, item.id)`.
   - *Choix du rédacteur* : un `AsyncNotifier` qui garde en mémoire les places déjà lues (comme le détail du lot 2) ; tout est perdu à la fermeture de l'onglet, et relu au retour — acceptable.
   - *Choix du rédacteur* : comme au lot 2, la minuterie tourne tant que la page est montée ; sous l'`IndexedStack` du `StatefulShellRoute`, c'est tant que l'onglet a été ouvert (lacune déjà notée dans le CLAUDE.md : la mise en pause des onglets cachés viendra plus tard).
   - *Choix du rédacteur* : à chaque passage de la minuterie, les places d'une course **validée** déjà lue ne sont pas relues ; celles des courses en cours ou temporaires le sont. Une place en échec garde sa dernière valeur (règle du lot 2).
