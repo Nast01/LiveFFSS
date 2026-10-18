@@ -1,0 +1,4349 @@
+{
+ "success": true,
+ "data": [
+  {
+   "Id": 632821,
+   "Prenom": "N081",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 249,
+   "clubLabel": "Biarritz sauvetage côtier",
+   "isValid": false,
+   "categories": {
+    "20": "Master 40",
+    "7": "Master 2",
+    "24": "Open",
+    "2": "Seniors et Masters",
+    "3": "Masters plus",
+    "28": "R99",
+    "30": "R149",
+    "33": "R199",
+    "29": "R100",
+    "31": "R150",
+    "32": "R200"
+   },
+   "engagements": [
+    {
+     "id": 566221,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 633491,
+   "Prenom": "N124",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 16,
+   "clubLabel": "ALASCA VO Aquatique",
+   "isValid": false,
+   "categories": {
+    "9": "Senior",
+    "24": "Open",
+    "2": "Seniors et Masters"
+   },
+   "engagements": [
+    {
+     "id": 565705,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36072,
+      "IdEvenement": 1416,
+      "IdDiscipline": 24,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 24,
+       "Nom": "200m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566501,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36103,
+      "IdEvenement": 1416,
+      "IdDiscipline": 15,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 15,
+       "Nom": "Lancer de Corde",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 2,
+       "label": "Lancer de Corde",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566504,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36111,
+      "IdEvenement": 1416,
+      "IdDiscipline": 30,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 30,
+       "Nom": "4x50m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566505,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566507,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566511,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566512,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36107,
+      "IdEvenement": 1416,
+      "IdDiscipline": 37,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 37,
+       "Nom": "Relais 4x50m Sauvetage Mixte",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "Relais 4x50m Sauvetage Mixte",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 633493,
+   "Prenom": "N126",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 16,
+   "clubLabel": "ALASCA VO Aquatique",
+   "isValid": false,
+   "categories": {
+    "14": "Junior",
+    "22": "Youth",
+    "34": "U23",
+    "24": "Open"
+   },
+   "engagements": [
+    {
+     "id": 566502,
+     "categorie": {
+      "id": 22,
+      "label": "Youth"
+     },
+     "epreuve": {
+      "Id": 36102,
+      "IdEvenement": 1416,
+      "IdDiscipline": 15,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 15,
+       "Nom": "Lancer de Corde",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 2,
+       "label": "Lancer de Corde",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 22,
+        "Nom": "Youth",
+        "NomEn": "Youth",
+        "Relais": false,
+        "label": "Youth"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566505,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566507,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566511,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566513,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36107,
+      "IdEvenement": 1416,
+      "IdDiscipline": 37,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 37,
+       "Nom": "Relais 4x50m Sauvetage Mixte",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "Relais 4x50m Sauvetage Mixte",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 633494,
+   "Prenom": "N127",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 16,
+   "clubLabel": "ALASCA VO Aquatique",
+   "isValid": false,
+   "categories": {
+    "34": "U23",
+    "9": "Senior",
+    "24": "Open",
+    "2": "Seniors et Masters"
+   },
+   "engagements": [
+    {
+     "id": 566504,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36111,
+      "IdEvenement": 1416,
+      "IdDiscipline": 30,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 30,
+       "Nom": "4x50m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566505,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566507,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566509,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36109,
+      "IdEvenement": 1416,
+      "IdDiscipline": 14,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 14,
+       "Nom": "SERC",
+       "Specialite": 2,
+       "Distance": 1,
+       "NbAthleteParEquipe": 4,
+       "label": "SERC",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566511,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566512,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36107,
+      "IdEvenement": 1416,
+      "IdDiscipline": 37,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 37,
+       "Nom": "Relais 4x50m Sauvetage Mixte",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "Relais 4x50m Sauvetage Mixte",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 633262,
+   "Prenom": "N100",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 574,
+   "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+   "isValid": false,
+   "categories": {
+    "9": "Senior",
+    "24": "Open",
+    "2": "Seniors et Masters"
+   },
+   "engagements": [
+    {
+     "id": 566381,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36054,
+      "IdEvenement": 1416,
+      "IdDiscipline": 20,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 20,
+       "Nom": "100m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566382,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36072,
+      "IdEvenement": 1416,
+      "IdDiscipline": 24,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 24,
+       "Nom": "200m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566383,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36078,
+      "IdEvenement": 1416,
+      "IdDiscipline": 18,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 18,
+       "Nom": "200m SLS",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m SLS",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566409,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566410,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566411,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566406,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36103,
+      "IdEvenement": 1416,
+      "IdDiscipline": 15,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 15,
+       "Nom": "Lancer de Corde",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 2,
+       "label": "Lancer de Corde",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566412,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36111,
+      "IdEvenement": 1416,
+      "IdDiscipline": 30,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 30,
+       "Nom": "4x50m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 633263,
+   "Prenom": "N101",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 574,
+   "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+   "isValid": false,
+   "categories": {
+    "34": "U23",
+    "9": "Senior",
+    "24": "Open",
+    "2": "Seniors et Masters"
+   },
+   "engagements": [
+    {
+     "id": 566389,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36054,
+      "IdEvenement": 1416,
+      "IdDiscipline": 20,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 20,
+       "Nom": "100m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566390,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36066,
+      "IdEvenement": 1416,
+      "IdDiscipline": 23,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 23,
+       "Nom": "100m Mannequin Palmes",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Mannequin Palmes",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566391,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36078,
+      "IdEvenement": 1416,
+      "IdDiscipline": 18,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 18,
+       "Nom": "200m SLS",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m SLS",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566409,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566410,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566411,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566406,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36103,
+      "IdEvenement": 1416,
+      "IdDiscipline": 15,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 15,
+       "Nom": "Lancer de Corde",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 2,
+       "label": "Lancer de Corde",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566412,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36111,
+      "IdEvenement": 1416,
+      "IdDiscipline": 30,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 30,
+       "Nom": "4x50m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 633264,
+   "Prenom": "N102",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 574,
+   "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+   "isValid": false,
+   "categories": {
+    "14": "Junior",
+    "22": "Youth",
+    "24": "Open"
+   },
+   "engagements": [
+    {
+     "id": 566398,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36052,
+      "IdEvenement": 1416,
+      "IdDiscipline": 20,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 20,
+       "Nom": "100m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566399,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36058,
+      "IdEvenement": 1416,
+      "IdDiscipline": 21,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 21,
+       "Nom": "100m Combiné",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Combiné",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566400,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36064,
+      "IdEvenement": 1416,
+      "IdDiscipline": 23,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 23,
+       "Nom": "100m Mannequin Palmes",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Mannequin Palmes",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566401,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36070,
+      "IdEvenement": 1416,
+      "IdDiscipline": 24,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 24,
+       "Nom": "200m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566402,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36076,
+      "IdEvenement": 1416,
+      "IdDiscipline": 18,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 18,
+       "Nom": "200m SLS",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m SLS",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566409,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566410,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566411,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566407,
+     "categorie": {
+      "id": 22,
+      "label": "Youth"
+     },
+     "epreuve": {
+      "Id": 36102,
+      "IdEvenement": 1416,
+      "IdDiscipline": 15,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 15,
+       "Nom": "Lancer de Corde",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 2,
+       "label": "Lancer de Corde",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 22,
+        "Nom": "Youth",
+        "NomEn": "Youth",
+        "Relais": false,
+        "label": "Youth"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566404,
+     "categorie": {
+      "id": 22,
+      "label": "Youth"
+     },
+     "epreuve": {
+      "Id": 36106,
+      "IdEvenement": 1416,
+      "IdDiscipline": 37,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 37,
+       "Nom": "Relais 4x50m Sauvetage Mixte",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "Relais 4x50m Sauvetage Mixte",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 22,
+        "Nom": "Youth",
+        "NomEn": "Youth",
+        "Relais": false,
+        "label": "Youth"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566405,
+     "categorie": {
+      "id": 22,
+      "label": "Youth"
+     },
+     "epreuve": {
+      "Id": 36108,
+      "IdEvenement": 1416,
+      "IdDiscipline": 14,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 14,
+       "Nom": "SERC",
+       "Specialite": 2,
+       "Distance": 1,
+       "NbAthleteParEquipe": 4,
+       "label": "SERC",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 22,
+        "Nom": "Youth",
+        "NomEn": "Youth",
+        "Relais": false,
+        "label": "Youth"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566412,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36111,
+      "IdEvenement": 1416,
+      "IdDiscipline": 30,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 30,
+       "Nom": "4x50m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566403,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36714,
+      "IdEvenement": 1416,
+      "IdDiscipline": 22,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 22,
+       "Nom": "50m Mannequin",
+       "Specialite": 2,
+       "Distance": 50,
+       "NbAthleteParEquipe": 1,
+       "label": "50m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 633265,
+   "Prenom": "N103",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 574,
+   "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+   "isValid": false,
+   "categories": {
+    "14": "Junior",
+    "22": "Youth",
+    "34": "U23",
+    "24": "Open"
+   },
+   "engagements": [
+    {
+     "id": 566392,
+     "categorie": {
+      "id": 14,
+      "label": "Junior"
+     },
+     "epreuve": {
+      "Id": 36059,
+      "IdEvenement": 1416,
+      "IdDiscipline": 21,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 21,
+       "Nom": "100m Combiné",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Combiné",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 14,
+        "Nom": "Junior",
+        "NomEn": "Junior",
+        "Relais": false,
+        "label": "Junior"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566393,
+     "categorie": {
+      "id": 14,
+      "label": "Junior"
+     },
+     "epreuve": {
+      "Id": 36715,
+      "IdEvenement": 1416,
+      "IdDiscipline": 22,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 22,
+       "Nom": "50m Mannequin",
+       "Specialite": 2,
+       "Distance": 50,
+       "NbAthleteParEquipe": 1,
+       "label": "50m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 14,
+        "Nom": "Junior",
+        "NomEn": "Junior",
+        "Relais": false,
+        "label": "Junior"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566404,
+     "categorie": {
+      "id": 22,
+      "label": "Youth"
+     },
+     "epreuve": {
+      "Id": 36106,
+      "IdEvenement": 1416,
+      "IdDiscipline": 37,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 37,
+       "Nom": "Relais 4x50m Sauvetage Mixte",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "Relais 4x50m Sauvetage Mixte",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 22,
+        "Nom": "Youth",
+        "NomEn": "Youth",
+        "Relais": false,
+        "label": "Youth"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566405,
+     "categorie": {
+      "id": 22,
+      "label": "Youth"
+     },
+     "epreuve": {
+      "Id": 36108,
+      "IdEvenement": 1416,
+      "IdDiscipline": 14,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 14,
+       "Nom": "SERC",
+       "Specialite": 2,
+       "Distance": 1,
+       "NbAthleteParEquipe": 4,
+       "label": "SERC",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 22,
+        "Nom": "Youth",
+        "NomEn": "Youth",
+        "Relais": false,
+        "label": "Youth"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566407,
+     "categorie": {
+      "id": 22,
+      "label": "Youth"
+     },
+     "epreuve": {
+      "Id": 36102,
+      "IdEvenement": 1416,
+      "IdDiscipline": 15,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 15,
+       "Nom": "Lancer de Corde",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 2,
+       "label": "Lancer de Corde",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 22,
+        "Nom": "Youth",
+        "NomEn": "Youth",
+        "Relais": false,
+        "label": "Youth"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566409,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566410,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566411,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566412,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36111,
+      "IdEvenement": 1416,
+      "IdDiscipline": 30,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 30,
+       "Nom": "4x50m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 631868,
+   "Prenom": "N060",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 27,
+   "clubLabel": "Aqualove Sauvetage",
+   "isValid": false,
+   "categories": {
+    "9": "Senior",
+    "24": "Open",
+    "2": "Seniors et Masters"
+   },
+   "engagements": [
+    {
+     "id": 564789,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36054,
+      "IdEvenement": 1416,
+      "IdDiscipline": 20,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 20,
+       "Nom": "100m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564790,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36066,
+      "IdEvenement": 1416,
+      "IdDiscipline": 23,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 23,
+       "Nom": "100m Mannequin Palmes",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Mannequin Palmes",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564791,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36078,
+      "IdEvenement": 1416,
+      "IdDiscipline": 18,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 18,
+       "Nom": "200m SLS",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m SLS",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565685,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564839,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565667,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564816,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36103,
+      "IdEvenement": 1416,
+      "IdDiscipline": 15,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 15,
+       "Nom": "Lancer de Corde",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 2,
+       "label": "Lancer de Corde",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566196,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36107,
+      "IdEvenement": 1416,
+      "IdDiscipline": 37,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 37,
+       "Nom": "Relais 4x50m Sauvetage Mixte",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "Relais 4x50m Sauvetage Mixte",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565687,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36109,
+      "IdEvenement": 1416,
+      "IdDiscipline": 14,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 14,
+       "Nom": "SERC",
+       "Specialite": 2,
+       "Distance": 1,
+       "NbAthleteParEquipe": 4,
+       "label": "SERC",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 631869,
+   "Prenom": "N061",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 27,
+   "clubLabel": "Aqualove Sauvetage",
+   "isValid": false,
+   "categories": {
+    "34": "U23",
+    "9": "Senior",
+    "24": "Open",
+    "2": "Seniors et Masters"
+   },
+   "engagements": [
+    {
+     "id": 564785,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36054,
+      "IdEvenement": 1416,
+      "IdDiscipline": 20,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 20,
+       "Nom": "100m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564786,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36066,
+      "IdEvenement": 1416,
+      "IdDiscipline": 23,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 23,
+       "Nom": "100m Mannequin Palmes",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Mannequin Palmes",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564787,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36078,
+      "IdEvenement": 1416,
+      "IdDiscipline": 18,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 18,
+       "Nom": "200m SLS",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m SLS",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565685,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564839,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565667,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564817,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36103,
+      "IdEvenement": 1416,
+      "IdDiscipline": 15,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 15,
+       "Nom": "Lancer de Corde",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 2,
+       "label": "Lancer de Corde",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566195,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36107,
+      "IdEvenement": 1416,
+      "IdDiscipline": 37,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 37,
+       "Nom": "Relais 4x50m Sauvetage Mixte",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "Relais 4x50m Sauvetage Mixte",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564788,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36716,
+      "IdEvenement": 1416,
+      "IdDiscipline": 22,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 22,
+       "Nom": "50m Mannequin",
+       "Specialite": 2,
+       "Distance": 50,
+       "NbAthleteParEquipe": 1,
+       "label": "50m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 631870,
+   "Prenom": "N062",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 27,
+   "clubLabel": "Aqualove Sauvetage",
+   "isValid": false,
+   "categories": {
+    "9": "Senior",
+    "24": "Open",
+    "2": "Seniors et Masters"
+   },
+   "engagements": [
+    {
+     "id": 564800,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36060,
+      "IdEvenement": 1416,
+      "IdDiscipline": 21,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 21,
+       "Nom": "100m Combiné",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Combiné",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564801,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36078,
+      "IdEvenement": 1416,
+      "IdDiscipline": 18,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 18,
+       "Nom": "200m SLS",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m SLS",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565685,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564839,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565667,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566195,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36107,
+      "IdEvenement": 1416,
+      "IdDiscipline": 37,
+      "Genre": "M",
+      "genreLabel": "Mixte",
+      "discipline": {
+       "Id": 37,
+       "Nom": "Relais 4x50m Sauvetage Mixte",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "Relais 4x50m Sauvetage Mixte",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564802,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36716,
+      "IdEvenement": 1416,
+      "IdDiscipline": 22,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 22,
+       "Nom": "50m Mannequin",
+       "Specialite": 2,
+       "Distance": 50,
+       "NbAthleteParEquipe": 1,
+       "label": "50m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 632572,
+   "Prenom": "N020",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "F",
+   "nationaliteCode": "FRA",
+   "idClub": 492,
+   "clubLabel": "Aqua Grimpe Millau Grands Causses",
+   "isValid": false,
+   "categories": {
+    "13": "Cadet",
+    "22": "Youth",
+    "24": "Open"
+   },
+   "engagements": [
+    {
+     "id": 566082,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36073,
+      "IdEvenement": 1416,
+      "IdDiscipline": 24,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 24,
+       "Nom": "200m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566083,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36079,
+      "IdEvenement": 1416,
+      "IdDiscipline": 18,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 18,
+       "Nom": "200m SLS",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m SLS",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566325,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36113,
+      "IdEvenement": 1416,
+      "IdDiscipline": 30,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 30,
+       "Nom": "4x50m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566326,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36089,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566327,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36097,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566329,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36093,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 631885,
+   "Prenom": "N105",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 27,
+   "clubLabel": "Aqualove Sauvetage",
+   "isValid": false,
+   "categories": {
+    "9": "Senior",
+    "24": "Open",
+    "2": "Seniors et Masters"
+   },
+   "engagements": [
+    {
+     "id": 564784,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36078,
+      "IdEvenement": 1416,
+      "IdDiscipline": 18,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 18,
+       "Nom": "200m SLS",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m SLS",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564842,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565665,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36072,
+      "IdEvenement": 1416,
+      "IdDiscipline": 24,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 24,
+       "Nom": "200m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565692,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566372,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36111,
+      "IdEvenement": 1416,
+      "IdDiscipline": 30,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 30,
+       "Nom": "4x50m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566378,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 631886,
+   "Prenom": "N106",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 27,
+   "clubLabel": "Aqualove Sauvetage",
+   "isValid": false,
+   "categories": {
+    "34": "U23",
+    "9": "Senior",
+    "24": "Open",
+    "2": "Seniors et Masters"
+   },
+   "engagements": [
+    {
+     "id": 564792,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36054,
+      "IdEvenement": 1416,
+      "IdDiscipline": 20,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 20,
+       "Nom": "100m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564793,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36078,
+      "IdEvenement": 1416,
+      "IdDiscipline": 18,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 18,
+       "Nom": "200m SLS",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m SLS",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565692,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564842,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566378,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566372,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36111,
+      "IdEvenement": 1416,
+      "IdDiscipline": 30,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 30,
+       "Nom": "4x50m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564794,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36716,
+      "IdEvenement": 1416,
+      "IdDiscipline": 22,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 22,
+       "Nom": "50m Mannequin",
+       "Specialite": 2,
+       "Distance": 50,
+       "NbAthleteParEquipe": 1,
+       "label": "50m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 631887,
+   "Prenom": "N107",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 27,
+   "clubLabel": "Aqualove Sauvetage",
+   "isValid": false,
+   "categories": {
+    "13": "Cadet",
+    "22": "Youth",
+    "24": "Open"
+   },
+   "engagements": [
+    {
+     "id": 564771,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36052,
+      "IdEvenement": 1416,
+      "IdDiscipline": 20,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 20,
+       "Nom": "100m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564772,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36058,
+      "IdEvenement": 1416,
+      "IdDiscipline": 21,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 21,
+       "Nom": "100m Combiné",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Combiné",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564773,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36064,
+      "IdEvenement": 1416,
+      "IdDiscipline": 23,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 23,
+       "Nom": "100m Mannequin Palmes",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Mannequin Palmes",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564774,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36070,
+      "IdEvenement": 1416,
+      "IdDiscipline": 24,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 24,
+       "Nom": "200m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564775,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36076,
+      "IdEvenement": 1416,
+      "IdDiscipline": 18,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 18,
+       "Nom": "200m SLS",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m SLS",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565692,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564842,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36091,
+      "IdEvenement": 1416,
+      "IdDiscipline": 17,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 17,
+       "Nom": "4x25m Mannequin",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 4,
+       "label": "4x25m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566378,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566197,
+     "categorie": {
+      "id": 22,
+      "label": "Youth"
+     },
+     "epreuve": {
+      "Id": 36102,
+      "IdEvenement": 1416,
+      "IdDiscipline": 15,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 15,
+       "Nom": "Lancer de Corde",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 2,
+       "label": "Lancer de Corde",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 22,
+        "Nom": "Youth",
+        "NomEn": "Youth",
+        "Relais": false,
+        "label": "Youth"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564831,
+     "categorie": {
+      "id": 22,
+      "label": "Youth"
+     },
+     "epreuve": {
+      "Id": 36110,
+      "IdEvenement": 1416,
+      "IdDiscipline": 30,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 30,
+       "Nom": "4x50m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 22,
+        "Nom": "Youth",
+        "NomEn": "Youth",
+        "Relais": false,
+        "label": "Youth"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564776,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36714,
+      "IdEvenement": 1416,
+      "IdDiscipline": 22,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 22,
+       "Nom": "50m Mannequin",
+       "Specialite": 2,
+       "Distance": 50,
+       "NbAthleteParEquipe": 1,
+       "label": "50m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 633044,
+   "Prenom": "N028",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "F",
+   "nationaliteCode": "FRA",
+   "idClub": 22,
+   "clubLabel": "Biscarrosse Olympique Sauvetage et Secourisme",
+   "isValid": false,
+   "categories": {
+    "13": "Cadet",
+    "22": "Youth",
+    "24": "Open"
+   },
+   "engagements": [
+    {
+     "id": 566311,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36073,
+      "IdEvenement": 1416,
+      "IdDiscipline": 24,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 24,
+       "Nom": "200m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 633351,
+   "Prenom": "N094",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "FRA",
+   "idClub": 498,
+   "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+   "isValid": false,
+   "categories": {
+    "9": "Senior",
+    "24": "Open",
+    "2": "Seniors et Masters"
+   },
+   "engagements": [
+    {
+     "id": 565297,
+     "categorie": {
+      "id": 2,
+      "label": "Seniors et Masters"
+     },
+     "epreuve": {
+      "Id": 36060,
+      "IdEvenement": 1416,
+      "IdDiscipline": 21,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 21,
+       "Nom": "100m Combiné",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Combiné",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 2,
+        "Nom": "Seniors et Masters",
+        "NomEn": "Seniors et Masters",
+        "Relais": false,
+        "label": "Seniors et Masters"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566424,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36111,
+      "IdEvenement": 1416,
+      "IdDiscipline": 30,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 30,
+       "Nom": "4x50m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 566434,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 631788,
+   "Prenom": "N077",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "H",
+   "nationaliteCode": "ESP",
+   "idClub": 349,
+   "clubLabel": "SEIGNOSSE SAUVETAGE COTIER",
+   "isValid": false,
+   "categories": {
+    "34": "U23",
+    "9": "Senior",
+    "24": "Open",
+    "2": "Seniors et Masters"
+   },
+   "engagements": [
+    {
+     "id": 565657,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36087,
+      "IdEvenement": 1416,
+      "IdDiscipline": 46,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 46,
+       "Nom": "4 X 50m Sauvetage",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4 X 50m Sauvetage",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    },
+    {
+     "id": 565680,
+     "categorie": {
+      "id": 24,
+      "label": "Open"
+     },
+     "epreuve": {
+      "Id": 36095,
+      "IdEvenement": 1416,
+      "IdDiscipline": 16,
+      "Genre": "H",
+      "genreLabel": "Homme",
+      "discipline": {
+       "Id": 16,
+       "Nom": "4x50m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 4,
+       "label": "4x50m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 24,
+        "Nom": "Open",
+        "NomEn": "Open",
+        "Relais": false,
+        "label": "Open"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "Id": 630812,
+   "Prenom": "N022",
+   "Nom": "ATHLETE",
+   "isLicencie": true,
+   "isInvite": false,
+   "Sexe": "F",
+   "nationaliteCode": "FRA",
+   "idClub": 60,
+   "clubLabel": "Avenir Nautique Villeneuvois",
+   "isValid": false,
+   "categories": {
+    "13": "Cadet",
+    "22": "Youth",
+    "24": "Open"
+   },
+   "engagements": [
+    {
+     "id": 564822,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36055,
+      "IdEvenement": 1416,
+      "IdDiscipline": 20,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 20,
+       "Nom": "100m Bouée Tube",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Bouée Tube",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564823,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36061,
+      "IdEvenement": 1416,
+      "IdDiscipline": 21,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 21,
+       "Nom": "100m Combiné",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Combiné",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564824,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36067,
+      "IdEvenement": 1416,
+      "IdDiscipline": 23,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 23,
+       "Nom": "100m Mannequin Palmes",
+       "Specialite": 2,
+       "Distance": 100,
+       "NbAthleteParEquipe": 1,
+       "label": "100m Mannequin Palmes",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564825,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36073,
+      "IdEvenement": 1416,
+      "IdDiscipline": 24,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 24,
+       "Nom": "200m Obstacles",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m Obstacles",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564826,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36079,
+      "IdEvenement": 1416,
+      "IdDiscipline": 18,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 18,
+       "Nom": "200m SLS",
+       "Specialite": 2,
+       "Distance": 200,
+       "NbAthleteParEquipe": 1,
+       "label": "200m SLS",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    },
+    {
+     "id": 564827,
+     "categorie": {
+      "id": 13,
+      "label": "Cadet"
+     },
+     "epreuve": {
+      "Id": 36717,
+      "IdEvenement": 1416,
+      "IdDiscipline": 22,
+      "Genre": "F",
+      "genreLabel": "Femme",
+      "discipline": {
+       "Id": 22,
+       "Nom": "50m Mannequin",
+       "Specialite": 2,
+       "Distance": 50,
+       "NbAthleteParEquipe": 1,
+       "label": "50m Mannequin",
+       "specialiteLabel": "Eau-plate"
+      },
+      "categories": [
+       {
+        "Id": 13,
+        "Nom": "Cadet",
+        "NomEn": "Cadet",
+        "Relais": false,
+        "label": "Cadet"
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

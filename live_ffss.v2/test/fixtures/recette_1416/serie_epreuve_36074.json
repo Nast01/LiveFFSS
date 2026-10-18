@@ -1,0 +1,5188 @@
+{
+ "success": true,
+ "count": 20,
+ "data": [
+  {
+   "Id": 91399,
+   "Numero": 10,
+   "Nom": "Série 10 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-03-30 10:14:28",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540536,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 14106,
+     "tempsLabel": "02'21\"06",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 18,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630887,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N029",
+       "publicLabel": "ATHLETE N029",
+       "nom": "ATHLETE",
+       "prenom": "N029",
+       "sexe": "F",
+       "clubLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564873,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 577,
+      "organismeLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+      "clubLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538973,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 14106,
+     "tempsLabel": "02'21\"06",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 18,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630887,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N029",
+       "publicLabel": "ATHLETE N029",
+       "nom": "ATHLETE",
+       "prenom": "N029",
+       "sexe": "F",
+       "clubLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564873,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 577,
+      "organismeLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+      "clubLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540544,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 10,
+     "Temps": 15035,
+     "tempsLabel": "02'30\"35",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 7,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630630,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N030",
+       "publicLabel": "ATHLETE N030",
+       "nom": "ATHLETE",
+       "prenom": "N030",
+       "sexe": "F",
+       "clubLabel": "Tarbes Pyrénées natation",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564654,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 149,
+      "organismeLabel": "Tarbes Pyrénées natation",
+      "clubLabel": "Tarbes Pyrénées natation",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538981,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 10,
+     "Temps": 15035,
+     "tempsLabel": "02'30\"35",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 7,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630630,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N030",
+       "publicLabel": "ATHLETE N030",
+       "nom": "ATHLETE",
+       "prenom": "N030",
+       "sexe": "F",
+       "clubLabel": "Tarbes Pyrénées natation",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564654,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 149,
+      "organismeLabel": "Tarbes Pyrénées natation",
+      "clubLabel": "Tarbes Pyrénées natation",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91400,
+   "Numero": 1,
+   "Nom": "Final B 200m Obstacles - Cadet, Junior, Seniors et Masters Junior",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-03-30 10:14:28",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539382,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 9,
+     "Temps": 14562,
+     "tempsLabel": "02'25\"62",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 8,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630630,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N030",
+       "publicLabel": "ATHLETE N030",
+       "nom": "ATHLETE",
+       "prenom": "N030",
+       "sexe": "F",
+       "clubLabel": "Tarbes Pyrénées natation",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564654,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 149,
+      "organismeLabel": "Tarbes Pyrénées natation",
+      "clubLabel": "Tarbes Pyrénées natation",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539383,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 10,
+     "Temps": 14624,
+     "tempsLabel": "02'26\"24",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 7,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631104,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N031",
+       "publicLabel": "ATHLETE N031",
+       "nom": "ATHLETE",
+       "prenom": "N031",
+       "sexe": "F",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565058,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 442,
+      "organismeLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539384,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 11,
+     "Temps": 15123,
+     "tempsLabel": "02'31\"23",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 6,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632559,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N032",
+       "publicLabel": "ATHLETE N032",
+       "nom": "ATHLETE",
+       "prenom": "N032",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566072,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539385,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 12,
+     "Temps": 15162,
+     "tempsLabel": "02'31\"62",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 5,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633380,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N033",
+       "publicLabel": "ATHLETE N033",
+       "nom": "ATHLETE",
+       "prenom": "N033",
+       "sexe": "F",
+       "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+       "nationaliteCode": "ESP",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566447,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 358,
+      "organismeLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539386,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 13,
+     "Temps": 15175,
+     "tempsLabel": "02'31\"75",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 4,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631557,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N034",
+       "publicLabel": "ATHLETE N034",
+       "nom": "ATHLETE",
+       "prenom": "N034",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565450,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539387,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 14,
+     "Temps": 15191,
+     "tempsLabel": "02'31\"91",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 3,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631550,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N035",
+       "publicLabel": "ATHLETE N035",
+       "nom": "ATHLETE",
+       "prenom": "N035",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565443,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539388,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 15,
+     "Temps": 15631,
+     "tempsLabel": "02'36\"31",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 2,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631545,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N036",
+       "publicLabel": "ATHLETE N036",
+       "nom": "ATHLETE",
+       "prenom": "N036",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565438,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539389,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 16,
+     "Temps": 17813,
+     "tempsLabel": "02'58\"13",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 1,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631533,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N037",
+       "publicLabel": "ATHLETE N037",
+       "nom": "ATHLETE",
+       "prenom": "N037",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565426,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91401,
+   "Numero": 2,
+   "Nom": "Série 2 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-03-30 10:14:28",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540555,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 21,
+     "Temps": 16238,
+     "tempsLabel": "02'42\"38",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630724,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N038",
+       "publicLabel": "ATHLETE N038",
+       "nom": "ATHLETE",
+       "prenom": "N038",
+       "sexe": "F",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564748,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538992,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 21,
+     "Temps": 16238,
+     "tempsLabel": "02'42\"38",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630724,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N038",
+       "publicLabel": "ATHLETE N038",
+       "nom": "ATHLETE",
+       "prenom": "N038",
+       "sexe": "F",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564748,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91402,
+   "Numero": 1,
+   "Nom": "Final A 200m Obstacles - Cadet, Junior, Seniors et Masters Junior",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-03-30 10:14:28",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539398,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 12980,
+     "tempsLabel": "02'09\"80",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 20,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631398,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N039",
+       "publicLabel": "ATHLETE N039",
+       "nom": "ATHLETE",
+       "prenom": "N039",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565316,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539399,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 14004,
+     "tempsLabel": "02'20\"04",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 18,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630887,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N029",
+       "publicLabel": "ATHLETE N029",
+       "nom": "ATHLETE",
+       "prenom": "N029",
+       "sexe": "F",
+       "clubLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564873,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 577,
+      "organismeLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+      "clubLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539400,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 14335,
+     "tempsLabel": "02'23\"35",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 16,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632586,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N040",
+       "publicLabel": "ATHLETE N040",
+       "nom": "ATHLETE",
+       "prenom": "N040",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566096,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539401,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 14392,
+     "tempsLabel": "02'23\"92",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 14,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631406,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N041",
+       "publicLabel": "ATHLETE N041",
+       "nom": "ATHLETE",
+       "prenom": "N041",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565324,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539402,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 5,
+     "Temps": 14442,
+     "tempsLabel": "02'24\"42",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 13,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631394,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N042",
+       "publicLabel": "ATHLETE N042",
+       "nom": "ATHLETE",
+       "prenom": "N042",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565312,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539403,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 6,
+     "Temps": 14639,
+     "tempsLabel": "02'26\"39",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 12,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631653,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N043",
+       "publicLabel": "ATHLETE N043",
+       "nom": "ATHLETE",
+       "prenom": "N043",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565544,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539404,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 7,
+     "Temps": 14753,
+     "tempsLabel": "02'27\"53",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 11,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632621,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N044",
+       "publicLabel": "ATHLETE N044",
+       "nom": "ATHLETE",
+       "prenom": "N044",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566119,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539405,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 8,
+     "Temps": 14841,
+     "tempsLabel": "02'28\"41",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 10,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632147,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N045",
+       "publicLabel": "ATHLETE N045",
+       "nom": "ATHLETE",
+       "prenom": "N045",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565856,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91403,
+   "Numero": 7,
+   "Nom": "Série 7 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-03-30 10:14:28",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540540,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 6,
+     "Temps": 14827,
+     "tempsLabel": "02'28\"27",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 12,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632147,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N045",
+       "publicLabel": "ATHLETE N045",
+       "nom": "ATHLETE",
+       "prenom": "N045",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565856,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538977,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 6,
+     "Temps": 14827,
+     "tempsLabel": "02'28\"27",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 12,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632147,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N045",
+       "publicLabel": "ATHLETE N045",
+       "nom": "ATHLETE",
+       "prenom": "N045",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565856,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540546,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 12,
+     "Temps": 15185,
+     "tempsLabel": "02'31\"85",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 5,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631104,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N031",
+       "publicLabel": "ATHLETE N031",
+       "nom": "ATHLETE",
+       "prenom": "N031",
+       "sexe": "F",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565058,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 442,
+      "organismeLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538983,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 12,
+     "Temps": 15185,
+     "tempsLabel": "02'31\"85",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 5,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631104,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N031",
+       "publicLabel": "ATHLETE N031",
+       "nom": "ATHLETE",
+       "prenom": "N031",
+       "sexe": "F",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565058,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 442,
+      "organismeLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540547,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 13,
+     "Temps": 15389,
+     "tempsLabel": "02'33\"89",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 4,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631557,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N034",
+       "publicLabel": "ATHLETE N034",
+       "nom": "ATHLETE",
+       "prenom": "N034",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565450,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538984,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 13,
+     "Temps": 15389,
+     "tempsLabel": "02'33\"89",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 4,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631557,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N034",
+       "publicLabel": "ATHLETE N034",
+       "nom": "ATHLETE",
+       "prenom": "N034",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565450,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91404,
+   "Numero": 9,
+   "Nom": "Série 9 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-03-30 10:14:28",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540539,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 5,
+     "Temps": 14641,
+     "tempsLabel": "02'26\"41",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 13,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631653,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N043",
+       "publicLabel": "ATHLETE N043",
+       "nom": "ATHLETE",
+       "prenom": "N043",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565544,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538976,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 5,
+     "Temps": 14641,
+     "tempsLabel": "02'26\"41",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 13,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631653,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N043",
+       "publicLabel": "ATHLETE N043",
+       "nom": "ATHLETE",
+       "prenom": "N043",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565544,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540552,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 18,
+     "Temps": 16074,
+     "tempsLabel": "02'40\"74",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631196,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N046",
+       "publicLabel": "ATHLETE N046",
+       "nom": "ATHLETE",
+       "prenom": "N046",
+       "sexe": "F",
+       "clubLabel": "Les Dauphins du Frontonnais et de l'Union",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565147,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 15,
+      "organismeLabel": "Les Dauphins du Frontonnais et de l'Union",
+      "clubLabel": "Les Dauphins du Frontonnais et de l'Union",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538989,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 18,
+     "Temps": 16074,
+     "tempsLabel": "02'40\"74",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631196,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N046",
+       "publicLabel": "ATHLETE N046",
+       "nom": "ATHLETE",
+       "prenom": "N046",
+       "sexe": "F",
+       "clubLabel": "Les Dauphins du Frontonnais et de l'Union",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565147,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 15,
+      "organismeLabel": "Les Dauphins du Frontonnais et de l'Union",
+      "clubLabel": "Les Dauphins du Frontonnais et de l'Union",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91405,
+   "Numero": 3,
+   "Nom": "Série 3 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-03-30 10:14:28",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540550,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 16,
+     "Temps": 15936,
+     "tempsLabel": "02'39\"36",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 1,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631545,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N036",
+       "publicLabel": "ATHLETE N036",
+       "nom": "ATHLETE",
+       "prenom": "N036",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565438,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538987,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 16,
+     "Temps": 15936,
+     "tempsLabel": "02'39\"36",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 1,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631545,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N036",
+       "publicLabel": "ATHLETE N036",
+       "nom": "ATHLETE",
+       "prenom": "N036",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565438,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540556,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 22,
+     "Temps": 16240,
+     "tempsLabel": "02'42\"40",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631554,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N047",
+       "publicLabel": "ATHLETE N047",
+       "nom": "ATHLETE",
+       "prenom": "N047",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565447,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538993,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 22,
+     "Temps": 16240,
+     "tempsLabel": "02'42\"40",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631554,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N047",
+       "publicLabel": "ATHLETE N047",
+       "nom": "ATHLETE",
+       "prenom": "N047",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565447,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540560,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 26,
+     "Temps": 16987,
+     "tempsLabel": "02'49\"87",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631797,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N048",
+       "publicLabel": "ATHLETE N048",
+       "nom": "ATHLETE",
+       "prenom": "N048",
+       "sexe": "F",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565661,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538997,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 26,
+     "Temps": 16987,
+     "tempsLabel": "02'49\"87",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631797,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N048",
+       "publicLabel": "ATHLETE N048",
+       "nom": "ATHLETE",
+       "prenom": "N048",
+       "sexe": "F",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565661,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540561,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 27,
+     "Temps": 17399,
+     "tempsLabel": "02'53\"99",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631262,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N049",
+       "publicLabel": "ATHLETE N049",
+       "nom": "ATHLETE",
+       "prenom": "N049",
+       "sexe": "F",
+       "clubLabel": "LES SAUVETEURS SECOURISTES DE LA VALLEE DES GAVES (65)",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565213,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 430,
+      "organismeLabel": "LES SAUVETEURS SECOURISTES DE LA VALLEE DES GAVES (65)",
+      "clubLabel": "LES SAUVETEURS SECOURISTES DE LA VALLEE DES GAVES (65)",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538998,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 27,
+     "Temps": 17399,
+     "tempsLabel": "02'53\"99",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631262,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N049",
+       "publicLabel": "ATHLETE N049",
+       "nom": "ATHLETE",
+       "prenom": "N049",
+       "sexe": "F",
+       "clubLabel": "LES SAUVETEURS SECOURISTES DE LA VALLEE DES GAVES (65)",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565213,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 430,
+      "organismeLabel": "LES SAUVETEURS SECOURISTES DE LA VALLEE DES GAVES (65)",
+      "clubLabel": "LES SAUVETEURS SECOURISTES DE LA VALLEE DES GAVES (65)",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91406,
+   "Numero": 6,
+   "Nom": "Série 6 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-03-30 10:14:28",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540542,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 8,
+     "Temps": 14908,
+     "tempsLabel": "02'29\"08",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 10,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632621,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N044",
+       "publicLabel": "ATHLETE N044",
+       "nom": "ATHLETE",
+       "prenom": "N044",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566119,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538979,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 8,
+     "Temps": 14908,
+     "tempsLabel": "02'29\"08",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 10,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632621,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N044",
+       "publicLabel": "ATHLETE N044",
+       "nom": "ATHLETE",
+       "prenom": "N044",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566119,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540543,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 9,
+     "Temps": 14976,
+     "tempsLabel": "02'29\"76",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 8,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631550,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N035",
+       "publicLabel": "ATHLETE N035",
+       "nom": "ATHLETE",
+       "prenom": "N035",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565443,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538980,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 9,
+     "Temps": 14976,
+     "tempsLabel": "02'29\"76",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 8,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631550,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N035",
+       "publicLabel": "ATHLETE N035",
+       "nom": "ATHLETE",
+       "prenom": "N035",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565443,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540545,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 11,
+     "Temps": 15145,
+     "tempsLabel": "02'31\"45",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 6,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632559,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N032",
+       "publicLabel": "ATHLETE N032",
+       "nom": "ATHLETE",
+       "prenom": "N032",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566072,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538982,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 11,
+     "Temps": 15145,
+     "tempsLabel": "02'31\"45",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 6,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632559,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N032",
+       "publicLabel": "ATHLETE N032",
+       "nom": "ATHLETE",
+       "prenom": "N032",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566072,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540548,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 14,
+     "Temps": 15540,
+     "tempsLabel": "02'35\"40",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 3,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633380,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N033",
+       "publicLabel": "ATHLETE N033",
+       "nom": "ATHLETE",
+       "prenom": "N033",
+       "sexe": "F",
+       "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+       "nationaliteCode": "ESP",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566447,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 358,
+      "organismeLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538985,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 14,
+     "Temps": 15540,
+     "tempsLabel": "02'35\"40",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 3,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633380,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N033",
+       "publicLabel": "ATHLETE N033",
+       "nom": "ATHLETE",
+       "prenom": "N033",
+       "sexe": "F",
+       "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+       "nationaliteCode": "ESP",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566447,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 358,
+      "organismeLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540554,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 20,
+     "Temps": 16131,
+     "tempsLabel": "02'41\"31",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631306,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N050",
+       "publicLabel": "ATHLETE N050",
+       "nom": "ATHLETE",
+       "prenom": "N050",
+       "sexe": "F",
+       "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565257,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 213,
+      "organismeLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538991,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 20,
+     "Temps": 16131,
+     "tempsLabel": "02'41\"31",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631306,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N050",
+       "publicLabel": "ATHLETE N050",
+       "nom": "ATHLETE",
+       "prenom": "N050",
+       "sexe": "F",
+       "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565257,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 213,
+      "organismeLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91407,
+   "Numero": 8,
+   "Nom": "Série 8 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-03-30 10:14:28",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540535,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 13237,
+     "tempsLabel": "02'12\"37",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 20,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631398,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N039",
+       "publicLabel": "ATHLETE N039",
+       "nom": "ATHLETE",
+       "prenom": "N039",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565316,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538972,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 13237,
+     "tempsLabel": "02'12\"37",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 20,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631398,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N039",
+       "publicLabel": "ATHLETE N039",
+       "nom": "ATHLETE",
+       "prenom": "N039",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565316,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540537,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 14534,
+     "tempsLabel": "02'25\"34",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 16,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631406,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N041",
+       "publicLabel": "ATHLETE N041",
+       "nom": "ATHLETE",
+       "prenom": "N041",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565324,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538974,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 14534,
+     "tempsLabel": "02'25\"34",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 16,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631406,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N041",
+       "publicLabel": "ATHLETE N041",
+       "nom": "ATHLETE",
+       "prenom": "N041",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565324,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540538,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 14594,
+     "tempsLabel": "02'25\"94",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 14,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631394,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N042",
+       "publicLabel": "ATHLETE N042",
+       "nom": "ATHLETE",
+       "prenom": "N042",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565312,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538975,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 14594,
+     "tempsLabel": "02'25\"94",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 14,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631394,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N042",
+       "publicLabel": "ATHLETE N042",
+       "nom": "ATHLETE",
+       "prenom": "N042",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565312,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540541,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 7,
+     "Temps": 14843,
+     "tempsLabel": "02'28\"43",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 11,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632586,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N040",
+       "publicLabel": "ATHLETE N040",
+       "nom": "ATHLETE",
+       "prenom": "N040",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566096,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538978,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 7,
+     "Temps": 14843,
+     "tempsLabel": "02'28\"43",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 11,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632586,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N040",
+       "publicLabel": "ATHLETE N040",
+       "nom": "ATHLETE",
+       "prenom": "N040",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566096,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91408,
+   "Numero": 4,
+   "Nom": "Série 4 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-03-30 10:14:28",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540549,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 15,
+     "Temps": 15926,
+     "tempsLabel": "02'39\"26",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 2,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631533,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N037",
+       "publicLabel": "ATHLETE N037",
+       "nom": "ATHLETE",
+       "prenom": "N037",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565426,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538986,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 15,
+     "Temps": 15926,
+     "tempsLabel": "02'39\"26",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 2,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631533,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N037",
+       "publicLabel": "ATHLETE N037",
+       "nom": "ATHLETE",
+       "prenom": "N037",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565426,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540557,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 23,
+     "Temps": 16559,
+     "tempsLabel": "02'45\"59",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632153,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N051",
+       "publicLabel": "ATHLETE N051",
+       "nom": "ATHLETE",
+       "prenom": "N051",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565862,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538994,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 23,
+     "Temps": 16559,
+     "tempsLabel": "02'45\"59",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632153,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N051",
+       "publicLabel": "ATHLETE N051",
+       "nom": "ATHLETE",
+       "prenom": "N051",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565862,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540559,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 25,
+     "Temps": 16603,
+     "tempsLabel": "02'46\"03",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631623,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N052",
+       "publicLabel": "ATHLETE N052",
+       "nom": "ATHLETE",
+       "prenom": "N052",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565514,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538996,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 25,
+     "Temps": 16603,
+     "tempsLabel": "02'46\"03",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631623,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N052",
+       "publicLabel": "ATHLETE N052",
+       "nom": "ATHLETE",
+       "prenom": "N052",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565514,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91409,
+   "Numero": 5,
+   "Nom": "Série 5 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-03-30 10:14:28",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540551,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 17,
+     "Temps": 15997,
+     "tempsLabel": "02'39\"97",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633230,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N053",
+       "publicLabel": "ATHLETE N053",
+       "nom": "ATHLETE",
+       "prenom": "N053",
+       "sexe": "F",
+       "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566386,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 574,
+      "organismeLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+      "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538988,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 17,
+     "Temps": 15997,
+     "tempsLabel": "02'39\"97",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633230,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N053",
+       "publicLabel": "ATHLETE N053",
+       "nom": "ATHLETE",
+       "prenom": "N053",
+       "sexe": "F",
+       "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566386,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 574,
+      "organismeLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+      "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540553,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 19,
+     "Temps": 16119,
+     "tempsLabel": "02'41\"19",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631538,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N054",
+       "publicLabel": "ATHLETE N054",
+       "nom": "ATHLETE",
+       "prenom": "N054",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565431,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538990,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 19,
+     "Temps": 16119,
+     "tempsLabel": "02'41\"19",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631538,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N054",
+       "publicLabel": "ATHLETE N054",
+       "nom": "ATHLETE",
+       "prenom": "N054",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565431,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540558,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 24,
+     "Temps": 16577,
+     "tempsLabel": "02'45\"77",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631606,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N055",
+       "publicLabel": "ATHLETE N055",
+       "nom": "ATHLETE",
+       "prenom": "N055",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565497,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 538995,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 24,
+     "Temps": 16577,
+     "tempsLabel": "02'45\"77",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631606,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N055",
+       "publicLabel": "ATHLETE N055",
+       "nom": "ATHLETE",
+       "prenom": "N055",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565497,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94897,
+   "Numero": 3,
+   "Nom": "Série 3",
+   "Debut": "2026-03-27 08:08:30",
+   "Fin": "2026-03-27 08:11:11",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:04",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572557,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 15936,
+     "tempsLabel": "02'39\"36",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 631545,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N036",
+       "publicLabel": "ATHLETE N036",
+       "nom": "ATHLETE",
+       "prenom": "N036",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565438,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572558,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 16240,
+     "tempsLabel": "02'42\"40",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631554,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N047",
+       "publicLabel": "ATHLETE N047",
+       "nom": "ATHLETE",
+       "prenom": "N047",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565447,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572556,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 16987,
+     "tempsLabel": "02'49\"87",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631797,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N048",
+       "publicLabel": "ATHLETE N048",
+       "nom": "ATHLETE",
+       "prenom": "N048",
+       "sexe": "F",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565661,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572555,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 17399,
+     "tempsLabel": "02'53\"99",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631262,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N049",
+       "publicLabel": "ATHLETE N049",
+       "nom": "ATHLETE",
+       "prenom": "N049",
+       "sexe": "F",
+       "clubLabel": "LES SAUVETEURS SECOURISTES DE LA VALLEE DES GAVES (65)",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565213,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 430,
+      "organismeLabel": "LES SAUVETEURS SECOURISTES DE LA VALLEE DES GAVES (65)",
+      "clubLabel": "LES SAUVETEURS SECOURISTES DE LA VALLEE DES GAVES (65)",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94900,
+   "Numero": 2,
+   "Nom": "Série 2",
+   "Debut": "2026-03-27 08:04:17",
+   "Fin": "2026-03-27 08:07:00",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:06",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572568,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 16238,
+     "tempsLabel": "02'42\"38",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630724,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N038",
+       "publicLabel": "ATHLETE N038",
+       "nom": "ATHLETE",
+       "prenom": "N038",
+       "sexe": "F",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564748,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94903,
+   "Numero": 4,
+   "Nom": "Série 4",
+   "Debut": "2026-03-27 08:12:41",
+   "Fin": "2026-03-27 08:15:20",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:07",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572574,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 15926,
+     "tempsLabel": "02'39\"26",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 631533,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N037",
+       "publicLabel": "ATHLETE N037",
+       "nom": "ATHLETE",
+       "prenom": "N037",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565426,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572572,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 16559,
+     "tempsLabel": "02'45\"59",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632153,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N051",
+       "publicLabel": "ATHLETE N051",
+       "nom": "ATHLETE",
+       "prenom": "N051",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565862,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572573,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 16603,
+     "tempsLabel": "02'46\"03",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631623,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N052",
+       "publicLabel": "ATHLETE N052",
+       "nom": "ATHLETE",
+       "prenom": "N052",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565514,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94906,
+   "Numero": 6,
+   "Nom": "Série 6",
+   "Debut": "2026-03-27 08:20:58",
+   "Fin": "2026-03-27 08:23:32",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:10",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572579,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 14908,
+     "tempsLabel": "02'29\"08",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 632621,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N044",
+       "publicLabel": "ATHLETE N044",
+       "nom": "ATHLETE",
+       "prenom": "N044",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566119,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572582,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 14976,
+     "tempsLabel": "02'29\"76",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 631550,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N035",
+       "publicLabel": "ATHLETE N035",
+       "nom": "ATHLETE",
+       "prenom": "N035",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565443,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572580,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 15145,
+     "tempsLabel": "02'31\"45",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 632559,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N032",
+       "publicLabel": "ATHLETE N032",
+       "nom": "ATHLETE",
+       "prenom": "N032",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566072,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572581,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 15540,
+     "tempsLabel": "02'35\"40",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 633380,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N033",
+       "publicLabel": "ATHLETE N033",
+       "nom": "ATHLETE",
+       "prenom": "N033",
+       "sexe": "F",
+       "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+       "nationaliteCode": "ESP",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566447,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 358,
+      "organismeLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572583,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 5,
+     "Temps": 16131,
+     "tempsLabel": "02'41\"31",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631306,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N050",
+       "publicLabel": "ATHLETE N050",
+       "nom": "ATHLETE",
+       "prenom": "N050",
+       "sexe": "F",
+       "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565257,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 213,
+      "organismeLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94909,
+   "Numero": 5,
+   "Nom": "Série 5",
+   "Debut": "2026-03-27 08:16:50",
+   "Fin": "2026-03-27 08:19:28",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:09",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572589,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 15997,
+     "tempsLabel": "02'39\"97",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633230,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N053",
+       "publicLabel": "ATHLETE N053",
+       "nom": "ATHLETE",
+       "prenom": "N053",
+       "sexe": "F",
+       "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566386,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 574,
+      "organismeLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+      "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572591,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 16119,
+     "tempsLabel": "02'41\"19",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631538,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N054",
+       "publicLabel": "ATHLETE N054",
+       "nom": "ATHLETE",
+       "prenom": "N054",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565431,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572590,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 16577,
+     "tempsLabel": "02'45\"77",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631606,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N055",
+       "publicLabel": "ATHLETE N055",
+       "nom": "ATHLETE",
+       "prenom": "N055",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565497,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94912,
+   "Numero": 7,
+   "Nom": "Série 7",
+   "Debut": "2026-03-27 08:25:02",
+   "Fin": "2026-03-27 08:27:35",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:10",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572596,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 14827,
+     "tempsLabel": "02'28\"27",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 632147,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N045",
+       "publicLabel": "ATHLETE N045",
+       "nom": "ATHLETE",
+       "prenom": "N045",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565856,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572597,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 15185,
+     "tempsLabel": "02'31\"85",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 631104,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N031",
+       "publicLabel": "ATHLETE N031",
+       "nom": "ATHLETE",
+       "prenom": "N031",
+       "sexe": "F",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565058,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 442,
+      "organismeLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572598,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 15389,
+     "tempsLabel": "02'33\"89",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 631557,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N034",
+       "publicLabel": "ATHLETE N034",
+       "nom": "ATHLETE",
+       "prenom": "N034",
+       "sexe": "F",
+       "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565450,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 497,
+      "organismeLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "clubLabel": "SAUVETAGE SPORTIF ARGELESIEN",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94915,
+   "Numero": 8,
+   "Nom": "Série 8",
+   "Debut": "2026-03-27 08:29:05",
+   "Fin": "2026-03-27 08:31:36",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:11",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572605,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 13237,
+     "tempsLabel": "02'12\"37",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 631398,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N039",
+       "publicLabel": "ATHLETE N039",
+       "nom": "ATHLETE",
+       "prenom": "N039",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565316,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572607,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 14534,
+     "tempsLabel": "02'25\"34",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 631406,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N041",
+       "publicLabel": "ATHLETE N041",
+       "nom": "ATHLETE",
+       "prenom": "N041",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565324,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572606,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 14594,
+     "tempsLabel": "02'25\"94",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 631394,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N042",
+       "publicLabel": "ATHLETE N042",
+       "nom": "ATHLETE",
+       "prenom": "N042",
+       "sexe": "F",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565312,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572604,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 14843,
+     "tempsLabel": "02'28\"43",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 632586,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N040",
+       "publicLabel": "ATHLETE N040",
+       "nom": "ATHLETE",
+       "prenom": "N040",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566096,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94918,
+   "Numero": 9,
+   "Nom": "Série 9",
+   "Debut": "2026-03-27 08:33:06",
+   "Fin": "2026-03-27 08:35:36",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:11",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572614,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 14641,
+     "tempsLabel": "02'26\"41",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 631653,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N043",
+       "publicLabel": "ATHLETE N043",
+       "nom": "ATHLETE",
+       "prenom": "N043",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565544,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572615,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 16074,
+     "tempsLabel": "02'40\"74",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631196,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N046",
+       "publicLabel": "ATHLETE N046",
+       "nom": "ATHLETE",
+       "prenom": "N046",
+       "sexe": "F",
+       "clubLabel": "Les Dauphins du Frontonnais et de l'Union",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565147,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 15,
+      "organismeLabel": "Les Dauphins du Frontonnais et de l'Union",
+      "clubLabel": "Les Dauphins du Frontonnais et de l'Union",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94921,
+   "Numero": 10,
+   "Nom": "Série 10",
+   "Debut": "2026-03-27 08:37:06",
+   "Fin": "2026-03-27 08:39:37",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:12",
+   "epreuve": {
+    "Id": 36074,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 14,
+      "Nom": "Junior",
+      "NomEn": "Junior",
+      "Relais": false,
+      "label": "Junior"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572621,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 14106,
+     "tempsLabel": "02'21\"06",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 630887,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N029",
+       "publicLabel": "ATHLETE N029",
+       "nom": "ATHLETE",
+       "prenom": "N029",
+       "sexe": "F",
+       "clubLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564873,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 577,
+      "organismeLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+      "clubLabel": "CERCLE DES NAGEURS DE CANNES (SAUVETAGE SECOURISME)",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572620,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 15035,
+     "tempsLabel": "02'30\"35",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 630630,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N030",
+       "publicLabel": "ATHLETE N030",
+       "nom": "ATHLETE",
+       "prenom": "N030",
+       "sexe": "F",
+       "clubLabel": "Tarbes Pyrénées natation",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564654,
+      "IdEpreuve": 36074,
+      "categorie": {
+       "Id": 14,
+       "Nom": "Junior",
+       "NomEn": "Junior",
+       "Relais": false,
+       "label": "Junior"
+      },
+      "IdOrganisme": 149,
+      "organismeLabel": "Tarbes Pyrénées natation",
+      "clubLabel": "Tarbes Pyrénées natation",
+      "Statut": 0
+     }
+    }
+   ]
+  }
+ ]
+}
