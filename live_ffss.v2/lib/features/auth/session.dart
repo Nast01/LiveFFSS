@@ -87,31 +87,24 @@ class SessionNotifier extends AsyncNotifier<Account?> {
     await _guard(() => tokens.setToken(token));
     if (!_isCurrent(generation)) return;
 
-    Account? account;
+    final Account account;
     try {
       account = await auth.me();
-    } on AppException catch (e) {
-      // Hors ligne, ou un jeton neuf déjà servi comme anonyme : pas de
-      // session à moitié ouverte.
-      if (e is NetworkException || e is AuthException) {
-        if (_isCurrent(generation)) await _guard(tokens.clearToken);
-        rethrow;
-      }
+    } on AppException {
+      // Pas de session à moitié ouverte : hors ligne, un jeton neuf déjà
+      // servi comme anonyme, ou un compte que `/me` ne décrit pas. Sous
+      // l'identifiant tapé, les saisies seraient rangées sous un compte que
+      // le site ne rendrait plus jamais.
+      if (_isCurrent(generation)) await _guard(tokens.clearToken);
+      rethrow;
     }
     if (!_isCurrent(generation)) return;
 
-    if (account != null) {
-      await _guard(() => store.write(accountKey, account!.label));
-    } else {
-      // Comme V3 : le jeton vient d'être accordé, la connexion vaut et
-      // l'identifiant tient lieu de nom. Ce nom n'est pas enregistré : la
-      // prochaine reprise prendra celui que `/me` donnera.
-      await _guard(() => store.delete(accountKey));
-    }
+    await _guard(() => store.write(accountKey, account.label));
     if (!_isCurrent(generation)) return;
 
     ref.read(sessionExpiredProvider.notifier)._set(false);
-    state = AsyncData(account ?? Account(label: login.trim()));
+    state = AsyncData(account);
   }
 
   Future<void> logout() async {

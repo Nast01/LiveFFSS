@@ -10,6 +10,7 @@ import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/auth_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
+import 'package:live_ffss_v2/features/auth/auth_formatting.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -179,27 +180,34 @@ void main() {
       },
     );
 
-    test('compte non décrit : connecté sous l\'identifiant (V3)', () async {
-      await container.read(sessionProvider.future);
-      store.values[SessionNotifier.accountKey] = 'MARTIN Paul';
-      when(
-        () => auth.requestToken(any(), any()),
-      ).thenAnswer((_) async => 'neuf');
-      when(() => auth.me()).thenThrow(const ApiException('refus'));
+    test(
+      'compte non décrit par /me : la connexion échoue, jeton effacé',
+      () async {
+        await container.read(sessionProvider.future);
+        store.values[SessionNotifier.accountKey] = 'MARTIN Paul';
+        when(
+          () => auth.requestToken(any(), any()),
+        ).thenAnswer((_) async => 'neuf');
+        when(() => auth.me()).thenThrow(const ApiException('refus'));
 
-      await container
-          .read(sessionProvider.notifier)
-          .login(' jdupont ', 'secret');
+        // Sous l'identifiant, les saisies seraient rangées sous un compte que
+        // le site ne rendrait plus jamais.
+        Object? error;
+        try {
+          await container
+              .read(sessionProvider.notifier)
+              .login(' jdupont ', 'secret');
+        } on AppException catch (e) {
+          error = e;
+        }
 
-      expect(
-        container.read(sessionProvider).value,
-        const Account(label: 'jdupont'),
-      );
-      expect(tokens.token, 'neuf');
-      // Ni l'identifiant ni le nom d'un compte précédent : la prochaine
-      // reprise acceptera le nom que /me donnera.
-      expect(store.values[SessionNotifier.accountKey], isNull);
-    });
+        expect(error, isA<ApiException>());
+        expect(loginFailureOf(error! as AppException), LoginFailure.other);
+        expect(container.read(sessionProvider).value, isNull);
+        expect(tokens.token, isNull);
+        expect(store.values[SessionNotifier.accountKey], 'MARTIN Paul');
+      },
+    );
 
     test('jeton neuf servi comme anonyme : la connexion échoue', () async {
       await container.read(sessionProvider.future);
