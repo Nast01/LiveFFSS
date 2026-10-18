@@ -304,7 +304,9 @@ as int?,
 /// @nodoc
 mixin _$Progression {
 
- int get id; String get name; String get disciplineName; Gender? get gender; List<Stage> get stages;
+ int get id; String get name; String get disciplineName;/// Lie le déroulement aux épreuves de `competition/epreuve`, qui ne portent
+/// que la discipline, le genre et la catégorie.
+ int? get disciplineId; Gender? get gender; List<String> get categories; List<Stage> get stages;
 /// Create a copy of Progression
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -316,20 +318,20 @@ $ProgressionCopyWith<Progression> get copyWith => _$ProgressionCopyWithImpl<Prog
 @override
 bool operator ==(Object other) {
   final _this = this as Progression;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Progression&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.disciplineName, _this.disciplineName) || other.disciplineName == _this.disciplineName)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&const DeepCollectionEquality().equals(other.stages, _this.stages));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Progression&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.disciplineName, _this.disciplineName) || other.disciplineName == _this.disciplineName)&&(identical(other.disciplineId, _this.disciplineId) || other.disciplineId == _this.disciplineId)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&const DeepCollectionEquality().equals(other.categories, _this.categories)&&const DeepCollectionEquality().equals(other.stages, _this.stages));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Progression;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.disciplineName,_this.gender,const DeepCollectionEquality().hash(_this.stages));
+  return Object.hash(runtimeType,_this.id,_this.name,_this.disciplineName,_this.disciplineId,_this.gender,const DeepCollectionEquality().hash(_this.categories),const DeepCollectionEquality().hash(_this.stages));
 }
 
 @override
 String toString() {
   final _this = this as Progression;
-  return 'Progression(id: ${_this.id}, name: ${_this.name}, disciplineName: ${_this.disciplineName}, gender: ${_this.gender}, stages: ${_this.stages})';
+  return 'Progression(id: ${_this.id}, name: ${_this.name}, disciplineName: ${_this.disciplineName}, disciplineId: ${_this.disciplineId}, gender: ${_this.gender}, categories: ${_this.categories}, stages: ${_this.stages})';
 }
 
 
@@ -340,7 +342,7 @@ abstract mixin class $ProgressionCopyWith<$Res>  {
   factory $ProgressionCopyWith(Progression value, $Res Function(Progression) _then) = _$ProgressionCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, String disciplineName, Gender? gender, List<Stage> stages
+ int id, String name, String disciplineName, int? disciplineId, Gender? gender, List<String> categories, List<Stage> stages
 });
 
 
@@ -357,13 +359,15 @@ class _$ProgressionCopyWithImpl<$Res>
 
 /// Create a copy of Progression
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? disciplineName = null,Object? gender = freezed,Object? stages = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? disciplineName = null,Object? disciplineId = freezed,Object? gender = freezed,Object? categories = null,Object? stages = null,}) {
   return _then(Progression(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,disciplineName: null == disciplineName ? _self.disciplineName : disciplineName // ignore: cast_nullable_to_non_nullable
-as String,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
-as Gender?,stages: null == stages ? _self.stages : stages // ignore: cast_nullable_to_non_nullable
+as String,disciplineId: freezed == disciplineId ? _self.disciplineId : disciplineId // ignore: cast_nullable_to_non_nullable
+as int?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
+as Gender?,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
+as List<String>,stages: null == stages ? _self.stages : stages // ignore: cast_nullable_to_non_nullable
 as List<Stage>,
   ));
 }
@@ -449,10 +453,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  String disciplineName,  Gender? gender,  List<Stage> stages)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  String disciplineName,  int? disciplineId,  Gender? gender,  List<String> categories,  List<Stage> stages)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Progression() when $default != null:
-return $default(_that.id,_that.name,_that.disciplineName,_that.gender,_that.stages);case _:
+return $default(_that.id,_that.name,_that.disciplineName,_that.disciplineId,_that.gender,_that.categories,_that.stages);case _:
   return orElse();
 
 }
@@ -470,10 +474,10 @@ return $default(_that.id,_that.name,_that.disciplineName,_that.gender,_that.stag
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  String disciplineName,  Gender? gender,  List<Stage> stages)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  String disciplineName,  int? disciplineId,  Gender? gender,  List<String> categories,  List<Stage> stages)  $default,) {final _that = this;
 switch (_that) {
 case _Progression():
-return $default(_that.id,_that.name,_that.disciplineName,_that.gender,_that.stages);case _:
+return $default(_that.id,_that.name,_that.disciplineName,_that.disciplineId,_that.gender,_that.categories,_that.stages);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -490,10 +494,10 @@ return $default(_that.id,_that.name,_that.disciplineName,_that.gender,_that.stag
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  String disciplineName,  Gender? gender,  List<Stage> stages)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  String disciplineName,  int? disciplineId,  Gender? gender,  List<String> categories,  List<Stage> stages)?  $default,) {final _that = this;
 switch (_that) {
 case _Progression() when $default != null:
-return $default(_that.id,_that.name,_that.disciplineName,_that.gender,_that.stages);case _:
+return $default(_that.id,_that.name,_that.disciplineName,_that.disciplineId,_that.gender,_that.categories,_that.stages);case _:
   return null;
 
 }
@@ -505,13 +509,23 @@ return $default(_that.id,_that.name,_that.disciplineName,_that.gender,_that.stag
 
 
 class _Progression extends Progression {
-  const _Progression({required this.id, required this.name, this.disciplineName = '', this.gender,  List<Stage> stages = const <Stage>[]}): _stages = stages,super._();
+  const _Progression({required this.id, required this.name, this.disciplineName = '', this.disciplineId, this.gender,  List<String> categories = const <String>[],  List<Stage> stages = const <Stage>[]}): _categories = categories,_stages = stages,super._();
   
 
 @override final  int id;
 @override final  String name;
 @override@JsonKey() final  String disciplineName;
+/// Lie le déroulement aux épreuves de `competition/epreuve`, qui ne portent
+/// que la discipline, le genre et la catégorie.
+@override final  int? disciplineId;
 @override final  Gender? gender;
+ final  List<String> _categories;
+@override@JsonKey() List<String> get categories {
+  if (_categories is EqualUnmodifiableListView) return _categories;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_categories);
+}
+
  final  List<Stage> _stages;
 @override@JsonKey() List<Stage> get stages {
   if (_stages is EqualUnmodifiableListView) return _stages;
@@ -530,18 +544,18 @@ _$ProgressionCopyWith<_Progression> get copyWith => __$ProgressionCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Progression&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.disciplineName, disciplineName) || other.disciplineName == disciplineName)&&(identical(other.gender, gender) || other.gender == gender)&&const DeepCollectionEquality().equals(other.stages, _stages));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Progression&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.disciplineName, disciplineName) || other.disciplineName == disciplineName)&&(identical(other.disciplineId, disciplineId) || other.disciplineId == disciplineId)&&(identical(other.gender, gender) || other.gender == gender)&&const DeepCollectionEquality().equals(other.categories, _categories)&&const DeepCollectionEquality().equals(other.stages, _stages));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,disciplineName,gender,const DeepCollectionEquality().hash(_stages));
+    return Object.hash(runtimeType,id,name,disciplineName,disciplineId,gender,const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_stages));
 }
 
 @override
 String toString() {
-    return 'Progression(id: $id, name: $name, disciplineName: $disciplineName, gender: $gender, stages: $stages)';
+    return 'Progression(id: $id, name: $name, disciplineName: $disciplineName, disciplineId: $disciplineId, gender: $gender, categories: $categories, stages: $stages)';
 }
 
 
@@ -552,7 +566,7 @@ abstract mixin class _$ProgressionCopyWith<$Res> implements $ProgressionCopyWith
   factory _$ProgressionCopyWith(_Progression value, $Res Function(_Progression) _then) = __$ProgressionCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, String disciplineName, Gender? gender, List<Stage> stages
+ int id, String name, String disciplineName, int? disciplineId, Gender? gender, List<String> categories, List<Stage> stages
 });
 
 
@@ -569,13 +583,15 @@ class __$ProgressionCopyWithImpl<$Res>
 
 /// Create a copy of Progression
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? disciplineName = null,Object? gender = freezed,Object? stages = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? disciplineName = null,Object? disciplineId = freezed,Object? gender = freezed,Object? categories = null,Object? stages = null,}) {
   return _then(_Progression(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,disciplineName: null == disciplineName ? _self.disciplineName : disciplineName // ignore: cast_nullable_to_non_nullable
-as String,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
-as Gender?,stages: null == stages ? _self._stages : stages // ignore: cast_nullable_to_non_nullable
+as String,disciplineId: freezed == disciplineId ? _self.disciplineId : disciplineId // ignore: cast_nullable_to_non_nullable
+as int?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
+as Gender?,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
+as List<String>,stages: null == stages ? _self._stages : stages // ignore: cast_nullable_to_non_nullable
 as List<Stage>,
   ));
 }

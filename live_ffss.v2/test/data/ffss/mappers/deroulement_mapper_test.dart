@@ -15,6 +15,8 @@ void main() {
     final progression = DeroulementDto.fromJson(json).toDomain()!;
 
     expect(progression.id, 501);
+    expect(progression.disciplineId, 24);
+    expect(progression.categories, ['Cadet', 'Junior', 'Seniors et Masters']);
     expect(progression.disciplineName, '200m Obstacles');
     expect(progression.gender, Gender.female);
     expect(progression.stages, hasLength(4));
@@ -53,6 +55,33 @@ void main() {
     }).toDomain()!;
 
     expect(progression.stages.map((s) => s.id), [2]);
+  });
+
+  test('une catégorie mal typée est écartée seule, pas le déroulement', () {
+    final progression = DeroulementDto.fromJson({
+      'Id': 1,
+      'categories': [
+        {'Nom': 'Cadet'},
+        {'Nom': 12},
+        'Junior',
+        {'Nom': 'Seniors et Masters'},
+      ],
+      'parties': [
+        {'id': 2, 'ordre': 1, 'niveau': 'heat'},
+      ],
+    }).toDomain()!;
+
+    expect(progression.categories, ['Cadet', 'Seniors et Masters']);
+    expect(progression.stages.map((s) => s.id), [2]);
+  });
+
+  test('des catégories servies en objet (PHP) : aucune, pas un échec', () {
+    final progression = DeroulementDto.fromJson({
+      'Id': 1,
+      'categories': <String, dynamic>{},
+    }).toDomain()!;
+
+    expect(progression.categories, isEmpty);
   });
 
   test('un déroulement sans id est écarté', () {

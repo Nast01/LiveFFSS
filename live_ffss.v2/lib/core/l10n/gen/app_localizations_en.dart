@@ -115,11 +115,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabMySpace => 'My space';
 
   @override
-  String availableInLot(int lot) {
-    return 'Coming in batch $lot';
-  }
-
-  @override
   String get chooseCompetition => 'Choose a competition';
 
   @override
@@ -545,4 +540,164 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get entryUnverified =>
       'Entry rights not checked: the site didn\'t respond. Check your connection and try again.';
+
+  @override
+  String get resultsSearch => 'Search for an athlete';
+
+  @override
+  String get resultsRefresh => 'Refresh';
+
+  @override
+  String get resultsEvents => 'Events';
+
+  @override
+  String get resultsStandings => 'Standings';
+
+  @override
+  String get resultsNoEvent => 'No flat water event published';
+
+  @override
+  String get resultsLoadError => 'Couldn\'t load the results.';
+
+  @override
+  String get resultsRankingProvisional => 'PROVISIONAL RANKING';
+
+  @override
+  String get resultsRankingFinal => 'RANKING';
+
+  @override
+  String resultsSeriesProgress(int finished, int total) {
+    return '$finished/$total heats';
+  }
+
+  @override
+  String get standingsClubs => 'Clubs';
+
+  @override
+  String get standingsLicensees => 'Athletes';
+
+  @override
+  String standingsPoints(int points) {
+    return '$points pts';
+  }
+
+  @override
+  String standingsGap(int gap) {
+    return 'Gap to previous −$gap';
+  }
+
+  @override
+  String standingsRaces(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count races',
+      one: '1 race',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String standingsFooter(int finished, int total, String time) {
+    return 'Provisional · $finished / $total heats finished · computed at $time';
+  }
+
+  @override
+  String standingsIncomplete(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count events couldn\'t be read: standings incomplete',
+      one: '1 event couldn\'t be read: standings incomplete',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String standingsStale(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count events couldn\'t be re-read: their previous standings are kept',
+      one: '1 event couldn\'t be re-read: its previous standings are kept',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get standingsEmpty => 'No points scored yet';
+
+  @override
+  String get standingsLoadError => 'Couldn\'t compute the standings.';
+
+  @override
+  String get searchTitle => 'Search for an athlete';
+
+  @override
+  String get searchFieldHint => 'Last name, first name';
+
+  @override
+  String searchTooShort(int count) {
+    return 'Type at least $count letters';
+  }
+
+  @override
+  String get searchNoResult => 'No athlete found';
+
+  @override
+  String get searchLoadError => 'Couldn\'t load the participants.';
+
+  @override
+  String get athleteRun => 'Raced';
+
+  @override
+  String get athleteToRun => 'To race';
+
+  @override
+  String get athleteNoRace => 'No flat water event';
+
+  @override
+  String get athleteFindHeat => 'Find their heat';
+
+  @override
+  String get athleteNotPlaced => 'Not placed yet';
+
+  @override
+  String get athleteFindError => 'Lanes unreadable: try again';
+
+  @override
+  String athleteSeries(int number) {
+    return 'Heat $number';
+  }
+
+  @override
+  String athleteLane(int lane) {
+    return 'lane $lane';
+  }
+
+  @override
+  String athleteHeatPlace(String place) {
+    return '$place in heat';
+  }
+
+  @override
+  String athleteEventRank(String rank) {
+    return '$rank in the event';
+  }
+
+  @override
+  String athleteEventRankProvisional(String rank) {
+    return '$rank in the event (provisional)';
+  }
+
+  @override
+  String get athleteRaceUnavailable => 'Results unreadable for this event';
+
+  @override
+  String get athleteNotFound =>
+      'This athlete isn\'t entered in this competition.';
+
+  @override
+  String get athleteLoadError => 'Couldn\'t load the athlete card.';
 }

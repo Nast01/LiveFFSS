@@ -10,6 +10,7 @@ _DeroulementDto _$DeroulementDtoFromJson(Map<String, dynamic> json) =>
     _DeroulementDto(
       id: (_readId(json, 'Id') as num?)?.toInt(),
       label: json['label'] as String?,
+      disciplineId: (readInt(json, 'IdDiscipline') as num?)?.toInt(),
       gender: json['Genre'] as String?,
       genderLabel: json['genreLabel'] as String?,
       discipline: _readDiscipline(json, 'Discipline') == null
@@ -17,6 +18,8 @@ _DeroulementDto _$DeroulementDtoFromJson(Map<String, dynamic> json) =>
           : DeroulementDisciplineDto.fromJson(
               _readDiscipline(json, 'Discipline') as Map<String, dynamic>,
             ),
+      categories:
+          readList(json, 'categories') as List<dynamic>? ?? const <Object?>[],
       parties:
           (json['parties'] as List<dynamic>?)
               ?.map((e) => PartieDto.fromJson(e as Map<String, dynamic>))
@@ -28,9 +31,11 @@ Map<String, dynamic> _$DeroulementDtoToJson(_DeroulementDto instance) =>
     <String, dynamic>{
       'Id': instance.id,
       'label': instance.label,
+      'IdDiscipline': instance.disciplineId,
       'Genre': instance.gender,
       'genreLabel': instance.genderLabel,
       'Discipline': instance.discipline,
+      'categories': instance.categories,
       'parties': instance.parties,
     };
 
@@ -40,6 +45,14 @@ _DeroulementDisciplineDto _$DeroulementDisciplineDtoFromJson(
 
 Map<String, dynamic> _$DeroulementDisciplineDtoToJson(
   _DeroulementDisciplineDto instance,
+) => <String, dynamic>{'Nom': instance.name};
+
+_DeroulementCategorieDto _$DeroulementCategorieDtoFromJson(
+  Map<String, dynamic> json,
+) => _DeroulementCategorieDto(name: json['Nom'] as String?);
+
+Map<String, dynamic> _$DeroulementCategorieDtoToJson(
+  _DeroulementCategorieDto instance,
 ) => <String, dynamic>{'Nom': instance.name};
 
 _PartieDto _$PartieDtoFromJson(Map<String, dynamic> json) => _PartieDto(

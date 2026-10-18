@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DeroulementDto {
 
-@JsonKey(name: 'Id', readValue: _readId) int? get id;@JsonKey(name: 'label') String? get label;@JsonKey(name: 'Genre') String? get gender;@JsonKey(name: 'genreLabel') String? get genderLabel;@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? get discipline;@JsonKey(name: 'parties') List<PartieDto> get parties;
+@JsonKey(name: 'Id', readValue: _readId) int? get id;@JsonKey(name: 'label') String? get label;@JsonKey(name: 'IdDiscipline', readValue: readInt) int? get disciplineId;@JsonKey(name: 'Genre') String? get gender;@JsonKey(name: 'genreLabel') String? get genderLabel;@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? get discipline;@JsonKey(name: 'categories', readValue: readList) List<Object?> get categories;@JsonKey(name: 'parties') List<PartieDto> get parties;
 /// Create a copy of DeroulementDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $DeroulementDtoCopyWith<DeroulementDto> get copyWith => _$DeroulementDtoCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as DeroulementDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeroulementDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.genderLabel, _this.genderLabel) || other.genderLabel == _this.genderLabel)&&(identical(other.discipline, _this.discipline) || other.discipline == _this.discipline)&&const DeepCollectionEquality().equals(other.parties, _this.parties));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeroulementDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.disciplineId, _this.disciplineId) || other.disciplineId == _this.disciplineId)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.genderLabel, _this.genderLabel) || other.genderLabel == _this.genderLabel)&&(identical(other.discipline, _this.discipline) || other.discipline == _this.discipline)&&const DeepCollectionEquality().equals(other.categories, _this.categories)&&const DeepCollectionEquality().equals(other.parties, _this.parties));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as DeroulementDto;
-  return Object.hash(runtimeType,_this.id,_this.label,_this.gender,_this.genderLabel,_this.discipline,const DeepCollectionEquality().hash(_this.parties));
+  return Object.hash(runtimeType,_this.id,_this.label,_this.disciplineId,_this.gender,_this.genderLabel,_this.discipline,const DeepCollectionEquality().hash(_this.categories),const DeepCollectionEquality().hash(_this.parties));
 }
 
 @override
 String toString() {
   final _this = this as DeroulementDto;
-  return 'DeroulementDto(id: ${_this.id}, label: ${_this.label}, gender: ${_this.gender}, genderLabel: ${_this.genderLabel}, discipline: ${_this.discipline}, parties: ${_this.parties})';
+  return 'DeroulementDto(id: ${_this.id}, label: ${_this.label}, disciplineId: ${_this.disciplineId}, gender: ${_this.gender}, genderLabel: ${_this.genderLabel}, discipline: ${_this.discipline}, categories: ${_this.categories}, parties: ${_this.parties})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $DeroulementDtoCopyWith<$Res>  {
   factory $DeroulementDtoCopyWith(DeroulementDto value, $Res Function(DeroulementDto) _then) = _$DeroulementDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: _readId) int? id,@JsonKey(name: 'label') String? label,@JsonKey(name: 'Genre') String? gender,@JsonKey(name: 'genreLabel') String? genderLabel,@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? discipline,@JsonKey(name: 'parties') List<PartieDto> parties
+@JsonKey(name: 'Id', readValue: _readId) int? id,@JsonKey(name: 'label') String? label,@JsonKey(name: 'IdDiscipline', readValue: readInt) int? disciplineId,@JsonKey(name: 'Genre') String? gender,@JsonKey(name: 'genreLabel') String? genderLabel,@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? discipline,@JsonKey(name: 'categories', readValue: readList) List<Object?> categories,@JsonKey(name: 'parties') List<PartieDto> parties
 });
 
 
@@ -71,14 +71,16 @@ class _$DeroulementDtoCopyWithImpl<$Res>
 
 /// Create a copy of DeroulementDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? label = freezed,Object? gender = freezed,Object? genderLabel = freezed,Object? discipline = freezed,Object? parties = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? label = freezed,Object? disciplineId = freezed,Object? gender = freezed,Object? genderLabel = freezed,Object? discipline = freezed,Object? categories = null,Object? parties = null,}) {
   return _then(DeroulementDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
-as String?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
+as String?,disciplineId: freezed == disciplineId ? _self.disciplineId : disciplineId // ignore: cast_nullable_to_non_nullable
+as int?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String?,genderLabel: freezed == genderLabel ? _self.genderLabel : genderLabel // ignore: cast_nullable_to_non_nullable
 as String?,discipline: freezed == discipline ? _self.discipline : discipline // ignore: cast_nullable_to_non_nullable
-as DeroulementDisciplineDto?,parties: null == parties ? _self.parties : parties // ignore: cast_nullable_to_non_nullable
+as DeroulementDisciplineDto?,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
+as List<Object?>,parties: null == parties ? _self.parties : parties // ignore: cast_nullable_to_non_nullable
 as List<PartieDto>,
   ));
 }
@@ -176,10 +178,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'parties')  List<PartieDto> parties)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'IdDiscipline', readValue: readInt)  int? disciplineId, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'categories', readValue: readList)  List<Object?> categories, @JsonKey(name: 'parties')  List<PartieDto> parties)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DeroulementDto() when $default != null:
-return $default(_that.id,_that.label,_that.gender,_that.genderLabel,_that.discipline,_that.parties);case _:
+return $default(_that.id,_that.label,_that.disciplineId,_that.gender,_that.genderLabel,_that.discipline,_that.categories,_that.parties);case _:
   return orElse();
 
 }
@@ -197,10 +199,10 @@ return $default(_that.id,_that.label,_that.gender,_that.genderLabel,_that.discip
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'parties')  List<PartieDto> parties)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'IdDiscipline', readValue: readInt)  int? disciplineId, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'categories', readValue: readList)  List<Object?> categories, @JsonKey(name: 'parties')  List<PartieDto> parties)  $default,) {final _that = this;
 switch (_that) {
 case _DeroulementDto():
-return $default(_that.id,_that.label,_that.gender,_that.genderLabel,_that.discipline,_that.parties);case _:
+return $default(_that.id,_that.label,_that.disciplineId,_that.gender,_that.genderLabel,_that.discipline,_that.categories,_that.parties);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -217,10 +219,10 @@ return $default(_that.id,_that.label,_that.gender,_that.genderLabel,_that.discip
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'parties')  List<PartieDto> parties)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'IdDiscipline', readValue: readInt)  int? disciplineId, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'categories', readValue: readList)  List<Object?> categories, @JsonKey(name: 'parties')  List<PartieDto> parties)?  $default,) {final _that = this;
 switch (_that) {
 case _DeroulementDto() when $default != null:
-return $default(_that.id,_that.label,_that.gender,_that.genderLabel,_that.discipline,_that.parties);case _:
+return $default(_that.id,_that.label,_that.disciplineId,_that.gender,_that.genderLabel,_that.discipline,_that.categories,_that.parties);case _:
   return null;
 
 }
@@ -232,14 +234,22 @@ return $default(_that.id,_that.label,_that.gender,_that.genderLabel,_that.discip
 @JsonSerializable()
 
 class _DeroulementDto implements DeroulementDto {
-  const _DeroulementDto({@JsonKey(name: 'Id', readValue: _readId) this.id, @JsonKey(name: 'label') this.label, @JsonKey(name: 'Genre') this.gender, @JsonKey(name: 'genreLabel') this.genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline) this.discipline, @JsonKey(name: 'parties')  List<PartieDto> parties = const <PartieDto>[]}): _parties = parties;
+  const _DeroulementDto({@JsonKey(name: 'Id', readValue: _readId) this.id, @JsonKey(name: 'label') this.label, @JsonKey(name: 'IdDiscipline', readValue: readInt) this.disciplineId, @JsonKey(name: 'Genre') this.gender, @JsonKey(name: 'genreLabel') this.genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline) this.discipline, @JsonKey(name: 'categories', readValue: readList)  List<Object?> categories = const <Object?>[], @JsonKey(name: 'parties')  List<PartieDto> parties = const <PartieDto>[]}): _categories = categories,_parties = parties;
   factory _DeroulementDto.fromJson(Map<String, dynamic> json) => _$DeroulementDtoFromJson(json);
 
 @override@JsonKey(name: 'Id', readValue: _readId) final  int? id;
 @override@JsonKey(name: 'label') final  String? label;
+@override@JsonKey(name: 'IdDiscipline', readValue: readInt) final  int? disciplineId;
 @override@JsonKey(name: 'Genre') final  String? gender;
 @override@JsonKey(name: 'genreLabel') final  String? genderLabel;
 @override@JsonKey(name: 'Discipline', readValue: _readDiscipline) final  DeroulementDisciplineDto? discipline;
+ final  List<Object?> _categories;
+@override@JsonKey(name: 'categories', readValue: readList) List<Object?> get categories {
+  if (_categories is EqualUnmodifiableListView) return _categories;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_categories);
+}
+
  final  List<PartieDto> _parties;
 @override@JsonKey(name: 'parties') List<PartieDto> get parties {
   if (_parties is EqualUnmodifiableListView) return _parties;
@@ -261,18 +271,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeroulementDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.genderLabel, genderLabel) || other.genderLabel == genderLabel)&&(identical(other.discipline, discipline) || other.discipline == discipline)&&const DeepCollectionEquality().equals(other.parties, _parties));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeroulementDto&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.disciplineId, disciplineId) || other.disciplineId == disciplineId)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.genderLabel, genderLabel) || other.genderLabel == genderLabel)&&(identical(other.discipline, discipline) || other.discipline == discipline)&&const DeepCollectionEquality().equals(other.categories, _categories)&&const DeepCollectionEquality().equals(other.parties, _parties));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,label,gender,genderLabel,discipline,const DeepCollectionEquality().hash(_parties));
+    return Object.hash(runtimeType,id,label,disciplineId,gender,genderLabel,discipline,const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_parties));
 }
 
 @override
 String toString() {
-    return 'DeroulementDto(id: $id, label: $label, gender: $gender, genderLabel: $genderLabel, discipline: $discipline, parties: $parties)';
+    return 'DeroulementDto(id: $id, label: $label, disciplineId: $disciplineId, gender: $gender, genderLabel: $genderLabel, discipline: $discipline, categories: $categories, parties: $parties)';
 }
 
 
@@ -283,7 +293,7 @@ abstract mixin class _$DeroulementDtoCopyWith<$Res> implements $DeroulementDtoCo
   factory _$DeroulementDtoCopyWith(_DeroulementDto value, $Res Function(_DeroulementDto) _then) = __$DeroulementDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: _readId) int? id,@JsonKey(name: 'label') String? label,@JsonKey(name: 'Genre') String? gender,@JsonKey(name: 'genreLabel') String? genderLabel,@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? discipline,@JsonKey(name: 'parties') List<PartieDto> parties
+@JsonKey(name: 'Id', readValue: _readId) int? id,@JsonKey(name: 'label') String? label,@JsonKey(name: 'IdDiscipline', readValue: readInt) int? disciplineId,@JsonKey(name: 'Genre') String? gender,@JsonKey(name: 'genreLabel') String? genderLabel,@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? discipline,@JsonKey(name: 'categories', readValue: readList) List<Object?> categories,@JsonKey(name: 'parties') List<PartieDto> parties
 });
 
 
@@ -300,14 +310,16 @@ class __$DeroulementDtoCopyWithImpl<$Res>
 
 /// Create a copy of DeroulementDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? label = freezed,Object? gender = freezed,Object? genderLabel = freezed,Object? discipline = freezed,Object? parties = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? label = freezed,Object? disciplineId = freezed,Object? gender = freezed,Object? genderLabel = freezed,Object? discipline = freezed,Object? categories = null,Object? parties = null,}) {
   return _then(_DeroulementDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
-as String?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
+as String?,disciplineId: freezed == disciplineId ? _self.disciplineId : disciplineId // ignore: cast_nullable_to_non_nullable
+as int?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String?,genderLabel: freezed == genderLabel ? _self.genderLabel : genderLabel // ignore: cast_nullable_to_non_nullable
 as String?,discipline: freezed == discipline ? _self.discipline : discipline // ignore: cast_nullable_to_non_nullable
-as DeroulementDisciplineDto?,parties: null == parties ? _self._parties : parties // ignore: cast_nullable_to_non_nullable
+as DeroulementDisciplineDto?,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
+as List<Object?>,parties: null == parties ? _self._parties : parties // ignore: cast_nullable_to_non_nullable
 as List<PartieDto>,
   ));
 }
@@ -589,6 +601,276 @@ class __$DeroulementDisciplineDtoCopyWithImpl<$Res>
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? name = freezed,}) {
   return _then(_DeroulementDisciplineDto(
+name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$DeroulementCategorieDto {
+
+@JsonKey(name: 'Nom') String? get name;
+/// Create a copy of DeroulementCategorieDto
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DeroulementCategorieDtoCopyWith<DeroulementCategorieDto> get copyWith => _$DeroulementCategorieDtoCopyWithImpl<DeroulementCategorieDto>(this as DeroulementCategorieDto, _$identity);
+
+  /// Serializes this DeroulementCategorieDto to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as DeroulementCategorieDto;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeroulementCategorieDto&&(identical(other.name, _this.name) || other.name == _this.name));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as DeroulementCategorieDto;
+  return Object.hash(runtimeType,_this.name);
+}
+
+@override
+String toString() {
+  final _this = this as DeroulementCategorieDto;
+  return 'DeroulementCategorieDto(name: ${_this.name})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DeroulementCategorieDtoCopyWith<$Res>  {
+  factory $DeroulementCategorieDtoCopyWith(DeroulementCategorieDto value, $Res Function(DeroulementCategorieDto) _then) = _$DeroulementCategorieDtoCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: 'Nom') String? name
+});
+
+
+
+
+}
+/// @nodoc
+class _$DeroulementCategorieDtoCopyWithImpl<$Res>
+    implements $DeroulementCategorieDtoCopyWith<$Res> {
+  _$DeroulementCategorieDtoCopyWithImpl(this._self, this._then);
+
+  final DeroulementCategorieDto _self;
+  final $Res Function(DeroulementCategorieDto) _then;
+
+/// Create a copy of DeroulementCategorieDto
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? name = freezed,}) {
+  return _then(DeroulementCategorieDto(
+name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [DeroulementCategorieDto].
+extension DeroulementCategorieDtoPatterns on DeroulementCategorieDto {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DeroulementCategorieDto value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DeroulementCategorieDto() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DeroulementCategorieDto value)  $default,){
+final _that = this;
+switch (_that) {
+case _DeroulementCategorieDto():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DeroulementCategorieDto value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DeroulementCategorieDto() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Nom')  String? name)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DeroulementCategorieDto() when $default != null:
+return $default(_that.name);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Nom')  String? name)  $default,) {final _that = this;
+switch (_that) {
+case _DeroulementCategorieDto():
+return $default(_that.name);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Nom')  String? name)?  $default,) {final _that = this;
+switch (_that) {
+case _DeroulementCategorieDto() when $default != null:
+return $default(_that.name);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _DeroulementCategorieDto implements DeroulementCategorieDto {
+  const _DeroulementCategorieDto({@JsonKey(name: 'Nom') this.name});
+  factory _DeroulementCategorieDto.fromJson(Map<String, dynamic> json) => _$DeroulementCategorieDtoFromJson(json);
+
+@override@JsonKey(name: 'Nom') final  String? name;
+
+/// Create a copy of DeroulementCategorieDto
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DeroulementCategorieDtoCopyWith<_DeroulementCategorieDto> get copyWith => __$DeroulementCategorieDtoCopyWithImpl<_DeroulementCategorieDto>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$DeroulementCategorieDtoToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeroulementCategorieDto&&(identical(other.name, name) || other.name == name));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,name);
+}
+
+@override
+String toString() {
+    return 'DeroulementCategorieDto(name: $name)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DeroulementCategorieDtoCopyWith<$Res> implements $DeroulementCategorieDtoCopyWith<$Res> {
+  factory _$DeroulementCategorieDtoCopyWith(_DeroulementCategorieDto value, $Res Function(_DeroulementCategorieDto) _then) = __$DeroulementCategorieDtoCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: 'Nom') String? name
+});
+
+
+
+
+}
+/// @nodoc
+class __$DeroulementCategorieDtoCopyWithImpl<$Res>
+    implements _$DeroulementCategorieDtoCopyWith<$Res> {
+  __$DeroulementCategorieDtoCopyWithImpl(this._self, this._then);
+
+  final _DeroulementCategorieDto _self;
+  final $Res Function(_DeroulementCategorieDto) _then;
+
+/// Create a copy of DeroulementCategorieDto
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? name = freezed,}) {
+  return _then(_DeroulementCategorieDto(
 name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

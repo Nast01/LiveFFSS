@@ -302,12 +302,6 @@ abstract class AppLocalizations {
   /// **'Mon espace'**
   String get tabMySpace;
 
-  /// No description provided for @availableInLot.
-  ///
-  /// In fr, this message translates to:
-  /// **'Disponible au lot {lot}'**
-  String availableInLot(int lot);
-
   /// No description provided for @chooseCompetition.
   ///
   /// In fr, this message translates to:
@@ -991,6 +985,234 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Droits de saisie non vérifiés : le site n\'a pas répondu. Vérifiez votre connexion et réessayez.'**
   String get entryUnverified;
+
+  /// No description provided for @resultsSearch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un athlète'**
+  String get resultsSearch;
+
+  /// No description provided for @resultsRefresh.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rafraîchir'**
+  String get resultsRefresh;
+
+  /// No description provided for @resultsEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épreuves'**
+  String get resultsEvents;
+
+  /// No description provided for @resultsStandings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Classements'**
+  String get resultsStandings;
+
+  /// No description provided for @resultsNoEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune épreuve eau plate publiée'**
+  String get resultsNoEvent;
+
+  /// No description provided for @resultsLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les résultats.'**
+  String get resultsLoadError;
+
+  /// No description provided for @resultsRankingProvisional.
+  ///
+  /// In fr, this message translates to:
+  /// **'CLASSEMENT PROVISOIRE'**
+  String get resultsRankingProvisional;
+
+  /// No description provided for @resultsRankingFinal.
+  ///
+  /// In fr, this message translates to:
+  /// **'CLASSEMENT'**
+  String get resultsRankingFinal;
+
+  /// No description provided for @resultsSeriesProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'{finished}/{total} séries'**
+  String resultsSeriesProgress(int finished, int total);
+
+  /// No description provided for @standingsClubs.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clubs'**
+  String get standingsClubs;
+
+  /// No description provided for @standingsLicensees.
+  ///
+  /// In fr, this message translates to:
+  /// **'Licenciés'**
+  String get standingsLicensees;
+
+  /// No description provided for @standingsPoints.
+  ///
+  /// In fr, this message translates to:
+  /// **'{points} pts'**
+  String standingsPoints(int points);
+
+  /// No description provided for @standingsGap.
+  ///
+  /// In fr, this message translates to:
+  /// **'Écart au précédent −{gap}'**
+  String standingsGap(int gap);
+
+  /// No description provided for @standingsRaces.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 course} other{{count} courses}}'**
+  String standingsRaces(int count);
+
+  /// No description provided for @standingsFooter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Provisoire · {finished} / {total} séries terminées · calculé à {time}'**
+  String standingsFooter(int finished, int total, String time);
+
+  /// No description provided for @standingsIncomplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 épreuve n\'a pu être lue : classement incomplet} other{{count} épreuves n\'ont pu être lues : classement incomplet}}'**
+  String standingsIncomplete(int count);
+
+  /// No description provided for @standingsStale.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 épreuve n\'a pu être relue : son classement précédent est gardé} other{{count} épreuves n\'ont pu être relues : leur classement précédent est gardé}}'**
+  String standingsStale(int count);
+
+  /// No description provided for @standingsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun point marqué pour l\'instant'**
+  String get standingsEmpty;
+
+  /// No description provided for @standingsLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de calculer les classements.'**
+  String get standingsLoadError;
+
+  /// No description provided for @searchTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un athlète'**
+  String get searchTitle;
+
+  /// No description provided for @searchFieldHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom, prénom'**
+  String get searchFieldHint;
+
+  /// No description provided for @searchTooShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tapez au moins {count} lettres'**
+  String searchTooShort(int count);
+
+  /// No description provided for @searchNoResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun athlète trouvé'**
+  String get searchNoResult;
+
+  /// No description provided for @searchLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les participants.'**
+  String get searchLoadError;
+
+  /// No description provided for @athleteRun.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courues'**
+  String get athleteRun;
+
+  /// No description provided for @athleteToRun.
+  ///
+  /// In fr, this message translates to:
+  /// **'À courir'**
+  String get athleteToRun;
+
+  /// No description provided for @athleteNoRace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune épreuve eau plate'**
+  String get athleteNoRace;
+
+  /// No description provided for @athleteFindHeat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trouver sa série'**
+  String get athleteFindHeat;
+
+  /// No description provided for @athleteNotPlaced.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore placé'**
+  String get athleteNotPlaced;
+
+  /// No description provided for @athleteFindError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Places illisibles : réessayez'**
+  String get athleteFindError;
+
+  /// No description provided for @athleteSeries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série {number}'**
+  String athleteSeries(int number);
+
+  /// No description provided for @athleteLane.
+  ///
+  /// In fr, this message translates to:
+  /// **'ligne {lane}'**
+  String athleteLane(int lane);
+
+  /// No description provided for @athleteHeatPlace.
+  ///
+  /// In fr, this message translates to:
+  /// **'{place} de la série'**
+  String athleteHeatPlace(String place);
+
+  /// No description provided for @athleteEventRank.
+  ///
+  /// In fr, this message translates to:
+  /// **'{rank} de l\'épreuve'**
+  String athleteEventRank(String rank);
+
+  /// No description provided for @athleteEventRankProvisional.
+  ///
+  /// In fr, this message translates to:
+  /// **'{rank} de l\'épreuve (provisoire)'**
+  String athleteEventRankProvisional(String rank);
+
+  /// No description provided for @athleteRaceUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats illisibles pour cette épreuve'**
+  String get athleteRaceUnavailable;
+
+  /// No description provided for @athleteNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet athlète n\'est pas engagé dans cette compétition.'**
+  String get athleteNotFound;
+
+  /// No description provided for @athleteLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger la fiche.'**
+  String get athleteLoadError;
 }
 
 class _AppLocalizationsDelegate

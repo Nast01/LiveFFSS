@@ -46,12 +46,6 @@
   "tabLive": "Live",
   "tabResults": "Résultats",
   "tabMySpace": "Mon espace",
-  "availableInLot": "Disponible au lot {lot}",
-  "@availableInLot": {
-    "placeholders": {
-      "lot": {"type": "int"}
-    }
-  },
   "chooseCompetition": "Choisir une compétition",
   "chooseCompetitionHint": "Ouvrez une compétition depuis l'accueil pour suivre son programme, son live et ses résultats.",
   "loginTitle": "Connexion",
@@ -202,5 +196,67 @@
   "entryLoadError": "Impossible de charger cette série.",
   "entrySessionLost": "Session expirée — reconnectez-vous",
   "entryResuming": "Vérification de vos droits de saisie…",
-  "entryUnverified": "Droits de saisie non vérifiés : le site n'a pas répondu. Vérifiez votre connexion et réessayez."
+  "entryUnverified": "Droits de saisie non vérifiés : le site n'a pas répondu. Vérifiez votre connexion et réessayez.",
+  "resultsSearch": "Rechercher un athlète",
+  "resultsRefresh": "Rafraîchir",
+  "resultsEvents": "Épreuves",
+  "resultsStandings": "Classements",
+  "resultsNoEvent": "Aucune épreuve eau plate publiée",
+  "resultsLoadError": "Impossible de charger les résultats.",
+  "resultsRankingProvisional": "CLASSEMENT PROVISOIRE",
+  "resultsRankingFinal": "CLASSEMENT",
+  "resultsSeriesProgress": "{finished}/{total} séries",
+  "@resultsSeriesProgress": {
+    "placeholders": {
+      "finished": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "standingsClubs": "Clubs",
+  "standingsLicensees": "Licenciés",
+  "standingsPoints": "{points} pts",
+  "@standingsPoints": {"placeholders": {"points": {"type": "int"}}},
+  "standingsGap": "Écart au précédent −{gap}",
+  "@standingsGap": {"placeholders": {"gap": {"type": "int"}}},
+  "standingsRaces": "{count, plural, one{1 course} other{{count} courses}}",
+  "@standingsRaces": {"placeholders": {"count": {"type": "int"}}},
+  "standingsFooter": "Provisoire · {finished} / {total} séries terminées · calculé à {time}",
+  "@standingsFooter": {
+    "placeholders": {
+      "finished": {"type": "int"},
+      "total": {"type": "int"},
+      "time": {"type": "String"}
+    }
+  },
+  "standingsIncomplete": "{count, plural, one{1 épreuve n'a pu être lue : classement incomplet} other{{count} épreuves n'ont pu être lues : classement incomplet}}",
+  "@standingsIncomplete": {"placeholders": {"count": {"type": "int"}}},
+  "standingsStale": "{count, plural, one{1 épreuve n'a pu être relue : son classement précédent est gardé} other{{count} épreuves n'ont pu être relues : leur classement précédent est gardé}}",
+  "@standingsStale": {"placeholders": {"count": {"type": "int"}}},
+  "standingsEmpty": "Aucun point marqué pour l'instant",
+  "standingsLoadError": "Impossible de calculer les classements.",
+  "searchTitle": "Rechercher un athlète",
+  "searchFieldHint": "Nom, prénom",
+  "searchTooShort": "Tapez au moins {count} lettres",
+  "@searchTooShort": {"placeholders": {"count": {"type": "int"}}},
+  "searchNoResult": "Aucun athlète trouvé",
+  "searchLoadError": "Impossible de charger les participants.",
+  "athleteRun": "Courues",
+  "athleteToRun": "À courir",
+  "athleteNoRace": "Aucune épreuve eau plate",
+  "athleteFindHeat": "Trouver sa série",
+  "athleteNotPlaced": "Pas encore placé",
+  "athleteFindError": "Places illisibles : réessayez",
+  "athleteSeries": "Série {number}",
+  "@athleteSeries": {"placeholders": {"number": {"type": "int"}}},
+  "athleteLane": "ligne {lane}",
+  "@athleteLane": {"placeholders": {"lane": {"type": "int"}}},
+  "athleteHeatPlace": "{place} de la série",
+  "@athleteHeatPlace": {"placeholders": {"place": {"type": "String"}}},
+  "athleteEventRank": "{rank} de l'épreuve",
+  "@athleteEventRank": {"placeholders": {"rank": {"type": "String"}}},
+  "athleteEventRankProvisional": "{rank} de l'épreuve (provisoire)",
+  "@athleteEventRankProvisional": {"placeholders": {"rank": {"type": "String"}}},
+  "athleteRaceUnavailable": "Résultats illisibles pour cette épreuve",
+  "athleteNotFound": "Cet athlète n'est pas engagé dans cette compétition.",
+  "athleteLoadError": "Impossible de charger la fiche."
 }

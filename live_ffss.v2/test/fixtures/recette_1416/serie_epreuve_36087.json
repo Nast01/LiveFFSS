@@ -1,0 +1,1644 @@
+{
+ "success": true,
+ "count": 3,
+ "data": [
+  {
+   "Id": 91246,
+   "Numero": 3,
+   "Nom": "Série 3 - 3 4 X 50m Sauvetage Messieurs (Open)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:57:58",
+   "epreuve": {
+    "Id": 36087,
+    "IdEvenement": 1416,
+    "IdDiscipline": 46,
+    "Genre": "H",
+    "genreLabel": "Homme",
+    "discipline": {
+     "Id": 46,
+     "Nom": "4 X 50m Sauvetage",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 4,
+     "label": "4 X 50m Sauvetage",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 24,
+      "Nom": "Open",
+      "NomEn": "Open",
+      "Relais": false,
+      "label": "Open"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540309,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 10728,
+     "tempsLabel": "01'47\"28",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 20,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632392,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N056",
+       "publicLabel": "ATHLETE N056",
+       "nom": "ATHLETE",
+       "prenom": "N056",
+       "sexe": "H",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632393,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N057",
+       "publicLabel": "ATHLETE N057",
+       "nom": "ATHLETE",
+       "prenom": "N057",
+       "sexe": "H",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632394,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N058",
+       "publicLabel": "ATHLETE N058",
+       "nom": "ATHLETE",
+       "prenom": "N058",
+       "sexe": "H",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632395,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N059",
+       "publicLabel": "ATHLETE N059",
+       "nom": "ATHLETE",
+       "prenom": "N059",
+       "sexe": "H",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565985,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540310,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 10796,
+     "tempsLabel": "01'47\"96",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 18,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631868,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N060",
+       "publicLabel": "ATHLETE N060",
+       "nom": "ATHLETE",
+       "prenom": "N060",
+       "sexe": "H",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631869,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N061",
+       "publicLabel": "ATHLETE N061",
+       "nom": "ATHLETE",
+       "prenom": "N061",
+       "sexe": "H",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631870,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N062",
+       "publicLabel": "ATHLETE N062",
+       "nom": "ATHLETE",
+       "prenom": "N062",
+       "sexe": "H",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631871,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N063",
+       "publicLabel": "ATHLETE N063",
+       "nom": "ATHLETE",
+       "prenom": "N063",
+       "sexe": "H",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565685,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540311,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 10973,
+     "tempsLabel": "01'49\"73",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 16,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631054,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N064",
+       "publicLabel": "ATHLETE N064",
+       "nom": "ATHLETE",
+       "prenom": "N064",
+       "sexe": "H",
+       "clubLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631055,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N065",
+       "publicLabel": "ATHLETE N065",
+       "nom": "ATHLETE",
+       "prenom": "N065",
+       "sexe": "H",
+       "clubLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631056,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N066",
+       "publicLabel": "ATHLETE N066",
+       "nom": "ATHLETE",
+       "prenom": "N066",
+       "sexe": "H",
+       "clubLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631057,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N067",
+       "publicLabel": "ATHLETE N067",
+       "nom": "ATHLETE",
+       "prenom": "N067",
+       "sexe": "H",
+       "clubLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565031,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 545,
+      "organismeLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+      "clubLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540312,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 10988,
+     "tempsLabel": "01'49\"88",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 14,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632015,
+       "isLicencie": false,
+       "isInvite": true,
+       "label": "ATHLETE N068",
+       "publicLabel": "ATHLETE N068",
+       "nom": "ATHLETE",
+       "prenom": "N068",
+       "sexe": "H",
+       "clubLabel": "Germany",
+       "nationaliteCode": "DEU",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632016,
+       "isLicencie": false,
+       "isInvite": true,
+       "label": "ATHLETE N069",
+       "publicLabel": "ATHLETE N069",
+       "nom": "ATHLETE",
+       "prenom": "N069",
+       "sexe": "H",
+       "clubLabel": "Germany",
+       "nationaliteCode": "DEU",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632017,
+       "isLicencie": false,
+       "isInvite": true,
+       "label": "ATHLETE N070",
+       "publicLabel": "ATHLETE N070",
+       "nom": "ATHLETE",
+       "prenom": "N070",
+       "sexe": "H",
+       "clubLabel": "Germany",
+       "nationaliteCode": "DEU",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632018,
+       "isLicencie": false,
+       "isInvite": true,
+       "label": "ATHLETE N071",
+       "publicLabel": "ATHLETE N071",
+       "nom": "ATHLETE",
+       "prenom": "N071",
+       "sexe": "H",
+       "clubLabel": "Germany",
+       "nationaliteCode": "DEU",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565767,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 245,
+      "organismeLabel": "FEDERATION FRANCAISE DE SAUVETAGE ET DE SECOURISME",
+      "clubLabel": "Germany",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540313,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 5,
+     "Temps": 11161,
+     "tempsLabel": "01'51\"61",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 13,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632992,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N072",
+       "publicLabel": "ATHLETE N072",
+       "nom": "ATHLETE",
+       "prenom": "N072",
+       "sexe": "H",
+       "clubLabel": "AMIENS SAUVETAGE",
+       "nationaliteCode": "BEL",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632993,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N073",
+       "publicLabel": "ATHLETE N073",
+       "nom": "ATHLETE",
+       "prenom": "N073",
+       "sexe": "H",
+       "clubLabel": "AMIENS SAUVETAGE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632994,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N074",
+       "publicLabel": "ATHLETE N074",
+       "nom": "ATHLETE",
+       "prenom": "N074",
+       "sexe": "H",
+       "clubLabel": "AMIENS SAUVETAGE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632995,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N075",
+       "publicLabel": "ATHLETE N075",
+       "nom": "ATHLETE",
+       "prenom": "N075",
+       "sexe": "H",
+       "clubLabel": "AMIENS SAUVETAGE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566295,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 125,
+      "organismeLabel": "Amiens Sauvetage",
+      "clubLabel": "AMIENS SAUVETAGE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540314,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 6,
+     "Temps": 11671,
+     "tempsLabel": "01'56\"71",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 12,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631787,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N076",
+       "publicLabel": "ATHLETE N076",
+       "nom": "ATHLETE",
+       "prenom": "N076",
+       "sexe": "H",
+       "clubLabel": "SEIGNOSSE SAUVETAGE COTIER",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631788,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N077",
+       "publicLabel": "ATHLETE N077",
+       "nom": "ATHLETE",
+       "prenom": "N077",
+       "sexe": "H",
+       "clubLabel": "SEIGNOSSE SAUVETAGE COTIER",
+       "nationaliteCode": "ESP",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631789,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N078",
+       "publicLabel": "ATHLETE N078",
+       "nom": "ATHLETE",
+       "prenom": "N078",
+       "sexe": "H",
+       "clubLabel": "SEIGNOSSE SAUVETAGE COTIER",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631790,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N079",
+       "publicLabel": "ATHLETE N079",
+       "nom": "ATHLETE",
+       "prenom": "N079",
+       "sexe": "H",
+       "clubLabel": "SEIGNOSSE SAUVETAGE COTIER",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565657,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 349,
+      "organismeLabel": "SEIGNOSSE SAUVETAGE COTIER",
+      "clubLabel": "SEIGNOSSE SAUVETAGE COTIER",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540315,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 7,
+     "Temps": 11695,
+     "tempsLabel": "01'56\"95",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 11,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632820,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N080",
+       "publicLabel": "ATHLETE N080",
+       "nom": "ATHLETE",
+       "prenom": "N080",
+       "sexe": "H",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632821,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N081",
+       "publicLabel": "ATHLETE N081",
+       "nom": "ATHLETE",
+       "prenom": "N081",
+       "sexe": "H",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632822,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N082",
+       "publicLabel": "ATHLETE N082",
+       "nom": "ATHLETE",
+       "prenom": "N082",
+       "sexe": "H",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632823,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N083",
+       "publicLabel": "ATHLETE N083",
+       "nom": "ATHLETE",
+       "prenom": "N083",
+       "sexe": "H",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566221,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540326,
+     "isValid": false,
+     "Statut": 1,
+     "statutLabel": "DQ",
+     "isDisqualifie": true,
+     "Rang": 0,
+     "Temps": 0,
+     "tempsLabel": "",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": "53",
+     "complementLabel": "53",
+     "Athletes": [
+      {
+       "Id": 633345,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N084",
+       "publicLabel": "ATHLETE N084",
+       "nom": "ATHLETE",
+       "prenom": "N084",
+       "sexe": "H",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633346,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N085",
+       "publicLabel": "ATHLETE N085",
+       "nom": "ATHLETE",
+       "prenom": "N085",
+       "sexe": "H",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633347,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N086",
+       "publicLabel": "ATHLETE N086",
+       "nom": "ATHLETE",
+       "prenom": "N086",
+       "sexe": "H",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633348,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N087",
+       "publicLabel": "ATHLETE N087",
+       "nom": "ATHLETE",
+       "prenom": "N087",
+       "sexe": "H",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566433,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91247,
+   "Numero": 2,
+   "Nom": "Série 2 - 3 4 X 50m Sauvetage Messieurs (Open)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:57:58",
+   "epreuve": {
+    "Id": 36087,
+    "IdEvenement": 1416,
+    "IdDiscipline": 46,
+    "Genre": "H",
+    "genreLabel": "Homme",
+    "discipline": {
+     "Id": 46,
+     "Nom": "4 X 50m Sauvetage",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 4,
+     "label": "4 X 50m Sauvetage",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 24,
+      "Nom": "Open",
+      "NomEn": "Open",
+      "Relais": false,
+      "label": "Open"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540316,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 8,
+     "Temps": 11868,
+     "tempsLabel": "01'58\"68",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 10,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632926,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N088",
+       "publicLabel": "ATHLETE N088",
+       "nom": "ATHLETE",
+       "prenom": "N088",
+       "sexe": "H",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632927,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N089",
+       "publicLabel": "ATHLETE N089",
+       "nom": "ATHLETE",
+       "prenom": "N089",
+       "sexe": "H",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632928,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N090",
+       "publicLabel": "ATHLETE N090",
+       "nom": "ATHLETE",
+       "prenom": "N090",
+       "sexe": "H",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632929,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N091",
+       "publicLabel": "ATHLETE N091",
+       "nom": "ATHLETE",
+       "prenom": "N091",
+       "sexe": "H",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566277,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540317,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 9,
+     "Temps": 12216,
+     "tempsLabel": "02'02\"16",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 8,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633349,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N092",
+       "publicLabel": "ATHLETE N092",
+       "nom": "ATHLETE",
+       "prenom": "N092",
+       "sexe": "H",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633350,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N093",
+       "publicLabel": "ATHLETE N093",
+       "nom": "ATHLETE",
+       "prenom": "N093",
+       "sexe": "H",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633351,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N094",
+       "publicLabel": "ATHLETE N094",
+       "nom": "ATHLETE",
+       "prenom": "N094",
+       "sexe": "H",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633352,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N095",
+       "publicLabel": "ATHLETE N095",
+       "nom": "ATHLETE",
+       "prenom": "N095",
+       "sexe": "H",
+       "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566434,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 498,
+      "organismeLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540319,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 11,
+     "Temps": 12599,
+     "tempsLabel": "02'05\"99",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 6,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632589,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N096",
+       "publicLabel": "ATHLETE N096",
+       "nom": "ATHLETE",
+       "prenom": "N096",
+       "sexe": "H",
+       "clubLabel": "WAITEUTEU MESSANGES SAUVETAGE CÔTIER",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632590,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N097",
+       "publicLabel": "ATHLETE N097",
+       "nom": "ATHLETE",
+       "prenom": "N097",
+       "sexe": "H",
+       "clubLabel": "WAITEUTEU MESSANGES SAUVETAGE CÔTIER",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632591,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N098",
+       "publicLabel": "ATHLETE N098",
+       "nom": "ATHLETE",
+       "prenom": "N098",
+       "sexe": "H",
+       "clubLabel": "WAITEUTEU MESSANGES SAUVETAGE CÔTIER",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632592,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N099",
+       "publicLabel": "ATHLETE N099",
+       "nom": "ATHLETE",
+       "prenom": "N099",
+       "sexe": "H",
+       "clubLabel": "WAITEUTEU MESSANGES SAUVETAGE CÔTIER",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566099,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 381,
+      "organismeLabel": "WAITEUTEU MESSANGES SAUVETAGE CÔTIER",
+      "clubLabel": "WAITEUTEU MESSANGES SAUVETAGE CÔTIER",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540320,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 12,
+     "Temps": 12629,
+     "tempsLabel": "02'06\"29",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 5,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633262,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N100",
+       "publicLabel": "ATHLETE N100",
+       "nom": "ATHLETE",
+       "prenom": "N100",
+       "sexe": "H",
+       "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633263,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N101",
+       "publicLabel": "ATHLETE N101",
+       "nom": "ATHLETE",
+       "prenom": "N101",
+       "sexe": "H",
+       "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633264,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N102",
+       "publicLabel": "ATHLETE N102",
+       "nom": "ATHLETE",
+       "prenom": "N102",
+       "sexe": "H",
+       "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633265,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N103",
+       "publicLabel": "ATHLETE N103",
+       "nom": "ATHLETE",
+       "prenom": "N103",
+       "sexe": "H",
+       "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566409,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 574,
+      "organismeLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+      "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540321,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 13,
+     "Temps": 13101,
+     "tempsLabel": "02'11\"01",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 4,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631884,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N104",
+       "publicLabel": "ATHLETE N104",
+       "nom": "ATHLETE",
+       "prenom": "N104",
+       "sexe": "H",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631885,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N105",
+       "publicLabel": "ATHLETE N105",
+       "nom": "ATHLETE",
+       "prenom": "N105",
+       "sexe": "H",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631886,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N106",
+       "publicLabel": "ATHLETE N106",
+       "nom": "ATHLETE",
+       "prenom": "N106",
+       "sexe": "H",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631887,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N107",
+       "publicLabel": "ATHLETE N107",
+       "nom": "ATHLETE",
+       "prenom": "N107",
+       "sexe": "H",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565692,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540322,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 14,
+     "Temps": 13138,
+     "tempsLabel": "02'11\"38",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 3,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632481,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N108",
+       "publicLabel": "ATHLETE N108",
+       "nom": "ATHLETE",
+       "prenom": "N108",
+       "sexe": "H",
+       "clubLabel": "Ecole de Sauvetage Côtier Méditerranéenne",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632482,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N109",
+       "publicLabel": "ATHLETE N109",
+       "nom": "ATHLETE",
+       "prenom": "N109",
+       "sexe": "H",
+       "clubLabel": "Ecole de Sauvetage Côtier Méditerranéenne",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632483,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N110",
+       "publicLabel": "ATHLETE N110",
+       "nom": "ATHLETE",
+       "prenom": "N110",
+       "sexe": "H",
+       "clubLabel": "Ecole de Sauvetage Côtier Méditerranéenne",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632484,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N111",
+       "publicLabel": "ATHLETE N111",
+       "nom": "ATHLETE",
+       "prenom": "N111",
+       "sexe": "H",
+       "clubLabel": "Ecole de Sauvetage Côtier Méditerranéenne",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566018,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 279,
+      "organismeLabel": "Ecole de Sauvetage Côtier Méditerranéenne",
+      "clubLabel": "Ecole de Sauvetage Côtier Méditerranéenne",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540323,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 15,
+     "Temps": 13589,
+     "tempsLabel": "02'15\"89",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 2,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632764,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N112",
+       "publicLabel": "ATHLETE N112",
+       "nom": "ATHLETE",
+       "prenom": "N112",
+       "sexe": "H",
+       "clubLabel": "Capbreton Sauvetage Côtier Cefssa40",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632765,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N113",
+       "publicLabel": "ATHLETE N113",
+       "nom": "ATHLETE",
+       "prenom": "N113",
+       "sexe": "H",
+       "clubLabel": "Capbreton Sauvetage Côtier Cefssa40",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632766,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N114",
+       "publicLabel": "ATHLETE N114",
+       "nom": "ATHLETE",
+       "prenom": "N114",
+       "sexe": "H",
+       "clubLabel": "Capbreton Sauvetage Côtier Cefssa40",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 632767,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N115",
+       "publicLabel": "ATHLETE N115",
+       "nom": "ATHLETE",
+       "prenom": "N115",
+       "sexe": "H",
+       "clubLabel": "Capbreton Sauvetage Côtier Cefssa40",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566205,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 148,
+      "organismeLabel": "Capbreton Sauvetage Côtier Cefssa40",
+      "clubLabel": "Capbreton Sauvetage Côtier Cefssa40",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91248,
+   "Numero": 1,
+   "Nom": "Série 1 - 3 4 X 50m Sauvetage Messieurs (Open)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:57:58",
+   "epreuve": {
+    "Id": 36087,
+    "IdEvenement": 1416,
+    "IdDiscipline": 46,
+    "Genre": "H",
+    "genreLabel": "Homme",
+    "discipline": {
+     "Id": 46,
+     "Nom": "4 X 50m Sauvetage",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 4,
+     "label": "4 X 50m Sauvetage",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 24,
+      "Nom": "Open",
+      "NomEn": "Open",
+      "Relais": false,
+      "label": "Open"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 540318,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 10,
+     "Temps": 12278,
+     "tempsLabel": "02'02\"78",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 7,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631324,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N116",
+       "publicLabel": "ATHLETE N116",
+       "nom": "ATHLETE",
+       "prenom": "N116",
+       "sexe": "H",
+       "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631325,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N117",
+       "publicLabel": "ATHLETE N117",
+       "nom": "ATHLETE",
+       "prenom": "N117",
+       "sexe": "H",
+       "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631326,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N118",
+       "publicLabel": "ATHLETE N118",
+       "nom": "ATHLETE",
+       "prenom": "N118",
+       "sexe": "H",
+       "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 631327,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N119",
+       "publicLabel": "ATHLETE N119",
+       "nom": "ATHLETE",
+       "prenom": "N119",
+       "sexe": "H",
+       "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565272,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 213,
+      "organismeLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540324,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 16,
+     "Temps": 13711,
+     "tempsLabel": "02'17\"11",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 1,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633020,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N120",
+       "publicLabel": "ATHLETE N120",
+       "nom": "ATHLETE",
+       "prenom": "N120",
+       "sexe": "H",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633021,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N121",
+       "publicLabel": "ATHLETE N121",
+       "nom": "ATHLETE",
+       "prenom": "N121",
+       "sexe": "H",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633022,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N122",
+       "publicLabel": "ATHLETE N122",
+       "nom": "ATHLETE",
+       "prenom": "N122",
+       "sexe": "H",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633023,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N123",
+       "publicLabel": "ATHLETE N123",
+       "nom": "ATHLETE",
+       "prenom": "N123",
+       "sexe": "H",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566305,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 442,
+      "organismeLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 540325,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 17,
+     "Temps": 14266,
+     "tempsLabel": "02'22\"66",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633491,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N124",
+       "publicLabel": "ATHLETE N124",
+       "nom": "ATHLETE",
+       "prenom": "N124",
+       "sexe": "H",
+       "clubLabel": "ALASCA VO Aquatique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633492,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N125",
+       "publicLabel": "ATHLETE N125",
+       "nom": "ATHLETE",
+       "prenom": "N125",
+       "sexe": "H",
+       "clubLabel": "ALASCA VO Aquatique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633493,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N126",
+       "publicLabel": "ATHLETE N126",
+       "nom": "ATHLETE",
+       "prenom": "N126",
+       "sexe": "H",
+       "clubLabel": "ALASCA VO Aquatique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      },
+      {
+       "Id": 633494,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N127",
+       "publicLabel": "ATHLETE N127",
+       "nom": "ATHLETE",
+       "prenom": "N127",
+       "sexe": "H",
+       "clubLabel": "ALASCA VO Aquatique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566511,
+      "IdEpreuve": 36087,
+      "categorie": {
+       "Id": 24,
+       "Nom": "Open",
+       "NomEn": "Open",
+       "Relais": false,
+       "label": "Open"
+      },
+      "IdOrganisme": 16,
+      "organismeLabel": "ALASCA VO Aquatique",
+      "clubLabel": "ALASCA VO Aquatique",
+      "Statut": 0
+     }
+    }
+   ]
+  }
+ ]
+}

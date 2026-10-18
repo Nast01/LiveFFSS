@@ -49,3 +49,13 @@ Constats faits sur de vraies réponses de la recette (`https://site.ffss.io/api/
   - Côté PowerShell 5.1, `ConvertFrom-Json` échoue sur ces réponses (clés `id`/`Id` dans le même objet) : lire le texte brut.
 - **Non vérifié, connexion par formulaire** : `requestToken` est envoyé avec identifiant et mot de passe dans un corps de formulaire (`application/x-www-form-urlencoded`), non dans l'adresse, comme `FfssApiClient.RequestTokenAsync` de V3. À confirmer sur une vraie connexion ; la v1 les passait dans l'adresse.
 - **Non vérifié, lignes de `competition/serie/:id`** : `getHeatResults` et `getHeatChronos` lisent `data.resultats[]` et y attendent `Temps`, `Statut`, `complement`, `TempsLive1..3` et `engagement.id`, comme `resultat/:id`. Que les lignes de la série portent bien ces champs n'est pas confirmé sur la recette ; une ligne illisible est écartée seule, et un `Temps` présent mais illisible vaut « validé ».
+
+
+## Résultats, vérifié le 2026-10-18 sur la recette 1416 (GET seulement)
+
+- **`GET serie?epreuve=:id`** → `{success, count, data: [{Id, Numero, Nom, Debut, Fin, Fini, UpdatedAt, epreuve: {Id, IdEvenement, IdDiscipline, Genre, genreLabel, discipline, categories}, resultats: [{Id, isValid, Statut, statutLabel, isDisqualifie, Rang, Temps, tempsLabel, TempsLive1..3, points, complement, complementLabel, Athletes, engagement}]}]}`. `Debut`, `Fin` et `Fini` sont `null` pour les séries jamais nagées.
+- **`GET epreuve?evenement=:id`** → `{success, count, data: [{Id, IdEvenement, IdDiscipline, Genre, genreLabel, discipline: {Id, Nom, Specialite, Distance, NbAthleteParEquipe, label, specialiteLabel}, categories: [{Id, Nom, NomEn, Relais, label}]}]}` : une épreuve par catégorie. `Specialite` : 2 eau plate, 1 côtier.
+- **`GET competition/evenement/:id/participants`** → `{success, data: [{Id, Prenom, Nom, isLicencie, isInvite, Sexe, nationaliteCode, idClub, clubLabel, isValid, categories, engagements: [{id, categorie, epreuve}]}]}`. Ni `participants` ni les engagements ne portent de place (couloir) ni de dossard.
+- **Le `Rang` d'un résultat de V3 est la place dans la série pour la catégorie**, pas un rang d'épreuve. **Les points ne sont pas envoyés** : l'app les calcule (barème de V3).
+- **`serie?epreuve=` sert des données personnelles sans jeton** : l'objet `Licencie` des athlètes (e-mail, date de naissance). Ne pas les lire ni les copier dans les fixtures.
+- **Les vieilles séries restent sur le site** : une épreuve peut en porter qui n'ont plus de course au programme (`Debut` nul).

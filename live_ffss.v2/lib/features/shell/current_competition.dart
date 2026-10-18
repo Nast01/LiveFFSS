@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/domain/competition_summary.dart';
 import 'package:live_ffss_v2/domain/home_partition.dart';
@@ -37,6 +40,20 @@ CompetitionSummary? currentCompetition({
 /// défaut (« EN DIRECT ») comme s'il avait été fait, et le figerait.
 bool needsActivation(int? currentId, int competitionId) =>
     currentId != competitionId;
+
+/// Ouverte par un lien direct, une page rend aussi sa compétition active aux
+/// autres onglets, comme le détail d'un créneau.
+void activateFromLink(WidgetRef ref, int competitionId) {
+  final currentId = ref.read(currentCompetitionProvider)?.id;
+  if (!needsActivation(currentId, competitionId)) return;
+  unawaited(() async {
+    try {
+      await ref.read(activeCompetitionProvider.notifier).ensure(competitionId);
+    } on AppException {
+      // La page s'affiche quand même ; les onglets gardent leur compétition.
+    }
+  }());
+}
 
 final currentCompetitionProvider = Provider<CompetitionSummary?>((ref) {
   final home = ref.watch(homeCompetitionsProvider);

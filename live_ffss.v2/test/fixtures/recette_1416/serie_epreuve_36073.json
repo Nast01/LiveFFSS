@@ -1,0 +1,4110 @@
+{
+ "success": true,
+ "count": 22,
+ "data": [
+  {
+   "Id": 91065,
+   "Numero": 8,
+   "Nom": "Série 8 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:50:38",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539003,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 5,
+     "Temps": 15015,
+     "tempsLabel": "02'30\"15",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 13,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632611,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N001",
+       "publicLabel": "ATHLETE N001",
+       "nom": "ATHLETE",
+       "prenom": "N001",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566109,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539006,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 8,
+     "Temps": 15152,
+     "tempsLabel": "02'31\"52",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 10,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630690,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N002",
+       "publicLabel": "ATHLETE N002",
+       "nom": "ATHLETE",
+       "prenom": "N002",
+       "sexe": "F",
+       "clubLabel": "Saverdun Pyrénées Natation Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564714,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 63,
+      "organismeLabel": "Saverdun Pyrénées Natation Sauvetage",
+      "clubLabel": "Saverdun Pyrénées Natation Sauvetage",
+      "Statut": 3
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91066,
+   "Numero": 10,
+   "Nom": "Série 10 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:50:39",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539005,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 7,
+     "Temps": 15113,
+     "tempsLabel": "02'31\"13",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 11,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630636,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N003",
+       "publicLabel": "ATHLETE N003",
+       "nom": "ATHLETE",
+       "prenom": "N003",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564660,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 149,
+      "organismeLabel": "Tarbes Pyrénées natation",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539015,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 17,
+     "Temps": 16176,
+     "tempsLabel": "02'41\"76",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631707,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N004",
+       "publicLabel": "ATHLETE N004",
+       "nom": "ATHLETE",
+       "prenom": "N004",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565598,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91067,
+   "Numero": 9,
+   "Nom": "Série 9 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:50:38",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 538999,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 13760,
+     "tempsLabel": "02'17\"60",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 20,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632553,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N005",
+       "publicLabel": "ATHLETE N005",
+       "nom": "ATHLETE",
+       "prenom": "N005",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566066,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539000,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 14702,
+     "tempsLabel": "02'27\"02",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 18,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632575,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N006",
+       "publicLabel": "ATHLETE N006",
+       "nom": "ATHLETE",
+       "prenom": "N006",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566085,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539002,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 14943,
+     "tempsLabel": "02'29\"43",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 14,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632656,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N007",
+       "publicLabel": "ATHLETE N007",
+       "nom": "ATHLETE",
+       "prenom": "N007",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566153,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539008,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 10,
+     "Temps": 15501,
+     "tempsLabel": "02'35\"01",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 7,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631305,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N008",
+       "publicLabel": "ATHLETE N008",
+       "nom": "ATHLETE",
+       "prenom": "N008",
+       "sexe": "F",
+       "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565256,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 213,
+      "organismeLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91068,
+   "Numero": 7,
+   "Nom": "Série 7 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:50:38",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539001,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 14721,
+     "tempsLabel": "02'27\"21",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 16,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632650,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N009",
+       "publicLabel": "ATHLETE N009",
+       "nom": "ATHLETE",
+       "prenom": "N009",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566148,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539007,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 9,
+     "Temps": 15335,
+     "tempsLabel": "02'33\"35",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 8,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631688,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N010",
+       "publicLabel": "ATHLETE N010",
+       "nom": "ATHLETE",
+       "prenom": "N010",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565579,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91069,
+   "Numero": 6,
+   "Nom": "Série 6 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:50:38",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539004,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 6,
+     "Temps": 15090,
+     "tempsLabel": "02'30\"90",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 12,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632569,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N011",
+       "publicLabel": "ATHLETE N011",
+       "nom": "ATHLETE",
+       "prenom": "N011",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566079,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91070,
+   "Numero": 4,
+   "Nom": "Série 4 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:50:40",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539019,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 21,
+     "Temps": 16603,
+     "tempsLabel": "02'46\"03",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631128,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N012",
+       "publicLabel": "ATHLETE N012",
+       "nom": "ATHLETE",
+       "prenom": "N012",
+       "sexe": "F",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565079,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 442,
+      "organismeLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539024,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 26,
+     "Temps": 17176,
+     "tempsLabel": "02'51\"76",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633376,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N013",
+       "publicLabel": "ATHLETE N013",
+       "nom": "ATHLETE",
+       "prenom": "N013",
+       "sexe": "F",
+       "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+       "nationaliteCode": "ESP",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566443,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 358,
+      "organismeLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91071,
+   "Numero": 3,
+   "Nom": "Série 3 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:50:39",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539012,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 14,
+     "Temps": 16050,
+     "tempsLabel": "02'40\"50",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 3,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632616,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N014",
+       "publicLabel": "ATHLETE N014",
+       "nom": "ATHLETE",
+       "prenom": "N014",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566114,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91072,
+   "Numero": 5,
+   "Nom": "Série 5 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:50:39",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539009,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 11,
+     "Temps": 15573,
+     "tempsLabel": "02'35\"73",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 6,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632637,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N015",
+       "publicLabel": "ATHLETE N015",
+       "nom": "ATHLETE",
+       "prenom": "N015",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566135,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539010,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 12,
+     "Temps": 15576,
+     "tempsLabel": "02'35\"76",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 5,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630703,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N016",
+       "publicLabel": "ATHLETE N016",
+       "nom": "ATHLETE",
+       "prenom": "N016",
+       "sexe": "F",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564727,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539014,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 16,
+     "Temps": 16166,
+     "tempsLabel": "02'41\"66",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 1,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631006,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N017",
+       "publicLabel": "ATHLETE N017",
+       "nom": "ATHLETE",
+       "prenom": "N017",
+       "sexe": "F",
+       "clubLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564984,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 545,
+      "organismeLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+      "clubLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91073,
+   "Numero": 2,
+   "Nom": "Série 2 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:50:40",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539011,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 13,
+     "Temps": 15917,
+     "tempsLabel": "02'39\"17",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 4,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630600,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N018",
+       "publicLabel": "ATHLETE N018",
+       "nom": "ATHLETE",
+       "prenom": "N018",
+       "sexe": "F",
+       "clubLabel": "TOULON METROPOLE SAUVETAGE SECOURISME",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564628,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 582,
+      "organismeLabel": "TOULON METROPOLE SAUVETAGE SECOURISME",
+      "clubLabel": "TOULON METROPOLE SAUVETAGE SECOURISME",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539013,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 15,
+     "Temps": 16136,
+     "tempsLabel": "02'41\"36",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 2,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631134,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N019",
+       "publicLabel": "ATHLETE N019",
+       "nom": "ATHLETE",
+       "prenom": "N019",
+       "sexe": "F",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565085,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 442,
+      "organismeLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539016,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 18,
+     "Temps": 16195,
+     "tempsLabel": "02'41\"95",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632572,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N020",
+       "publicLabel": "ATHLETE N020",
+       "nom": "ATHLETE",
+       "prenom": "N020",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566082,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539018,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 20,
+     "Temps": 16571,
+     "tempsLabel": "02'45\"71",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632129,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N021",
+       "publicLabel": "ATHLETE N021",
+       "nom": "ATHLETE",
+       "prenom": "N021",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565841,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539020,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 22,
+     "Temps": 16607,
+     "tempsLabel": "02'46\"07",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630812,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N022",
+       "publicLabel": "ATHLETE N022",
+       "nom": "ATHLETE",
+       "prenom": "N022",
+       "sexe": "F",
+       "clubLabel": "Avenir Nautique Villeneuvois",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564825,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 60,
+      "organismeLabel": "Avenir Nautique Villeneuvois",
+      "clubLabel": "Avenir Nautique Villeneuvois",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539023,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 25,
+     "Temps": 16928,
+     "tempsLabel": "02'49\"28",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631700,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N023",
+       "publicLabel": "ATHLETE N023",
+       "nom": "ATHLETE",
+       "prenom": "N023",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565591,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91074,
+   "Numero": 1,
+   "Nom": "Série 1 - 10 200m Obstacles Dames (Cadet, Junior, Seniors et Masters)",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:50:41",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539017,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 19,
+     "Temps": 16330,
+     "tempsLabel": "02'43\"30",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630708,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N024",
+       "publicLabel": "ATHLETE N024",
+       "nom": "ATHLETE",
+       "prenom": "N024",
+       "sexe": "F",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564732,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539021,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 23,
+     "Temps": 16648,
+     "tempsLabel": "02'46\"48",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632580,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N025",
+       "publicLabel": "ATHLETE N025",
+       "nom": "ATHLETE",
+       "prenom": "N025",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566090,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539022,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 24,
+     "Temps": 16696,
+     "tempsLabel": "02'46\"96",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632139,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N026",
+       "publicLabel": "ATHLETE N026",
+       "nom": "ATHLETE",
+       "prenom": "N026",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565848,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539025,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 27,
+     "Temps": 17474,
+     "tempsLabel": "02'54\"74",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631679,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N027",
+       "publicLabel": "ATHLETE N027",
+       "nom": "ATHLETE",
+       "prenom": "N027",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565570,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539026,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 28,
+     "Temps": 17577,
+     "tempsLabel": "02'55\"77",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 0,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633044,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N028",
+       "publicLabel": "ATHLETE N028",
+       "nom": "ATHLETE",
+       "prenom": "N028",
+       "sexe": "F",
+       "clubLabel": "Biscarrosse Olympique Sauvetage et Secourisme",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566311,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 22,
+      "organismeLabel": "Biscarrosse Olympique Sauvetage et Secourisme",
+      "clubLabel": "Biscarrosse Olympique Sauvetage et Secourisme",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91116,
+   "Numero": 1,
+   "Nom": "Final B 200m Obstacles - Cadet, Junior, Seniors et Masters Cadet",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:52:08",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539350,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 9,
+     "Temps": 14908,
+     "tempsLabel": "02'29\"08",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 8,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631305,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N008",
+       "publicLabel": "ATHLETE N008",
+       "nom": "ATHLETE",
+       "prenom": "N008",
+       "sexe": "F",
+       "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565256,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 213,
+      "organismeLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539351,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 10,
+     "Temps": 14939,
+     "tempsLabel": "02'29\"39",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 7,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632637,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N015",
+       "publicLabel": "ATHLETE N015",
+       "nom": "ATHLETE",
+       "prenom": "N015",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566135,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539352,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 11,
+     "Temps": 15370,
+     "tempsLabel": "02'33\"70",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 6,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630703,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N016",
+       "publicLabel": "ATHLETE N016",
+       "nom": "ATHLETE",
+       "prenom": "N016",
+       "sexe": "F",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564727,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539353,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 12,
+     "Temps": 15431,
+     "tempsLabel": "02'34\"31",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 5,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631688,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N010",
+       "publicLabel": "ATHLETE N010",
+       "nom": "ATHLETE",
+       "prenom": "N010",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565579,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539354,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 13,
+     "Temps": 15869,
+     "tempsLabel": "02'38\"69",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 4,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630600,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N018",
+       "publicLabel": "ATHLETE N018",
+       "nom": "ATHLETE",
+       "prenom": "N018",
+       "sexe": "F",
+       "clubLabel": "TOULON METROPOLE SAUVETAGE SECOURISME",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564628,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 582,
+      "organismeLabel": "TOULON METROPOLE SAUVETAGE SECOURISME",
+      "clubLabel": "TOULON METROPOLE SAUVETAGE SECOURISME",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539355,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 14,
+     "Temps": 16035,
+     "tempsLabel": "02'40\"35",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 3,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632616,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N014",
+       "publicLabel": "ATHLETE N014",
+       "nom": "ATHLETE",
+       "prenom": "N014",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566114,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539356,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 15,
+     "Temps": 16151,
+     "tempsLabel": "02'41\"51",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 2,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631006,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N017",
+       "publicLabel": "ATHLETE N017",
+       "nom": "ATHLETE",
+       "prenom": "N017",
+       "sexe": "F",
+       "clubLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564984,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 545,
+      "organismeLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+      "clubLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539357,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 16,
+     "Temps": 16397,
+     "tempsLabel": "02'43\"97",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 1,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631134,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N019",
+       "publicLabel": "ATHLETE N019",
+       "nom": "ATHLETE",
+       "prenom": "N019",
+       "sexe": "F",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565085,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 442,
+      "organismeLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 91118,
+   "Numero": 1,
+   "Nom": "Final A 200m Obstacles - Cadet, Junior, Seniors et Masters Cadet",
+   "Debut": null,
+   "Fin": null,
+   "Fini": null,
+   "UpdatedAt": "2026-04-03 18:52:11",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 539366,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 13574,
+     "tempsLabel": "02'15\"74",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 20,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632553,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N005",
+       "publicLabel": "ATHLETE N005",
+       "nom": "ATHLETE",
+       "prenom": "N005",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566066,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539367,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 14378,
+     "tempsLabel": "02'23\"78",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 18,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632575,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N006",
+       "publicLabel": "ATHLETE N006",
+       "nom": "ATHLETE",
+       "prenom": "N006",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566085,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539368,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 14585,
+     "tempsLabel": "02'25\"85",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 16,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632611,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N001",
+       "publicLabel": "ATHLETE N001",
+       "nom": "ATHLETE",
+       "prenom": "N001",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566109,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539369,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 14598,
+     "tempsLabel": "02'25\"98",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 14,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632650,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N009",
+       "publicLabel": "ATHLETE N009",
+       "nom": "ATHLETE",
+       "prenom": "N009",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566148,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539370,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 5,
+     "Temps": 14604,
+     "tempsLabel": "02'26\"04",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 13,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632656,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N007",
+       "publicLabel": "ATHLETE N007",
+       "nom": "ATHLETE",
+       "prenom": "N007",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566153,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539371,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 6,
+     "Temps": 14772,
+     "tempsLabel": "02'27\"72",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 12,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630690,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N002",
+       "publicLabel": "ATHLETE N002",
+       "nom": "ATHLETE",
+       "prenom": "N002",
+       "sexe": "F",
+       "clubLabel": "Saverdun Pyrénées Natation Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564714,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 63,
+      "organismeLabel": "Saverdun Pyrénées Natation Sauvetage",
+      "clubLabel": "Saverdun Pyrénées Natation Sauvetage",
+      "Statut": 3
+     }
+    },
+    {
+     "Id": 539372,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 7,
+     "Temps": 15026,
+     "tempsLabel": "02'30\"26",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 11,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630636,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N003",
+       "publicLabel": "ATHLETE N003",
+       "nom": "ATHLETE",
+       "prenom": "N003",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564660,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 149,
+      "organismeLabel": "Tarbes Pyrénées natation",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 539373,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 8,
+     "Temps": 15108,
+     "tempsLabel": "02'31\"08",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": 10,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632569,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N011",
+       "publicLabel": "ATHLETE N011",
+       "nom": "ATHLETE",
+       "prenom": "N011",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566079,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94894,
+   "Numero": 1,
+   "Nom": "Série 1",
+   "Debut": "2026-03-27 08:00:00",
+   "Fin": "2026-03-27 08:02:47",
+   "Fini": null,
+   "UpdatedAt": "2026-10-18 03:08:12",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572549,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 16330,
+     "tempsLabel": "02'43\"30",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630708,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N024",
+       "publicLabel": "ATHLETE N024",
+       "nom": "ATHLETE",
+       "prenom": "N024",
+       "sexe": "F",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564732,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572550,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 16648,
+     "tempsLabel": "02'46\"48",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632580,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N025",
+       "publicLabel": "ATHLETE N025",
+       "nom": "ATHLETE",
+       "prenom": "N025",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566090,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572552,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 16696,
+     "tempsLabel": "02'46\"96",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632139,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N026",
+       "publicLabel": "ATHLETE N026",
+       "nom": "ATHLETE",
+       "prenom": "N026",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565848,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572551,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 17474,
+     "tempsLabel": "02'54\"74",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631679,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N027",
+       "publicLabel": "ATHLETE N027",
+       "nom": "ATHLETE",
+       "prenom": "N027",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565570,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572548,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 5,
+     "Temps": 17577,
+     "tempsLabel": "02'55\"77",
+     "TempsLive1": 0,
+     "TempsLive2": 0,
+     "TempsLive3": 0,
+     "points": null,
+     "complement": "12",
+     "complementLabel": "12",
+     "Athletes": [
+      {
+       "Id": 633044,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N028",
+       "publicLabel": "ATHLETE N028",
+       "nom": "ATHLETE",
+       "prenom": "N028",
+       "sexe": "F",
+       "clubLabel": "Biscarrosse Olympique Sauvetage et Secourisme",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566311,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 22,
+      "organismeLabel": "Biscarrosse Olympique Sauvetage et Secourisme",
+      "clubLabel": "Biscarrosse Olympique Sauvetage et Secourisme",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94896,
+   "Numero": 3,
+   "Nom": "Série 3",
+   "Debut": "2026-03-27 08:08:30",
+   "Fin": "2026-03-27 08:11:11",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:04",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572554,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 16050,
+     "tempsLabel": "02'40\"50",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 632616,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N014",
+       "publicLabel": "ATHLETE N014",
+       "nom": "ATHLETE",
+       "prenom": "N014",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566114,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94899,
+   "Numero": 2,
+   "Nom": "Série 2",
+   "Debut": "2026-03-27 08:04:17",
+   "Fin": "2026-03-27 08:07:00",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:05",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572565,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 15917,
+     "tempsLabel": "02'39\"17",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 630600,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N018",
+       "publicLabel": "ATHLETE N018",
+       "nom": "ATHLETE",
+       "prenom": "N018",
+       "sexe": "F",
+       "clubLabel": "TOULON METROPOLE SAUVETAGE SECOURISME",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564628,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 582,
+      "organismeLabel": "TOULON METROPOLE SAUVETAGE SECOURISME",
+      "clubLabel": "TOULON METROPOLE SAUVETAGE SECOURISME",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572566,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 16136,
+     "tempsLabel": "02'41\"36",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 631134,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N019",
+       "publicLabel": "ATHLETE N019",
+       "nom": "ATHLETE",
+       "prenom": "N019",
+       "sexe": "F",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565085,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 442,
+      "organismeLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572562,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 16195,
+     "tempsLabel": "02'41\"95",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632572,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N020",
+       "publicLabel": "ATHLETE N020",
+       "nom": "ATHLETE",
+       "prenom": "N020",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566082,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572567,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 16571,
+     "tempsLabel": "02'45\"71",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 632129,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N021",
+       "publicLabel": "ATHLETE N021",
+       "nom": "ATHLETE",
+       "prenom": "N021",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565841,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 249,
+      "organismeLabel": "Biarritz sauvetage côtier",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572564,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 5,
+     "Temps": 16607,
+     "tempsLabel": "02'46\"07",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 630812,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N022",
+       "publicLabel": "ATHLETE N022",
+       "nom": "ATHLETE",
+       "prenom": "N022",
+       "sexe": "F",
+       "clubLabel": "Avenir Nautique Villeneuvois",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564825,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 60,
+      "organismeLabel": "Avenir Nautique Villeneuvois",
+      "clubLabel": "Avenir Nautique Villeneuvois",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572563,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 6,
+     "Temps": 16928,
+     "tempsLabel": "02'49\"28",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631700,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N023",
+       "publicLabel": "ATHLETE N023",
+       "nom": "ATHLETE",
+       "prenom": "N023",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565591,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94902,
+   "Numero": 4,
+   "Nom": "Série 4",
+   "Debut": "2026-03-27 08:12:41",
+   "Fin": "2026-03-27 08:15:20",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:06",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572570,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 16603,
+     "tempsLabel": "02'46\"03",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631128,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N012",
+       "publicLabel": "ATHLETE N012",
+       "nom": "ATHLETE",
+       "prenom": "N012",
+       "sexe": "F",
+       "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565079,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 442,
+      "organismeLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "clubLabel": "Association de Sauvetage et d'Education à la Sécurité du Cotentin",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572571,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 17176,
+     "tempsLabel": "02'51\"76",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 633376,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N013",
+       "publicLabel": "ATHLETE N013",
+       "nom": "ATHLETE",
+       "prenom": "N013",
+       "sexe": "F",
+       "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+       "nationaliteCode": "ESP",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566443,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 358,
+      "organismeLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "clubLabel": "Les Corsaires Hendaye Sauvetage Côtier",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94905,
+   "Numero": 6,
+   "Nom": "Série 6",
+   "Debut": "2026-03-27 08:20:58",
+   "Fin": "2026-03-27 08:23:32",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:10",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572578,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 15090,
+     "tempsLabel": "02'30\"90",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 632569,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N011",
+       "publicLabel": "ATHLETE N011",
+       "nom": "ATHLETE",
+       "prenom": "N011",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566079,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94908,
+   "Numero": 5,
+   "Nom": "Série 5",
+   "Debut": "2026-03-27 08:16:50",
+   "Fin": "2026-03-27 08:19:28",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:09",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572586,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 15573,
+     "tempsLabel": "02'35\"73",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 632637,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N015",
+       "publicLabel": "ATHLETE N015",
+       "nom": "ATHLETE",
+       "prenom": "N015",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566135,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572587,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 15576,
+     "tempsLabel": "02'35\"76",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 630703,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N016",
+       "publicLabel": "ATHLETE N016",
+       "nom": "ATHLETE",
+       "prenom": "N016",
+       "sexe": "F",
+       "clubLabel": "Aqualove Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564727,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 27,
+      "organismeLabel": "Aqualove Sauvetage",
+      "clubLabel": "Aqualove Sauvetage",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572588,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 16166,
+     "tempsLabel": "02'41\"66",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 631006,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N017",
+       "publicLabel": "ATHLETE N017",
+       "nom": "ATHLETE",
+       "prenom": "N017",
+       "sexe": "F",
+       "clubLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564984,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 545,
+      "organismeLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+      "clubLabel": "FORMATION SECOURISME ET SAUVETAGE ALBIGEOIS",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94911,
+   "Numero": 7,
+   "Nom": "Série 7",
+   "Debut": "2026-03-27 08:25:02",
+   "Fin": "2026-03-27 08:27:35",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:10",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572594,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 14721,
+     "tempsLabel": "02'27\"21",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 632650,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N009",
+       "publicLabel": "ATHLETE N009",
+       "nom": "ATHLETE",
+       "prenom": "N009",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566148,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572595,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 15335,
+     "tempsLabel": "02'33\"35",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 631688,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N010",
+       "publicLabel": "ATHLETE N010",
+       "nom": "ATHLETE",
+       "prenom": "N010",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565579,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94914,
+   "Numero": 8,
+   "Nom": "Série 8",
+   "Debut": "2026-03-27 08:29:05",
+   "Fin": "2026-03-27 08:31:36",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:11",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572603,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 15015,
+     "tempsLabel": "02'30\"15",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 632611,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N001",
+       "publicLabel": "ATHLETE N001",
+       "nom": "ATHLETE",
+       "prenom": "N001",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566109,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572602,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 15152,
+     "tempsLabel": "02'31\"52",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 630690,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N002",
+       "publicLabel": "ATHLETE N002",
+       "nom": "ATHLETE",
+       "prenom": "N002",
+       "sexe": "F",
+       "clubLabel": "Saverdun Pyrénées Natation Sauvetage",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564714,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 63,
+      "organismeLabel": "Saverdun Pyrénées Natation Sauvetage",
+      "clubLabel": "Saverdun Pyrénées Natation Sauvetage",
+      "Statut": 3
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94917,
+   "Numero": 9,
+   "Nom": "Série 9",
+   "Debut": "2026-03-27 08:33:06",
+   "Fin": "2026-03-27 08:35:36",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:11",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572612,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 13760,
+     "tempsLabel": "02'17\"60",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 632553,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N005",
+       "publicLabel": "ATHLETE N005",
+       "nom": "ATHLETE",
+       "prenom": "N005",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566066,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572611,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 14702,
+     "tempsLabel": "02'27\"02",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 632575,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N006",
+       "publicLabel": "ATHLETE N006",
+       "nom": "ATHLETE",
+       "prenom": "N006",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566085,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572613,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 3,
+     "Temps": 14943,
+     "tempsLabel": "02'29\"43",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 632656,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N007",
+       "publicLabel": "ATHLETE N007",
+       "nom": "ATHLETE",
+       "prenom": "N007",
+       "sexe": "F",
+       "clubLabel": "Aqua Grimpe Millau Grands Causses",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 566153,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 492,
+      "organismeLabel": "Aqua Grimpe Millau Grands Causses",
+      "clubLabel": "Aqua Grimpe Millau Grands Causses",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572610,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 4,
+     "Temps": 15501,
+     "tempsLabel": "02'35\"01",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFB",
+     "complementLabel": "Qualifié finale B",
+     "Athletes": [
+      {
+       "Id": 631305,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N008",
+       "publicLabel": "ATHLETE N008",
+       "nom": "ATHLETE",
+       "prenom": "N008",
+       "sexe": "F",
+       "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565256,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 213,
+      "organismeLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "clubLabel": "Club de Sauvetage et de Secourisme du Muretain",
+      "Statut": 0
+     }
+    }
+   ]
+  },
+  {
+   "Id": 94920,
+   "Numero": 10,
+   "Nom": "Série 10",
+   "Debut": "2026-03-27 08:37:06",
+   "Fin": "2026-03-27 08:39:37",
+   "Fini": null,
+   "UpdatedAt": "2026-10-12 22:35:12",
+   "epreuve": {
+    "Id": 36073,
+    "IdEvenement": 1416,
+    "IdDiscipline": 24,
+    "Genre": "F",
+    "genreLabel": "Femme",
+    "discipline": {
+     "Id": 24,
+     "Nom": "200m Obstacles",
+     "Specialite": 2,
+     "Distance": 200,
+     "NbAthleteParEquipe": 1,
+     "label": "200m Obstacles",
+     "specialiteLabel": "Eau-plate"
+    },
+    "categories": [
+     {
+      "Id": 13,
+      "Nom": "Cadet",
+      "NomEn": "Cadet",
+      "Relais": false,
+      "label": "Cadet"
+     }
+    ]
+   },
+   "resultats": [
+    {
+     "Id": 572618,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 1,
+     "Temps": 15113,
+     "tempsLabel": "02'31\"13",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": "QFA",
+     "complementLabel": "Qualifié finale A",
+     "Athletes": [
+      {
+       "Id": 630636,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N003",
+       "publicLabel": "ATHLETE N003",
+       "nom": "ATHLETE",
+       "prenom": "N003",
+       "sexe": "F",
+       "clubLabel": "Biarritz sauvetage côtier",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 564660,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 149,
+      "organismeLabel": "Tarbes Pyrénées natation",
+      "clubLabel": "Biarritz sauvetage côtier",
+      "Statut": 0
+     }
+    },
+    {
+     "Id": 572619,
+     "isValid": true,
+     "Statut": 0,
+     "statutLabel": "OK",
+     "isDisqualifie": false,
+     "Rang": 2,
+     "Temps": 16176,
+     "tempsLabel": "02'41\"76",
+     "TempsLive1": null,
+     "TempsLive2": null,
+     "TempsLive3": null,
+     "points": null,
+     "complement": null,
+     "complementLabel": null,
+     "Athletes": [
+      {
+       "Id": 631707,
+       "isLicencie": true,
+       "isInvite": false,
+       "label": "ATHLETE N004",
+       "publicLabel": "ATHLETE N004",
+       "nom": "ATHLETE",
+       "prenom": "N004",
+       "sexe": "F",
+       "clubLabel": "Tournefeuille Sauvetage Nautique",
+       "nationaliteCode": "FRA",
+       "isRemplacant": false
+      }
+     ],
+     "engagement": {
+      "Id": 565598,
+      "IdEpreuve": 36073,
+      "categorie": {
+       "Id": 13,
+       "Nom": "Cadet",
+       "NomEn": "Cadet",
+       "Relais": false,
+       "label": "Cadet"
+      },
+      "IdOrganisme": 405,
+      "organismeLabel": "Tournefeuille Sauvetage Nautique",
+      "clubLabel": "Tournefeuille Sauvetage Nautique",
+      "Statut": 0
+     }
+    }
+   ]
+  }
+ ]
+}

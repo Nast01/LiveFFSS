@@ -8,8 +8,10 @@ import 'package:live_ffss_v2/features/officiel/entry_page.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_page.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_providers.dart';
 import 'package:live_ffss_v2/features/programme/programme_page.dart';
+import 'package:live_ffss_v2/features/results/athlete_page.dart';
+import 'package:live_ffss_v2/features/results/athlete_search_page.dart';
+import 'package:live_ffss_v2/features/results/results_page.dart';
 import 'package:live_ffss_v2/features/shell/app_shell.dart';
-import 'package:live_ffss_v2/features/shell/tab_placeholders.dart';
 
 abstract final class Routes {
   static const home = '/';
@@ -36,8 +38,36 @@ abstract final class Routes {
       '$branch/competition/$competitionId/creneau/$itemId/saisie'
       '${heatId == null ? '' : '?serie=$heatId'}';
   static const results = '/resultats';
+
+  /// La recherche d'un athlète et sa fiche, dans la branche des résultats :
+  /// le retour y ramène.
+  static String resultsSearch(int competitionId) =>
+      '$results/competition/$competitionId/recherche';
+  static String resultsAthlete(int competitionId, int participantId) =>
+      '$results/competition/$competitionId/athlete/$participantId';
   static const mySpace = '/espace';
 }
+
+int? _competitionIdOf(Map<String, String> pathParameters) =>
+    int.tryParse(pathParameters['competitionId'] ?? '');
+
+/// L'athlète désigné par un lien, ou rien s'il est mal formé.
+({int competitionId, int participantId})? athleteKey(
+  Map<String, String> pathParameters,
+) {
+  final competitionId = _competitionIdOf(pathParameters);
+  final participantId = int.tryParse(pathParameters['participantId'] ?? '');
+  if (competitionId == null || participantId == null) return null;
+  return (competitionId: competitionId, participantId: participantId);
+}
+
+/// Un lien de recherche ou de fiche mal formé retombe sur les résultats ; nul
+/// pour un lien lisible.
+String? searchRedirect(Map<String, String> pathParameters) =>
+    _competitionIdOf(pathParameters) == null ? Routes.results : null;
+
+String? athleteRedirect(Map<String, String> pathParameters) =>
+    athleteKey(pathParameters) == null ? Routes.results : null;
 
 /// Le créneau désigné par un lien, ou rien s'il est mal formé : un lien venu
 /// d'ailleurs (partagé, tapé) ne doit pas faire planter la page.
@@ -131,9 +161,29 @@ final routerProvider = Provider<GoRouter>(
             routes: [
               GoRoute(
                 path: Routes.results,
-                builder: (context, state) => const CompetitionTabPlaceholder(
-                  tab: CompetitionTab.results,
-                ),
+                builder: (context, state) => const ResultsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'competition/:competitionId/recherche',
+                    redirect: (context, state) =>
+                        searchRedirect(state.pathParameters),
+                    builder: (context, state) => AthleteSearchPage(
+                      competitionId: _competitionIdOf(state.pathParameters)!,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'competition/:competitionId/athlete/:participantId',
+                    redirect: (context, state) =>
+                        athleteRedirect(state.pathParameters),
+                    builder: (context, state) {
+                      final key = athleteKey(state.pathParameters)!;
+                      return AthletePage(
+                        competitionId: key.competitionId,
+                        participantId: key.participantId,
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

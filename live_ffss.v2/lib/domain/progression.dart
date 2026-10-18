@@ -65,7 +65,12 @@ abstract class Progression with _$Progression {
     required int id,
     required String name,
     @Default('') String disciplineName,
+
+    /// Lie le déroulement aux épreuves de `competition/epreuve`, qui ne portent
+    /// que la discipline, le genre et la catégorie.
+    int? disciplineId,
     Gender? gender,
+    @Default(<String>[]) List<String> categories,
     @Default(<Stage>[]) List<Stage> stages,
   }) = _Progression;
 
