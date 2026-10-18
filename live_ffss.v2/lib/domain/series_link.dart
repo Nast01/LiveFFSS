@@ -92,7 +92,14 @@ List<LinkedSeries> linkSeries(
 
   // Les couples les plus proches dans le temps d'abord : une course ne prend
   // qu'une série de l'épreuve, et une série qu'une course.
-  candidates.sort((a, b) => a.gap.compareTo(b.gap));
+  // `List.sort` n'est pas stable : à écart égal, l'ordre des séries puis celui
+  // du programme départagent, pour un rattachement reproductible.
+  candidates.sort((a, b) {
+    final byGap = a.gap.compareTo(b.gap);
+    if (byGap != 0) return byGap;
+    final bySeries = a.series.compareTo(b.series);
+    return bySeries != 0 ? bySeries : a.heat.compareTo(b.heat);
+  });
   final usedSeries = <int>{};
   final byHeat = <int, LinkedSeries>{};
   for (final candidate in candidates) {
@@ -115,7 +122,8 @@ List<LinkedSeries> linkSeries(
 /// Cadet prendrait la course de la finale A Junior.
 bool _stageCovers(Stage stage, CompetitionEvent event) =>
     stage.level != StageLevel.finalStage ||
-    stage.name.contains(event.categoryName);
+    // Un nom vide serait contenu dans le nom de toutes les finales.
+    (event.categoryName.isNotEmpty && stage.name.contains(event.categoryName));
 
 EventRound? _roundOf(StageLevel level, String heatName) => switch (level) {
   StageLevel.heats => EventRound.heats,
@@ -124,8 +132,11 @@ EventRound? _roundOf(StageLevel level, String heatName) => switch (level) {
   StageLevel.quarterFinal || StageLevel.semiFinal => null,
 };
 
-final _finalB = RegExp(r'finale\s+b\b', caseSensitive: false);
-final _final = RegExp(r'\bfinale\b', caseSensitive: false);
+// Ancrées au début du nom (spec § 2 : les finales commencent par « Finale A »
+// ou « Finale B ») : ailleurs, « Demi-finale » ou « Quart de finale » seraient
+// prises pour des finales.
+final _finalB = RegExp(r'^\s*finale\s+b\b', caseSensitive: false);
+final _final = RegExp(r'^\s*finale\b', caseSensitive: false);
 
 EventRound _finalRound(String name) =>
     _finalB.hasMatch(name) ? EventRound.finalB : EventRound.finalA;

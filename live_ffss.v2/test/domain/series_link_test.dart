@@ -315,5 +315,113 @@ void main() {
         [(1, false, true), (2, true, false)],
       );
     });
+
+    test('résultat dans l\'ordre du programme, quel que soit celui des '
+        'séries', () {
+      final programme = _programme([
+        MeetingItem(
+          id: 1,
+          name: 'Finale A',
+          roundId: 143,
+          heats: [_heat(10, 'Finale A - Cadet', 0, _at(17, 37))],
+        ),
+        MeetingItem(
+          id: 2,
+          name: 'Finale B',
+          roundId: 143,
+          heats: [_heat(11, 'Finale B - Cadet', 0, _at(17, 30))],
+        ),
+      ]);
+      final linked = linkSeries(programme, _event, [
+        _series(2, 'Finale B - Cadet', 1, _at(17, 31)),
+        _series(1, 'Finale A - Cadet', 1, _at(17, 38)),
+      ]);
+      expect(
+        [for (final l in linked) (l.series.id, l.heat.id)],
+        [(1, 10), (2, 11)],
+      );
+    });
+
+    test('une course avec heure l\'emporte sur une course sans heure de même '
+        'numéro', () {
+      final programme = _programme([
+        MeetingItem(
+          id: 1,
+          name: 'Séries',
+          roundId: 142,
+          heats: [
+            _heat(10, 'Série 1', 1, null),
+            _heat(11, 'Série 1', 1, _at(8, 0)),
+          ],
+        ),
+      ]);
+      final linked = linkSeries(programme, _event, [
+        _series(1, 'Série 1', 1, _at(8, 1)),
+      ]);
+      expect([for (final l in linked) (l.series.id, l.heat.id)], [(1, 11)]);
+    });
+
+    test('à écart égal, la première série de la liste prend la course', () {
+      final programme = _programme([
+        MeetingItem(
+          id: 1,
+          name: 'Séries',
+          roundId: 142,
+          heats: [_heat(10, 'Série 1', 1, _at(8, 0))],
+        ),
+      ]);
+      final linked = linkSeries(programme, _event, [
+        _series(2, 'Série 1', 1, _at(8, 2)),
+        _series(1, 'Série 1', 1, _at(7, 58)),
+      ]);
+      expect([for (final l in linked) l.series.id], [2]);
+    });
+
+    test('« Demi-finale » et « Quart de finale » ne sont pas des finales', () {
+      final programme = _programme([
+        MeetingItem(
+          id: 1,
+          name: 'Finale A',
+          roundId: 143,
+          heats: [_heat(10, 'Finale A - Cadet', 0, _at(17, 0))],
+        ),
+      ]);
+      expect(
+        linkSeries(programme, _event, [
+          _series(1, 'Demi-finale 1', 1, _at(17, 0)),
+          _series(2, 'Quart de finale 1', 1, _at(17, 0)),
+        ]),
+        isEmpty,
+      );
+    });
+
+    test('une épreuve sans nom de catégorie ne prend aucune finale', () {
+      final programme = Programme(
+        meetings: [
+          Meeting(
+            id: 1,
+            name: 'R',
+            day: _at(0, 0),
+            items: [
+              MeetingItem(
+                id: 1,
+                name: 'Finale A',
+                roundId: 143,
+                heats: [_heat(10, 'Finale A - Cadet', 0, _at(17, 0))],
+              ),
+            ],
+          ),
+        ],
+        progressions: [
+          _progression.copyWith(categories: const ['Cadet', 'Junior', '']),
+        ],
+      );
+      expect(
+        linkSeries(programme, _event.copyWith(categoryName: ''), [
+          _series(1, 'Finale A', 1, _at(17, 0)),
+        ]),
+        isEmpty,
+      );
+    });
   });
 }
