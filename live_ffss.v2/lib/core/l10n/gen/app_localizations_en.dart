@@ -127,11 +127,57 @@ class AppLocalizationsEn extends AppLocalizations {
       'Open a competition from the home screen to follow its programme, live heats and results.';
 
   @override
-  String get comingSoon => 'Coming soon';
+  String get loginTitle => 'Sign in';
 
   @override
-  String get mySpaceComingSoon =>
-      'Sign-in and your personal space are coming soon.';
+  String get loginField => 'Username';
+
+  @override
+  String get passwordField => 'Password';
+
+  @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
+
+  @override
+  String get loginErrorRejected => 'Username or password refused.';
+
+  @override
+  String get loginErrorUnreachable =>
+      'Server unreachable: check your connection and try again.';
+
+  @override
+  String get loginErrorOther => 'Sign-in failed. Try again later.';
+
+  @override
+  String get sessionExpired => 'Session expired, please sign in again';
+
+  @override
+  String accountType(String type) {
+    return 'Account type: $type';
+  }
+
+  @override
+  String get logOut => 'Sign out';
+
+  @override
+  String get logOutConfirmTitle => 'Sign out?';
+
+  @override
+  String logOutConfirmBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries are waiting to be sent',
+      one: '1 entry is waiting to be sent',
+    );
+    return '$_temp0. They stay queued and are sent when you next sign in with this account.';
+  }
+
+  @override
+  String get cancel => 'Cancel';
 
   @override
   String get languageTitle => 'Language';

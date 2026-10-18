@@ -320,17 +320,89 @@ abstract class AppLocalizations {
   /// **'Ouvrez une compétition depuis l\'accueil pour suivre son programme, son live et ses résultats.'**
   String get chooseCompetitionHint;
 
-  /// No description provided for @comingSoon.
+  /// No description provided for @loginTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Bientôt'**
-  String get comingSoon;
+  /// **'Connexion'**
+  String get loginTitle;
 
-  /// No description provided for @mySpaceComingSoon.
+  /// No description provided for @loginField.
   ///
   /// In fr, this message translates to:
-  /// **'La connexion et votre espace arrivent bientôt.'**
-  String get mySpaceComingSoon;
+  /// **'Identifiant'**
+  String get loginField;
+
+  /// No description provided for @passwordField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe'**
+  String get passwordField;
+
+  /// No description provided for @showPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher le mot de passe'**
+  String get showPassword;
+
+  /// No description provided for @hidePassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquer le mot de passe'**
+  String get hidePassword;
+
+  /// No description provided for @loginErrorRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiant ou mot de passe refusé.'**
+  String get loginErrorRejected;
+
+  /// No description provided for @loginErrorUnreachable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Serveur injoignable : vérifiez votre connexion et réessayez.'**
+  String get loginErrorUnreachable;
+
+  /// No description provided for @loginErrorOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'La connexion a échoué. Réessayez plus tard.'**
+  String get loginErrorOther;
+
+  /// No description provided for @sessionExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Session expirée, reconnectez-vous'**
+  String get sessionExpired;
+
+  /// No description provided for @accountType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de compte : {type}'**
+  String accountType(String type);
+
+  /// No description provided for @logOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déconnecter'**
+  String get logOut;
+
+  /// No description provided for @logOutConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déconnecter ?'**
+  String get logOutConfirmTitle;
+
+  /// No description provided for @logOutConfirmBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 saisie attend d\'être envoyée} other{{count} saisies attendent d\'être envoyées}}. Elles resteront en file et partiront à votre prochaine connexion avec ce compte.'**
+  String logOutConfirmBody(int count);
+
+  /// No description provided for @cancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get cancel;
 
   /// No description provided for @languageTitle.
   ///

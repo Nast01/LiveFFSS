@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
-import 'package:live_ffss_v2/features/settings/language_selector.dart';
 import 'package:live_ffss_v2/features/shell/choose_competition_prompt.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
 
@@ -58,41 +57,6 @@ class CompetitionTabPlaceholder extends ConsumerWidget {
                   ),
                 ),
         ),
-      ),
-    );
-  }
-}
-
-class MySpacePlaceholder extends StatelessWidget {
-  const MySpacePlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.tabMySpace)),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          16 + MediaQuery.of(context).viewPadding.bottom,
-        ),
-        children: [
-          const LanguageSelector(),
-          const SizedBox(height: 32),
-          Text(
-            l10n.comingSoon,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.mySpaceComingSoon,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.textSecondary),
-          ),
-        ],
       ),
     );
   }

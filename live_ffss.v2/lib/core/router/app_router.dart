@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/features/home/all_competitions_page.dart';
 import 'package:live_ffss_v2/features/home/home_page.dart';
 import 'package:live_ffss_v2/features/live/live_page.dart';
+import 'package:live_ffss_v2/features/my_space/my_space_page.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_page.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_providers.dart';
 import 'package:live_ffss_v2/features/programme/programme_page.dart';
@@ -104,7 +105,7 @@ final routerProvider = Provider<GoRouter>(
             routes: [
               GoRoute(
                 path: Routes.mySpace,
-                builder: (context, state) => const MySpacePlaceholder(),
+                builder: (context, state) => const MySpacePage(),
               ),
             ],
           ),

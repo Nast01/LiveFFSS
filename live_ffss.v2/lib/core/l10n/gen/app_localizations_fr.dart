@@ -128,11 +128,57 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ouvrez une compétition depuis l\'accueil pour suivre son programme, son live et ses résultats.';
 
   @override
-  String get comingSoon => 'Bientôt';
+  String get loginTitle => 'Connexion';
 
   @override
-  String get mySpaceComingSoon =>
-      'La connexion et votre espace arrivent bientôt.';
+  String get loginField => 'Identifiant';
+
+  @override
+  String get passwordField => 'Mot de passe';
+
+  @override
+  String get showPassword => 'Afficher le mot de passe';
+
+  @override
+  String get hidePassword => 'Masquer le mot de passe';
+
+  @override
+  String get loginErrorRejected => 'Identifiant ou mot de passe refusé.';
+
+  @override
+  String get loginErrorUnreachable =>
+      'Serveur injoignable : vérifiez votre connexion et réessayez.';
+
+  @override
+  String get loginErrorOther => 'La connexion a échoué. Réessayez plus tard.';
+
+  @override
+  String get sessionExpired => 'Session expirée, reconnectez-vous';
+
+  @override
+  String accountType(String type) {
+    return 'Type de compte : $type';
+  }
+
+  @override
+  String get logOut => 'Se déconnecter';
+
+  @override
+  String get logOutConfirmTitle => 'Se déconnecter ?';
+
+  @override
+  String logOutConfirmBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count saisies attendent d\'être envoyées',
+      one: '1 saisie attend d\'être envoyée',
+    );
+    return '$_temp0. Elles resteront en file et partiront à votre prochaine connexion avec ce compte.';
+  }
+
+  @override
+  String get cancel => 'Annuler';
 
   @override
   String get languageTitle => 'Langue';
