@@ -67,7 +67,7 @@ abstract class OutboxOperation with _$OutboxOperation {
 }
 
 /// [queue] avec [op] : fusionnée dans l'opération en attente du même compte
-/// sur la même place, s'il y en a une, sinon ajoutée à la fin. Deux saisies du
+/// sur la même place et le même engagement, s'il y en a une, sinon ajoutée à la fin. Deux saisies du
 /// même couloir avant l'envoi n'en font qu'une, qui garde la place de la
 /// première dans l'ordre d'envoi.
 List<OutboxOperation> enqueue(List<OutboxOperation> queue, OutboxOperation op) {
@@ -75,6 +75,9 @@ List<OutboxOperation> enqueue(List<OutboxOperation> queue, OutboxOperation op) {
     (o) =>
         o.state == OutboxState.pending &&
         o.placeId == op.placeId &&
+        // Une série recomposée met un autre nageur sur la place : sa saisie ne
+        // se mêle pas à celle de l'ancien, refusée seule à l'envoi.
+        o.entryId == op.entryId &&
         isSameAccount(o.account, op.account),
   );
   if (index < 0) return [...queue, op];

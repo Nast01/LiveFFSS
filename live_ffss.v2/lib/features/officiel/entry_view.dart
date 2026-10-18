@@ -117,7 +117,12 @@ List<EntryLane> entryLanes({
     _entryLane(lane, results[lane.entryId] ?? _fromPlace(heat, lane), [
       if (account != null)
         for (final op in queue)
-          if (op.placeId == lane.id && isSameAccount(op.account, account)) op,
+          // Une place recomposée porte un autre nageur : la saisie de l'ancien
+          // ne s'affiche pas sur lui (elle sera refusée seule à l'envoi).
+          if (op.placeId == lane.id &&
+              (lane.entryId == null || op.entryId == lane.entryId) &&
+              isSameAccount(op.account, account))
+            op,
     ], readAt),
 ];
 

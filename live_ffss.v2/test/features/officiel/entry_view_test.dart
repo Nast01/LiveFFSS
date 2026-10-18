@@ -192,6 +192,16 @@ void main() {
       expect(hasUnsavedDraft(lane, ['1', '', '']), isFalse);
     });
 
+    test('une saisie pour l’ancien nageur d’une place recomposée '
+        'ne s’affiche pas sur le nouveau', () {
+      final lane = lanes(
+        places: [_lane(11, 1, resultId: 900, entryId: 222)],
+        queue: [_op('a')],
+      ).single;
+      expect(lane.result.chronos, isNot([5000, null, null]));
+      expect(lane.sendState, isNot(EntrySendState.pending));
+    });
+
     test('sans engagement, rien ne peut partir', () {
       final lane = lanes(
         places: [

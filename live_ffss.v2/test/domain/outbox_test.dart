@@ -11,6 +11,7 @@ void main() {
     ResultChange change = const ResultChange(),
     OutboxState state = OutboxState.pending,
     int? resultId,
+    int entryId = 7,
   }) => OutboxOperation(
     id: id,
     account: account,
@@ -18,7 +19,7 @@ void main() {
     placeId: placeId,
     resultId: resultId,
     seriesId: 5,
-    entryId: 7,
+    entryId: entryId,
     change: change,
     state: state,
   );
@@ -87,6 +88,13 @@ void main() {
 
     test('pas de fusion avec un autre compte', () {
       final queue = enqueue([op('a')], op('b', account: 'MARTIN Paul'));
+      expect(queue.map((o) => o.id), ['a', 'b']);
+    });
+
+    test('pas de fusion quand la place porte un autre engagement', () {
+      // Série recomposée par le bureau pendant l'attente : les chronos du
+      // nouveau nageur ne se mêlent pas à ceux de l'ancien.
+      final queue = enqueue([op('a')], op('b', entryId: 8));
       expect(queue.map((o) => o.id), ['a', 'b']);
     });
 
