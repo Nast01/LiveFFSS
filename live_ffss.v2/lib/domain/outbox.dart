@@ -11,11 +11,9 @@ enum OutboxRejection {
   /// Le résultat a un `temps` : le juge des résultats l'a validé.
   validatedByJudge,
 
-  /// Le résultat existe mais n'a pas pu être relu, essai après essai.
+  /// Le résultat existe (la place a été relue) mais n'a pas pu l'être,
+  /// essai après essai.
   unreadableResult,
-
-  /// La place n'a pas pu être relue, essai après essai.
-  unreadablePlace,
 
   /// La place n'a plus de nageur.
   emptyPlace,

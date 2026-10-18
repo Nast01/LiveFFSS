@@ -772,6 +772,116 @@ void main() {
     });
   });
 
+  group('hors ligne jamais rejeté, relance', () {
+    const rejected = OutboxOperation(
+      id: 'refusée',
+      account: 'DUPONT Jean',
+      competitionId: 1416,
+      placeId: 11,
+      seriesId: 5,
+      entryId: 7,
+      change: ResultChange(chronos: [1]),
+      state: OutboxState.rejected,
+      rejection: OutboxRejection.unreadableResult,
+      faults: 4,
+    );
+
+    test('place jamais relue pendant 1 h : toujours en attente', () {
+      fakeAsync((async) {
+        when(() => meetings.getLanes(any())).thenAnswer((_) async => {});
+        final c = container();
+        async.flushMicrotasks();
+
+        unawaited(add(c));
+        async.flushMicrotasks();
+        async.elapse(const Duration(hours: 1));
+
+        verifyNever(() => results.submit(any()));
+        final op = c.read(outboxProvider).single;
+        expect(op.state, OutboxState.pending);
+        expect(op.rejection, isNull);
+        c.dispose();
+      });
+    });
+
+    test('retry remet une refusée en attente, et elle part', () {
+      fakeAsync((async) {
+        when(() => results.submit(any())).thenAnswer((_) async => 99);
+        local.values[OutboxStore.storageKey] = OutboxStore.encode([rejected]);
+        final c = container();
+        async.flushMicrotasks();
+        verifyNever(() => results.submit(any()));
+
+        var done = false;
+        unawaited(
+          c.read(outboxProvider.notifier).retry('refusée').then((_) {
+            done = true;
+          }),
+        );
+        async.flushMicrotasks();
+
+        expect(done, isTrue);
+        final op = c.read(outboxProvider).single;
+        expect(op.state, OutboxState.sent);
+        expect(op.rejection, isNull);
+        expect(op.faults, 0);
+        expect(stored().single.state, OutboxState.sent);
+        c.dispose();
+      });
+    });
+
+    test('dismiss refusé tant que la file enregistrée est illisible', () {
+      fakeAsync((async) {
+        final flaky = _FlakyStore(local)..readFailures = 1000;
+        local.values[OutboxStore.storageKey] = OutboxStore.encode([rejected]);
+        final c = container(store: flaky);
+        async.flushMicrotasks();
+
+        Object? error;
+        unawaited(
+          c
+              .read(outboxProvider.notifier)
+              .dismiss('refusée')
+              .catchError((Object e) => error = e),
+        );
+        async.flushMicrotasks();
+
+        expect(error, isA<AppException>());
+        expect(stored(), [rejected]);
+
+        // Relue ensuite, elle est toujours là.
+        flaky.readFailures = 0;
+        async.elapse(const Duration(minutes: 2));
+        expect(c.read(outboxProvider).single.id, 'refusée');
+        c.dispose();
+      });
+    });
+
+    test('file illisible : pas de relecture à chaque relance', () {
+      fakeAsync((async) {
+        final flaky = _FlakyStore(local)..readFailures = 1000;
+        final c = container(store: flaky);
+        async.flushMicrotasks();
+        // Le lancement et la session relancent tous deux la file.
+        expect(flaky.reads, 1);
+
+        session(c).set(null);
+        session(c).set(_jean);
+        async.flushMicrotasks();
+        expect(flaky.reads, 1);
+
+        // Une saisie, elle, relit tout de suite.
+        unawaited(add(c).catchError((Object _) {}));
+        async.flushMicrotasks();
+        expect(flaky.reads, 2);
+
+        async.elapse(const Duration(seconds: 15));
+        expect(flaky.reads, 3);
+        c.dispose();
+      });
+    });
+  });
+
   group('ménage', () {
     OutboxOperation settled(String id, OutboxState state, {DateTime? at}) =>
         OutboxOperation(
@@ -857,9 +967,11 @@ class _FlakyStore implements LocalStore {
   final LocalStore _inner;
   int readFailures = 0;
   int writeFailures = 0;
+  int reads = 0;
 
   @override
   Future<String?> read(String key) async {
+    reads++;
     if (readFailures > 0) {
       readFailures--;
       throw StateError('stockage indisponible');

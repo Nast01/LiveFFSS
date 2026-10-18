@@ -81,7 +81,8 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
         : session.value;
     if (!ref.mounted) return;
     if (account == null) throw const AuthException('non connecté');
-    await _ensureLoaded();
+    // Non relue, la saisie est gardée en mémoire et `_persist` lève.
+    await _ensureLoaded(now: true);
     if (!ref.mounted) return;
 
     final now = ref.read(clockProvider)();
@@ -101,9 +102,10 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
   }
 
   /// Écarte de la file une opération réglée (refusée, le plus souvent). Une
-  /// opération en attente ne s'écarte pas.
+  /// opération en attente ne s'écarte pas. Refusé (une [AppException]) tant
+  /// que la file enregistrée n'a pas été relue : l'opération y reviendrait.
   Future<void> dismiss(String id) async {
-    await _ensureLoaded();
+    await _requireLoaded();
     if (!ref.mounted) return;
     state = [
       for (final op in state)
@@ -112,8 +114,37 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
     await _persist();
   }
 
-  Future<bool> _ensureLoaded() {
+  /// Remet en attente une opération refusée, avec un compte d'échecs neuf,
+  /// et relance l'envoi. Lève une [AppException] si la file ne peut être
+  /// relue ou enregistrée.
+  Future<void> retry(String id) async {
+    await _requireLoaded();
+    if (!ref.mounted) return;
+    final index = state.indexWhere((o) => o.id == id);
+    if (index < 0 || state[index].state != OutboxState.rejected) return;
+    state = [...state]
+      ..[index] = state[index].copyWith(
+        state: OutboxState.pending,
+        rejection: null,
+        reason: null,
+        attempts: 0,
+        faults: 0,
+      );
+    _kick();
+    await _persist();
+  }
+
+  Future<void> _requireLoaded() async {
+    if (!await _ensureLoaded(now: true)) {
+      throw const UnknownException("file d'envoi enregistrée non relue");
+    }
+  }
+
+  /// Une relecture déjà programmée n'est pas devancée par chaque relance de
+  /// la file, seulement par un geste de l'officiel ([now]).
+  Future<bool> _ensureLoaded({bool now = false}) {
     if (_loaded) return Future.value(true);
+    if (!now && _loadRetry != null) return Future.value(false);
     return _loading ??= () async {
       try {
         return await _load();
@@ -257,7 +288,9 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
       final lanes = await meetings.getLanes([op.placeId]);
       if (lost()) return _Outcome.stop;
       if (!lanes.containsKey(op.placeId)) {
-        return _fault(op, OutboxRejection.unreadablePlace);
+        // Une place absente ne se distingue pas d'une coupure : jamais
+        // refusée pour autant.
+        return _retryLater(op);
       }
       final lane = lanes[op.placeId];
       if (lane == null) {
