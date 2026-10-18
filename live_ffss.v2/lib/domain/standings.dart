@@ -45,7 +45,7 @@ List<ClubStanding> clubStandings(
     final cap = ranking.event.isRelay ? relayCounted : individualCounted;
     final byClub = <String, List<RankingRow>>{};
     for (final row in ranking.rows) {
-      final club = row.result.club;
+      final club = row.result.club.trim();
       if (club.isEmpty) continue;
       byClub.putIfAbsent(club, () => []).add(row);
     }
@@ -57,10 +57,11 @@ List<ClubStanding> clubStandings(
     }
   }
   final ordered = totals.entries.toList()..sort(_byPointsThenName);
+  final points = [for (final e in ordered) e.value];
   return [
     for (final (i, entry) in ordered.indexed)
       ClubStanding(
-        rank: _tieRank(ordered.map((e) => e.value).toList(), i),
+        rank: _tieRank(points, i),
         club: entry.key,
         points: entry.value,
         gapToPrevious: i == 0 ? null : ordered[i - 1].value - entry.value,
@@ -91,6 +92,7 @@ List<LicenseeStanding> licenseeStandings(List<EventRanking> rankings) {
           athlete.id,
           athlete.name,
           athlete.club.isEmpty ? row.result.club : athlete.club,
+          group.length,
         ),
       );
       licensee.points += row.points;
@@ -105,9 +107,12 @@ List<LicenseeStanding> licenseeStandings(List<EventRanking> rankings) {
 }
 
 final class _Licensee {
-  _Licensee(this.id, this.name, this.club);
+  _Licensee(this.id, this.name, this.club, this.index);
 
   final int id;
+
+  /// Ordre d'arrivée, pour un classement reproductible à nom égal.
+  final int index;
   final String name;
   final String club;
   int points = 0;
@@ -122,7 +127,9 @@ List<LicenseeStanding> _rankGroup(
   final ordered = members.toList()
     ..sort((a, b) {
       final byPoints = b.points.compareTo(a.points);
-      return byPoints != 0 ? byPoints : a.name.compareTo(b.name);
+      if (byPoints != 0) return byPoints;
+      final byName = _compareNames(a.name, b.name);
+      return byName != 0 ? byName : a.index.compareTo(b.index);
     });
   final points = [for (final m in ordered) m.points];
   return [
@@ -158,5 +165,26 @@ int _byPointsThenRank(RankingRow a, RankingRow b) {
 
 int _byPointsThenName(MapEntry<String, int> a, MapEntry<String, int> b) {
   final byPoints = b.value.compareTo(a.value);
-  return byPoints != 0 ? byPoints : a.key.compareTo(b.key);
+  return byPoints != 0 ? byPoints : _compareNames(a.key, b.key);
+}
+
+/// Sans casse ni accents : « Élodie » passe avant « Zoe ». Le nom brut
+/// départage les noms qui ne diffèrent que par là.
+int _compareNames(String a, String b) {
+  final byFold = _fold(a).compareTo(_fold(b));
+  return byFold != 0 ? byFold : a.compareTo(b);
+}
+
+const _accented = 'àáâãäåçèéêëìíîïñòóôõöùúûüýÿ';
+const _plain = 'aaaaaaceeeeiiiinooooouuuuyy';
+
+String _fold(String value) {
+  final lower = value.toLowerCase();
+  final out = StringBuffer();
+  for (final rune in lower.runes) {
+    final char = String.fromCharCode(rune);
+    final i = _accented.indexOf(char);
+    out.write(i < 0 ? char : _plain[i]);
+  }
+  return out.toString();
 }

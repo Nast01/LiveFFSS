@@ -120,6 +120,66 @@ void main() {
         );
       },
     );
+
+    test('le plafond vaut par club et par épreuve', () {
+      final result = clubStandings([
+        _ranking(_event(), [
+          for (final p in [20, 18, 16]) _row(club: 'A', points: p),
+          for (final p in [10, 8, 6, 4]) _row(club: 'B', points: p),
+        ]),
+        _ranking(_event(id: 2), [
+          for (final p in [14, 13, 12]) _row(club: 'A', points: p),
+        ]),
+      ]);
+      expect(
+        [for (final c in result) (c.club, c.points)],
+        [('A', 93), ('B', 24)],
+      );
+    });
+
+    test('le tri précède le plafond, un non-classé ne passe pas devant', () {
+      final result = clubStandings([
+        _ranking(_event(), [
+          _row(club: 'A', points: 14, rank: 4),
+          _row(club: 'A', points: 0),
+          _row(club: 'A', points: 20, rank: 1),
+          _row(club: 'A', points: 16, rank: 3),
+          _row(club: 'A', points: 18, rank: 2),
+        ]),
+      ]);
+      expect(result.single.points, 54);
+    });
+
+    test('écart mesuré au club précédent, non au premier', () {
+      final result = clubStandings([
+        _ranking(_event(), [
+          _row(club: 'C', points: 10),
+          _row(club: 'D', points: 7),
+          _row(club: 'E', points: 4),
+        ]),
+      ]);
+      expect([for (final c in result) c.gapToPrevious], [null, 3, 3]);
+    });
+
+    test('les noms de club sont rognés', () {
+      final result = clubStandings([
+        _ranking(_event(), [
+          _row(club: 'ABC', points: 10),
+          _row(club: 'ABC ', points: 8),
+        ]),
+      ]);
+      expect([for (final c in result) (c.club, c.points)], [('ABC', 18)]);
+    });
+
+    test('noms comparés sans casse ni accents', () {
+      final result = clubStandings([
+        _ranking(_event(), [
+          _row(club: 'Zoe', points: 5),
+          _row(club: 'Élodie', points: 5),
+        ]),
+      ]);
+      expect([for (final c in result) c.club], ['Élodie', 'Zoe']);
+    });
   });
 
   group('licenseeStandings', () {
@@ -166,6 +226,16 @@ void main() {
         result.where((l) => l.athleteId == 1).map((l) => l.categoryName),
         unorderedEquals(['Cadet', 'Junior']),
       );
+    });
+
+    test('noms comparés sans casse ni accents', () {
+      final result = licenseeStandings([
+        _ranking(_event(), [
+          _row(club: 'A', points: 5, athleteId: 1, name: 'Zoe'),
+          _row(club: 'A', points: 5, athleteId: 2, name: 'Élodie'),
+        ]),
+      ]);
+      expect([for (final l in result) l.name], ['Élodie', 'Zoe']);
     });
 
     test('égalité 1, 1, 3 puis nom', () {
