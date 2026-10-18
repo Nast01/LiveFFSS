@@ -354,5 +354,15 @@
   "officialDecisionsUnread": "{count, plural, one{1 event not read} other{{count} events not read}}",
   "@officialDecisionsUnread": {"placeholders": {"count": {"type": "int"}}},
   "officialDecisionsError": "Couldn't read the rankings.",
-  "officialQueued": "Waiting to be sent"
+  "officialQueued": "Waiting to be sent",
+  "reminderLeadTitle": "Reminder before a race",
+  "reminderLeadSubtitle": "Your followed athletes and yourself, from the programme",
+  "reminderLeadOff": "Off",
+  "reminderLeadMinutes": "{minutes} min before",
+  "@reminderLeadMinutes": {"placeholders": {"minutes": {"type": "int"}}},
+  "reminderPermissionDenied": "Notifications denied: reminders are off. Allow them in the phone settings to turn them back on.",
+  "reminderTitle": "{name}: starts in {minutes} min",
+  "@reminderTitle": {"placeholders": {"name": {"type": "String"}, "minutes": {"type": "int"}}},
+  "reminderBody": "{event} · scheduled at {time}",
+  "@reminderBody": {"placeholders": {"event": {"type": "String"}, "time": {"type": "String"}}}
 }

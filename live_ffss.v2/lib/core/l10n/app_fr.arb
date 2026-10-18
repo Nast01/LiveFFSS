@@ -364,5 +364,15 @@
   "officialDecisionsUnread": "{count, plural, one{1 épreuve non lue} other{{count} épreuves non lues}}",
   "@officialDecisionsUnread": {"placeholders": {"count": {"type": "int"}}},
   "officialDecisionsError": "Impossible de lire les classements.",
-  "officialQueued": "En file d'envoi"
+  "officialQueued": "En file d'envoi",
+  "reminderLeadTitle": "Rappel avant une course",
+  "reminderLeadSubtitle": "Vos athlètes suivis et vous-même, d'après le programme",
+  "reminderLeadOff": "Désactivé",
+  "reminderLeadMinutes": "{minutes} min avant",
+  "@reminderLeadMinutes": {"placeholders": {"minutes": {"type": "int"}}},
+  "reminderPermissionDenied": "Notifications refusées : les rappels sont désactivés. Autorisez-les dans les réglages du téléphone pour les réactiver.",
+  "reminderTitle": "{name} : départ dans {minutes} min",
+  "@reminderTitle": {"placeholders": {"name": {"type": "String"}, "minutes": {"type": "int"}}},
+  "reminderBody": "{event} · prévu à {time}",
+  "@reminderBody": {"placeholders": {"event": {"type": "String"}, "time": {"type": "String"}}}
 }

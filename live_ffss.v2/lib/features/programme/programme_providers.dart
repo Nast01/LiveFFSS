@@ -14,11 +14,33 @@ const Duration programmeRefresh = Duration(seconds: 30);
 final programmeProvider = FutureProvider.autoDispose.family<Programme, int>((
   ref,
   competitionId,
-) {
+) async {
   final timer = Timer(programmeRefresh, ref.invalidateSelf);
   ref.onDispose(timer.cancel);
-  return ref.watch(meetingRepositoryProvider).getProgramme(competitionId);
+  final programme = await ref
+      .watch(meetingRepositoryProvider)
+      .getProgramme(competitionId);
+  if (ref.mounted) {
+    ref.read(lastProgrammeProvider(competitionId).notifier).publish(programme);
+  }
+  return programme;
 });
+
+/// Le dernier programme lu par [programmeProvider], pour qui veut suivre ses
+/// relectures sans le garder en vie (les rappels) : l'écouter ferait tourner
+/// sa minuterie de 30 s pour lui seul. Nul tant qu'aucun écran ne l'a lu.
+final lastProgrammeProvider = NotifierProvider.autoDispose
+    .family<LastProgramme, Programme?, int>((_) => LastProgramme());
+
+class LastProgramme extends Notifier<Programme?> {
+  @override
+  Programme? build() => null;
+
+  /// Une relecture identique ne prévient personne.
+  void publish(Programme programme) {
+    if (programme != state) state = programme;
+  }
+}
 
 /// Le jour affiché, par compétition. Tant que l'utilisateur n'en a pas choisi,
 /// c'est le jour d'ouverture (`initialDay`), connu dès que le programme l'est.

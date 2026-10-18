@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
+import 'package:live_ffss_v2/core/notifications/reminder_scheduler.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
@@ -14,6 +15,7 @@ import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/my_space/widgets/my_space_rows.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
+import 'package:live_ffss_v2/features/reminders/reminder_lead_selector.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
 import 'package:live_ffss_v2/features/settings/language_selector.dart';
@@ -80,6 +82,11 @@ class MySpacePage extends ConsumerWidget {
             _Everyone(competitionId: competition.id),
           ],
           MySpaceHeader(l10n.mySpacePreferences),
+          // Le web n'a pas de rappels.
+          if (ref.watch(remindersSupportedProvider)) ...[
+            const ReminderLeadSelector(),
+            const SizedBox(height: 8),
+          ],
           const StartTabSelector(),
           const SizedBox(height: 8),
           const LanguageSelector(),

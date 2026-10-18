@@ -185,10 +185,7 @@ FollowedRace? followedNextRace(
   for (final eventId in athlete.eventIds) {
     final event = eventsById[eventId];
     if (event == null) continue;
-    final heat = heatsRoundOf(
-      programme,
-      event,
-    ).where((h) => h.status != RunStatus.finished).firstOrNull;
+    final heat = _nextHeatOfRound(programme, event);
     if (heat == null) continue;
     final start = heat.plannedStart;
     final best = next?.start;
@@ -198,4 +195,56 @@ FollowedRace? followedNextRace(
     }
   }
   return next;
+}
+
+/// La première course non terminée du tour séries de [event] : sans les
+/// classements, la série de l'athlète n'est pas connue, l'heure est celle du
+/// tour.
+Heat? _nextHeatOfRound(Programme programme, CompetitionEvent event) =>
+    heatsRoundOf(
+      programme,
+      event,
+    ).where((h) => h.status != RunStatus.finished).firstOrNull;
+
+/// Un athlète dont on rappelle les courses : suivi, ou le licencié connecté.
+typedef RemindedAthlete = ({
+  int participantId,
+  String name,
+  List<int> eventIds,
+});
+
+/// Une course à rappeler et son départ prévu.
+typedef UpcomingRace = ({
+  int participantId,
+  String name,
+  CompetitionEvent event,
+  DateTime start,
+});
+
+/// Les courses à venir des [athletes], tirées du programme seul comme
+/// [followedNextRace] : une par épreuve dont le tour séries n'est pas
+/// terminé et dont le départ est connu. Les finales n'y sont pas : on ne sait
+/// pas qui s'y qualifie. Un athlète présent deux fois (suivi et connecté)
+/// n'est compté qu'une fois.
+List<UpcomingRace> upcomingRaces(
+  List<RemindedAthlete> athletes,
+  List<CompetitionEvent> events,
+  Programme programme,
+) {
+  final eventsById = {for (final event in events) event.id: event};
+  final seen = <int>{};
+  return [
+    for (final athlete in athletes)
+      if (seen.add(athlete.participantId))
+        for (final eventId in athlete.eventIds.toSet())
+          if (eventsById[eventId] case final event?)
+            if (_nextHeatOfRound(programme, event)?.plannedStart
+                case final start?)
+              (
+                participantId: athlete.participantId,
+                name: athlete.name,
+                event: event,
+                start: start,
+              ),
+  ];
 }

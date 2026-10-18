@@ -38,11 +38,13 @@ enum AppEnvironment {
   static const String environmentKey = 'api_environment';
 
   /// Clés qui n'appartiennent à aucun environnement : elles survivent à une
-  /// bascule comme à un effacement scopé. `language` et `start_tab` sont des
-  /// préférences d'interface, elles ne viennent pas du serveur.
+  /// bascule comme à un effacement scopé. `language`, `start_tab` et
+  /// `reminder_lead` sont des préférences d'interface, elles ne viennent pas
+  /// du serveur.
   static const Set<String> globalKeys = {
     'language',
     'start_tab',
+    'reminder_lead',
     environmentKey,
   };
 

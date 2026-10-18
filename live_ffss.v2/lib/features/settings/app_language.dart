@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:live_ffss_v2/core/l10n/app_locale.dart';
+import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 
 /// La langue choisie dans l'application. `system` suit le téléphone, avec le
@@ -51,3 +53,14 @@ final appLanguageProvider =
     AsyncNotifierProvider<AppLanguageNotifier, AppLanguage>(
       AppLanguageNotifier.new,
     );
+
+/// Les textes écrits hors d'un écran (les rappels) : dans la langue choisie,
+/// sinon dans celle du téléphone, avec le même repli que l'app
+/// (`resolveAppLocale`).
+AppLocalizations appLocalizationsFor(
+  AppLanguage language,
+  List<Locale> deviceLocales,
+) => lookupAppLocalizations(
+  language.locale ??
+      resolveAppLocale(deviceLocales, AppLocalizations.supportedLocales),
+);

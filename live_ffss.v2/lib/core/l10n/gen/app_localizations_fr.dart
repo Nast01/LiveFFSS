@@ -1065,4 +1065,33 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get officialQueued => 'En file d\'envoi';
+
+  @override
+  String get reminderLeadTitle => 'Rappel avant une course';
+
+  @override
+  String get reminderLeadSubtitle =>
+      'Vos athlètes suivis et vous-même, d\'après le programme';
+
+  @override
+  String get reminderLeadOff => 'Désactivé';
+
+  @override
+  String reminderLeadMinutes(int minutes) {
+    return '$minutes min avant';
+  }
+
+  @override
+  String get reminderPermissionDenied =>
+      'Notifications refusées : les rappels sont désactivés. Autorisez-les dans les réglages du téléphone pour les réactiver.';
+
+  @override
+  String reminderTitle(String name, int minutes) {
+    return '$name : départ dans $minutes min';
+  }
+
+  @override
+  String reminderBody(String event, String time) {
+    return '$event · prévu à $time';
+  }
 }

@@ -1058,4 +1058,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get officialQueued => 'Waiting to be sent';
+
+  @override
+  String get reminderLeadTitle => 'Reminder before a race';
+
+  @override
+  String get reminderLeadSubtitle =>
+      'Your followed athletes and yourself, from the programme';
+
+  @override
+  String get reminderLeadOff => 'Off';
+
+  @override
+  String reminderLeadMinutes(int minutes) {
+    return '$minutes min before';
+  }
+
+  @override
+  String get reminderPermissionDenied =>
+      'Notifications denied: reminders are off. Allow them in the phone settings to turn them back on.';
+
+  @override
+  String reminderTitle(String name, int minutes) {
+    return '$name: starts in $minutes min';
+  }
+
+  @override
+  String reminderBody(String event, String time) {
+    return '$event · scheduled at $time';
+  }
 }

@@ -1753,6 +1753,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'En file d\'envoi'**
   String get officialQueued;
+
+  /// No description provided for @reminderLeadTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappel avant une course'**
+  String get reminderLeadTitle;
+
+  /// No description provided for @reminderLeadSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos athlètes suivis et vous-même, d\'après le programme'**
+  String get reminderLeadSubtitle;
+
+  /// No description provided for @reminderLeadOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactivé'**
+  String get reminderLeadOff;
+
+  /// No description provided for @reminderLeadMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{minutes} min avant'**
+  String reminderLeadMinutes(int minutes);
+
+  /// No description provided for @reminderPermissionDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications refusées : les rappels sont désactivés. Autorisez-les dans les réglages du téléphone pour les réactiver.'**
+  String get reminderPermissionDenied;
+
+  /// No description provided for @reminderTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} : départ dans {minutes} min'**
+  String reminderTitle(String name, int minutes);
+
+  /// No description provided for @reminderBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'{event} · prévu à {time}'**
+  String reminderBody(String event, String time);
 }
 
 class _AppLocalizationsDelegate
