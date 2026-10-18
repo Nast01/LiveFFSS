@@ -95,4 +95,9 @@ void main() {
       expect(canEnterResults(['spectateur']), isFalse);
     });
   });
+
+  test('un temps tel que le pavé l’affiche', () {
+    expect(hundredthsLabel(4321), '43"21');
+    expect(hundredthsLabel(6234), "1'02\"34");
+  });
 }

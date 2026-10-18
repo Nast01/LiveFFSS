@@ -822,6 +822,30 @@ void main() {
       });
     });
 
+    test('une lecture en attente ne tourne pas après la fermeture', () {
+      fakeAsync((async) {
+        setUpManual();
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+
+        // Une relecture de 30 s en cours, les droits arrivent derrière elle.
+        final slow = Completer<MeetingItem?>();
+        when(
+          () => repository.getMeetingItem(any(), day: any(named: 'day')),
+        ).thenAnswer((_) => slow.future);
+        async.elapse(itemDetailRefresh);
+        c.read(_canEnterFlag.notifier).set(true);
+        async.elapse(Duration.zero);
+
+        c.dispose();
+        slow.complete(item);
+        async.flushMicrotasks();
+
+        verifyNever(() => results.getHeatChronos(any()));
+      });
+    });
+
     test('droits arrivés après le chargement : chronos lus et montrés', () {
       fakeAsync((async) {
         setUpManual();
@@ -831,8 +855,8 @@ void main() {
         verifyNever(() => results.getHeatChronos(any()));
 
         c.read(_canEnterFlag.notifier).set(true);
-        async.flushMicrotasks();
-        async.elapse(const Duration(milliseconds: 1));
+        // Riverpod relance le fournisseur dépendant par un Timer(Duration.zero).
+        async.elapse(Duration.zero);
 
         final detail = c.read(meetingItemDetailProvider(key)).value!;
         expect(detail.manualTimesOf(item.heats[0]).keys, [11]);

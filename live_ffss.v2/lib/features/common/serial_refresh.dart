@@ -52,11 +52,18 @@ mixin SerialRefresh<T> on AsyncNotifier<T> {
   /// la chevaucher, et elle attend la relecture en cours.
   @protected
   void runInSeries(Future<void> Function() reload) {
+    final runRef = ref;
     // Derrière une relecture en cours, pas en même temps qu'elle.
     final previous = _inFlight;
     _run(() async {
       if (previous != null) await previous.then<void>((_) {}, onError: (_) {});
-      await reload();
+      // Page fermée pendant l'attente : `state` et `ref` ne servent plus.
+      if (!runRef.mounted) return;
+      try {
+        await reload();
+      } on AppException {
+        // Déjà traité par la lecture, personne n'attend celle-ci.
+      }
     });
   }
 

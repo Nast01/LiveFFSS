@@ -41,11 +41,6 @@ OutboxOperation _rejected(OutboxRejection rejection, {String? reason}) =>
 void main() {
   final l10n = lookupAppLocalizations(const Locale('fr'));
 
-  test('un temps comme le pavé l\'affiche', () {
-    expect(hundredthsLabel(4321), '43"21');
-    expect(hundredthsLabel(6234), "1'02\"34");
-  });
-
   test('la règle du temps manuel', () {
     expect(manualRuleLabel(ManualTimeRule.average, l10n), 'moyenne de 2');
     expect(manualRuleLabel(ManualTimeRule.median, l10n), 'médiane de 3');

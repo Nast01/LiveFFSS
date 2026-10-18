@@ -151,6 +151,7 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail>
   /// détail déjà affiché. Un droit perdu pendant la lecture les jette.
   Future<void> _loadChronos(Set<int>? heatIds) async {
     final runRef = ref;
+    if (!runRef.mounted) return;
     if (state.value == null) {
       try {
         await future;
