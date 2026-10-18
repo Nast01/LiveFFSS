@@ -1,4 +1,5 @@
 import 'package:live_ffss_v2/data/ffss/dtos/deroulement_dto.dart';
+import 'package:live_ffss_v2/data/ffss/mappers/results_mapper.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/reunion_mapper.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
@@ -25,10 +26,14 @@ extension DeroulementMapper on DeroulementDto {
       disciplineName: discipline?.name?.trim() ?? '',
       disciplineId: disciplineId,
       gender: parseGender(gender) ?? _parseGenderLabel(genderLabel),
-      categories: [
-        for (final category in categories)
-          if (category.name?.trim() case final name? when name.isNotEmpty) name,
-      ],
+      categories: decodeRows(
+        categories,
+        DeroulementCategorieDto.fromJson,
+        (DeroulementCategorieDto category) => switch (category.name?.trim()) {
+          final name? when name.isNotEmpty => name,
+          _ => null,
+        },
+      ),
       stages: stages,
     );
   }

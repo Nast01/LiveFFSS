@@ -36,6 +36,7 @@ RankingRow _row({
   int? athleteId,
   String name = 'A',
   Gender? gender = Gender.female,
+  int? time = 6000,
 }) {
   final id = _id++;
   return RankingRow(
@@ -45,6 +46,7 @@ RankingRow _row({
       eventId: 1,
       categoryName: 'Cadet',
       status: 0,
+      time: time,
       club: club,
       athletes: [
         ResultAthlete(
@@ -243,6 +245,19 @@ void main() {
         ]),
       ]);
       expect([for (final l in result) l.name], ['Élodie', 'Zoe']);
+    });
+
+    test('une série publiée pas encore nagée ne compte pas de course', () {
+      final result = licenseeStandings([
+        _ranking(_event(), [
+          _row(club: 'A', points: 20, rank: 1, athleteId: 1, name: 'Zoe'),
+        ]),
+        _ranking(_event(id: 2), [
+          _row(club: 'A', points: 0, athleteId: 1, name: 'Zoe', time: null),
+        ]),
+      ]);
+      expect(result.single.races, 1);
+      expect(result.single.points, 20);
     });
 
     test('égalité 1, 1, 3 puis nom', () {

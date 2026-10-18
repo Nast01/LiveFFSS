@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/domain/text_fold.dart';
 import 'package:live_ffss_v2/domain/event_ranking.dart';
+import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
 
 part 'standings.freezed.dart';
@@ -97,7 +98,9 @@ List<LicenseeStanding> licenseeStandings(List<EventRanking> rankings) {
         ),
       );
       licensee.points += row.points;
-      licensee.races++;
+      // Une série publiée avant d'être nagée porte ses engagés : ce n'est
+      // pas encore une course.
+      if (hasRun(row.result)) licensee.races++;
     }
   }
   final keys = groups.keys.toList()

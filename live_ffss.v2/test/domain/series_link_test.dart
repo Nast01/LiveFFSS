@@ -423,5 +423,64 @@ void main() {
         isEmpty,
       );
     });
+
+    test('la catégorie est le suffixe exact du nom de la finale', () {
+      Programme withFinals(List<String> categories) => Programme(
+        meetings: const [],
+        progressions: [
+          _progression.copyWith(
+            categories: categories,
+            stages: [
+              _stage(142, StageLevel.heats, 'Série'),
+              for (final (i, category) in categories.indexed)
+                _stage(143 + i, StageLevel.finalStage, 'Finale - $category'),
+            ],
+          ),
+        ],
+      );
+
+      final masters = withFinals(['Masters plus', 'Master']);
+      expect(
+        finalStageOf(masters, _event.copyWith(categoryName: 'Master'))?.name,
+        'Finale - Master',
+      );
+      expect(
+        finalStageOf(
+          masters,
+          _event.copyWith(categoryName: 'Masters plus'),
+        )?.name,
+        'Finale - Masters plus',
+      );
+
+      final seniors = withFinals(['Seniors et Masters', 'Senior']);
+      expect(
+        finalStageOf(seniors, _event.copyWith(categoryName: 'Senior'))?.name,
+        'Finale - Senior',
+      );
+      expect(
+        finalStageOf(
+          seniors,
+          _event.copyWith(categoryName: 'Seniors et Masters'),
+        )?.name,
+        'Finale - Seniors et Masters',
+      );
+
+      // Sans finale propre, une catégorie ne prend pas celle d'une autre.
+      final onlyMasters = Programme(
+        meetings: const [],
+        progressions: [
+          _progression.copyWith(
+            categories: const ['Seniors et Masters', 'Senior'],
+            stages: [
+              _stage(143, StageLevel.finalStage, 'Finale - Seniors et Masters'),
+            ],
+          ),
+        ],
+      );
+      expect(
+        finalStageOf(onlyMasters, _event.copyWith(categoryName: 'Senior')),
+        isNull,
+      );
+    });
   });
 }

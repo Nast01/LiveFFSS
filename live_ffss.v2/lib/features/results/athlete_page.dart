@@ -269,6 +269,7 @@ class _LaneFinderState extends ConsumerState<_LaneFinder> {
       competitionId: widget.competitionId,
       eventId: widget.race.event.id,
       entryId: widget.race.entry.entryId,
+      heatId: widget.race.series?.heat.id,
     ));
     final found = ref.watch(provider);
     const style = TextStyle(fontWeight: FontWeight.w600, color: AppColors.navy);

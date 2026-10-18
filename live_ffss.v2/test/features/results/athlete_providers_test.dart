@@ -514,11 +514,12 @@ void main() {
       competitionId: competitionId,
       eventId: 36074,
       entryId: entryId,
+      heatId: null,
     );
 
-    Future<LaneFound?> find(ProviderContainer c) {
-      c.listen(laneFinderProvider(key), (_, _) {});
-      return c.read(laneFinderProvider(key).future);
+    Future<LaneFound?> find(ProviderContainer c, [LaneKey lookup = key]) {
+      c.listen(laneFinderProvider(lookup), (_, _) {});
+      return c.read(laneFinderProvider(lookup).future);
     }
 
     LaneAssignment lane(int placeId, int number, {int? entry}) =>
@@ -552,6 +553,27 @@ void main() {
       expect(found.lane, 3);
       verify(() => meetings.getLanes(first.placeIds)).called(1);
       verifyNever(() => meetings.getLanes(heats[480]!.placeIds));
+    });
+
+    test('sa série connue : sa course est lue la première', () async {
+      programme = _withStatus(fixtureProgramme, (_) => RunStatus.waiting);
+      allPlacesEmpty();
+      final second = heats[480]!;
+      lanes[second.placeIds[3]] = lane(second.placeIds[3], 4, entry: entryId);
+      final c = container();
+      addTearDown(c.dispose);
+
+      final found = await find(c, (
+        competitionId: competitionId,
+        eventId: 36074,
+        entryId: entryId,
+        heatId: 480,
+      ));
+
+      expect(found?.heat.id, 480);
+      expect(found?.lane, 4);
+      verify(() => meetings.getLanes(second.placeIds)).called(1);
+      verifyNever(() => meetings.getLanes(heats[479]!.placeIds));
     });
 
     test('absent de toutes les places : nul', () async {

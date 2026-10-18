@@ -19,13 +19,7 @@ _DeroulementDto _$DeroulementDtoFromJson(Map<String, dynamic> json) =>
               _readDiscipline(json, 'Discipline') as Map<String, dynamic>,
             ),
       categories:
-          (json['categories'] as List<dynamic>?)
-              ?.map(
-                (e) =>
-                    DeroulementCategorieDto.fromJson(e as Map<String, dynamic>),
-              )
-              .toList() ??
-          const <DeroulementCategorieDto>[],
+          readList(json, 'categories') as List<dynamic>? ?? const <Object?>[],
       parties:
           (json['parties'] as List<dynamic>?)
               ?.map((e) => PartieDto.fromJson(e as Map<String, dynamic>))

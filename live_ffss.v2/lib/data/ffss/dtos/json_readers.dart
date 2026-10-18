@@ -12,3 +12,10 @@ Object? readMap(Map<dynamic, dynamic> json, String key) {
   final raw = json[key];
   return raw is Map ? raw : null;
 }
+
+/// Une liste servie sous une autre forme (objet vide de PHP, chaîne) est lue
+/// vide, au lieu de faire échouer l'objet qui la porte.
+Object? readList(Map<dynamic, dynamic> json, String key) {
+  final raw = json[key];
+  return raw is List ? raw : null;
+}

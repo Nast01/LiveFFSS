@@ -147,11 +147,22 @@ Stage? finalStageOf(Programme programme, CompetitionEvent event) {
 
 /// Les finales sont publiées par catégorie (« Finale - Cadet ») et peuvent se
 /// suivre à quelques minutes : sans ce filtre, avec du retard, la finale A
-/// Cadet prendrait la course de la finale A Junior.
+/// Cadet prendrait la course de la finale A Junior. La catégorie est le
+/// suffixe exact après « - » : un simple « contient »
+/// donnerait à « Senior » la finale « Seniors et Masters ».
 bool _stageCovers(Stage stage, CompetitionEvent event) =>
     stage.level != StageLevel.finalStage ||
-    // Un nom vide serait contenu dans le nom de toutes les finales.
-    (event.categoryName.isNotEmpty && stage.name.contains(event.categoryName));
+    _categorySuffix(stage.name, event.categoryName);
+
+bool _categorySuffix(String name, String category) {
+  final wanted = category.trim();
+  // Un nom vide serait le suffixe de toutes les finales.
+  if (wanted.isEmpty) return false;
+  final trimmed = name.trim();
+  if (!trimmed.endsWith(wanted)) return false;
+  final head = trimmed.substring(0, trimmed.length - wanted.length).trimRight();
+  return head.endsWith('-');
+}
 
 EventRound? _roundOf(StageLevel level, String heatName) => switch (level) {
   StageLevel.heats => EventRound.heats,

@@ -50,7 +50,10 @@ class _ResultsPageState extends ConsumerState<ResultsPage> {
       // tant que la page vit.
       ref.listen(participantsKeeperProvider(id), (_, _) {});
       // Une lecture par épreuve : les classements ne sont lus qu'à la première
-      // ouverture de Classements, puis gardés tant que la page vit.
+      // ouverture de Classements, puis gardés tant que la page vit. Une
+      // compétition choisie pendant que Classements est montré compte comme
+      // ouverte : sans cela, quitter le sous-onglet jetterait ses classements.
+      if (_tab == _ResultsTab.standings) _standingsOpened.add(id);
       if (_standingsOpened.contains(id)) {
         ref.listen(standingsProvider(id), (_, _) {});
       }

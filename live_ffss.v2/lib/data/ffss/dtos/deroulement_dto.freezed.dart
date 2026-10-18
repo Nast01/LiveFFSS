@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DeroulementDto {
 
-@JsonKey(name: 'Id', readValue: _readId) int? get id;@JsonKey(name: 'label') String? get label;@JsonKey(name: 'IdDiscipline', readValue: readInt) int? get disciplineId;@JsonKey(name: 'Genre') String? get gender;@JsonKey(name: 'genreLabel') String? get genderLabel;@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? get discipline;@JsonKey(name: 'categories') List<DeroulementCategorieDto> get categories;@JsonKey(name: 'parties') List<PartieDto> get parties;
+@JsonKey(name: 'Id', readValue: _readId) int? get id;@JsonKey(name: 'label') String? get label;@JsonKey(name: 'IdDiscipline', readValue: readInt) int? get disciplineId;@JsonKey(name: 'Genre') String? get gender;@JsonKey(name: 'genreLabel') String? get genderLabel;@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? get discipline;@JsonKey(name: 'categories', readValue: readList) List<Object?> get categories;@JsonKey(name: 'parties') List<PartieDto> get parties;
 /// Create a copy of DeroulementDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $DeroulementDtoCopyWith<$Res>  {
   factory $DeroulementDtoCopyWith(DeroulementDto value, $Res Function(DeroulementDto) _then) = _$DeroulementDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: _readId) int? id,@JsonKey(name: 'label') String? label,@JsonKey(name: 'IdDiscipline', readValue: readInt) int? disciplineId,@JsonKey(name: 'Genre') String? gender,@JsonKey(name: 'genreLabel') String? genderLabel,@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? discipline,@JsonKey(name: 'categories') List<DeroulementCategorieDto> categories,@JsonKey(name: 'parties') List<PartieDto> parties
+@JsonKey(name: 'Id', readValue: _readId) int? id,@JsonKey(name: 'label') String? label,@JsonKey(name: 'IdDiscipline', readValue: readInt) int? disciplineId,@JsonKey(name: 'Genre') String? gender,@JsonKey(name: 'genreLabel') String? genderLabel,@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? discipline,@JsonKey(name: 'categories', readValue: readList) List<Object?> categories,@JsonKey(name: 'parties') List<PartieDto> parties
 });
 
 
@@ -80,7 +80,7 @@ as int?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullab
 as String?,genderLabel: freezed == genderLabel ? _self.genderLabel : genderLabel // ignore: cast_nullable_to_non_nullable
 as String?,discipline: freezed == discipline ? _self.discipline : discipline // ignore: cast_nullable_to_non_nullable
 as DeroulementDisciplineDto?,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
-as List<DeroulementCategorieDto>,parties: null == parties ? _self.parties : parties // ignore: cast_nullable_to_non_nullable
+as List<Object?>,parties: null == parties ? _self.parties : parties // ignore: cast_nullable_to_non_nullable
 as List<PartieDto>,
   ));
 }
@@ -178,7 +178,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'IdDiscipline', readValue: readInt)  int? disciplineId, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'categories')  List<DeroulementCategorieDto> categories, @JsonKey(name: 'parties')  List<PartieDto> parties)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'IdDiscipline', readValue: readInt)  int? disciplineId, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'categories', readValue: readList)  List<Object?> categories, @JsonKey(name: 'parties')  List<PartieDto> parties)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DeroulementDto() when $default != null:
 return $default(_that.id,_that.label,_that.disciplineId,_that.gender,_that.genderLabel,_that.discipline,_that.categories,_that.parties);case _:
@@ -199,7 +199,7 @@ return $default(_that.id,_that.label,_that.disciplineId,_that.gender,_that.gende
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'IdDiscipline', readValue: readInt)  int? disciplineId, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'categories')  List<DeroulementCategorieDto> categories, @JsonKey(name: 'parties')  List<PartieDto> parties)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'IdDiscipline', readValue: readInt)  int? disciplineId, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'categories', readValue: readList)  List<Object?> categories, @JsonKey(name: 'parties')  List<PartieDto> parties)  $default,) {final _that = this;
 switch (_that) {
 case _DeroulementDto():
 return $default(_that.id,_that.label,_that.disciplineId,_that.gender,_that.genderLabel,_that.discipline,_that.categories,_that.parties);case _:
@@ -219,7 +219,7 @@ return $default(_that.id,_that.label,_that.disciplineId,_that.gender,_that.gende
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'IdDiscipline', readValue: readInt)  int? disciplineId, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'categories')  List<DeroulementCategorieDto> categories, @JsonKey(name: 'parties')  List<PartieDto> parties)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: _readId)  int? id, @JsonKey(name: 'label')  String? label, @JsonKey(name: 'IdDiscipline', readValue: readInt)  int? disciplineId, @JsonKey(name: 'Genre')  String? gender, @JsonKey(name: 'genreLabel')  String? genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline)  DeroulementDisciplineDto? discipline, @JsonKey(name: 'categories', readValue: readList)  List<Object?> categories, @JsonKey(name: 'parties')  List<PartieDto> parties)?  $default,) {final _that = this;
 switch (_that) {
 case _DeroulementDto() when $default != null:
 return $default(_that.id,_that.label,_that.disciplineId,_that.gender,_that.genderLabel,_that.discipline,_that.categories,_that.parties);case _:
@@ -234,7 +234,7 @@ return $default(_that.id,_that.label,_that.disciplineId,_that.gender,_that.gende
 @JsonSerializable()
 
 class _DeroulementDto implements DeroulementDto {
-  const _DeroulementDto({@JsonKey(name: 'Id', readValue: _readId) this.id, @JsonKey(name: 'label') this.label, @JsonKey(name: 'IdDiscipline', readValue: readInt) this.disciplineId, @JsonKey(name: 'Genre') this.gender, @JsonKey(name: 'genreLabel') this.genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline) this.discipline, @JsonKey(name: 'categories')  List<DeroulementCategorieDto> categories = const <DeroulementCategorieDto>[], @JsonKey(name: 'parties')  List<PartieDto> parties = const <PartieDto>[]}): _categories = categories,_parties = parties;
+  const _DeroulementDto({@JsonKey(name: 'Id', readValue: _readId) this.id, @JsonKey(name: 'label') this.label, @JsonKey(name: 'IdDiscipline', readValue: readInt) this.disciplineId, @JsonKey(name: 'Genre') this.gender, @JsonKey(name: 'genreLabel') this.genderLabel, @JsonKey(name: 'Discipline', readValue: _readDiscipline) this.discipline, @JsonKey(name: 'categories', readValue: readList)  List<Object?> categories = const <Object?>[], @JsonKey(name: 'parties')  List<PartieDto> parties = const <PartieDto>[]}): _categories = categories,_parties = parties;
   factory _DeroulementDto.fromJson(Map<String, dynamic> json) => _$DeroulementDtoFromJson(json);
 
 @override@JsonKey(name: 'Id', readValue: _readId) final  int? id;
@@ -243,8 +243,8 @@ class _DeroulementDto implements DeroulementDto {
 @override@JsonKey(name: 'Genre') final  String? gender;
 @override@JsonKey(name: 'genreLabel') final  String? genderLabel;
 @override@JsonKey(name: 'Discipline', readValue: _readDiscipline) final  DeroulementDisciplineDto? discipline;
- final  List<DeroulementCategorieDto> _categories;
-@override@JsonKey(name: 'categories') List<DeroulementCategorieDto> get categories {
+ final  List<Object?> _categories;
+@override@JsonKey(name: 'categories', readValue: readList) List<Object?> get categories {
   if (_categories is EqualUnmodifiableListView) return _categories;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_categories);
@@ -293,7 +293,7 @@ abstract mixin class _$DeroulementDtoCopyWith<$Res> implements $DeroulementDtoCo
   factory _$DeroulementDtoCopyWith(_DeroulementDto value, $Res Function(_DeroulementDto) _then) = __$DeroulementDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: _readId) int? id,@JsonKey(name: 'label') String? label,@JsonKey(name: 'IdDiscipline', readValue: readInt) int? disciplineId,@JsonKey(name: 'Genre') String? gender,@JsonKey(name: 'genreLabel') String? genderLabel,@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? discipline,@JsonKey(name: 'categories') List<DeroulementCategorieDto> categories,@JsonKey(name: 'parties') List<PartieDto> parties
+@JsonKey(name: 'Id', readValue: _readId) int? id,@JsonKey(name: 'label') String? label,@JsonKey(name: 'IdDiscipline', readValue: readInt) int? disciplineId,@JsonKey(name: 'Genre') String? gender,@JsonKey(name: 'genreLabel') String? genderLabel,@JsonKey(name: 'Discipline', readValue: _readDiscipline) DeroulementDisciplineDto? discipline,@JsonKey(name: 'categories', readValue: readList) List<Object?> categories,@JsonKey(name: 'parties') List<PartieDto> parties
 });
 
 
@@ -319,7 +319,7 @@ as int?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullab
 as String?,genderLabel: freezed == genderLabel ? _self.genderLabel : genderLabel // ignore: cast_nullable_to_non_nullable
 as String?,discipline: freezed == discipline ? _self.discipline : discipline // ignore: cast_nullable_to_non_nullable
 as DeroulementDisciplineDto?,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
-as List<DeroulementCategorieDto>,parties: null == parties ? _self._parties : parties // ignore: cast_nullable_to_non_nullable
+as List<Object?>,parties: null == parties ? _self._parties : parties // ignore: cast_nullable_to_non_nullable
 as List<PartieDto>,
   ));
 }

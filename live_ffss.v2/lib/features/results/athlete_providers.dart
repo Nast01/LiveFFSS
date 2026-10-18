@@ -261,15 +261,16 @@ abstract class LaneFound with _$LaneFound {
   const factory LaneFound({required Heat heat, required int lane}) = _LaneFound;
 }
 
+/// [heatId] : la course de sa série, si la fiche la connaît déjà.
+typedef LaneKey = ({int competitionId, int eventId, int entryId, int? heatId});
+
 /// « Trouver sa série » : lit les places des courses non terminées du tour
-/// séries de l'épreuve, course par course, et s'arrête à la première qui porte
-/// l'engagement (décision du 2026-10-18, option A : aucune route ne donne la
-/// place d'un engagement). Nul si aucune ne le porte.
+/// séries de l'épreuve (la course de sa série d'abord, si elle est connue),
+/// course par course, et s'arrête à la première qui porte l'engagement
+/// (décision du 2026-10-18, option A : aucune route ne donne la place d'un
+/// engagement). Nul si aucune ne le porte.
 final laneFinderProvider = FutureProvider.autoDispose
-    .family<LaneFound?, ({int competitionId, int eventId, int entryId})>((
-      ref,
-      key,
-    ) async {
+    .family<LaneFound?, LaneKey>((ref, key) async {
       // Tout ce qui sert de `ref` est pris avant la première attente.
       final repository = ref.read(meetingRepositoryProvider);
       final events = await ref.watch(eventsProvider(key.competitionId).future);
@@ -290,8 +291,24 @@ final laneFinderProvider = FutureProvider.autoDispose
             _ => null,
           };
 
+      // Une série déjà rattachée (publiée, pas encore courue) dit sa course :
+      // lue d'abord, elle évite de lire les autres.
+      final known = key.heatId == null
+          ? null
+          : [
+              for (final meeting in programme.meetings)
+                for (final item in meeting.items)
+                  for (final heat in item.heats)
+                    if (heat.id == key.heatId) heat,
+            ].firstOrNull;
+      final candidates = [
+        ?known,
+        for (final heat in heatsRoundOf(programme, event))
+          if (heat.id != key.heatId) heat,
+      ];
+
       final unread = <int, Heat>{};
-      for (final heat in heatsRoundOf(programme, event)) {
+      for (final heat in candidates) {
         if (heat.status == RunStatus.finished || heat.placeIds.isEmpty) {
           continue;
         }

@@ -24,9 +24,11 @@ abstract class DeroulementDto with _$DeroulementDto {
     @JsonKey(name: 'genreLabel') String? genderLabel,
     @JsonKey(name: 'Discipline', readValue: _readDiscipline)
     DeroulementDisciplineDto? discipline,
-    @JsonKey(name: 'categories')
-    @Default(<DeroulementCategorieDto>[])
-    List<DeroulementCategorieDto> categories,
+    // Lignes brutes : une catégorie mal typée est écartée seule par le mapper,
+    // sans emporter le déroulement.
+    @JsonKey(name: 'categories', readValue: readList)
+    @Default(<Object?>[])
+    List<Object?> categories,
     @JsonKey(name: 'parties') @Default(<PartieDto>[]) List<PartieDto> parties,
   }) = _DeroulementDto;
 
