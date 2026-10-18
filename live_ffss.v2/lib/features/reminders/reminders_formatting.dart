@@ -2,7 +2,7 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/notifications/reminder_scheduler.dart';
 import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
-import 'package:live_ffss_v2/features/reminders/reminders_providers.dart';
+import 'package:live_ffss_v2/features/reminders/reminder_lead.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
 
 /// L'id du rappel d'un athlète sur une épreuve. Pris au participant, pas à
@@ -28,7 +28,11 @@ List<Reminder> remindersFor(
         Reminder(
           id: reminderId(race.participantId, race.event.id),
           at: at,
-          title: l10n.reminderTitle(race.name, lead.minutes),
+          // « Départ » seulement à l'heure de sa propre course : celle du
+          // tour n'est que le début de l'épreuve.
+          title: race.ownHeat
+              ? l10n.reminderTitle(race.name, lead.minutes)
+              : l10n.reminderTitleEvent(race.name, lead.minutes),
           body: l10n.reminderBody(
             athleteRaceTitle(race.event, l10n),
             timeLabel(race.start),
@@ -46,3 +50,19 @@ String reminderLeadLabel(ReminderLead lead, AppLocalizations l10n) =>
     lead == ReminderLead.off
     ? l10n.reminderLeadOff
     : l10n.reminderLeadMinutes(lead.minutes);
+
+/// Pourquoi les rappels ne partent pas : refusés sur un geste (le délai est
+/// alors désactivé), ou pas encore autorisés alors qu'un délai est choisi.
+/// Nul tant que la permission n'est pas lue.
+String? reminderPermissionHint({
+  required ReminderLead? lead,
+  required bool? permitted,
+  required bool denied,
+  required AppLocalizations l10n,
+}) {
+  if (denied) return l10n.reminderPermissionDenied;
+  if (lead == null || lead == ReminderLead.off || permitted != false) {
+    return null;
+  }
+  return l10n.reminderPermissionMissing;
+}

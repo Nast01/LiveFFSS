@@ -19,11 +19,13 @@ import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
+import 'package:live_ffss_v2/features/reminders/reminder_records.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../support/fixtures.dart';
+import '../../support/in_memory_local_store.dart';
 
 class _MockResultsRepository extends Mock implements ResultsRepository {}
 
@@ -104,6 +106,7 @@ void main() {
       resultsRepositoryProvider.overrideWithValue(results),
       meetingRepositoryProvider.overrideWithValue(meetings),
       clockProvider.overrideWithValue(() => DateTime(2026, 3, 27, 7)),
+      localStoreProvider.overrideWithValue(InMemoryLocalStore()),
     ],
     retry: noRetry,
   );
@@ -350,6 +353,8 @@ void main() {
             ),
           ],
         );
+        // Pas encore courue au programme non plus.
+        programme = _withStatus(fixtureProgramme, (_) => RunStatus.waiting);
         final c = container();
         addTearDown(c.dispose);
 
@@ -364,6 +369,11 @@ void main() {
         // Sa série est connue : l'heure est celle de sa course, pas du tour.
         expect(toRun.series, isNotNull);
         expect(toRun.plannedStart, toRun.series!.heat.plannedStart);
+        // Gardée pour les rappels : l'heure de sa série, pas celle du tour.
+        await pumpEventQueue();
+        expect(await c.read(knownHeatsProvider(competitionId).future), {
+          (entryId: 566082, eventId: 36073): toRun.series!.heat.id,
+        });
       },
     );
 
@@ -551,6 +561,11 @@ void main() {
       expect(found, isNotNull);
       expect(found!.heat.id, 479);
       expect(found.lane, 3);
+      // Gardée pour les rappels.
+      await pumpEventQueue();
+      expect(await c.read(knownHeatsProvider(competitionId).future), {
+        (entryId: entryId, eventId: 36074): 479,
+      });
       verify(() => meetings.getLanes(first.placeIds)).called(1);
       verifyNever(() => meetings.getLanes(heats[480]!.placeIds));
     });

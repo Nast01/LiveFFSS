@@ -1084,6 +1084,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String reminderTitleEvent(String name, int minutes) {
+    return '$name: event in $minutes min';
+  }
+
+  @override
+  String get reminderPermissionMissing =>
+      'Notifications not allowed: choose a lead time to allow them.';
+
+  @override
+  String get reminderChannelName => 'Race reminders';
+
+  @override
   String reminderBody(String event, String time) {
     return '$event · scheduled at $time';
   }

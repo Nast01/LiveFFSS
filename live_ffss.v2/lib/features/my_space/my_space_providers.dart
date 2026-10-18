@@ -11,7 +11,9 @@ import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/domain/officials.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
+import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/follows/follows_providers.dart';
+import 'package:live_ffss_v2/features/reminders/reminder_records.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:live_ffss_v2/features/shell/active_competition.dart';
@@ -69,9 +71,11 @@ final mySpaceCardsProvider = FutureProvider.autoDispose
         competitionRolesProvider(competitionId).future,
       );
       if (!ref.mounted) return const MySpaceCards(cards: []);
+      final self = ref.read(selfAthleteProvider(competitionId).notifier);
       // Sans licencié, pas de carte Athlète : les participants (3,6 Mo) ne
       // sont pas lus pour rien.
       if (roles.licenseeId == null) {
+        unawaited(self.clear());
         return MySpaceCards(cards: mySpaceCards(roles, const []));
       }
       ref.read(participantsKeeperProvider(competitionId).notifier).keep();
@@ -79,7 +83,18 @@ final mySpaceCardsProvider = FutureProvider.autoDispose
         final participants = await ref.watch(
           participantsProvider(competitionId).future,
         );
-        return MySpaceCards(cards: mySpaceCards(roles, participants));
+        if (!ref.mounted) return const MySpaceCards(cards: []);
+        final cards = mySpaceCards(roles, participants);
+        // Gardé pour les rappels, qui le retrouvent au lancement sans relire
+        // les participants.
+        final athlete = cards.whereType<AthleteSpaceCard>().firstOrNull;
+        final account = ref.read(sessionProvider).value?.label;
+        unawaited(
+          athlete == null || account == null
+              ? self.clear()
+              : self.save(account, athlete.participant),
+        );
+        return MySpaceCards(cards: cards);
       } on AppException {
         // Les participants ne décident que de la carte Athlète : les autres
         // restent ouvertes.

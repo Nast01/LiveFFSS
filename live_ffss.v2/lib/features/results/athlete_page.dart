@@ -5,6 +5,7 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/features/follows/follows_providers.dart';
+import 'package:live_ffss_v2/features/reminders/reminders_providers.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
 import 'package:live_ffss_v2/features/results/widgets/athlete_race_tile.dart';
@@ -96,9 +97,11 @@ class _AthletePageState extends ConsumerState<AthletePage> {
             IconButton(
               icon: Icon(followed ? Icons.star : Icons.star_border),
               tooltip: followed ? l10n.unfollowAthlete : l10n.followAthlete,
-              onPressed: () => ref
-                  .read(followsProvider(widget.competitionId).notifier)
-                  .toggleAthlete(participant),
+              onPressed: () => toggleAthleteFollow(
+                ProviderScope.containerOf(context, listen: false),
+                widget.competitionId,
+                participant,
+              ),
             ),
           IconButton(
             icon: const Icon(Icons.refresh),

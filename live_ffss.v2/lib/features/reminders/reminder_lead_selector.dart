@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
+import 'package:live_ffss_v2/features/reminders/reminder_lead.dart';
 import 'package:live_ffss_v2/features/reminders/reminders_formatting.dart';
 import 'package:live_ffss_v2/features/reminders/reminders_providers.dart';
 
@@ -15,6 +16,12 @@ class ReminderLeadSelector extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final current = ref.watch(reminderLeadProvider).value;
     final denied = ref.watch(reminderPermissionDeniedProvider);
+    final hint = reminderPermissionHint(
+      lead: current,
+      permitted: ref.watch(reminderPermissionProvider).value,
+      denied: denied,
+      l10n: l10n,
+    );
     return Card(
       color: AppColors.surface,
       child: RadioGroup<ReminderLead>(
@@ -44,10 +51,10 @@ class ReminderLeadSelector extends ConsumerWidget {
                 ],
               ),
             ),
-            if (denied)
+            if (hint != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: Text(l10n.reminderPermissionDenied),
+                child: Text(hint),
               ),
             for (final lead in ReminderLead.values)
               RadioListTile<ReminderLead>(

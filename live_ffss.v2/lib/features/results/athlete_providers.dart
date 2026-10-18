@@ -12,6 +12,7 @@ import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
+import 'package:live_ffss_v2/features/reminders/reminder_records.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 
 part 'athlete_providers.freezed.dart';
@@ -165,6 +166,20 @@ final athleteCardProvider = FutureProvider.autoDispose
             programme,
           ),
       ];
+      // Gardées pour les rappels : l'heure de sa propre course, finale
+      // comprise, plutôt que celle du tour.
+      unawaited(
+        ref.read(knownHeatsProvider(key.competitionId).notifier).record([
+          for (final race in races)
+            if (race.series case final series?
+                when race.toRun && !series.finished)
+              (
+                entryId: race.entry.entryId,
+                eventId: race.event.id,
+                heatId: series.heat.id,
+              ),
+        ]),
+      );
       // `sort` n'est pas stable : l'indice départage, l'ordre des engagements
       // reste à course égale.
       final indexed = races.indexed.toList()
@@ -271,70 +286,84 @@ typedef LaneKey = ({int competitionId, int eventId, int entryId, int? heatId});
 /// engagement). Nul si aucune ne le porte.
 final laneFinderProvider = FutureProvider.autoDispose
     .family<LaneFound?, LaneKey>((ref, key) async {
-      // Tout ce qui sert de `ref` est pris avant la première attente.
-      final repository = ref.read(meetingRepositoryProvider);
-      final events = await ref.watch(eventsProvider(key.competitionId).future);
-      if (!ref.mounted) return null;
-      final programme = await ref.watch(
-        resultsProgrammeProvider(key.competitionId).future,
-      );
-      if (!ref.mounted) return null;
-      final event = events.where((e) => e.id == key.eventId).firstOrNull;
-      if (event == null) throw NotFoundException('event ${key.eventId}');
-
-      LaneFound? match(Heat heat, Map<int, LaneAssignment?> lanes, int id) =>
-          switch (lanes[id]) {
-            final lane? when lane.entryId == key.entryId => LaneFound(
-              heat: heat,
-              lane: lane.lane,
-            ),
-            _ => null,
-          };
-
-      // Une série déjà rattachée (publiée, pas encore courue) dit sa course :
-      // lue d'abord, elle évite de lire les autres.
-      final known = key.heatId == null
-          ? null
-          : [
-              for (final meeting in programme.meetings)
-                for (final item in meeting.items)
-                  for (final heat in item.heats)
-                    if (heat.id == key.heatId) heat,
-            ].firstOrNull;
-      final candidates = [
-        ?known,
-        for (final heat in heatsRoundOf(programme, event))
-          if (heat.id != key.heatId) heat,
-      ];
-
-      final unread = <int, Heat>{};
-      for (final heat in candidates) {
-        if (heat.status == RunStatus.finished || heat.placeIds.isEmpty) {
-          continue;
-        }
-        final lanes = await repository.getLanes(heat.placeIds);
-        if (!ref.mounted) return null;
-        for (final placeId in heat.placeIds) {
-          if (!lanes.containsKey(placeId)) {
-            unread[placeId] = heat;
-          } else if (match(heat, lanes, placeId) case final found?) {
-            return found;
-          }
-        }
+      final known = ref.read(knownHeatsProvider(key.competitionId).notifier);
+      final found = await _findLane(ref, key);
+      // Gardée pour les rappels : l'heure de sa course, pas celle du tour.
+      if (found != null) {
+        unawaited(
+          known.record([
+            (entryId: key.entryId, eventId: key.eventId, heatId: found.heat.id),
+          ]),
+        );
       }
-      if (unread.isEmpty) return null;
-
-      // Un échec passager ne doit pas laisser l'athlète introuvable : les
-      // places illisibles sont relues une fois.
-      final retried = await repository.getLanes(unread.keys);
-      if (!ref.mounted) return null;
-      for (final MapEntry(key: placeId, value: heat) in unread.entries) {
-        if (match(heat, retried, placeId) case final found?) return found;
-      }
-      // Une place encore illisible pouvait le porter : « Pas encore placé »
-      // serait faux.
-      if (unread.keys.any((id) => !retried.containsKey(id))) {
-        throw const NetworkException('places illisibles');
-      }
-      return null;
+      return found;
     });
+
+Future<LaneFound?> _findLane(Ref ref, LaneKey key) async {
+  // Tout ce qui sert de `ref` est pris avant la première attente.
+  final repository = ref.read(meetingRepositoryProvider);
+  final events = await ref.watch(eventsProvider(key.competitionId).future);
+  if (!ref.mounted) return null;
+  final programme = await ref.watch(
+    resultsProgrammeProvider(key.competitionId).future,
+  );
+  if (!ref.mounted) return null;
+  final event = events.where((e) => e.id == key.eventId).firstOrNull;
+  if (event == null) throw NotFoundException('event ${key.eventId}');
+
+  LaneFound? match(Heat heat, Map<int, LaneAssignment?> lanes, int id) =>
+      switch (lanes[id]) {
+        final lane? when lane.entryId == key.entryId => LaneFound(
+          heat: heat,
+          lane: lane.lane,
+        ),
+        _ => null,
+      };
+
+  // Une série déjà rattachée (publiée, pas encore courue) dit sa course :
+  // lue d'abord, elle évite de lire les autres.
+  final known = key.heatId == null
+      ? null
+      : [
+          for (final meeting in programme.meetings)
+            for (final item in meeting.items)
+              for (final heat in item.heats)
+                if (heat.id == key.heatId) heat,
+        ].firstOrNull;
+  final candidates = [
+    ?known,
+    for (final heat in heatsRoundOf(programme, event))
+      if (heat.id != key.heatId) heat,
+  ];
+
+  final unread = <int, Heat>{};
+  for (final heat in candidates) {
+    if (heat.status == RunStatus.finished || heat.placeIds.isEmpty) {
+      continue;
+    }
+    final lanes = await repository.getLanes(heat.placeIds);
+    if (!ref.mounted) return null;
+    for (final placeId in heat.placeIds) {
+      if (!lanes.containsKey(placeId)) {
+        unread[placeId] = heat;
+      } else if (match(heat, lanes, placeId) case final found?) {
+        return found;
+      }
+    }
+  }
+  if (unread.isEmpty) return null;
+
+  // Un échec passager ne doit pas laisser l'athlète introuvable : les
+  // places illisibles sont relues une fois.
+  final retried = await repository.getLanes(unread.keys);
+  if (!ref.mounted) return null;
+  for (final MapEntry(key: placeId, value: heat) in unread.entries) {
+    if (match(heat, retried, placeId) case final found?) return found;
+  }
+  // Une place encore illisible pouvait le porter : « Pas encore placé »
+  // serait faux.
+  if (unread.keys.any((id) => !retried.containsKey(id))) {
+    throw const NetworkException('places illisibles');
+  }
+  return null;
+}

@@ -206,45 +206,62 @@ Heat? _nextHeatOfRound(Programme programme, CompetitionEvent event) =>
       event,
     ).where((h) => h.status != RunStatus.finished).firstOrNull;
 
-/// Un athlète dont on rappelle les courses : suivi, ou le licencié connecté.
-typedef RemindedAthlete = ({
-  int participantId,
-  String name,
-  List<int> eventIds,
-});
+/// Les séries connues d'un engagement sur une épreuve (après « Trouver sa
+/// série » ou une fiche lue) : l'id de sa course au programme.
+typedef KnownHeats = Map<({int entryId, int eventId}), int>;
 
-/// Une course à rappeler et son départ prévu.
+/// Une course à rappeler et son départ prévu. [ownHeat] : l'heure est celle
+/// de sa propre course, pas celle du tour.
 typedef UpcomingRace = ({
   int participantId,
   String name,
   CompetitionEvent event,
   DateTime start,
+  bool ownHeat,
 });
 
-/// Les courses à venir des [athletes], tirées du programme seul comme
-/// [followedNextRace] : une par épreuve dont le tour séries n'est pas
-/// terminé et dont le départ est connu. Les finales n'y sont pas : on ne sait
-/// pas qui s'y qualifie. Un athlète présent deux fois (suivi et connecté)
-/// n'est compté qu'une fois.
+/// Les courses à venir des [athletes], tirées du programme seul : une par
+/// épreuve. Sa course connue ([knownHeats]) donne l'heure, une finale
+/// comprise ; courue, l'épreuve n'a plus rien à rappeler. Sans elle, ou si
+/// le programme ne la porte plus, c'est la première course non terminée du
+/// tour séries, comme [followedNextRace]. Un athlète présent deux fois
+/// (suivi et connecté) n'est compté qu'une fois.
 List<UpcomingRace> upcomingRaces(
-  List<RemindedAthlete> athletes,
+  List<FollowedAthlete> athletes,
   List<CompetitionEvent> events,
-  Programme programme,
-) {
+  Programme programme, {
+  KnownHeats knownHeats = const {},
+}) {
   final eventsById = {for (final event in events) event.id: event};
+  final heatsById = {
+    for (final meeting in programme.meetings)
+      for (final item in meeting.items)
+        for (final heat in item.heats) heat.id: heat,
+  };
   final seen = <int>{};
-  return [
-    for (final athlete in athletes)
-      if (seen.add(athlete.participantId))
-        for (final eventId in athlete.eventIds.toSet())
-          if (eventsById[eventId] case final event?)
-            if (_nextHeatOfRound(programme, event)?.plannedStart
-                case final start?)
-              (
-                participantId: athlete.participantId,
-                name: athlete.name,
-                event: event,
-                start: start,
-              ),
-  ];
+  final races = <UpcomingRace>[];
+  for (final athlete in athletes) {
+    if (!seen.add(athlete.participantId)) continue;
+    for (final eventId in athlete.eventIds.toSet()) {
+      final event = eventsById[eventId];
+      if (event == null) continue;
+      final known = [
+        for (final entryId in athlete.entryIds)
+          ?heatsById[knownHeats[(entryId: entryId, eventId: eventId)]],
+      ].firstOrNull;
+      if (known != null && known.status == RunStatus.finished) continue;
+      final ownStart = known?.plannedStart;
+      final start =
+          ownStart ?? _nextHeatOfRound(programme, event)?.plannedStart;
+      if (start == null) continue;
+      races.add((
+        participantId: athlete.participantId,
+        name: athlete.name,
+        event: event,
+        start: start,
+        ownHeat: ownStart != null,
+      ));
+    }
+  }
+  return races;
 }

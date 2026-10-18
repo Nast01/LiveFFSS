@@ -39,8 +39,11 @@ class Reminder {
 /// Les rappels du téléphone. Une interface pour que les tests et le web
 /// tournent sans la plateforme.
 abstract interface class ReminderScheduler {
-  /// Vrai si les notifications sont permises ; ne demande à l'utilisateur
-  /// que si rien n'est encore décidé.
+  /// Vrai si les notifications sont permises, sans rien demander.
+  Future<bool> isPermitted();
+
+  /// Demande la permission ; à n'appeler que sur un geste de l'utilisateur.
+  /// Déjà accordée, rien n'est montré.
   Future<bool> requestPermission();
 
   /// Remplace tous les rappels planifiés par [reminders].
@@ -53,6 +56,9 @@ abstract interface class ReminderScheduler {
 /// planifié.
 class NoReminderScheduler implements ReminderScheduler {
   const NoReminderScheduler();
+
+  @override
+  Future<bool> isPermitted() async => true;
 
   @override
   Future<bool> requestPermission() async => true;
@@ -68,21 +74,22 @@ class NoReminderScheduler implements ReminderScheduler {
 /// quelques minutes d'écart suffisent pour un rappel, et l'exacte exigerait
 /// `SCHEDULE_EXACT_ALARM`, que le Play Store réserve aux réveils et agendas.
 class LocalNotificationsScheduler implements ReminderScheduler {
-  LocalNotificationsScheduler(this._plugin);
+  LocalNotificationsScheduler(this._plugin, {required this.channelName});
 
   final FlutterLocalNotificationsPlugin _plugin;
   Future<void>? _ready;
 
-  static const _channelId = 'race_reminders';
+  /// Nom du canal dans les réglages du téléphone, dans la langue de l'app.
+  final String channelName;
 
-  /// Nom du canal dans les réglages du téléphone. Le planificateur ne connaît
-  /// pas la langue de l'app : celle de la FFSS.
-  static const _channelName = 'Rappels de course';
+  static const _channelId = 'race_reminders';
 
   Future<void> _init() => _ready ??= _plugin
       .initialize(
         settings: const InitializationSettings(
-          android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+          // Monochrome : Android teinte la petite icône, une icône en
+          // couleurs y deviendrait un carré blanc.
+          android: AndroidInitializationSettings('@drawable/ic_notification'),
         ),
       )
       .then((_) {});
@@ -91,6 +98,12 @@ class LocalNotificationsScheduler implements ReminderScheduler {
       .resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin
       >();
+
+  @override
+  Future<bool> isPermitted() => _guard(() async {
+    await _init();
+    return await _android?.areNotificationsEnabled() ?? false;
+  });
 
   @override
   Future<bool> requestPermission() => _guard(() async {
@@ -102,10 +115,10 @@ class LocalNotificationsScheduler implements ReminderScheduler {
   Future<void> replaceAll(List<Reminder> reminders) => _guard(() async {
     await _init();
     await _plugin.cancelAllPendingNotifications();
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: AndroidNotificationDetails(
         _channelId,
-        _channelName,
+        channelName,
         importance: Importance.high,
         priority: Priority.high,
       ),
@@ -148,10 +161,4 @@ class LocalNotificationsScheduler implements ReminderScheduler {
 /// 2026-10-18) : le web n'en a pas, l'iPhone viendra plus tard.
 final remindersSupportedProvider = Provider<bool>(
   (ref) => !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
-);
-
-final reminderSchedulerProvider = Provider<ReminderScheduler>(
-  (ref) => ref.watch(remindersSupportedProvider)
-      ? LocalNotificationsScheduler(FlutterLocalNotificationsPlugin())
-      : const NoReminderScheduler(),
 );

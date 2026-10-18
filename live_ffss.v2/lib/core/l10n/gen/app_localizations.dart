@@ -1790,6 +1790,24 @@ abstract class AppLocalizations {
   /// **'{name} : départ dans {minutes} min'**
   String reminderTitle(String name, int minutes);
 
+  /// No description provided for @reminderTitleEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} : épreuve dans {minutes} min'**
+  String reminderTitleEvent(String name, int minutes);
+
+  /// No description provided for @reminderPermissionMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications non autorisées : choisissez un délai pour les autoriser.'**
+  String get reminderPermissionMissing;
+
+  /// No description provided for @reminderChannelName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels de course'**
+  String get reminderChannelName;
+
   /// No description provided for @reminderBody.
   ///
   /// In fr, this message translates to:

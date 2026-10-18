@@ -1091,6 +1091,18 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String reminderTitleEvent(String name, int minutes) {
+    return '$name : épreuve dans $minutes min';
+  }
+
+  @override
+  String get reminderPermissionMissing =>
+      'Notifications non autorisées : choisissez un délai pour les autoriser.';
+
+  @override
+  String get reminderChannelName => 'Rappels de course';
+
+  @override
   String reminderBody(String event, String time) {
     return '$event · prévu à $time';
   }

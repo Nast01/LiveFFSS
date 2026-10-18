@@ -28,9 +28,11 @@ import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/features/follows/follows_providers.dart';
+import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
+import 'package:live_ffss_v2/features/reminders/reminder_records.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:live_ffss_v2/features/shell/active_competition.dart';
@@ -121,6 +123,7 @@ void main() {
   late _MockMeetingRepository meetings;
   late _MockOfficialsRepository officialsRepository;
   late ProviderContainer container;
+  late InMemoryLocalStore store;
 
   setUp(() {
     auth = _MockAuthRepository();
@@ -142,12 +145,13 @@ void main() {
     when(
       () => http.get('competition/evenement/$competitionId/me'),
     ).thenAnswer((_) async => fixture('evenement_me_1416'));
+    store = InMemoryLocalStore();
     container = ProviderContainer(
       overrides: [
         authRepositoryProvider.overrideWithValue(auth),
         httpClientProvider.overrideWithValue(_MockHttpClient()),
         tokenStorageProvider.overrideWithValue(InMemoryTokenStorage()),
-        localStoreProvider.overrideWithValue(InMemoryLocalStore()),
+        localStoreProvider.overrideWithValue(store),
         resultsRepositoryProvider.overrideWithValue(results),
         meetingRepositoryProvider.overrideWithValue(meetings),
         officialsRepositoryProvider.overrideWithValue(officialsRepository),
@@ -297,6 +301,75 @@ void main() {
         expect(await cards(), [MySpaceCard.athlete(engaged)]);
       },
     );
+
+    group("l'athlète connecté gardé pour les rappels", () {
+      const key = 'reminder_self_$competitionId';
+
+      Future<void> engagedAccount() async {
+        await logIn(_other);
+        when(() => auth.competitionRoles(competitionId)).thenAnswer(
+          (_) async => CompetitionRoles(
+            roles: const ['public', 'licencie'],
+            licenseeId: engaged.licenseeId,
+          ),
+        );
+        await cards();
+      }
+
+      Future<FollowedAthlete?> self() {
+        final sub = container.listen(
+          selfAthleteProvider(competitionId),
+          (_, _) {},
+        );
+        addTearDown(sub.close);
+        return container.read(selfAthleteProvider(competitionId).future);
+      }
+
+      test('la carte Athlète l’enregistre, avec son compte', () async {
+        await engagedAccount();
+
+        expect(store.values[key], contains('"account":"${_other.label}"'));
+        final athlete = await self();
+        expect(athlete?.participantId, engaged.id);
+        expect(athlete?.eventIds, {
+          for (final entry in engaged.entries) entry.eventId,
+        });
+      });
+
+      test('déconnexion : effacé', () async {
+        await engagedAccount();
+        expect(await self(), isNotNull);
+
+        await container.read(sessionProvider.notifier).logout();
+
+        expect(await self(), isNull);
+        expect(store.values.containsKey(key), isFalse);
+      });
+
+      test('un compte non engagé : effacé', () async {
+        await engagedAccount();
+        when(() => auth.competitionRoles(competitionId)).thenAnswer(
+          (_) async => const CompetitionRoles(roles: ['public', 'admin']),
+        );
+        container.invalidate(competitionRolesProvider(competitionId));
+
+        await cards();
+
+        expect(store.values.containsKey(key), isFalse);
+      });
+
+      test('participants en échec : gardé', () async {
+        await engagedAccount();
+        when(
+          () => results.getParticipants(any()),
+        ).thenThrow(const NetworkException('hors ligne'));
+        container.invalidate(participantsProvider(competitionId));
+        container.invalidate(mySpaceCardsProvider(competitionId));
+
+        expect((await spaces()).athleteUnknown, isTrue);
+        expect(store.values.containsKey(key), isTrue);
+      });
+    });
 
     test('changement de compte : cartes recalculées', () async {
       await logIn(_testAccount);

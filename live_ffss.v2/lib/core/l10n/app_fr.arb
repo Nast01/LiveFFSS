@@ -373,6 +373,10 @@
   "reminderPermissionDenied": "Notifications refusées : les rappels sont désactivés. Autorisez-les dans les réglages du téléphone pour les réactiver.",
   "reminderTitle": "{name} : départ dans {minutes} min",
   "@reminderTitle": {"placeholders": {"name": {"type": "String"}, "minutes": {"type": "int"}}},
+  "reminderTitleEvent": "{name} : épreuve dans {minutes} min",
+  "@reminderTitleEvent": {"placeholders": {"name": {"type": "String"}, "minutes": {"type": "int"}}},
+  "reminderPermissionMissing": "Notifications non autorisées : choisissez un délai pour les autoriser.",
+  "reminderChannelName": "Rappels de course",
   "reminderBody": "{event} · prévu à {time}",
   "@reminderBody": {"placeholders": {"event": {"type": "String"}, "time": {"type": "String"}}}
 }

@@ -363,6 +363,10 @@
   "reminderPermissionDenied": "Notifications denied: reminders are off. Allow them in the phone settings to turn them back on.",
   "reminderTitle": "{name}: starts in {minutes} min",
   "@reminderTitle": {"placeholders": {"name": {"type": "String"}, "minutes": {"type": "int"}}},
+  "reminderTitleEvent": "{name}: event in {minutes} min",
+  "@reminderTitleEvent": {"placeholders": {"name": {"type": "String"}, "minutes": {"type": "int"}}},
+  "reminderPermissionMissing": "Notifications not allowed: choose a lead time to allow them.",
+  "reminderChannelName": "Race reminders",
   "reminderBody": "{event} · scheduled at {time}",
   "@reminderBody": {"placeholders": {"event": {"type": "String"}, "time": {"type": "String"}}}
 }
