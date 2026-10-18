@@ -701,4 +701,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get athleteLoadError => 'Impossible de charger la fiche.';
+
+  @override
+  String get followedMark => 'Suivi';
+
+  @override
+  String get followAthlete => 'Suivre cet athlète';
+
+  @override
+  String get unfollowAthlete => 'Ne plus suivre cet athlète';
 }

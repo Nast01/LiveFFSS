@@ -1213,6 +1213,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Impossible de charger la fiche.'**
   String get athleteLoadError;
+
+  /// No description provided for @followedMark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivi'**
+  String get followedMark;
+
+  /// No description provided for @followAthlete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivre cet athlète'**
+  String get followAthlete;
+
+  /// No description provided for @unfollowAthlete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne plus suivre cet athlète'**
+  String get unfollowAthlete;
 }
 
 class _AppLocalizationsDelegate

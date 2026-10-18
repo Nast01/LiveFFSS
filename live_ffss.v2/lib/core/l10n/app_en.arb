@@ -248,5 +248,8 @@
   "@athleteEventRankProvisional": {"placeholders": {"rank": {"type": "String"}}},
   "athleteRaceUnavailable": "Results unreadable for this event",
   "athleteNotFound": "This athlete isn't entered in this competition.",
-  "athleteLoadError": "Couldn't load the athlete card."
+  "athleteLoadError": "Couldn't load the athlete card.",
+  "followedMark": "Following",
+  "followAthlete": "Follow this athlete",
+  "unfollowAthlete": "Stop following this athlete"
 }

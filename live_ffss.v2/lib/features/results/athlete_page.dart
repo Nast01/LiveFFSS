@@ -4,6 +4,7 @@ import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
+import 'package:live_ffss_v2/features/follows/follows_providers.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
 import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
@@ -61,6 +62,13 @@ class _AthletePageState extends ConsumerState<AthletePage> {
       widget.participantId,
     );
 
+    final followed =
+        ref
+            .watch(followsProvider(widget.competitionId))
+            .value
+            ?.followsAthlete(widget.participantId) ??
+        false;
+
     final Widget body;
     if (races == null) {
       final error = card.error;
@@ -82,6 +90,15 @@ class _AthletePageState extends ConsumerState<AthletePage> {
           participant == null ? l10n.tabResults : participantName(participant),
         ),
         actions: [
+          // Sans participant, rien à suivre : la fiche ne s'est pas chargée.
+          if (participant != null)
+            IconButton(
+              icon: Icon(followed ? Icons.star : Icons.star_border),
+              tooltip: followed ? l10n.unfollowAthlete : l10n.followAthlete,
+              onPressed: () => ref
+                  .read(followsProvider(widget.competitionId).notifier)
+                  .toggleAthlete(participant),
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: l10n.resultsRefresh,

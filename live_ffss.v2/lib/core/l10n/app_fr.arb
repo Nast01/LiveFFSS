@@ -258,5 +258,8 @@
   "@athleteEventRankProvisional": {"placeholders": {"rank": {"type": "String"}}},
   "athleteRaceUnavailable": "Résultats illisibles pour cette épreuve",
   "athleteNotFound": "Cet athlète n'est pas engagé dans cette compétition.",
-  "athleteLoadError": "Impossible de charger la fiche."
+  "athleteLoadError": "Impossible de charger la fiche.",
+  "followedMark": "Suivi",
+  "followAthlete": "Suivre cet athlète",
+  "unfollowAthlete": "Ne plus suivre cet athlète"
 }

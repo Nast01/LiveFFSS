@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
+import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/live.dart';
@@ -17,7 +18,11 @@ class LiveHeatCard extends StatelessWidget {
     required this.lanesRead,
     required this.onOpen,
     this.onEnter,
+    this.follows = const Follows(),
   });
+
+  /// Ce que l'utilisateur suit : de quoi repérer ses places.
+  final Follows follows;
 
   final LiveEntry entry;
   final ({int position, int total}) position;
@@ -88,7 +93,8 @@ class LiveHeatCard extends StatelessWidget {
           // Le départ d'une série qui se court : sans temps, les places ne
           // disent que qui nage où.
           if (body == LiveCardBody.startList)
-            for (final lane in lanes) LaneRow(lane: lane),
+            for (final lane in lanes)
+              LaneRow(lane: lane, followed: isFollowedLane(follows, lane)),
           if (body == LiveCardBody.startList ||
               body == LiveCardBody.waitingResults)
             Padding(
@@ -125,7 +131,11 @@ class LiveHeatCard extends StatelessWidget {
     final places = heatPlaces(lanes);
     return [
       for (final lane in resultOrder(lanes, places: places))
-        LaneRow(lane: lane, place: places[lane.id]),
+        LaneRow(
+          lane: lane,
+          place: places[lane.id],
+          followed: isFollowedLane(follows, lane),
+        ),
     ];
   }
 }

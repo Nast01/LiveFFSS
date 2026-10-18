@@ -700,4 +700,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get athleteLoadError => 'Couldn\'t load the athlete card.';
+
+  @override
+  String get followedMark => 'Following';
+
+  @override
+  String get followAthlete => 'Follow this athlete';
+
+  @override
+  String get unfollowAthlete => 'Stop following this athlete';
 }
