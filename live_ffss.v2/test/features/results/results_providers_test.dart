@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -142,6 +144,54 @@ void main() {
     );
   });
 
+  group('eventsProvider.refresh', () {
+    test('relit les épreuves et les classements écoutés', () async {
+      final c = container();
+      addTearDown(c.dispose);
+      const key = (competitionId: competitionId, eventId: 36073);
+      c.listen(eventRankingProvider(key), (_, _) {});
+      await c.read(eventRankingProvider(key).future);
+      clearInteractions(results);
+
+      await c.read(eventsProvider(competitionId).notifier).refresh();
+      await c.read(eventRankingProvider(key).future);
+
+      verify(() => results.getEvents(competitionId)).called(1);
+      verify(() => results.getEventSeries(36073)).called(1);
+    });
+
+    test('ne relance pas un premier programme encore en cours', () async {
+      final programmeRead = Completer<Programme>();
+      when(
+        () => meetings.getProgramme(any()),
+      ).thenAnswer((_) => programmeRead.future);
+      final c = container();
+      addTearDown(c.dispose);
+      c.listen(eventsProvider(competitionId), (_, _) {});
+      await pumpEventQueue();
+
+      final refreshed = c
+          .read(eventsProvider(competitionId).notifier)
+          .refresh();
+      await pumpEventQueue();
+      programmeRead.complete(programme);
+      await refreshed;
+
+      verify(() => meetings.getProgramme(competitionId)).called(1);
+      expect(c.read(eventsProvider(competitionId)).value, isNotEmpty);
+    });
+
+    test('après la fermeture : ni attente sans fin ni erreur', () async {
+      final c = container();
+      c.listen(eventsProvider(competitionId), (_, _) {});
+      await c.read(eventsProvider(competitionId).future);
+      final notifier = c.read(eventsProvider(competitionId).notifier);
+      c.dispose();
+
+      await notifier.refresh().timeout(const Duration(seconds: 1));
+    });
+  });
+
   group('eventRankingProvider', () {
     test('36073 : rattachée, classée, sans doublon d\'engagement', () async {
       final c = container();
@@ -239,6 +289,60 @@ void main() {
       expect(second.computedAt, now);
     });
 
+    test(
+      'fermé pendant la lecture : plus aucune lecture, aucune erreur',
+      () async {
+        final reads = <Completer<List<EventSeries>>>[];
+        when(() => results.getEventSeries(any())).thenAnswer((_) {
+          final read = Completer<List<EventSeries>>();
+          reads.add(read);
+          return read.future;
+        });
+        final c = container();
+        c.listen(standingsProvider(competitionId), (_, _) {});
+        await pumpEventQueue();
+        expect(reads, hasLength(maxConcurrentSeries));
+
+        c.dispose();
+        for (final read in reads) {
+          read.complete(const []);
+        }
+        await pumpEventQueue();
+
+        expect(reads, hasLength(maxConcurrentSeries));
+      },
+    );
+
+    test(
+      'refresh() après la fermeture : ni attente sans fin ni erreur',
+      () async {
+        final c = container();
+        c.listen(standingsProvider(competitionId), (_, _) {});
+        await c.read(standingsProvider(competitionId).future);
+        final notifier = c.read(standingsProvider(competitionId).notifier);
+        c.dispose();
+
+        await notifier.refresh().timeout(const Duration(seconds: 1));
+      },
+    );
+
+    test(
+      'refresh() fermé en cours de route : ni attente sans fin ni erreur',
+      () async {
+        final c = container();
+        c.listen(standingsProvider(competitionId), (_, _) {});
+        await c.read(standingsProvider(competitionId).future);
+
+        final refreshed = c
+            .read(standingsProvider(competitionId).notifier)
+            .refresh();
+        await pumpEventQueue(times: 2);
+        c.dispose();
+
+        await refreshed.timeout(const Duration(seconds: 1));
+      },
+    );
+
     test('aucune minuterie : rien n\'est relu en 5 minutes', () {
       fakeAsync((async) {
         final c = container();
@@ -255,6 +359,9 @@ void main() {
 
         verifyNever(() => results.getEvents(any()));
         verifyNever(() => results.getEventSeries(any()));
+        // Le programme lu, son écoute est close : sa minuterie de 30 s ne
+        // tourne plus pour les résultats.
+        verify(() => meetings.getProgramme(competitionId)).called(1);
         c.dispose();
       });
     });
@@ -279,6 +386,27 @@ void main() {
       c.invalidate(eventsProvider(competitionId));
       await c.read(eventsProvider(competitionId).future);
       expect(c.read(resultsSelectionProvider(competitionId)).eventId, 36087);
+    });
+
+    test('une épreuve choisie disparue : retour à la première', () async {
+      final c = container();
+      addTearDown(c.dispose);
+      c.listen(resultsSelectionProvider(competitionId), (_, _) {});
+      final events = await c.read(eventsProvider(competitionId).future);
+      c.read(resultsSelectionProvider(competitionId).notifier).select(36087);
+
+      when(() => results.getEvents(any())).thenAnswer(
+        (_) async => [
+          for (final event in fixtureEvents)
+            if (event.id != 36087) event,
+        ],
+      );
+      await c.read(eventsProvider(competitionId).notifier).refresh();
+
+      expect(
+        c.read(resultsSelectionProvider(competitionId)).eventId,
+        events.first.id,
+      );
     });
   });
 }

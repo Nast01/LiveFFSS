@@ -20,7 +20,8 @@ const int maxConcurrentSeries = 6;
 /// Les épreuves et le programme qui les ordonne et rattache leurs séries.
 /// Le programme est lu sans être observé : sa relecture de 30 s ne doit pas
 /// refaire les résultats, que seul le rafraîchissement manuel relit. L'écoute
-/// le garde en vie (`autoDispose`) pendant l'attente de son premier chargement.
+/// le garde en vie (`autoDispose`) pendant l'attente de son premier chargement,
+/// puis se ferme : sans autre écran, sa minuterie de 30 s s'arrête avec lui.
 final _resultsSourceProvider = FutureProvider.autoDispose
     .family<({List<CompetitionEvent> events, Programme programme}), int>((
       ref,
@@ -28,21 +29,30 @@ final _resultsSourceProvider = FutureProvider.autoDispose
     ) async {
       // Tout ce qui sert de `ref` est pris avant la première attente.
       final repository = ref.read(resultsRepositoryProvider);
-      ref.listen(programmeProvider(competitionId), (_, _) {});
-      // `.future` attendrait un programme qui se relit, sa dernière valeur
-      // suffit.
-      final Programme programme =
-          ref.read(programmeProvider(competitionId)).value ??
-          await ref.read(programmeProvider(competitionId).future);
+      final subscription = ref.listen(
+        programmeProvider(competitionId),
+        (_, _) {},
+      );
+      final Programme programme;
+      try {
+        // `.future` attendrait un programme qui se relit, sa dernière valeur
+        // suffit.
+        programme =
+            subscription.read().value ??
+            await ref.read(programmeProvider(competitionId).future);
+      } finally {
+        subscription.close();
+      }
       final events = await repository.getEvents(competitionId);
       return (events: orderEvents(events, programme), programme: programme);
     });
 
 /// Un rafraîchissement manuel relance aussi un programme en échec : sa
-/// dernière erreur ne doit pas bloquer les résultats.
+/// dernière erreur ne doit pas bloquer les résultats. Un premier chargement
+/// en cours n'est pas relancé, il serait lu deux fois.
 void _retryFailedProgramme(Ref ref, int competitionId) {
   final programme = ref.read(programmeProvider(competitionId));
-  if (programme.hasError || !programme.hasValue) {
+  if (programme.hasError) {
     ref.invalidate(programmeProvider(competitionId));
   }
 }
@@ -50,12 +60,30 @@ void _retryFailedProgramme(Ref ref, int competitionId) {
 /// Les épreuves eau plate de la compétition, dans l'ordre du déroulement de
 /// leur programme puis de leur id ; celles qu'aucun déroulement ne couvre
 /// viennent en dernier.
-final eventsProvider = FutureProvider.autoDispose
-    .family<List<CompetitionEvent>, int>(
-      (ref, competitionId) async => (await ref.watch(
-        _resultsSourceProvider(competitionId).future,
-      )).events,
-    );
+final eventsProvider = AsyncNotifierProvider.autoDispose
+    .family<EventsNotifier, List<CompetitionEvent>, int>(EventsNotifier.new);
+
+class EventsNotifier extends AsyncNotifier<List<CompetitionEvent>> {
+  EventsNotifier(this.competitionId);
+
+  final int competitionId;
+
+  @override
+  Future<List<CompetitionEvent>> build() async =>
+      (await ref.watch(_resultsSourceProvider(competitionId).future)).events;
+
+  /// Relit les épreuves ; les classements écoutés, qui en dépendent, suivent.
+  Future<void> refresh() async {
+    // Onglet fermé : plus rien à relire, et `ref` ne sert plus.
+    if (!ref.mounted) return;
+    _refreshSource(ref, competitionId);
+    try {
+      await future;
+    } on AppException {
+      // L'échec est dans `state`, que la page montre.
+    }
+  }
+}
 
 /// Relit les épreuves et, s'il a échoué, le programme ; les classements qui
 /// en dépendent suivent.
@@ -169,7 +197,21 @@ class StandingsNotifier extends AsyncNotifier<Standings> {
       }
     }
 
+    // Un `refresh` pendant la lecture lance ses travailleurs avant que ceux
+    // de la construction remplacée n'aient fini leur lecture en cours : 12
+    // lectures au plus en vol, brièvement.
     await Future.wait([for (var i = 0; i < maxConcurrentSeries; i++) worker()]);
+    // Construction remplacée : son résultat est écarté, inutile de calculer.
+    if (!runRef.mounted) {
+      return Standings(
+        clubs: const [],
+        licensees: const [],
+        finishedSeries: 0,
+        totalSeries: 0,
+        failedEvents: failedEvents,
+        computedAt: clock(),
+      );
+    }
 
     // Dans l'ordre des épreuves, pas dans celui des réponses.
     final ordered = [for (final event in events) ?rankings[event.id]];
@@ -187,6 +229,8 @@ class StandingsNotifier extends AsyncNotifier<Standings> {
   /// Une relecture en cours est remplacée, non doublée : Riverpod écarte le
   /// résultat d'une construction remplacée.
   Future<void> refresh() async {
+    // Onglet fermé : plus rien à relire, et `ref` ne sert plus.
+    if (!ref.mounted) return;
     _refreshSource(ref, competitionId);
     ref.invalidateSelf();
     try {
@@ -215,9 +259,11 @@ class ResultsSelectionNotifier extends Notifier<({int? eventId})> {
 
   @override
   ({int? eventId}) build() {
+    final events = ref.watch(eventsProvider(competitionId)).value;
+    // Une épreuve retirée de la liste ne peut plus être montrée.
+    if (events != null && !events.any((e) => e.id == _chosen)) _chosen = null;
     final chosen = _chosen;
     if (chosen != null) return (eventId: chosen);
-    final events = ref.watch(eventsProvider(competitionId)).value;
     return (eventId: events?.firstOrNull?.id);
   }
 
