@@ -373,4 +373,156 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get enterResults => 'Enter results';
+
+  @override
+  String get officialBadge => 'OFFICIAL';
+
+  @override
+  String get entryTitle => 'Results entry';
+
+  @override
+  String get entryNotice =>
+      'Entries are not final — validated by the results judge (FFSSCompetition)';
+
+  @override
+  String get entryLaneAll => 'All';
+
+  @override
+  String entryLane(int lane) {
+    return 'Lane $lane';
+  }
+
+  @override
+  String entryChrono(int number) {
+    return 'Timer $number';
+  }
+
+  @override
+  String entryManualTime(String time) {
+    return 'Manual time: $time';
+  }
+
+  @override
+  String get entryRuleSingle => '1 timer';
+
+  @override
+  String get entryRuleAverage => 'average of 2';
+
+  @override
+  String get entryRuleMedian => 'median of 3';
+
+  @override
+  String get entryNotFinal => 'not final';
+
+  @override
+  String get entryNoChrono => 'No time entered';
+
+  @override
+  String get entryInvalidChrono => 'Seconds must be 59 or less';
+
+  @override
+  String get entryDisqualify => 'DQ…';
+
+  @override
+  String get entryDisqualifyCode => 'DQ code';
+
+  @override
+  String get entryCancelDisqualification => 'Cancel DQ';
+
+  @override
+  String entryForfeitConfirm(String name) {
+    return 'Declare withdrawn: $name?';
+  }
+
+  @override
+  String get entryCancelForfeit => 'Cancel withdrawal';
+
+  @override
+  String get entryChronos => 'Times';
+
+  @override
+  String get entryClear => 'Clear';
+
+  @override
+  String get entryErase => 'Delete last digit';
+
+  @override
+  String get entrySave => 'Save';
+
+  @override
+  String get entrySaveAndNext => 'Save and go to the next heat';
+
+  @override
+  String get entryAllLanes => 'All lanes';
+
+  @override
+  String get entryPreviousHeat => 'Previous heat';
+
+  @override
+  String get entryNextHeat => 'Next heat';
+
+  @override
+  String entryDisqualified(String code) {
+    return 'DQ $code';
+  }
+
+  @override
+  String get entrySent => 'Sent';
+
+  @override
+  String get entryPending => 'Waiting to be sent';
+
+  @override
+  String entryRejected(String reason) {
+    return 'Rejected: $reason';
+  }
+
+  @override
+  String get entryRejectedValidated => 'validated by the results judge';
+
+  @override
+  String get entryRejectedUnreadable => 'result unreadable on the website';
+
+  @override
+  String get entryRejectedEmptyPlace => 'nobody in this lane any more';
+
+  @override
+  String get entryRejectedServer => 'rejected by the website';
+
+  @override
+  String get entryDismiss => 'Dismiss';
+
+  @override
+  String get entryValidatedByJudge => 'Validated by the results judge';
+
+  @override
+  String get entryUnsaved => 'Not saved';
+
+  @override
+  String entryEmptyLane(int lane) {
+    return 'Nobody in lane $lane in this heat';
+  }
+
+  @override
+  String get entryNoHeat => 'No heat to enter in this slot';
+
+  @override
+  String get entryLastHeat => 'Last heat: there is none after it';
+
+  @override
+  String get entryNotPersisted =>
+      'Entry queued but not saved on the phone: keep the app open until it is sent';
+
+  @override
+  String get entryNotConnected => 'Sign in to enter results';
+
+  @override
+  String get entryDenied =>
+      'Entry is reserved for the competition\'s officials';
+
+  @override
+  String get entryLoadError => 'Couldn\'t load this heat.';
 }

@@ -16,6 +16,7 @@ class LiveHeatCard extends StatelessWidget {
     required this.lanes,
     required this.lanesRead,
     required this.onOpen,
+    this.onEnter,
   });
 
   final LiveEntry entry;
@@ -27,6 +28,9 @@ class LiveHeatCard extends StatelessWidget {
   /// Une place au moins a été lue (`LiveView.lanesReadFor`).
   final bool lanesRead;
   final VoidCallback onOpen;
+
+  /// « Saisir », pour un officiel de la compétition ; nul sinon.
+  final VoidCallback? onEnter;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +72,11 @@ class LiveHeatCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
+                  if (onEnter case final onEnter?)
+                    TextButton(
+                      onPressed: onEnter,
+                      child: Text(l10n.enterResults),
+                    ),
                   _HeatBadge(heat: heat),
                 ],
               ),

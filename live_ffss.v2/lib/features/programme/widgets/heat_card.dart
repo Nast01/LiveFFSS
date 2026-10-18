@@ -9,10 +9,18 @@ import 'package:live_ffss_v2/features/programme/widgets/lane_row.dart';
 import 'package:live_ffss_v2/features/programme/widgets/status_badge.dart';
 
 class HeatCard extends StatelessWidget {
-  const HeatCard({super.key, required this.heat, required this.lanes});
+  const HeatCard({
+    super.key,
+    required this.heat,
+    required this.lanes,
+    this.onEnter,
+  });
 
   final Heat heat;
   final List<LaneAssignment> lanes;
+
+  /// « Saisir », pour un officiel de la compétition ; nul sinon.
+  final VoidCallback? onEnter;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +50,11 @@ class HeatCard extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
+                if (onEnter case final onEnter?)
+                  TextButton(
+                    onPressed: onEnter,
+                    child: Text(l10n.enterResults),
+                  ),
                 StatusBadge(status: heatStatus(heat)),
               ],
             ),

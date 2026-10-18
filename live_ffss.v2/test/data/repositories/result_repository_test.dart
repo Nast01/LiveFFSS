@@ -292,4 +292,54 @@ void main() {
       });
     },
   );
+
+  test("getHeatResults : par engagement, tolérant pour l'affichage", () async {
+    when(() => http.get(any())).thenAnswer(
+      (_) async => {
+        'data': {
+          'resultats': [
+            {
+              'Id': 1,
+              'Temps': '17577',
+              'TempsLive1': 100,
+              'TempsLive2': 0,
+              'Statut': 1,
+              'complement': 12,
+              'engagement': {'Id': 11},
+            },
+            // Un temps illisible n'écarte pas la ligne : il est laissé vide.
+            {
+              'Id': 2,
+              'Temps': 'abc',
+              'engagement': {'Id': 12},
+              'serie': {'Id': 7},
+            },
+            {'Id': 3, 'engagement': []},
+            'x',
+            {
+              'Id': 4,
+              'TempsLive1': {},
+              'engagement': {'Id': 14},
+            },
+          ],
+        },
+      },
+    );
+
+    final results = await repository.getHeatResults(94894);
+
+    verify(() => http.get('competition/serie/94894')).called(1);
+    expect(results, {
+      11: const RaceResult(
+        id: 1,
+        seriesId: 94894,
+        entryId: 11,
+        time: 17577,
+        chronos: [100, null, null],
+        status: 1,
+        complement: '12',
+      ),
+      12: const RaceResult(id: 2, seriesId: 7, entryId: 12),
+    });
+  });
 }

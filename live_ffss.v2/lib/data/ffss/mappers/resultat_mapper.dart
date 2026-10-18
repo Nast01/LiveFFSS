@@ -60,4 +60,29 @@ extension ResultatMapper on ResultatDto {
       points: points as int?,
     );
   }
+
+  /// Le résultat tel que l'écran de saisie le montre, une ligne de
+  /// `serie/:id` : nul sans engagement. Plus tolérant que [toDomain], car il
+  /// ne repart pas au site (l'envoi relit le résultat) : un statut absent
+  /// vaut OK, un champ du juge illisible est laissé vide, et la série est
+  /// celle qu'on a demandée quand la ligne ne la porte pas.
+  RaceResult? toHeatResult(int seriesId) {
+    final entryId = entry?.id;
+    if (entryId == null) return null;
+    int? lenient(Object? raw) => switch (_strictInt(raw)) {
+      final int value => value,
+      _ => null,
+    };
+    return RaceResult(
+      id: id,
+      seriesId: series?.id ?? seriesId,
+      entryId: entryId,
+      time: lenient(time),
+      chronos: chronos,
+      rank: lenient(rank),
+      status: status ?? 0,
+      complement: _complement(complement),
+      points: lenient(points),
+    );
+  }
 }

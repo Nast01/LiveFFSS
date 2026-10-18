@@ -43,4 +43,23 @@ void main() {
       expect(itemRedirect({}, Routes.programme), Routes.programme);
     });
   });
+
+  group('Routes.itemEntry', () {
+    test("la saisie sous le créneau de l'onglet qui l'ouvre", () {
+      expect(
+        Routes.itemEntry(Routes.live, 1453, 177, heatId: 9),
+        '/live/competition/1453/creneau/177/saisie?serie=9',
+      );
+      expect(
+        Routes.itemEntry(Routes.programme, 1453, 177),
+        '/programme/competition/1453/creneau/177/saisie',
+      );
+    });
+
+    test('la série du lien, ou aucune', () {
+      expect(entryHeatId({'serie': '9'}), 9);
+      expect(entryHeatId({'serie': 'x'}), isNull);
+      expect(entryHeatId({}), isNull);
+    });
+  });
 }

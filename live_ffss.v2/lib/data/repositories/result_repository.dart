@@ -15,6 +15,10 @@ abstract class ResultRepository {
   /// TempsLive1..3), lus en une requête plutôt qu'un résultat par couloir.
   Future<Map<int, List<int?>>> getHeatChronos(int seriesId);
 
+  /// Les résultats d'une série par engagement, en une requête, pour
+  /// l'affichage (`toHeatResult`) : jamais renvoyés tels quels au site.
+  Future<Map<int, RaceResult>> getHeatResults(int seriesId);
+
   /// Crée ou met à jour [result] et rend l'id du résultat.
   Future<int> submit(RaceResult result);
 }
@@ -39,25 +43,40 @@ class ResultRepositoryImpl implements ResultRepository {
   }
 
   @override
-  Future<Map<int, List<int?>>> getHeatChronos(int seriesId) async {
+  Future<Map<int, List<int?>>> getHeatChronos(int seriesId) async => {
+    for (final dto in await _heatRows(seriesId)) ?dto.entry?.id: dto.chronos,
+  };
+
+  @override
+  Future<Map<int, RaceResult>> getHeatResults(int seriesId) async {
+    final results = <int, RaceResult>{};
+    for (final dto in await _heatRows(seriesId)) {
+      if (dto.toHeatResult(seriesId) case final result?) {
+        results[result.entryId] = result;
+      }
+    }
+    return results;
+  }
+
+  Future<List<ResultatDto>> _heatRows(int seriesId) async {
     final path = ApiEndpoints.replacePath(ApiEndpoints.series, {
       'id': seriesId.toString(),
     });
     final data = (await _http.get(path))['data'];
     final rows = data is Map<String, dynamic> ? data['resultats'] : null;
-    final chronos = <int, List<int?>>{};
-    for (final row in rows is List ? rows : const <Object?>[]) {
-      if (row is! Map<String, dynamic>) continue;
-      try {
-        final dto = ResultatDto.fromJson(row);
-        final entryId = dto.entry?.id;
-        if (entryId != null) chronos[entryId] = dto.chronos;
-      } on TypeError {
-        // Une ligne mal typée est écartée seule, comme dans les listes.
-        continue;
-      }
+    return [
+      for (final row in rows is List ? rows : const <Object?>[])
+        if (row is Map<String, dynamic>) ?_decode(row),
+    ];
+  }
+
+  /// Une ligne mal typée est écartée seule, comme dans les listes.
+  static ResultatDto? _decode(Map<String, dynamic> row) {
+    try {
+      return ResultatDto.fromJson(row);
+    } on TypeError {
+      return null;
     }
-    return chronos;
   }
 
   /// Les paramètres passent dans l'adresse et sans corps : un corps JSON

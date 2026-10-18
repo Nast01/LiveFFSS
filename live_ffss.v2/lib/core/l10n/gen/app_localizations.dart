@@ -685,6 +685,276 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, one{1 étape} other{{count} étapes}}'**
   String followingStages(int count);
+
+  /// No description provided for @enterResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisir'**
+  String get enterResults;
+
+  /// No description provided for @officialBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'OFFICIEL'**
+  String get officialBadge;
+
+  /// No description provided for @entryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisie'**
+  String get entryTitle;
+
+  /// No description provided for @entryNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisies non définitives — validation par le juge des résultats (FFSSCompetition)'**
+  String get entryNotice;
+
+  /// No description provided for @entryLaneAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous'**
+  String get entryLaneAll;
+
+  /// No description provided for @entryLane.
+  ///
+  /// In fr, this message translates to:
+  /// **'Couloir {lane}'**
+  String entryLane(int lane);
+
+  /// No description provided for @entryChrono.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chrono {number}'**
+  String entryChrono(int number);
+
+  /// No description provided for @entryManualTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Temps manuel : {time}'**
+  String entryManualTime(String time);
+
+  /// No description provided for @entryRuleSingle.
+  ///
+  /// In fr, this message translates to:
+  /// **'1 chrono'**
+  String get entryRuleSingle;
+
+  /// No description provided for @entryRuleAverage.
+  ///
+  /// In fr, this message translates to:
+  /// **'moyenne de 2'**
+  String get entryRuleAverage;
+
+  /// No description provided for @entryRuleMedian.
+  ///
+  /// In fr, this message translates to:
+  /// **'médiane de 3'**
+  String get entryRuleMedian;
+
+  /// No description provided for @entryNotFinal.
+  ///
+  /// In fr, this message translates to:
+  /// **'non définitif'**
+  String get entryNotFinal;
+
+  /// No description provided for @entryNoChrono.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun chrono saisi'**
+  String get entryNoChrono;
+
+  /// No description provided for @entryInvalidChrono.
+  ///
+  /// In fr, this message translates to:
+  /// **'Secondes au plus 59'**
+  String get entryInvalidChrono;
+
+  /// No description provided for @entryDisqualify.
+  ///
+  /// In fr, this message translates to:
+  /// **'DQ…'**
+  String get entryDisqualify;
+
+  /// No description provided for @entryDisqualifyCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de DQ'**
+  String get entryDisqualifyCode;
+
+  /// No description provided for @entryCancelDisqualification.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la DQ'**
+  String get entryCancelDisqualification;
+
+  /// No description provided for @entryForfeitConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclarer forfait : {name} ?'**
+  String entryForfeitConfirm(String name);
+
+  /// No description provided for @entryCancelForfeit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler le forfait'**
+  String get entryCancelForfeit;
+
+  /// No description provided for @entryChronos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chronos'**
+  String get entryChronos;
+
+  /// No description provided for @entryClear.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer'**
+  String get entryClear;
+
+  /// No description provided for @entryErase.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer le dernier chiffre'**
+  String get entryErase;
+
+  /// No description provided for @entrySave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get entrySave;
+
+  /// No description provided for @entrySaveAndNext.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer et passer à la série suivante'**
+  String get entrySaveAndNext;
+
+  /// No description provided for @entryAllLanes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les couloirs'**
+  String get entryAllLanes;
+
+  /// No description provided for @entryPreviousHeat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série précédente'**
+  String get entryPreviousHeat;
+
+  /// No description provided for @entryNextHeat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série suivante'**
+  String get entryNextHeat;
+
+  /// No description provided for @entryDisqualified.
+  ///
+  /// In fr, this message translates to:
+  /// **'DQ {code}'**
+  String entryDisqualified(String code);
+
+  /// No description provided for @entrySent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyé'**
+  String get entrySent;
+
+  /// No description provided for @entryPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente d\'envoi'**
+  String get entryPending;
+
+  /// No description provided for @entryRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusé : {reason}'**
+  String entryRejected(String reason);
+
+  /// No description provided for @entryRejectedValidated.
+  ///
+  /// In fr, this message translates to:
+  /// **'validé par le juge des résultats'**
+  String get entryRejectedValidated;
+
+  /// No description provided for @entryRejectedUnreadable.
+  ///
+  /// In fr, this message translates to:
+  /// **'résultat illisible sur le site'**
+  String get entryRejectedUnreadable;
+
+  /// No description provided for @entryRejectedEmptyPlace.
+  ///
+  /// In fr, this message translates to:
+  /// **'plus personne dans ce couloir'**
+  String get entryRejectedEmptyPlace;
+
+  /// No description provided for @entryRejectedServer.
+  ///
+  /// In fr, this message translates to:
+  /// **'refus du site'**
+  String get entryRejectedServer;
+
+  /// No description provided for @entryDismiss.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ignorer'**
+  String get entryDismiss;
+
+  /// No description provided for @entryValidatedByJudge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validé par le juge des résultats'**
+  String get entryValidatedByJudge;
+
+  /// No description provided for @entryUnsaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non enregistré'**
+  String get entryUnsaved;
+
+  /// No description provided for @entryEmptyLane.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne au couloir {lane} dans cette série'**
+  String entryEmptyLane(int lane);
+
+  /// No description provided for @entryNoHeat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune série à saisir dans ce créneau'**
+  String get entryNoHeat;
+
+  /// No description provided for @entryLastHeat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière série : il n\'y en a pas d\'autre après'**
+  String get entryLastHeat;
+
+  /// No description provided for @entryNotPersisted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisie en file, mais pas enregistrée sur le téléphone : ne fermez pas l\'application avant son envoi'**
+  String get entryNotPersisted;
+
+  /// No description provided for @entryNotConnected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connectez-vous pour saisir'**
+  String get entryNotConnected;
+
+  /// No description provided for @entryDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisie réservée aux officiels de la compétition'**
+  String get entryDenied;
+
+  /// No description provided for @entryLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger cette série.'**
+  String get entryLoadError;
 }
 
 class _AppLocalizationsDelegate
