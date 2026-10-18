@@ -314,7 +314,9 @@ $EventResultCopyWith<$Res> get result {
 /// @nodoc
 mixin _$EventRanking {
 
- CompetitionEvent get event; List<RankingRow> get rows; int get finishedSeries; int get totalSeries; bool get provisional;
+ CompetitionEvent get event; List<RankingRow> get rows; int get finishedSeries; int get totalSeries; bool get provisional;/// Les séries rattachées classées, dans l'ordre du programme : la fiche
+/// d'un athlète y retrouve la série et la course de chaque ligne.
+ List<LinkedSeries> get series;
 /// Create a copy of EventRanking
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -326,20 +328,20 @@ $EventRankingCopyWith<EventRanking> get copyWith => _$EventRankingCopyWithImpl<E
 @override
 bool operator ==(Object other) {
   final _this = this as EventRanking;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventRanking&&(identical(other.event, _this.event) || other.event == _this.event)&&const DeepCollectionEquality().equals(other.rows, _this.rows)&&(identical(other.finishedSeries, _this.finishedSeries) || other.finishedSeries == _this.finishedSeries)&&(identical(other.totalSeries, _this.totalSeries) || other.totalSeries == _this.totalSeries)&&(identical(other.provisional, _this.provisional) || other.provisional == _this.provisional));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventRanking&&(identical(other.event, _this.event) || other.event == _this.event)&&const DeepCollectionEquality().equals(other.rows, _this.rows)&&(identical(other.finishedSeries, _this.finishedSeries) || other.finishedSeries == _this.finishedSeries)&&(identical(other.totalSeries, _this.totalSeries) || other.totalSeries == _this.totalSeries)&&(identical(other.provisional, _this.provisional) || other.provisional == _this.provisional)&&const DeepCollectionEquality().equals(other.series, _this.series));
 }
 
 
 @override
 int get hashCode {
   final _this = this as EventRanking;
-  return Object.hash(runtimeType,_this.event,const DeepCollectionEquality().hash(_this.rows),_this.finishedSeries,_this.totalSeries,_this.provisional);
+  return Object.hash(runtimeType,_this.event,const DeepCollectionEquality().hash(_this.rows),_this.finishedSeries,_this.totalSeries,_this.provisional,const DeepCollectionEquality().hash(_this.series));
 }
 
 @override
 String toString() {
   final _this = this as EventRanking;
-  return 'EventRanking(event: ${_this.event}, rows: ${_this.rows}, finishedSeries: ${_this.finishedSeries}, totalSeries: ${_this.totalSeries}, provisional: ${_this.provisional})';
+  return 'EventRanking(event: ${_this.event}, rows: ${_this.rows}, finishedSeries: ${_this.finishedSeries}, totalSeries: ${_this.totalSeries}, provisional: ${_this.provisional}, series: ${_this.series})';
 }
 
 
@@ -350,7 +352,7 @@ abstract mixin class $EventRankingCopyWith<$Res>  {
   factory $EventRankingCopyWith(EventRanking value, $Res Function(EventRanking) _then) = _$EventRankingCopyWithImpl;
 @useResult
 $Res call({
- CompetitionEvent event, List<RankingRow> rows, int finishedSeries, int totalSeries, bool provisional
+ CompetitionEvent event, List<RankingRow> rows, int finishedSeries, int totalSeries, bool provisional, List<LinkedSeries> series
 });
 
 
@@ -367,14 +369,15 @@ class _$EventRankingCopyWithImpl<$Res>
 
 /// Create a copy of EventRanking
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? event = null,Object? rows = null,Object? finishedSeries = null,Object? totalSeries = null,Object? provisional = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? event = null,Object? rows = null,Object? finishedSeries = null,Object? totalSeries = null,Object? provisional = null,Object? series = null,}) {
   return _then(EventRanking(
 event: null == event ? _self.event : event // ignore: cast_nullable_to_non_nullable
 as CompetitionEvent,rows: null == rows ? _self.rows : rows // ignore: cast_nullable_to_non_nullable
 as List<RankingRow>,finishedSeries: null == finishedSeries ? _self.finishedSeries : finishedSeries // ignore: cast_nullable_to_non_nullable
 as int,totalSeries: null == totalSeries ? _self.totalSeries : totalSeries // ignore: cast_nullable_to_non_nullable
 as int,provisional: null == provisional ? _self.provisional : provisional // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,series: null == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
+as List<LinkedSeries>,
   ));
 }
 /// Create a copy of EventRanking
@@ -468,10 +471,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CompetitionEvent event,  List<RankingRow> rows,  int finishedSeries,  int totalSeries,  bool provisional)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CompetitionEvent event,  List<RankingRow> rows,  int finishedSeries,  int totalSeries,  bool provisional,  List<LinkedSeries> series)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EventRanking() when $default != null:
-return $default(_that.event,_that.rows,_that.finishedSeries,_that.totalSeries,_that.provisional);case _:
+return $default(_that.event,_that.rows,_that.finishedSeries,_that.totalSeries,_that.provisional,_that.series);case _:
   return orElse();
 
 }
@@ -489,10 +492,10 @@ return $default(_that.event,_that.rows,_that.finishedSeries,_that.totalSeries,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CompetitionEvent event,  List<RankingRow> rows,  int finishedSeries,  int totalSeries,  bool provisional)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CompetitionEvent event,  List<RankingRow> rows,  int finishedSeries,  int totalSeries,  bool provisional,  List<LinkedSeries> series)  $default,) {final _that = this;
 switch (_that) {
 case _EventRanking():
-return $default(_that.event,_that.rows,_that.finishedSeries,_that.totalSeries,_that.provisional);case _:
+return $default(_that.event,_that.rows,_that.finishedSeries,_that.totalSeries,_that.provisional,_that.series);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -509,10 +512,10 @@ return $default(_that.event,_that.rows,_that.finishedSeries,_that.totalSeries,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CompetitionEvent event,  List<RankingRow> rows,  int finishedSeries,  int totalSeries,  bool provisional)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CompetitionEvent event,  List<RankingRow> rows,  int finishedSeries,  int totalSeries,  bool provisional,  List<LinkedSeries> series)?  $default,) {final _that = this;
 switch (_that) {
 case _EventRanking() when $default != null:
-return $default(_that.event,_that.rows,_that.finishedSeries,_that.totalSeries,_that.provisional);case _:
+return $default(_that.event,_that.rows,_that.finishedSeries,_that.totalSeries,_that.provisional,_that.series);case _:
   return null;
 
 }
@@ -524,7 +527,7 @@ return $default(_that.event,_that.rows,_that.finishedSeries,_that.totalSeries,_t
 
 
 class _EventRanking implements EventRanking {
-  const _EventRanking({required this.event, required  List<RankingRow> rows, required this.finishedSeries, required this.totalSeries, required this.provisional}): _rows = rows;
+  const _EventRanking({required this.event, required  List<RankingRow> rows, required this.finishedSeries, required this.totalSeries, required this.provisional,  List<LinkedSeries> series = const <LinkedSeries>[]}): _rows = rows,_series = series;
   
 
 @override final  CompetitionEvent event;
@@ -538,6 +541,17 @@ class _EventRanking implements EventRanking {
 @override final  int finishedSeries;
 @override final  int totalSeries;
 @override final  bool provisional;
+/// Les séries rattachées classées, dans l'ordre du programme : la fiche
+/// d'un athlète y retrouve la série et la course de chaque ligne.
+ final  List<LinkedSeries> _series;
+/// Les séries rattachées classées, dans l'ordre du programme : la fiche
+/// d'un athlète y retrouve la série et la course de chaque ligne.
+@override@JsonKey() List<LinkedSeries> get series {
+  if (_series is EqualUnmodifiableListView) return _series;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_series);
+}
+
 
 /// Create a copy of EventRanking
 /// with the given fields replaced by the non-null parameter values.
@@ -549,18 +563,18 @@ _$EventRankingCopyWith<_EventRanking> get copyWith => __$EventRankingCopyWithImp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _EventRanking&&(identical(other.event, event) || other.event == event)&&const DeepCollectionEquality().equals(other.rows, _rows)&&(identical(other.finishedSeries, finishedSeries) || other.finishedSeries == finishedSeries)&&(identical(other.totalSeries, totalSeries) || other.totalSeries == totalSeries)&&(identical(other.provisional, provisional) || other.provisional == provisional));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _EventRanking&&(identical(other.event, event) || other.event == event)&&const DeepCollectionEquality().equals(other.rows, _rows)&&(identical(other.finishedSeries, finishedSeries) || other.finishedSeries == finishedSeries)&&(identical(other.totalSeries, totalSeries) || other.totalSeries == totalSeries)&&(identical(other.provisional, provisional) || other.provisional == provisional)&&const DeepCollectionEquality().equals(other.series, _series));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,event,const DeepCollectionEquality().hash(_rows),finishedSeries,totalSeries,provisional);
+    return Object.hash(runtimeType,event,const DeepCollectionEquality().hash(_rows),finishedSeries,totalSeries,provisional,const DeepCollectionEquality().hash(_series));
 }
 
 @override
 String toString() {
-    return 'EventRanking(event: $event, rows: $rows, finishedSeries: $finishedSeries, totalSeries: $totalSeries, provisional: $provisional)';
+    return 'EventRanking(event: $event, rows: $rows, finishedSeries: $finishedSeries, totalSeries: $totalSeries, provisional: $provisional, series: $series)';
 }
 
 
@@ -571,7 +585,7 @@ abstract mixin class _$EventRankingCopyWith<$Res> implements $EventRankingCopyWi
   factory _$EventRankingCopyWith(_EventRanking value, $Res Function(_EventRanking) _then) = __$EventRankingCopyWithImpl;
 @override @useResult
 $Res call({
- CompetitionEvent event, List<RankingRow> rows, int finishedSeries, int totalSeries, bool provisional
+ CompetitionEvent event, List<RankingRow> rows, int finishedSeries, int totalSeries, bool provisional, List<LinkedSeries> series
 });
 
 
@@ -588,14 +602,15 @@ class __$EventRankingCopyWithImpl<$Res>
 
 /// Create a copy of EventRanking
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? event = null,Object? rows = null,Object? finishedSeries = null,Object? totalSeries = null,Object? provisional = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? event = null,Object? rows = null,Object? finishedSeries = null,Object? totalSeries = null,Object? provisional = null,Object? series = null,}) {
   return _then(_EventRanking(
 event: null == event ? _self.event : event // ignore: cast_nullable_to_non_nullable
 as CompetitionEvent,rows: null == rows ? _self._rows : rows // ignore: cast_nullable_to_non_nullable
 as List<RankingRow>,finishedSeries: null == finishedSeries ? _self.finishedSeries : finishedSeries // ignore: cast_nullable_to_non_nullable
 as int,totalSeries: null == totalSeries ? _self.totalSeries : totalSeries // ignore: cast_nullable_to_non_nullable
 as int,provisional: null == provisional ? _self.provisional : provisional // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,series: null == series ? _self._series : series // ignore: cast_nullable_to_non_nullable
+as List<LinkedSeries>,
   ));
 }
 

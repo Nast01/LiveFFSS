@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:live_ffss_v2/domain/athlete_search.dart';
 import 'package:live_ffss_v2/domain/event_ranking.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
 
@@ -171,20 +172,6 @@ int _byPointsThenName(MapEntry<String, int> a, MapEntry<String, int> b) {
 /// Sans casse ni accents : « Élodie » passe avant « Zoe ». Le nom brut
 /// départage les noms qui ne diffèrent que par là.
 int _compareNames(String a, String b) {
-  final byFold = _fold(a).compareTo(_fold(b));
+  final byFold = foldForSearch(a).compareTo(foldForSearch(b));
   return byFold != 0 ? byFold : a.compareTo(b);
-}
-
-const _accented = 'àáâãäåçèéêëìíîïñòóôõöùúûüýÿ';
-const _plain = 'aaaaaaceeeeiiiinooooouuuuyy';
-
-String _fold(String value) {
-  final lower = value.toLowerCase();
-  final out = StringBuffer();
-  for (final rune in lower.runes) {
-    final char = String.fromCharCode(rune);
-    final i = _accented.indexOf(char);
-    out.write(i < 0 ? char : _plain[i]);
-  }
-  return out.toString();
 }

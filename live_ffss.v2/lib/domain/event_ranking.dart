@@ -43,6 +43,10 @@ abstract class EventRanking with _$EventRanking {
     required int finishedSeries,
     required int totalSeries,
     required bool provisional,
+
+    /// Les séries rattachées classées, dans l'ordre du programme : la fiche
+    /// d'un athlète y retrouve la série et la course de chaque ligne.
+    @Default(<LinkedSeries>[]) List<LinkedSeries> series,
   }) = _EventRanking;
 }
 
@@ -155,6 +159,7 @@ EventRanking rankEvent(
     finishedSeries: series.where((s) => s.finished).length,
     totalSeries: series.length,
     provisional: series.isEmpty || series.any((s) => s.provisional),
+    series: series,
   );
 }
 

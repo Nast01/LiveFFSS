@@ -47,6 +47,15 @@ final _resultsSourceProvider = FutureProvider.autoDispose
       return (events: orderEvents(events, programme), programme: programme);
     });
 
+/// Le programme que les résultats ont lu : la fiche d'un athlète et « Trouver
+/// sa série » y prennent les courses, sans la relecture de 30 s du programme.
+final resultsProgrammeProvider = FutureProvider.autoDispose
+    .family<Programme, int>(
+      (ref, competitionId) async => (await ref.watch(
+        _resultsSourceProvider(competitionId).future,
+      )).programme,
+    );
+
 /// Un rafraîchissement manuel relance aussi un programme en échec : sa
 /// dernière erreur ne doit pas bloquer les résultats. Un premier chargement
 /// en cours n'est pas relancé, il serait lu deux fois.
