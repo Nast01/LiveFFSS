@@ -32,6 +32,10 @@ Un compte qui n'est **pas** officiel de la compétition garde l'application spec
   - Une place sans résultat (`resultat` nul) : création avec `serie` (id de la série de la course) et `engagement` (id de l'engagement de la place).
 - **Lecture des temps manuels** : `course/place/:id` ne porte pas `TempsLive1..3` ; `serie/:id` et `resultat/:id` les portent. *À vérifier sur la recette.*
 
+## 2 bis. Faits vérifiés le 2026-10-18 (résumé, détail dans le contrat)
+
+Paramètres d'écriture **dans l'adresse** (pas de JSON) ; **`statut` omis → 3 « F/DQ »** : toujours relire et renvoyer tous les champs ; chrono vidé → `0` (lu comme « pas de chrono ») ; **`complement` impossible à effacer** : « Annuler la DQ » remet `statut` 0 et laisse le code, l'app n'affiche le code que sur une DQ ; jeton invalide → 403. Rôles réels d'un officiel : `officiel {niveau, niveauLabel, principal}` ; rôle non documenté `referent_sportif`. `TempsLive1..3` dans `resultat/:id` et `serie/:id`, pas dans la place.
+
 ## 3. Décisions
 
 | Sujet | Décision | Origine |

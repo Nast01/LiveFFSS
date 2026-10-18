@@ -16,7 +16,8 @@
 - **L'app reste sur la recette.** Aucun appel d'écriture réel n'est fait par un agent : les écritures sur la recette sont faites par l'utilisateur (tâche 1 et essais manuels).
 - **Le mot de passe n'est jamais stocké** ; seul le jeton l'est (`TokenStorage`, clé préfixée par l'environnement).
 - **Champs écrits** : `tempsLive1..3` pour les chronos ; `statut` 1 + `complement` (code) pour une DQ ; `statut` 2 + `complement` `F` pour un forfait ; annulation : `statut` 0 + `complement` vide ; un chrono vidé : champ à vide. **Jamais** `temps`.
-- **Lecture-modification-écriture au moment de l'envoi** : relire le résultat, refuser si un `temps` est apparu (validé par le juge), sinon fusionner et renvoyer **tous** les champs du résultat.
+- **Lecture-modification-écriture au moment de l'envoi** (obligatoire : un `statut` omis retombe à 3 « F/DQ ») : relire le résultat, refuser si un `temps` est apparu (validé par le juge), sinon fusionner et renvoyer **tous** les champs du résultat.
+- **Écriture : paramètres dans l'adresse** (`HttpClient.post(path, query: {...})`, **sans** `body`) ; un corps JSON donne HTTP 500. Chrono vidé : envoyer `''` (le serveur stocke `0`) ; un chrono `0` se lit comme vide. `complement` ne s'efface pas : « Annuler la DQ » = `statut` 0, le code reste, ne l'afficher que sur une DQ.
 - **Temps manuel** : 1 chrono → lui ; 2 → moyenne ; 3 → médiane ; visible **seulement des officiels connectés** ; mention « manuel, non définitif ».
 - Peut saisir : rôles `officiel`, `juge_principal`, `admin` sur la compétition.
 - Traductions fr de référence / en symétrique, pas de clé morte, `flutter gen-l10n` ; freezed → `build_runner`, et revenir sur les fichiers générés réécrits seulement pour des fins de ligne.
@@ -32,7 +33,7 @@
 
 ---
 
-### Task 1 : vérifications sur la recette (faites par l'utilisateur)
+### Task 1 : vérifications sur la recette — **faites le 2026-10-18** (contrat à jour), tâche sans objet
 
 **Files :** Create `docs/checks/2026-10-18-lot4-recette.md` (liste de contrôle à remplir) ; Modify `../docs/FFSS_API_CONTRACT.md` une fois les résultats connus.
 
