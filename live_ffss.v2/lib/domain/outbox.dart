@@ -18,6 +18,10 @@ enum OutboxRejection {
   /// La place n'a plus de nageur.
   emptyPlace,
 
+  /// La place ou son résultat ne porte plus l'engagement saisi : le bureau a
+  /// recomposé la série, la saisie visait un autre nageur.
+  placeChanged,
+
   /// Le site a refusé l'écriture, ou a échoué sans dire pourquoi ; son
   /// message est dans [OutboxOperation.reason].
   server,

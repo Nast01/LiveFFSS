@@ -902,6 +902,12 @@ abstract class AppLocalizations {
   /// **'plus personne dans ce couloir'**
   String get entryRejectedEmptyPlace;
 
+  /// No description provided for @entryRejectedPlaceChanged.
+  ///
+  /// In fr, this message translates to:
+  /// **'série recomposée : ce couloir a changé de nageur'**
+  String get entryRejectedPlaceChanged;
+
   /// No description provided for @entryRejectedServer.
   ///
   /// In fr, this message translates to:

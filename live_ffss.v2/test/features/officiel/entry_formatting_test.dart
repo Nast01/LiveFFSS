@@ -52,6 +52,10 @@ void main() {
       'validé par le juge des résultats',
     );
     expect(
+      rejectionReason(_rejected(OutboxRejection.placeChanged), l10n),
+      'série recomposée : ce couloir a changé de nageur',
+    );
+    expect(
       rejectionReason(
         _rejected(OutboxRejection.server, reason: 'Série close'),
         l10n,

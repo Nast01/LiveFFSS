@@ -186,10 +186,13 @@ extension<T> on List<T> {
   }
 }
 
-/// Réessayer une saisie que le juge a validée retomberait sur le même refus :
-/// on ne peut que l'écarter.
-bool canRetryRejection(OutboxOperation op) =>
-    op.rejection != OutboxRejection.validatedByJudge;
+/// Réessayer une saisie que le juge a validée, ou visant un nageur qui n'est
+/// plus dans le couloir, retomberait sur le même refus : on ne peut que
+/// l'écarter.
+bool canRetryRejection(OutboxOperation op) => switch (op.rejection) {
+  OutboxRejection.validatedByJudge || OutboxRejection.placeChanged => false,
+  _ => true,
+};
 
 enum EntryLaneAction {
   disqualify,

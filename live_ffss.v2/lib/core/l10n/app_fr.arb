@@ -187,6 +187,7 @@
   "entryRejectedValidated": "validé par le juge des résultats",
   "entryRejectedUnreadable": "résultat illisible sur le site",
   "entryRejectedEmptyPlace": "plus personne dans ce couloir",
+  "entryRejectedPlaceChanged": "série recomposée : ce couloir a changé de nageur",
   "entryRejectedServer": "refus du site",
   "entryDismiss": "Ignorer",
   "entryValidatedByJudge": "Validé par le juge des résultats",

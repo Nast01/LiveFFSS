@@ -496,6 +496,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryRejectedEmptyPlace => 'nobody in this lane any more';
 
   @override
+  String get entryRejectedPlaceChanged =>
+      'heat rearranged: this lane has a different swimmer';
+
+  @override
   String get entryRejectedServer => 'rejected by the website';
 
   @override

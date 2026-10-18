@@ -384,5 +384,7 @@ void main() {
     );
     expect(canRetryRejection(rejected(OutboxRejection.server)), isTrue);
     expect(canRetryRejection(rejected(OutboxRejection.emptyPlace)), isTrue);
+    // Le bureau a recomposé la série : la saisie visait un autre nageur.
+    expect(canRetryRejection(rejected(OutboxRejection.placeChanged)), isFalse);
   });
 }

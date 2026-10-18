@@ -173,6 +173,7 @@
   "entryRejectedValidated": "validated by the results judge",
   "entryRejectedUnreadable": "result unreadable on the website",
   "entryRejectedEmptyPlace": "nobody in this lane any more",
+  "entryRejectedPlaceChanged": "heat rearranged: this lane has a different swimmer",
   "entryRejectedServer": "rejected by the website",
   "entryDismiss": "Dismiss",
   "entryValidatedByJudge": "Validated by the results judge",

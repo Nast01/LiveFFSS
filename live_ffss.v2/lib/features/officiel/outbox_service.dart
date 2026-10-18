@@ -301,6 +301,16 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
         );
       }
 
+      // Le bureau a recomposé la série : écrire ici mettrait les chronos d'un
+      // nageur sur un autre. Rien à réessayer, la saisie ne vaut plus.
+      if (lane.entryId != null && lane.entryId != op.entryId) {
+        return _settle(
+          op,
+          OutboxState.rejected,
+          rejection: OutboxRejection.placeChanged,
+        );
+      }
+
       final resultId = lane.resultId ?? op.resultId;
       RaceResult current;
       if (resultId == null) {
@@ -312,6 +322,13 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
         final read = await results.getResult(resultId);
         if (lost()) return _Outcome.stop;
         if (read == null) return _fault(op, OutboxRejection.unreadableResult);
+        if (read.entryId != op.entryId) {
+          return _settle(
+            op,
+            OutboxState.rejected,
+            rejection: OutboxRejection.placeChanged,
+          );
+        }
         if (isValidatedByJudge(read)) {
           return _settle(
             op,

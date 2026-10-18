@@ -54,6 +54,7 @@ void main() {
   late _MockResultRepository results;
   late InMemoryLocalStore local;
   late Map<int, int?> serverResultIds;
+  late Map<int, int> serverEntryIds;
   late DateTime now;
 
   setUpAll(() {
@@ -66,12 +67,19 @@ void main() {
     results = _MockResultRepository();
     local = InMemoryLocalStore();
     serverResultIds = {};
+    serverEntryIds = {};
     now = DateTime(2026, 10, 18, 10);
-    // La place dit si un résultat existe déjà sur le serveur.
+    // La place dit si un résultat existe déjà sur le serveur, et pour quel
+    // engagement (7 sauf mention contraire).
     when(() => meetings.getLanes(any())).thenAnswer((invocation) async {
       final ids = invocation.positionalArguments.single as Iterable<int>;
       return {
-        for (final id in ids) id: _lane(id, resultId: serverResultIds[id]),
+        for (final id in ids)
+          id: _lane(
+            id,
+            resultId: serverResultIds[id],
+            entryId: serverEntryIds[id] ?? 7,
+          ),
       };
     });
   });
@@ -198,6 +206,71 @@ void main() {
       expect(op.state, OutboxState.rejected);
       expect(op.rejection, OutboxRejection.validatedByJudge);
       expect(stored().single.state, OutboxState.rejected);
+      c.dispose();
+    });
+  });
+
+  test('place recomposée par le bureau (un autre engagement) : refusée '
+      'aussitôt, sans écriture', () {
+    fakeAsync((async) {
+      when(
+        () => meetings.getLanes(any()),
+      ).thenAnswer((_) async => {11: _lane(11, resultId: 42, entryId: 8)});
+      final c = container();
+      async.flushMicrotasks();
+
+      unawaited(add(c));
+      async.flushMicrotasks();
+
+      verifyNever(() => results.getResult(any()));
+      verifyNever(() => results.submit(any()));
+      final op = c.read(outboxProvider).single;
+      expect(op.state, OutboxState.rejected);
+      expect(op.rejection, OutboxRejection.placeChanged);
+      expect(op.faults, 0);
+      c.dispose();
+    });
+  });
+
+  test("résultat relu d'un autre engagement : refusé aussitôt, sans "
+      'écriture', () {
+    fakeAsync((async) {
+      when(
+        () => meetings.getLanes(any()),
+      ).thenAnswer((_) async => {11: _lane(11, resultId: 42)});
+      when(() => results.getResult(42)).thenAnswer(
+        (_) async => const RaceResult(id: 42, seriesId: 5, entryId: 8),
+      );
+      final c = container();
+      async.flushMicrotasks();
+
+      unawaited(add(c));
+      async.flushMicrotasks();
+
+      verifyNever(() => results.submit(any()));
+      final op = c.read(outboxProvider).single;
+      expect(op.state, OutboxState.rejected);
+      expect(op.rejection, OutboxRejection.placeChanged);
+      expect(op.faults, 0);
+      c.dispose();
+    });
+  });
+
+  test("une place sans engagement connu ne bloque pas l'envoi", () {
+    fakeAsync((async) {
+      when(() => meetings.getLanes(any())).thenAnswer(
+        (_) async => {
+          11: const LaneAssignment(id: 11, lane: 1, athletes: ['Alice']),
+        },
+      );
+      when(() => results.submit(any())).thenAnswer((_) async => 99);
+      final c = container();
+      async.flushMicrotasks();
+
+      unawaited(add(c));
+      async.flushMicrotasks();
+
+      expect(c.read(outboxProvider).single.state, OutboxState.sent);
       c.dispose();
     });
   });
@@ -522,6 +595,7 @@ void main() {
           change: ResultChange(chronos: [1]),
         ),
       ]);
+      serverEntryIds[12] = 8;
       when(() => results.submit(any())).thenAnswer((_) async => 99);
       final c = container();
       async.flushMicrotasks();

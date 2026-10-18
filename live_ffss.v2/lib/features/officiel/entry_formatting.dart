@@ -20,6 +20,7 @@ String rejectionReason(OutboxOperation op, AppLocalizations l10n) {
     OutboxRejection.validatedByJudge => l10n.entryRejectedValidated,
     OutboxRejection.unreadableResult => l10n.entryRejectedUnreadable,
     OutboxRejection.emptyPlace => l10n.entryRejectedEmptyPlace,
+    OutboxRejection.placeChanged => l10n.entryRejectedPlaceChanged,
     OutboxRejection.server || null =>
       reason == null || reason.isEmpty ? l10n.entryRejectedServer : reason,
   };

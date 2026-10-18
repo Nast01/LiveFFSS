@@ -496,6 +496,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get entryRejectedEmptyPlace => 'plus personne dans ce couloir';
 
   @override
+  String get entryRejectedPlaceChanged =>
+      'série recomposée : ce couloir a changé de nageur';
+
+  @override
   String get entryRejectedServer => 'refus du site';
 
   @override
