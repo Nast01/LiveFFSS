@@ -393,6 +393,14 @@ void main() {
       // Le total reste celui des séries rattachées.
       expect(ranking.totalSeries, 4);
     });
+
+    test('nbCourses au-delà de 2 : deux finales au plus, comme V3', () {
+      final ranking = rankEvent(_event, [
+        ..._sixteenHeats(),
+        ...finals([EventRound.finalA, EventRound.finalB]),
+      ], finalStage: _finals(3));
+      expect(ranking.provisional, isFalse);
+    });
   });
 
   group('heatPlace', () {

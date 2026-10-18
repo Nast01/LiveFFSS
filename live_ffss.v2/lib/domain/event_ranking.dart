@@ -68,7 +68,9 @@ EventRanking rankEvent(
     for (final one in series)
       if (one.round != EventRound.heats) one.round,
   }.length;
-  final finalsCount = max(finalStage?.heatCount ?? 0, linkedFinals);
+  // Au plus une finale A et une B, comme V3 (`Math.Clamp(HeatCount, 1, 2)`) :
+  // un `nbCourses` plus grand ne crée pas de finale C.
+  final finalsCount = min(max(finalStage?.heatCount ?? 0, linkedFinals), 2);
 
   final heats = _lines(series, EventRound.heats);
   final finalA = _lines(series, EventRound.finalA);
