@@ -11,6 +11,8 @@
    "nationaliteCode": "FRA",
    "idClub": 249,
    "clubLabel": "Biarritz sauvetage côtier",
+   "idLicencie": 496252,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "20": "Master 40",
@@ -70,6 +72,8 @@
    "nationaliteCode": "FRA",
    "idClub": 16,
    "clubLabel": "ALASCA VO Aquatique",
+   "idLicencie": 545729,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "9": "Senior",
@@ -313,6 +317,8 @@
    "nationaliteCode": "FRA",
    "idClub": 16,
    "clubLabel": "ALASCA VO Aquatique",
+   "idLicencie": 470054,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "14": "Junior",
@@ -493,6 +499,8 @@
    "nationaliteCode": "FRA",
    "idClub": 16,
    "clubLabel": "ALASCA VO Aquatique",
+   "idLicencie": 704300,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "34": "U23",
@@ -705,6 +713,8 @@
    "nationaliteCode": "FRA",
    "idClub": 574,
    "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+   "idLicencie": 252409,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "9": "Senior",
@@ -980,6 +990,8 @@
    "nationaliteCode": "FRA",
    "idClub": 574,
    "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+   "idLicencie": 522625,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "34": "U23",
@@ -1256,6 +1268,8 @@
    "nationaliteCode": "FRA",
    "idClub": 574,
    "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+   "idLicencie": 497169,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "14": "Junior",
@@ -1691,6 +1705,8 @@
    "nationaliteCode": "FRA",
    "idClub": 574,
    "clubLabel": "RENNES SAUVETAGE SPORTIF ET SECOURISME",
+   "idLicencie": 700568,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "14": "Junior",
@@ -1999,6 +2015,8 @@
    "nationaliteCode": "FRA",
    "idClub": 27,
    "clubLabel": "Aqualove Sauvetage",
+   "idLicencie": 182222,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "9": "Senior",
@@ -2306,6 +2324,8 @@
    "nationaliteCode": "FRA",
    "idClub": 27,
    "clubLabel": "Aqualove Sauvetage",
+   "idLicencie": 357923,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "34": "U23",
@@ -2614,6 +2634,8 @@
    "nationaliteCode": "FRA",
    "idClub": 27,
    "clubLabel": "Aqualove Sauvetage",
+   "idLicencie": 390468,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "9": "Senior",
@@ -2857,6 +2879,8 @@
    "nationaliteCode": "FRA",
    "idClub": 492,
    "clubLabel": "Aqua Grimpe Millau Grands Causses",
+   "idLicencie": 576263,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "13": "Cadet",
@@ -3068,6 +3092,8 @@
    "nationaliteCode": "FRA",
    "idClub": 27,
    "clubLabel": "Aqualove Sauvetage",
+   "idLicencie": 586555,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "9": "Senior",
@@ -3279,6 +3305,8 @@
    "nationaliteCode": "FRA",
    "idClub": 27,
    "clubLabel": "Aqualove Sauvetage",
+   "idLicencie": 383640,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "34": "U23",
@@ -3523,6 +3551,8 @@
    "nationaliteCode": "FRA",
    "idClub": 27,
    "clubLabel": "Aqualove Sauvetage",
+   "idLicencie": 476787,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "13": "Cadet",
@@ -3894,6 +3924,8 @@
    "nationaliteCode": "FRA",
    "idClub": 22,
    "clubLabel": "Biscarrosse Olympique Sauvetage et Secourisme",
+   "idLicencie": 455775,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "13": "Cadet",
@@ -3945,6 +3977,8 @@
    "nationaliteCode": "FRA",
    "idClub": 498,
    "clubLabel": "ASSOCIATION DES SAUVETEURS SECOURISTES DE LA SEINE",
+   "idLicencie": 519146,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "9": "Senior",
@@ -4060,6 +4094,8 @@
    "nationaliteCode": "ESP",
    "idClub": 349,
    "clubLabel": "SEIGNOSSE SAUVETAGE COTIER",
+   "idLicencie": 719259,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "34": "U23",
@@ -4144,6 +4180,8 @@
    "nationaliteCode": "FRA",
    "idClub": 60,
    "clubLabel": "Avenir Nautique Villeneuvois",
+   "idLicencie": 595071,
+   "idInvite": null,
    "isValid": false,
    "categories": {
     "13": "Cadet",

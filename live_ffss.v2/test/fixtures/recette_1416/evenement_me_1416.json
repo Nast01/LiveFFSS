@@ -1,0 +1,30 @@
+{
+ "success": true,
+ "data": {
+  "roles": [
+   "public",
+   "licencie",
+   "officiel",
+   "referent_sportif"
+  ],
+  "licencie": {
+   "id": 1326,
+   "nom": "ATHLETE",
+   "prenom": "COMPTE"
+  },
+  "officiel": {
+   "id": 20578,
+   "niveau": "B",
+   "niveauLabel": "B - Juge de virage/obstacles",
+   "principal": false
+  },
+  "referent_sportif": [
+   {
+    "id": 15,
+    "label": "Les Dauphins du Frontonnais et de l'Union",
+    "sigle": "DFU 31",
+    "nom": "Les Dauphins du Frontonnais et de l'Union"
+   }
+  ]
+ }
+}
