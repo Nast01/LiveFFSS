@@ -33,14 +33,17 @@ typedef EntryHeatKey = ({int competitionId, int heatId});
 enum EntryAccess { checking, allowed, denied }
 
 /// La saisie ne s'ouvre qu'aux rôles qui le permettent, établis pour la
-/// session en cours ; pendant leur lecture, l'écran attend.
+/// session en cours ; pendant leur première lecture, l'écran attend.
 final entryAccessProvider = Provider.autoDispose.family<EntryAccess, int>((
   ref,
   competitionId,
 ) {
   final roles = ref.watch(competitionRolesProvider(competitionId));
-  if (roles.isLoading) return EntryAccess.checking;
-  return ref.watch(canEnterProvider(competitionId))
+  // Une relecture garde le dernier droit établi : passer par l'attente
+  // fermerait l'écran, et les chiffres tapés avec lui.
+  if (roles.isLoading && !roles.hasValue) return EntryAccess.checking;
+  if (roles.hasError) return EntryAccess.denied;
+  return canEnterResults(roles.value ?? const [])
       ? EntryAccess.allowed
       : EntryAccess.denied;
 });
@@ -66,7 +69,12 @@ class EntryLaneFilterNotifier extends AsyncNotifier<int?> {
     state = AsyncData(lane);
     final store = ref.read(localStoreProvider);
     final key = storageKey(competitionId);
-    await (lane == null ? store.delete(key) : store.write(key, '$lane'));
+    try {
+      await (lane == null ? store.delete(key) : store.write(key, '$lane'));
+    } on AppException {
+      // Le choix vaut pour cette fois ; il sera seulement oublié au
+      // prochain lancement.
+    }
   }
 }
 
@@ -284,8 +292,11 @@ enum EntrySaveOutcome {
   /// mémoire, et l'écran doit le dire.
   notPersisted,
 
-  /// Un chrono invalide, ou une DQ sans code : rien ne part.
+  /// Un chrono invalide : rien ne part.
   invalid,
+
+  /// Une DQ sans code : rien ne part.
+  missingCode,
 
   /// Personne n'est connecté : rien ne part.
   notConnected,
@@ -302,7 +313,9 @@ bool _letsMoveOn(EntrySaveOutcome outcome) => switch (outcome) {
   EntrySaveOutcome.unchanged ||
   EntrySaveOutcome.notPersisted ||
   EntrySaveOutcome.readOnly => true,
-  EntrySaveOutcome.invalid || EntrySaveOutcome.notConnected => false,
+  EntrySaveOutcome.invalid ||
+  EntrySaveOutcome.missingCode ||
+  EntrySaveOutcome.notConnected => false,
 };
 
 class EntryEditor extends Notifier<EntryEditorState> {
@@ -386,7 +399,7 @@ class EntryEditor extends Notifier<EntryEditorState> {
   /// [code] est libre (aucune liste n'est publiée), mais pas vide.
   Future<EntrySaveOutcome> disqualify(EntryLane lane, String code) {
     final trimmed = code.trim();
-    if (trimmed.isEmpty) return Future.value(EntrySaveOutcome.invalid);
+    if (trimmed.isEmpty) return Future.value(EntrySaveOutcome.missingCode);
     return _mark(
       lane,
       ResultChange(mark: ResultMark.disqualified, code: trimmed),
@@ -443,7 +456,12 @@ class EntryEditor extends Notifier<EntryEditorState> {
 
   void _dropDraft(int placeId, List<String>? draft) {
     if (draft == null || !identical(state.drafts[placeId], draft)) return;
-    state = state.copyWith(drafts: {...state.drafts}..remove(placeId));
+    // Le champ montre de nouveau une valeur enregistrée : le chiffre suivant
+    // la remplace, comme après le choix d'un champ.
+    state = state.copyWith(
+      drafts: {...state.drafts}..remove(placeId),
+      replaceNext: true,
+    );
   }
 }
 

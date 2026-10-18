@@ -163,6 +163,7 @@
   "entryNoChrono": "Aucun chrono saisi",
   "entryInvalidChrono": "Secondes au plus 59",
   "entryDisqualify": "DQ…",
+  "entryDisqualifyCodeRequired": "Saisissez le code de DQ",
   "entryDisqualifyCode": "Code de DQ",
   "entryCancelDisqualification": "Annuler la DQ",
   "entryForfeitConfirm": "Déclarer forfait : {name} ?",

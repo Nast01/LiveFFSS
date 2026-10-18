@@ -54,10 +54,11 @@ class SendStateLine extends StatelessWidget {
           Wrap(
             spacing: 8,
             children: [
-              TextButton(
-                onPressed: () => onRetry(rejected.id),
-                child: Text(l10n.retry),
-              ),
+              if (canRetryRejection(rejected))
+                TextButton(
+                  onPressed: () => onRetry(rejected.id),
+                  child: Text(l10n.retry),
+                ),
               TextButton(
                 onPressed: () => onDismiss(rejected.id),
                 child: Text(l10n.entryDismiss),

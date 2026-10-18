@@ -27,6 +27,13 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../support/in_memory_local_store.dart';
 
+/// Un stockage qui refuse d'écrire.
+class _FailingStore extends InMemoryLocalStore {
+  @override
+  Future<void> write(String key, String value) async =>
+      throw const UnknownException('stockage');
+}
+
 class _MockMeetingRepository extends Mock implements MeetingRepository {}
 
 class _MockResultRepository extends Mock implements ResultRepository {}
@@ -208,6 +215,29 @@ void main() {
       expect(c.read(entryAccessProvider(_competition)), EntryAccess.allowed);
     });
 
+    test('une relecture des rôles garde la saisie ouverte', () async {
+      var reads = 0;
+      final second = Completer<List<String>>();
+      final c = container(
+        overrides: [
+          competitionRolesProvider.overrideWith(
+            (ref, id) =>
+                ++reads == 1 ? Future.value(['officiel']) : second.future,
+          ),
+        ],
+      );
+      c.listen(entryAccessProvider(_competition), (_, _) {});
+      await c.read(competitionRolesProvider(_competition).future);
+      expect(c.read(entryAccessProvider(_competition)), EntryAccess.allowed);
+
+      c.invalidate(competitionRolesProvider(_competition));
+      expect(c.read(entryAccessProvider(_competition)), EntryAccess.allowed);
+
+      second.complete(['public']);
+      await c.read(competitionRolesProvider(_competition).future);
+      expect(c.read(entryAccessProvider(_competition)), EntryAccess.denied);
+    });
+
     test('un licencié n\'y entre pas', () async {
       final c = container(
         overrides: [
@@ -265,6 +295,19 @@ void main() {
         );
       },
     );
+  });
+
+  group('filtre de couloir, stockage en échec', () {
+    test('le choix vaut quand même, sans erreur', () async {
+      local = _FailingStore();
+      final c = container();
+      c.listen(entryLaneFilterProvider(_competition), (_, _) {});
+      await c.read(entryLaneFilterProvider(_competition).future);
+
+      await c.read(entryLaneFilterProvider(_competition).notifier).select(3);
+
+      expect(c.read(entryLaneFilterProvider(_competition)).value, 3);
+    });
   });
 
   group('navigation', () {
@@ -447,6 +490,30 @@ void main() {
       expect(shown.sendState, EntrySendState.pending);
     });
 
+    test('après un enregistrement sans changer de série, le chiffre suivant '
+        'remplace', () async {
+      const lastKey = (competitionId: _competition, itemId: 7, heatId: 3);
+      const lastHeat = (competitionId: _competition, heatId: 3);
+      final c = container();
+      c.listen(entryLanesProvider(lastHeat), (_, _) {});
+      c.listen(entryEditorProvider(lastKey), (_, _) {});
+      c.listen(entryNavigatorProvider(lastKey), (_, _) {});
+      await c.read(entryHeatProvider(lastHeat).future);
+      var lane = c.read(entryLanesProvider(lastHeat)).value!.single;
+      final editor = c.read(entryEditorProvider(lastKey).notifier)
+        ..typeDigit(lane, '5')
+        ..typeDigit(lane, '0');
+
+      expect(await editor.saveAndNext(lane), (
+        outcome: EntrySaveOutcome.saved,
+        moved: false,
+      ));
+      lane = c.read(entryLanesProvider(lastHeat)).value!.single;
+      editor.typeDigit(lane, '7');
+
+      expect(c.read(entryEditorProvider(lastKey)).drafts[31], ['7', '', '']);
+    });
+
     test('rien de changé : rien en file, mais on passe', () async {
       final c = container();
       final lane = (await lanesOf(c)).first;
@@ -550,7 +617,7 @@ void main() {
       final lane = (await lanesOf(c)).first;
       final editor = c.read(entryEditorProvider(key).notifier);
 
-      expect(await editor.disqualify(lane, '  '), EntrySaveOutcome.invalid);
+      expect(await editor.disqualify(lane, '  '), EntrySaveOutcome.missingCode);
       expect(await editor.disqualify(lane, ' 12 '), EntrySaveOutcome.saved);
       expect(await editor.forfeit(lane), EntrySaveOutcome.saved);
       expect(await editor.cancelMark(lane), EntrySaveOutcome.saved);

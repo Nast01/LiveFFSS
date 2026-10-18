@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
+import 'package:live_ffss_v2/data/ffss/mappers/resultat_mapper.dart';
 import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:mocktail/mocktail.dart';
@@ -307,7 +308,8 @@ void main() {
               'complement': 12,
               'engagement': {'Id': 11},
             },
-            // Un temps illisible n'écarte pas la ligne : il est laissé vide.
+            // Un temps illisible est quand même un temps du juge : la ligne
+            // reste, en lecture seule.
             {
               'Id': 2,
               'Temps': 'abc',
@@ -320,6 +322,12 @@ void main() {
               'Id': 4,
               'TempsLive1': {},
               'engagement': {'Id': 14},
+            },
+            // Un temps vide n'est pas un temps.
+            {
+              'Id': 5,
+              'Temps': ' ',
+              'engagement': {'Id': 15},
             },
           ],
         },
@@ -339,7 +347,15 @@ void main() {
         status: 1,
         complement: '12',
       ),
-      12: const RaceResult(id: 2, seriesId: 7, entryId: 12),
+      12: const RaceResult(
+        id: 2,
+        seriesId: 7,
+        entryId: 12,
+        time: unreadableJudgeTime,
+      ),
+      15: const RaceResult(id: 5, seriesId: 94894, entryId: 15),
     });
+    expect(isValidatedByJudge(results[12]!), isTrue);
+    expect(isValidatedByJudge(results[15]!), isFalse);
   });
 }

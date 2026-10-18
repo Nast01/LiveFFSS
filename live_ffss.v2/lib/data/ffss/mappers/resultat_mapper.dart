@@ -1,6 +1,11 @@
 import 'package:live_ffss_v2/data/ffss/dtos/resultat_dto.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
 
+/// Le `Temps` d'une ligne de série présent mais illisible : un temps du juge
+/// quand même, que l'écran de saisie ne doit pas laisser modifier. Ce
+/// résultat n'est jamais renvoyé au site (l'envoi relit le résultat).
+const int unreadableJudgeTime = 1;
+
 /// FFSS stocke un chrono vidé comme 0 : lu comme « pas de chrono ».
 int? chronoOrNull(int? value) => value != null && value > 0 ? value : null;
 
@@ -64,8 +69,10 @@ extension ResultatMapper on ResultatDto {
   /// Le résultat tel que l'écran de saisie le montre, une ligne de
   /// `serie/:id` : nul sans engagement. Plus tolérant que [toDomain], car il
   /// ne repart pas au site (l'envoi relit le résultat) : un statut absent
-  /// vaut OK, un champ du juge illisible est laissé vide, et la série est
-  /// celle qu'on a demandée quand la ligne ne la porte pas.
+  /// vaut OK, un rang ou des points illisibles sont laissés vides, et la
+  /// série est celle qu'on a demandée quand la ligne ne la porte pas. Un
+  /// `Temps` illisible vaut [unreadableJudgeTime] : le juge a posé quelque
+  /// chose, la saisie passe en lecture seule.
   RaceResult? toHeatResult(int seriesId) {
     final entryId = entry?.id;
     if (entryId == null) return null;
@@ -77,7 +84,7 @@ extension ResultatMapper on ResultatDto {
       id: id,
       seriesId: series?.id ?? seriesId,
       entryId: entryId,
-      time: lenient(time),
+      time: _heatTime(time),
       chronos: chronos,
       rank: lenient(rank),
       status: status ?? 0,
@@ -85,4 +92,11 @@ extension ResultatMapper on ResultatDto {
       points: lenient(points),
     );
   }
+}
+
+/// Un temps vide n'est pas un temps ; un temps illisible en est un.
+int? _heatTime(Object? raw) {
+  if (raw is String && raw.trim().isEmpty) return null;
+  final value = _strictInt(raw);
+  return identical(value, _invalid) ? unreadableJudgeTime : value as int?;
 }

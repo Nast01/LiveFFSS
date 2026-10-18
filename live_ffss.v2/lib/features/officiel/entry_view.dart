@@ -53,14 +53,17 @@ List<int?>? draftChronos(List<String> digits) {
 }
 
 /// Les champs d'un couloir : ce que l'officiel a tapé sans l'enregistrer
-/// ([draft]), sinon ses chronos actuels.
+/// ([draft]), sinon ses chronos actuels. Un couloir en lecture seule montre
+/// le site tel quel : des chiffres tapés avant la validation ne partiront
+/// jamais.
 List<String> laneDigits(EntryLane lane, List<String>? draft) =>
-    draft ?? [for (final c in lane.result.chronos) chronoDigitsOf(c)];
+    (lane.editable ? draft : null) ??
+    [for (final c in lane.result.chronos) chronoDigitsOf(c)];
 
 /// Vrai quand [draft] change les chronos du couloir : un invalide compte,
 /// il n'est pas enregistré.
 bool hasUnsavedDraft(EntryLane lane, List<String>? draft) {
-  if (draft == null) return false;
+  if (draft == null || !lane.editable) return false;
   final chronos = draftChronos(draft);
   return chronos == null || !_sameChronos(chronos, lane.result.chronos);
 }
@@ -126,7 +129,8 @@ EntryLane _entryLane(
 ) {
   final validated = isValidatedByJudge(server);
   var result = server;
-  for (final op in ops) {
+  // Validé : le site tel quel. Une saisie en file y sera refusée.
+  for (final op in validated ? const <OutboxOperation>[] : ops) {
     // Une opération envoyée avant la lecture y est déjà ; après, le site
     // lu est en retard sur elle.
     final sentAt = op.sentAt;
@@ -181,6 +185,11 @@ extension<T> on List<T> {
     return null;
   }
 }
+
+/// Réessayer une saisie que le juge a validée retomberait sur le même refus :
+/// on ne peut que l'écarter.
+bool canRetryRejection(OutboxOperation op) =>
+    op.rejection != OutboxRejection.validatedByJudge;
 
 enum EntryLaneAction {
   disqualify,

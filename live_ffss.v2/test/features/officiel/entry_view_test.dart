@@ -174,6 +174,24 @@ void main() {
       expect(laneActions(lane), isEmpty);
     });
 
+    test('validé : les valeurs du site telles quelles, sans saisie par-dessus '
+        'ni chiffres tapés', () {
+      final lane = lanes(
+        results: {
+          111: const RaceResult(
+            seriesId: 5,
+            entryId: 111,
+            time: 4500,
+            chronos: [4400, null, null],
+          ),
+        },
+        queue: [_op('a')],
+      ).single;
+      expect(lane.result.chronos, [4400, null, null]);
+      expect(laneDigits(lane, ['1', '', '']), ['4400', '', '']);
+      expect(hasUnsavedDraft(lane, ['1', '', '']), isFalse);
+    });
+
     test('sans engagement, rien ne peut partir', () {
       final lane = lanes(
         places: [
@@ -347,5 +365,16 @@ void main() {
       expect(laneFilterOptions([first, third], null), [1, 2, 3]);
       expect(laneFilterOptions([first], 4), [1, 2, 3, 4]);
     });
+  });
+
+  test('un refus « validé par le juge » ne se réessaie pas', () {
+    OutboxOperation rejected(OutboxRejection rejection) =>
+        _op('a', state: OutboxState.rejected).copyWith(rejection: rejection);
+    expect(
+      canRetryRejection(rejected(OutboxRejection.validatedByJudge)),
+      isFalse,
+    );
+    expect(canRetryRejection(rejected(OutboxRejection.server)), isTrue);
+    expect(canRetryRejection(rejected(OutboxRejection.emptyPlace)), isTrue);
   });
 }

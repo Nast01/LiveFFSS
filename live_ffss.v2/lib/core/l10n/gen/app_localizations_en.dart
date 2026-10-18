@@ -427,6 +427,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryDisqualify => 'DQ…';
 
   @override
+  String get entryDisqualifyCodeRequired => 'Enter the DQ code';
+
+  @override
   String get entryDisqualifyCode => 'DQ code';
 
   @override

@@ -776,6 +776,12 @@ abstract class AppLocalizations {
   /// **'DQ…'**
   String get entryDisqualify;
 
+  /// No description provided for @entryDisqualifyCodeRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez le code de DQ'**
+  String get entryDisqualifyCodeRequired;
+
   /// No description provided for @entryDisqualifyCode.
   ///
   /// In fr, this message translates to:

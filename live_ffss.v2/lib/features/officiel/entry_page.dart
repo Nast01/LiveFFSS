@@ -448,6 +448,7 @@ class _HeatEntry extends ConsumerWidget {
 String? _outcomeMessage(EntrySaveOutcome outcome, AppLocalizations l10n) =>
     switch (outcome) {
       EntrySaveOutcome.invalid => l10n.entryInvalidChrono,
+      EntrySaveOutcome.missingCode => l10n.entryDisqualifyCodeRequired,
       EntrySaveOutcome.notConnected => l10n.entryNotConnected,
       EntrySaveOutcome.notPersisted => l10n.entryNotPersisted,
       // Le couloir le dit déjà ; il n'y avait rien à enregistrer.
@@ -602,7 +603,10 @@ class _DisqualifyDialogState extends State<_DisqualifyDialog> {
         controller: _code,
         autofocus: true,
         decoration: InputDecoration(labelText: l10n.entryDisqualifyCode),
-        onSubmitted: (value) => Navigator.of(context).pop(value),
+        // Entrée sur un champ vide ne vaut pas une DQ sans code.
+        onSubmitted: (value) {
+          if (value.trim().isNotEmpty) Navigator.of(context).pop(value);
+        },
       ),
       actions: [
         TextButton(
