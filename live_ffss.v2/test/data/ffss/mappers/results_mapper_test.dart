@@ -138,6 +138,21 @@ void main() {
       expect(first.gender, Gender.male);
       expect(first.isGuest, isFalse);
     });
+
+    test('relie le participant à son licencié et à son club', () {
+      expect(participants.first.licenseeId, 496252);
+      expect(participants.first.clubId, 249);
+    });
+
+    test('licencié et club absents ou mal typés : nuls', () {
+      final participant = ParticipantDto.fromJson({
+        'Id': 1,
+        'idLicencie': null,
+        'idClub': 'x',
+      }).toDomain();
+      expect(participant?.licenseeId, isNull);
+      expect(participant?.clubId, isNull);
+    });
   });
 
   group('lignes illisibles et cas limites', () {

@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ParticipantDto {
 
-@JsonKey(name: 'Id', readValue: readInt) int? get id;@JsonKey(name: 'Prenom') String? get firstName;@JsonKey(name: 'Nom') String? get lastName;@JsonKey(name: 'Sexe') String? get gender;@JsonKey(name: 'clubLabel') String? get club;@JsonKey(name: 'isInvite') bool? get isGuest;@JsonKey(name: 'engagements') List<Object?> get entries;
+@JsonKey(name: 'Id', readValue: readInt) int? get id;@JsonKey(name: 'Prenom') String? get firstName;@JsonKey(name: 'Nom') String? get lastName;@JsonKey(name: 'Sexe') String? get gender;@JsonKey(name: 'clubLabel') String? get club;@JsonKey(name: 'idClub', readValue: readInt) int? get clubId;@JsonKey(name: 'idLicencie', readValue: readInt) int? get licenseeId;@JsonKey(name: 'isInvite') bool? get isGuest;@JsonKey(name: 'engagements') List<Object?> get entries;
 /// Create a copy of ParticipantDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $ParticipantDtoCopyWith<ParticipantDto> get copyWith => _$ParticipantDtoCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as ParticipantDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ParticipantDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.firstName, _this.firstName) || other.firstName == _this.firstName)&&(identical(other.lastName, _this.lastName) || other.lastName == _this.lastName)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.club, _this.club) || other.club == _this.club)&&(identical(other.isGuest, _this.isGuest) || other.isGuest == _this.isGuest)&&const DeepCollectionEquality().equals(other.entries, _this.entries));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ParticipantDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.firstName, _this.firstName) || other.firstName == _this.firstName)&&(identical(other.lastName, _this.lastName) || other.lastName == _this.lastName)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.club, _this.club) || other.club == _this.club)&&(identical(other.clubId, _this.clubId) || other.clubId == _this.clubId)&&(identical(other.licenseeId, _this.licenseeId) || other.licenseeId == _this.licenseeId)&&(identical(other.isGuest, _this.isGuest) || other.isGuest == _this.isGuest)&&const DeepCollectionEquality().equals(other.entries, _this.entries));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ParticipantDto;
-  return Object.hash(runtimeType,_this.id,_this.firstName,_this.lastName,_this.gender,_this.club,_this.isGuest,const DeepCollectionEquality().hash(_this.entries));
+  return Object.hash(runtimeType,_this.id,_this.firstName,_this.lastName,_this.gender,_this.club,_this.clubId,_this.licenseeId,_this.isGuest,const DeepCollectionEquality().hash(_this.entries));
 }
 
 @override
 String toString() {
   final _this = this as ParticipantDto;
-  return 'ParticipantDto(id: ${_this.id}, firstName: ${_this.firstName}, lastName: ${_this.lastName}, gender: ${_this.gender}, club: ${_this.club}, isGuest: ${_this.isGuest}, entries: ${_this.entries})';
+  return 'ParticipantDto(id: ${_this.id}, firstName: ${_this.firstName}, lastName: ${_this.lastName}, gender: ${_this.gender}, club: ${_this.club}, clubId: ${_this.clubId}, licenseeId: ${_this.licenseeId}, isGuest: ${_this.isGuest}, entries: ${_this.entries})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $ParticipantDtoCopyWith<$Res>  {
   factory $ParticipantDtoCopyWith(ParticipantDto value, $Res Function(ParticipantDto) _then) = _$ParticipantDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Prenom') String? firstName,@JsonKey(name: 'Nom') String? lastName,@JsonKey(name: 'Sexe') String? gender,@JsonKey(name: 'clubLabel') String? club,@JsonKey(name: 'isInvite') bool? isGuest,@JsonKey(name: 'engagements') List<Object?> entries
+@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Prenom') String? firstName,@JsonKey(name: 'Nom') String? lastName,@JsonKey(name: 'Sexe') String? gender,@JsonKey(name: 'clubLabel') String? club,@JsonKey(name: 'idClub', readValue: readInt) int? clubId,@JsonKey(name: 'idLicencie', readValue: readInt) int? licenseeId,@JsonKey(name: 'isInvite') bool? isGuest,@JsonKey(name: 'engagements') List<Object?> entries
 });
 
 
@@ -71,14 +71,16 @@ class _$ParticipantDtoCopyWithImpl<$Res>
 
 /// Create a copy of ParticipantDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? gender = freezed,Object? club = freezed,Object? isGuest = freezed,Object? entries = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? gender = freezed,Object? club = freezed,Object? clubId = freezed,Object? licenseeId = freezed,Object? isGuest = freezed,Object? entries = null,}) {
   return _then(ParticipantDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String?,club: freezed == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
-as String?,isGuest: freezed == isGuest ? _self.isGuest : isGuest // ignore: cast_nullable_to_non_nullable
+as String?,clubId: freezed == clubId ? _self.clubId : clubId // ignore: cast_nullable_to_non_nullable
+as int?,licenseeId: freezed == licenseeId ? _self.licenseeId : licenseeId // ignore: cast_nullable_to_non_nullable
+as int?,isGuest: freezed == isGuest ? _self.isGuest : isGuest // ignore: cast_nullable_to_non_nullable
 as bool?,entries: null == entries ? _self.entries : entries // ignore: cast_nullable_to_non_nullable
 as List<Object?>,
   ));
@@ -165,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<Object?> entries)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'idClub', readValue: readInt)  int? clubId, @JsonKey(name: 'idLicencie', readValue: readInt)  int? licenseeId, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<Object?> entries)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ParticipantDto() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.isGuest,_that.entries);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.clubId,_that.licenseeId,_that.isGuest,_that.entries);case _:
   return orElse();
 
 }
@@ -186,10 +188,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<Object?> entries)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'idClub', readValue: readInt)  int? clubId, @JsonKey(name: 'idLicencie', readValue: readInt)  int? licenseeId, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<Object?> entries)  $default,) {final _that = this;
 switch (_that) {
 case _ParticipantDto():
-return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.isGuest,_that.entries);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.clubId,_that.licenseeId,_that.isGuest,_that.entries);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +208,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<Object?> entries)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'idClub', readValue: readInt)  int? clubId, @JsonKey(name: 'idLicencie', readValue: readInt)  int? licenseeId, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<Object?> entries)?  $default,) {final _that = this;
 switch (_that) {
 case _ParticipantDto() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.isGuest,_that.entries);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.clubId,_that.licenseeId,_that.isGuest,_that.entries);case _:
   return null;
 
 }
@@ -221,7 +223,7 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,
 @JsonSerializable()
 
 class _ParticipantDto implements ParticipantDto {
-  const _ParticipantDto({@JsonKey(name: 'Id', readValue: readInt) this.id, @JsonKey(name: 'Prenom') this.firstName, @JsonKey(name: 'Nom') this.lastName, @JsonKey(name: 'Sexe') this.gender, @JsonKey(name: 'clubLabel') this.club, @JsonKey(name: 'isInvite') this.isGuest, @JsonKey(name: 'engagements')  List<Object?> entries = const <Object?>[]}): _entries = entries;
+  const _ParticipantDto({@JsonKey(name: 'Id', readValue: readInt) this.id, @JsonKey(name: 'Prenom') this.firstName, @JsonKey(name: 'Nom') this.lastName, @JsonKey(name: 'Sexe') this.gender, @JsonKey(name: 'clubLabel') this.club, @JsonKey(name: 'idClub', readValue: readInt) this.clubId, @JsonKey(name: 'idLicencie', readValue: readInt) this.licenseeId, @JsonKey(name: 'isInvite') this.isGuest, @JsonKey(name: 'engagements')  List<Object?> entries = const <Object?>[]}): _entries = entries;
   factory _ParticipantDto.fromJson(Map<String, dynamic> json) => _$ParticipantDtoFromJson(json);
 
 @override@JsonKey(name: 'Id', readValue: readInt) final  int? id;
@@ -229,6 +231,8 @@ class _ParticipantDto implements ParticipantDto {
 @override@JsonKey(name: 'Nom') final  String? lastName;
 @override@JsonKey(name: 'Sexe') final  String? gender;
 @override@JsonKey(name: 'clubLabel') final  String? club;
+@override@JsonKey(name: 'idClub', readValue: readInt) final  int? clubId;
+@override@JsonKey(name: 'idLicencie', readValue: readInt) final  int? licenseeId;
 @override@JsonKey(name: 'isInvite') final  bool? isGuest;
  final  List<Object?> _entries;
 @override@JsonKey(name: 'engagements') List<Object?> get entries {
@@ -251,18 +255,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ParticipantDto&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.club, club) || other.club == club)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&const DeepCollectionEquality().equals(other.entries, _entries));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ParticipantDto&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.club, club) || other.club == club)&&(identical(other.clubId, clubId) || other.clubId == clubId)&&(identical(other.licenseeId, licenseeId) || other.licenseeId == licenseeId)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&const DeepCollectionEquality().equals(other.entries, _entries));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,firstName,lastName,gender,club,isGuest,const DeepCollectionEquality().hash(_entries));
+    return Object.hash(runtimeType,id,firstName,lastName,gender,club,clubId,licenseeId,isGuest,const DeepCollectionEquality().hash(_entries));
 }
 
 @override
 String toString() {
-    return 'ParticipantDto(id: $id, firstName: $firstName, lastName: $lastName, gender: $gender, club: $club, isGuest: $isGuest, entries: $entries)';
+    return 'ParticipantDto(id: $id, firstName: $firstName, lastName: $lastName, gender: $gender, club: $club, clubId: $clubId, licenseeId: $licenseeId, isGuest: $isGuest, entries: $entries)';
 }
 
 
@@ -273,7 +277,7 @@ abstract mixin class _$ParticipantDtoCopyWith<$Res> implements $ParticipantDtoCo
   factory _$ParticipantDtoCopyWith(_ParticipantDto value, $Res Function(_ParticipantDto) _then) = __$ParticipantDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Prenom') String? firstName,@JsonKey(name: 'Nom') String? lastName,@JsonKey(name: 'Sexe') String? gender,@JsonKey(name: 'clubLabel') String? club,@JsonKey(name: 'isInvite') bool? isGuest,@JsonKey(name: 'engagements') List<Object?> entries
+@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Prenom') String? firstName,@JsonKey(name: 'Nom') String? lastName,@JsonKey(name: 'Sexe') String? gender,@JsonKey(name: 'clubLabel') String? club,@JsonKey(name: 'idClub', readValue: readInt) int? clubId,@JsonKey(name: 'idLicencie', readValue: readInt) int? licenseeId,@JsonKey(name: 'isInvite') bool? isGuest,@JsonKey(name: 'engagements') List<Object?> entries
 });
 
 
@@ -290,14 +294,16 @@ class __$ParticipantDtoCopyWithImpl<$Res>
 
 /// Create a copy of ParticipantDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? gender = freezed,Object? club = freezed,Object? isGuest = freezed,Object? entries = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? gender = freezed,Object? club = freezed,Object? clubId = freezed,Object? licenseeId = freezed,Object? isGuest = freezed,Object? entries = null,}) {
   return _then(_ParticipantDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String?,club: freezed == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
-as String?,isGuest: freezed == isGuest ? _self.isGuest : isGuest // ignore: cast_nullable_to_non_nullable
+as String?,clubId: freezed == clubId ? _self.clubId : clubId // ignore: cast_nullable_to_non_nullable
+as int?,licenseeId: freezed == licenseeId ? _self.licenseeId : licenseeId // ignore: cast_nullable_to_non_nullable
+as int?,isGuest: freezed == isGuest ? _self.isGuest : isGuest // ignore: cast_nullable_to_non_nullable
 as bool?,entries: null == entries ? _self._entries : entries // ignore: cast_nullable_to_non_nullable
 as List<Object?>,
   ));

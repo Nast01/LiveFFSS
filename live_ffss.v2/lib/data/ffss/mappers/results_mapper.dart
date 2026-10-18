@@ -143,6 +143,8 @@ extension ParticipantMapper on ParticipantDto {
       lastName: lastName?.trim() ?? '',
       gender: parseGender(gender),
       club: club?.trim() ?? '',
+      clubId: clubId,
+      licenseeId: licenseeId,
       isGuest: isGuest ?? false,
       entries: decodeRows(entries, ParticipantEngagementDto.fromJson, (
         ParticipantEngagementDto entry,
