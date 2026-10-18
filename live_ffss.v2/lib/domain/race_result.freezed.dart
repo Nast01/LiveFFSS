@@ -18,7 +18,7 @@ mixin _$RaceResult {
 /// Nul tant que le résultat n'existe pas : l'envoi le crée.
  int? get id; int get seriesId; int get entryId;/// `Temps` : le temps du juge, en centièmes. Jamais modifié par la saisie.
  int? get time;/// `TempsLive1..3` : les trois chronos, en centièmes ; nul = pas de chrono.
- List<int?> get chronos; int get rank;/// 0 = OK, 1 = disqualifié, 2 = forfait, 3 = « F/DQ » (valeur de repli de
+ List<int?> get chronos; int? get rank;/// 0 = OK, 1 = disqualifié, 2 = forfait, 3 = « F/DQ » (valeur de repli de
 /// FFSS quand l'envoi n'indique pas de statut).
  int get status;/// Le code de disqualification, ou `F` pour un forfait.
  String get complement; int? get points;
@@ -57,7 +57,7 @@ abstract mixin class $RaceResultCopyWith<$Res>  {
   factory $RaceResultCopyWith(RaceResult value, $Res Function(RaceResult) _then) = _$RaceResultCopyWithImpl;
 @useResult
 $Res call({
- int? id, int seriesId, int entryId, int? time, List<int?> chronos, int rank, int status, String complement, int? points
+ int? id, int seriesId, int entryId, int? time, List<int?> chronos, int? rank, int status, String complement, int? points
 });
 
 
@@ -74,15 +74,15 @@ class _$RaceResultCopyWithImpl<$Res>
 
 /// Create a copy of RaceResult
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? seriesId = null,Object? entryId = null,Object? time = freezed,Object? chronos = null,Object? rank = null,Object? status = null,Object? complement = null,Object? points = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? seriesId = null,Object? entryId = null,Object? time = freezed,Object? chronos = null,Object? rank = freezed,Object? status = null,Object? complement = null,Object? points = freezed,}) {
   return _then(RaceResult(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,seriesId: null == seriesId ? _self.seriesId : seriesId // ignore: cast_nullable_to_non_nullable
 as int,entryId: null == entryId ? _self.entryId : entryId // ignore: cast_nullable_to_non_nullable
 as int,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as int?,chronos: null == chronos ? _self.chronos : chronos // ignore: cast_nullable_to_non_nullable
-as List<int?>,rank: null == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
-as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as List<int?>,rank: freezed == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
+as int?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as int,complement: null == complement ? _self.complement : complement // ignore: cast_nullable_to_non_nullable
 as String,points: freezed == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
 as int?,
@@ -170,7 +170,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int seriesId,  int entryId,  int? time,  List<int?> chronos,  int rank,  int status,  String complement,  int? points)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int seriesId,  int entryId,  int? time,  List<int?> chronos,  int? rank,  int status,  String complement,  int? points)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RaceResult() when $default != null:
 return $default(_that.id,_that.seriesId,_that.entryId,_that.time,_that.chronos,_that.rank,_that.status,_that.complement,_that.points);case _:
@@ -191,7 +191,7 @@ return $default(_that.id,_that.seriesId,_that.entryId,_that.time,_that.chronos,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int seriesId,  int entryId,  int? time,  List<int?> chronos,  int rank,  int status,  String complement,  int? points)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int seriesId,  int entryId,  int? time,  List<int?> chronos,  int? rank,  int status,  String complement,  int? points)  $default,) {final _that = this;
 switch (_that) {
 case _RaceResult():
 return $default(_that.id,_that.seriesId,_that.entryId,_that.time,_that.chronos,_that.rank,_that.status,_that.complement,_that.points);case _:
@@ -211,7 +211,7 @@ return $default(_that.id,_that.seriesId,_that.entryId,_that.time,_that.chronos,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int seriesId,  int entryId,  int? time,  List<int?> chronos,  int rank,  int status,  String complement,  int? points)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int seriesId,  int entryId,  int? time,  List<int?> chronos,  int? rank,  int status,  String complement,  int? points)?  $default,) {final _that = this;
 switch (_that) {
 case _RaceResult() when $default != null:
 return $default(_that.id,_that.seriesId,_that.entryId,_that.time,_that.chronos,_that.rank,_that.status,_that.complement,_that.points);case _:
@@ -226,7 +226,7 @@ return $default(_that.id,_that.seriesId,_that.entryId,_that.time,_that.chronos,_
 
 
 class _RaceResult implements RaceResult {
-  const _RaceResult({this.id, required this.seriesId, required this.entryId, this.time,  List<int?> chronos = const <int?>[null, null, null], this.rank = 0, this.status = 0, this.complement = '', this.points}): _chronos = chronos;
+  const _RaceResult({this.id, required this.seriesId, required this.entryId, this.time,  List<int?> chronos = const <int?>[null, null, null], this.rank, this.status = 0, this.complement = '', this.points}): _chronos = chronos;
   
 
 /// Nul tant que le résultat n'existe pas : l'envoi le crée.
@@ -244,7 +244,7 @@ class _RaceResult implements RaceResult {
   return EqualUnmodifiableListView(_chronos);
 }
 
-@override@JsonKey() final  int rank;
+@override final  int? rank;
 /// 0 = OK, 1 = disqualifié, 2 = forfait, 3 = « F/DQ » (valeur de repli de
 /// FFSS quand l'envoi n'indique pas de statut).
 @override@JsonKey() final  int status;
@@ -284,7 +284,7 @@ abstract mixin class _$RaceResultCopyWith<$Res> implements $RaceResultCopyWith<$
   factory _$RaceResultCopyWith(_RaceResult value, $Res Function(_RaceResult) _then) = __$RaceResultCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int seriesId, int entryId, int? time, List<int?> chronos, int rank, int status, String complement, int? points
+ int? id, int seriesId, int entryId, int? time, List<int?> chronos, int? rank, int status, String complement, int? points
 });
 
 
@@ -301,15 +301,15 @@ class __$RaceResultCopyWithImpl<$Res>
 
 /// Create a copy of RaceResult
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? seriesId = null,Object? entryId = null,Object? time = freezed,Object? chronos = null,Object? rank = null,Object? status = null,Object? complement = null,Object? points = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? seriesId = null,Object? entryId = null,Object? time = freezed,Object? chronos = null,Object? rank = freezed,Object? status = null,Object? complement = null,Object? points = freezed,}) {
   return _then(_RaceResult(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,seriesId: null == seriesId ? _self.seriesId : seriesId // ignore: cast_nullable_to_non_nullable
 as int,entryId: null == entryId ? _self.entryId : entryId // ignore: cast_nullable_to_non_nullable
 as int,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as int?,chronos: null == chronos ? _self._chronos : chronos // ignore: cast_nullable_to_non_nullable
-as List<int?>,rank: null == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
-as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as List<int?>,rank: freezed == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
+as int?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as int,complement: null == complement ? _self.complement : complement // ignore: cast_nullable_to_non_nullable
 as String,points: freezed == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
 as int?,

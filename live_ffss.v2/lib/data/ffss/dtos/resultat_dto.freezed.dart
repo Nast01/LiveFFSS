@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ResultatDto {
 
-@JsonKey(name: 'Id', readValue: _readAnyId) int? get id;@JsonKey(name: 'Temps', readValue: readInt) int? get time;@JsonKey(name: 'TempsLive1', readValue: readInt) int? get chrono1;@JsonKey(name: 'TempsLive2', readValue: readInt) int? get chrono2;@JsonKey(name: 'TempsLive3', readValue: readInt) int? get chrono3;@JsonKey(name: 'Rang', readValue: readInt) int? get rank;@JsonKey(name: 'Statut', readValue: readInt) int? get status;@JsonKey(name: 'complement') Object? get complement;@JsonKey(name: 'points', readValue: readInt) int? get points;@JsonKey(name: 'engagement', readValue: readMap) ResultatRefDto? get entry;@JsonKey(name: 'serie', readValue: readMap) ResultatRefDto? get series;
+@JsonKey(name: 'Id', readValue: _readAnyId) int? get id;@JsonKey(name: 'Temps') Object? get time;@JsonKey(name: 'TempsLive1', readValue: readInt) int? get chrono1;@JsonKey(name: 'TempsLive2', readValue: readInt) int? get chrono2;@JsonKey(name: 'TempsLive3', readValue: readInt) int? get chrono3;@JsonKey(name: 'Rang') Object? get rank;@JsonKey(name: 'Statut', readValue: readInt) int? get status;@JsonKey(name: 'complement') Object? get complement;@JsonKey(name: 'points') Object? get points;@JsonKey(name: 'engagement', readValue: readMap) ResultatRefDto? get entry;@JsonKey(name: 'serie', readValue: readMap) ResultatRefDto? get series;
 /// Create a copy of ResultatDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,14 +30,14 @@ $ResultatDtoCopyWith<ResultatDto> get copyWith => _$ResultatDtoCopyWithImpl<Resu
 @override
 bool operator ==(Object other) {
   final _this = this as ResultatDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ResultatDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.time, _this.time) || other.time == _this.time)&&(identical(other.chrono1, _this.chrono1) || other.chrono1 == _this.chrono1)&&(identical(other.chrono2, _this.chrono2) || other.chrono2 == _this.chrono2)&&(identical(other.chrono3, _this.chrono3) || other.chrono3 == _this.chrono3)&&(identical(other.rank, _this.rank) || other.rank == _this.rank)&&(identical(other.status, _this.status) || other.status == _this.status)&&const DeepCollectionEquality().equals(other.complement, _this.complement)&&(identical(other.points, _this.points) || other.points == _this.points)&&(identical(other.entry, _this.entry) || other.entry == _this.entry)&&(identical(other.series, _this.series) || other.series == _this.series));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ResultatDto&&(identical(other.id, _this.id) || other.id == _this.id)&&const DeepCollectionEquality().equals(other.time, _this.time)&&(identical(other.chrono1, _this.chrono1) || other.chrono1 == _this.chrono1)&&(identical(other.chrono2, _this.chrono2) || other.chrono2 == _this.chrono2)&&(identical(other.chrono3, _this.chrono3) || other.chrono3 == _this.chrono3)&&const DeepCollectionEquality().equals(other.rank, _this.rank)&&(identical(other.status, _this.status) || other.status == _this.status)&&const DeepCollectionEquality().equals(other.complement, _this.complement)&&const DeepCollectionEquality().equals(other.points, _this.points)&&(identical(other.entry, _this.entry) || other.entry == _this.entry)&&(identical(other.series, _this.series) || other.series == _this.series));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ResultatDto;
-  return Object.hash(runtimeType,_this.id,_this.time,_this.chrono1,_this.chrono2,_this.chrono3,_this.rank,_this.status,const DeepCollectionEquality().hash(_this.complement),_this.points,_this.entry,_this.series);
+  return Object.hash(runtimeType,_this.id,const DeepCollectionEquality().hash(_this.time),_this.chrono1,_this.chrono2,_this.chrono3,const DeepCollectionEquality().hash(_this.rank),_this.status,const DeepCollectionEquality().hash(_this.complement),const DeepCollectionEquality().hash(_this.points),_this.entry,_this.series);
 }
 
 @override
@@ -54,7 +54,7 @@ abstract mixin class $ResultatDtoCopyWith<$Res>  {
   factory $ResultatDtoCopyWith(ResultatDto value, $Res Function(ResultatDto) _then) = _$ResultatDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: _readAnyId) int? id,@JsonKey(name: 'Temps', readValue: readInt) int? time,@JsonKey(name: 'TempsLive1', readValue: readInt) int? chrono1,@JsonKey(name: 'TempsLive2', readValue: readInt) int? chrono2,@JsonKey(name: 'TempsLive3', readValue: readInt) int? chrono3,@JsonKey(name: 'Rang', readValue: readInt) int? rank,@JsonKey(name: 'Statut', readValue: readInt) int? status,@JsonKey(name: 'complement') Object? complement,@JsonKey(name: 'points', readValue: readInt) int? points,@JsonKey(name: 'engagement', readValue: readMap) ResultatRefDto? entry,@JsonKey(name: 'serie', readValue: readMap) ResultatRefDto? series
+@JsonKey(name: 'Id', readValue: _readAnyId) int? id,@JsonKey(name: 'Temps') Object? time,@JsonKey(name: 'TempsLive1', readValue: readInt) int? chrono1,@JsonKey(name: 'TempsLive2', readValue: readInt) int? chrono2,@JsonKey(name: 'TempsLive3', readValue: readInt) int? chrono3,@JsonKey(name: 'Rang') Object? rank,@JsonKey(name: 'Statut', readValue: readInt) int? status,@JsonKey(name: 'complement') Object? complement,@JsonKey(name: 'points') Object? points,@JsonKey(name: 'engagement', readValue: readMap) ResultatRefDto? entry,@JsonKey(name: 'serie', readValue: readMap) ResultatRefDto? series
 });
 
 
@@ -74,14 +74,11 @@ class _$ResultatDtoCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? time = freezed,Object? chrono1 = freezed,Object? chrono2 = freezed,Object? chrono3 = freezed,Object? rank = freezed,Object? status = freezed,Object? complement = freezed,Object? points = freezed,Object? entry = freezed,Object? series = freezed,}) {
   return _then(ResultatDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
-as int?,chrono1: freezed == chrono1 ? _self.chrono1 : chrono1 // ignore: cast_nullable_to_non_nullable
+as int?,time: freezed == time ? _self.time : time ,chrono1: freezed == chrono1 ? _self.chrono1 : chrono1 // ignore: cast_nullable_to_non_nullable
 as int?,chrono2: freezed == chrono2 ? _self.chrono2 : chrono2 // ignore: cast_nullable_to_non_nullable
 as int?,chrono3: freezed == chrono3 ? _self.chrono3 : chrono3 // ignore: cast_nullable_to_non_nullable
-as int?,rank: freezed == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
-as int?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as int?,complement: freezed == complement ? _self.complement : complement ,points: freezed == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
-as int?,entry: freezed == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
+as int?,rank: freezed == rank ? _self.rank : rank ,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as int?,complement: freezed == complement ? _self.complement : complement ,points: freezed == points ? _self.points : points ,entry: freezed == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
 as ResultatRefDto?,series: freezed == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
 as ResultatRefDto?,
   ));
@@ -192,7 +189,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readAnyId)  int? id, @JsonKey(name: 'Temps', readValue: readInt)  int? time, @JsonKey(name: 'TempsLive1', readValue: readInt)  int? chrono1, @JsonKey(name: 'TempsLive2', readValue: readInt)  int? chrono2, @JsonKey(name: 'TempsLive3', readValue: readInt)  int? chrono3, @JsonKey(name: 'Rang', readValue: readInt)  int? rank, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'complement')  Object? complement, @JsonKey(name: 'points', readValue: readInt)  int? points, @JsonKey(name: 'engagement', readValue: readMap)  ResultatRefDto? entry, @JsonKey(name: 'serie', readValue: readMap)  ResultatRefDto? series)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readAnyId)  int? id, @JsonKey(name: 'Temps')  Object? time, @JsonKey(name: 'TempsLive1', readValue: readInt)  int? chrono1, @JsonKey(name: 'TempsLive2', readValue: readInt)  int? chrono2, @JsonKey(name: 'TempsLive3', readValue: readInt)  int? chrono3, @JsonKey(name: 'Rang')  Object? rank, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'complement')  Object? complement, @JsonKey(name: 'points')  Object? points, @JsonKey(name: 'engagement', readValue: readMap)  ResultatRefDto? entry, @JsonKey(name: 'serie', readValue: readMap)  ResultatRefDto? series)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ResultatDto() when $default != null:
 return $default(_that.id,_that.time,_that.chrono1,_that.chrono2,_that.chrono3,_that.rank,_that.status,_that.complement,_that.points,_that.entry,_that.series);case _:
@@ -213,7 +210,7 @@ return $default(_that.id,_that.time,_that.chrono1,_that.chrono2,_that.chrono3,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readAnyId)  int? id, @JsonKey(name: 'Temps', readValue: readInt)  int? time, @JsonKey(name: 'TempsLive1', readValue: readInt)  int? chrono1, @JsonKey(name: 'TempsLive2', readValue: readInt)  int? chrono2, @JsonKey(name: 'TempsLive3', readValue: readInt)  int? chrono3, @JsonKey(name: 'Rang', readValue: readInt)  int? rank, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'complement')  Object? complement, @JsonKey(name: 'points', readValue: readInt)  int? points, @JsonKey(name: 'engagement', readValue: readMap)  ResultatRefDto? entry, @JsonKey(name: 'serie', readValue: readMap)  ResultatRefDto? series)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: _readAnyId)  int? id, @JsonKey(name: 'Temps')  Object? time, @JsonKey(name: 'TempsLive1', readValue: readInt)  int? chrono1, @JsonKey(name: 'TempsLive2', readValue: readInt)  int? chrono2, @JsonKey(name: 'TempsLive3', readValue: readInt)  int? chrono3, @JsonKey(name: 'Rang')  Object? rank, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'complement')  Object? complement, @JsonKey(name: 'points')  Object? points, @JsonKey(name: 'engagement', readValue: readMap)  ResultatRefDto? entry, @JsonKey(name: 'serie', readValue: readMap)  ResultatRefDto? series)  $default,) {final _that = this;
 switch (_that) {
 case _ResultatDto():
 return $default(_that.id,_that.time,_that.chrono1,_that.chrono2,_that.chrono3,_that.rank,_that.status,_that.complement,_that.points,_that.entry,_that.series);case _:
@@ -233,7 +230,7 @@ return $default(_that.id,_that.time,_that.chrono1,_that.chrono2,_that.chrono3,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: _readAnyId)  int? id, @JsonKey(name: 'Temps', readValue: readInt)  int? time, @JsonKey(name: 'TempsLive1', readValue: readInt)  int? chrono1, @JsonKey(name: 'TempsLive2', readValue: readInt)  int? chrono2, @JsonKey(name: 'TempsLive3', readValue: readInt)  int? chrono3, @JsonKey(name: 'Rang', readValue: readInt)  int? rank, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'complement')  Object? complement, @JsonKey(name: 'points', readValue: readInt)  int? points, @JsonKey(name: 'engagement', readValue: readMap)  ResultatRefDto? entry, @JsonKey(name: 'serie', readValue: readMap)  ResultatRefDto? series)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: _readAnyId)  int? id, @JsonKey(name: 'Temps')  Object? time, @JsonKey(name: 'TempsLive1', readValue: readInt)  int? chrono1, @JsonKey(name: 'TempsLive2', readValue: readInt)  int? chrono2, @JsonKey(name: 'TempsLive3', readValue: readInt)  int? chrono3, @JsonKey(name: 'Rang')  Object? rank, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'complement')  Object? complement, @JsonKey(name: 'points')  Object? points, @JsonKey(name: 'engagement', readValue: readMap)  ResultatRefDto? entry, @JsonKey(name: 'serie', readValue: readMap)  ResultatRefDto? series)?  $default,) {final _that = this;
 switch (_that) {
 case _ResultatDto() when $default != null:
 return $default(_that.id,_that.time,_that.chrono1,_that.chrono2,_that.chrono3,_that.rank,_that.status,_that.complement,_that.points,_that.entry,_that.series);case _:
@@ -248,18 +245,18 @@ return $default(_that.id,_that.time,_that.chrono1,_that.chrono2,_that.chrono3,_t
 @JsonSerializable()
 
 class _ResultatDto implements ResultatDto {
-  const _ResultatDto({@JsonKey(name: 'Id', readValue: _readAnyId) this.id, @JsonKey(name: 'Temps', readValue: readInt) this.time, @JsonKey(name: 'TempsLive1', readValue: readInt) this.chrono1, @JsonKey(name: 'TempsLive2', readValue: readInt) this.chrono2, @JsonKey(name: 'TempsLive3', readValue: readInt) this.chrono3, @JsonKey(name: 'Rang', readValue: readInt) this.rank, @JsonKey(name: 'Statut', readValue: readInt) this.status, @JsonKey(name: 'complement') this.complement, @JsonKey(name: 'points', readValue: readInt) this.points, @JsonKey(name: 'engagement', readValue: readMap) this.entry, @JsonKey(name: 'serie', readValue: readMap) this.series});
+  const _ResultatDto({@JsonKey(name: 'Id', readValue: _readAnyId) this.id, @JsonKey(name: 'Temps') this.time, @JsonKey(name: 'TempsLive1', readValue: readInt) this.chrono1, @JsonKey(name: 'TempsLive2', readValue: readInt) this.chrono2, @JsonKey(name: 'TempsLive3', readValue: readInt) this.chrono3, @JsonKey(name: 'Rang') this.rank, @JsonKey(name: 'Statut', readValue: readInt) this.status, @JsonKey(name: 'complement') this.complement, @JsonKey(name: 'points') this.points, @JsonKey(name: 'engagement', readValue: readMap) this.entry, @JsonKey(name: 'serie', readValue: readMap) this.series});
   factory _ResultatDto.fromJson(Map<String, dynamic> json) => _$ResultatDtoFromJson(json);
 
 @override@JsonKey(name: 'Id', readValue: _readAnyId) final  int? id;
-@override@JsonKey(name: 'Temps', readValue: readInt) final  int? time;
+@override@JsonKey(name: 'Temps') final  Object? time;
 @override@JsonKey(name: 'TempsLive1', readValue: readInt) final  int? chrono1;
 @override@JsonKey(name: 'TempsLive2', readValue: readInt) final  int? chrono2;
 @override@JsonKey(name: 'TempsLive3', readValue: readInt) final  int? chrono3;
-@override@JsonKey(name: 'Rang', readValue: readInt) final  int? rank;
+@override@JsonKey(name: 'Rang') final  Object? rank;
 @override@JsonKey(name: 'Statut', readValue: readInt) final  int? status;
 @override@JsonKey(name: 'complement') final  Object? complement;
-@override@JsonKey(name: 'points', readValue: readInt) final  int? points;
+@override@JsonKey(name: 'points') final  Object? points;
 @override@JsonKey(name: 'engagement', readValue: readMap) final  ResultatRefDto? entry;
 @override@JsonKey(name: 'serie', readValue: readMap) final  ResultatRefDto? series;
 
@@ -276,13 +273,13 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ResultatDto&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.chrono1, chrono1) || other.chrono1 == chrono1)&&(identical(other.chrono2, chrono2) || other.chrono2 == chrono2)&&(identical(other.chrono3, chrono3) || other.chrono3 == chrono3)&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.complement, complement)&&(identical(other.points, points) || other.points == points)&&(identical(other.entry, entry) || other.entry == entry)&&(identical(other.series, series) || other.series == series));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ResultatDto&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.time, time)&&(identical(other.chrono1, chrono1) || other.chrono1 == chrono1)&&(identical(other.chrono2, chrono2) || other.chrono2 == chrono2)&&(identical(other.chrono3, chrono3) || other.chrono3 == chrono3)&&const DeepCollectionEquality().equals(other.rank, rank)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.complement, complement)&&const DeepCollectionEquality().equals(other.points, points)&&(identical(other.entry, entry) || other.entry == entry)&&(identical(other.series, series) || other.series == series));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,time,chrono1,chrono2,chrono3,rank,status,const DeepCollectionEquality().hash(complement),points,entry,series);
+    return Object.hash(runtimeType,id,const DeepCollectionEquality().hash(time),chrono1,chrono2,chrono3,const DeepCollectionEquality().hash(rank),status,const DeepCollectionEquality().hash(complement),const DeepCollectionEquality().hash(points),entry,series);
 }
 
 @override
@@ -298,7 +295,7 @@ abstract mixin class _$ResultatDtoCopyWith<$Res> implements $ResultatDtoCopyWith
   factory _$ResultatDtoCopyWith(_ResultatDto value, $Res Function(_ResultatDto) _then) = __$ResultatDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: _readAnyId) int? id,@JsonKey(name: 'Temps', readValue: readInt) int? time,@JsonKey(name: 'TempsLive1', readValue: readInt) int? chrono1,@JsonKey(name: 'TempsLive2', readValue: readInt) int? chrono2,@JsonKey(name: 'TempsLive3', readValue: readInt) int? chrono3,@JsonKey(name: 'Rang', readValue: readInt) int? rank,@JsonKey(name: 'Statut', readValue: readInt) int? status,@JsonKey(name: 'complement') Object? complement,@JsonKey(name: 'points', readValue: readInt) int? points,@JsonKey(name: 'engagement', readValue: readMap) ResultatRefDto? entry,@JsonKey(name: 'serie', readValue: readMap) ResultatRefDto? series
+@JsonKey(name: 'Id', readValue: _readAnyId) int? id,@JsonKey(name: 'Temps') Object? time,@JsonKey(name: 'TempsLive1', readValue: readInt) int? chrono1,@JsonKey(name: 'TempsLive2', readValue: readInt) int? chrono2,@JsonKey(name: 'TempsLive3', readValue: readInt) int? chrono3,@JsonKey(name: 'Rang') Object? rank,@JsonKey(name: 'Statut', readValue: readInt) int? status,@JsonKey(name: 'complement') Object? complement,@JsonKey(name: 'points') Object? points,@JsonKey(name: 'engagement', readValue: readMap) ResultatRefDto? entry,@JsonKey(name: 'serie', readValue: readMap) ResultatRefDto? series
 });
 
 
@@ -318,14 +315,11 @@ class __$ResultatDtoCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? time = freezed,Object? chrono1 = freezed,Object? chrono2 = freezed,Object? chrono3 = freezed,Object? rank = freezed,Object? status = freezed,Object? complement = freezed,Object? points = freezed,Object? entry = freezed,Object? series = freezed,}) {
   return _then(_ResultatDto(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
-as int?,chrono1: freezed == chrono1 ? _self.chrono1 : chrono1 // ignore: cast_nullable_to_non_nullable
+as int?,time: freezed == time ? _self.time : time ,chrono1: freezed == chrono1 ? _self.chrono1 : chrono1 // ignore: cast_nullable_to_non_nullable
 as int?,chrono2: freezed == chrono2 ? _self.chrono2 : chrono2 // ignore: cast_nullable_to_non_nullable
 as int?,chrono3: freezed == chrono3 ? _self.chrono3 : chrono3 // ignore: cast_nullable_to_non_nullable
-as int?,rank: freezed == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
-as int?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as int?,complement: freezed == complement ? _self.complement : complement ,points: freezed == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
-as int?,entry: freezed == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
+as int?,rank: freezed == rank ? _self.rank : rank ,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as int?,complement: freezed == complement ? _self.complement : complement ,points: freezed == points ? _self.points : points ,entry: freezed == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
 as ResultatRefDto?,series: freezed == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
 as ResultatRefDto?,
   ));

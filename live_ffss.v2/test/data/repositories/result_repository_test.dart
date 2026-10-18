@@ -49,14 +49,14 @@ void main() {
       'id': 572548,
       'serie': 94894,
       'engagement': 566311,
-      'temps': '17577',
+      'temps': 17577,
       'tempsLive1': '17500',
       'tempsLive2': '',
       'tempsLive3': '17600',
       'rang': 3,
       'statut': 1,
       'complement': '12',
-      'points': '8',
+      'points': 8,
     });
     verifyNever(
       () => http.post(
@@ -79,16 +79,141 @@ void main() {
     expect(id, 9);
     final query = submitted();
     expect(query.containsKey('id'), false);
-    expect(query['temps'], '');
+    expect(query.containsKey('temps'), false);
+    expect(query.containsKey('rang'), false);
+    expect(query.containsKey('points'), false);
+    expect(query['tempsLive1'], '');
     expect(query['statut'], 0);
   });
 
-  test('success: false lève ApiException', () async {
+  test('un refus de HttpClient remonte tel quel', () async {
     when(
       () => http.post(any(), query: any(named: 'query')),
-    ).thenAnswer((_) async => {'success': false, 'message': 'refusé'});
+    ).thenThrow(const ApiException('refusé'));
+
+    expect(
+      repository.submit(result),
+      throwsA(
+        isA<ApiException>().having((e) => e.message, 'message', 'refusé'),
+      ),
+    );
+  });
+
+  test('une réponse sans id lève ApiException', () async {
+    when(
+      () => http.post(any(), query: any(named: 'query')),
+    ).thenAnswer((_) async => {'success': true});
 
     expect(repository.submit(result), throwsA(isA<ApiException>()));
+  });
+
+  test('un résultat à chronos hors de trois entrées part complet', () async {
+    when(
+      () => http.post(any(), query: any(named: 'query')),
+    ).thenAnswer((_) async => {'success': true, 'id': 1});
+
+    await repository.submit(result.copyWith(chronos: [5]));
+
+    final query = submitted();
+    expect(query['tempsLive1'], '5');
+    expect(query['tempsLive2'], '');
+    expect(query['tempsLive3'], '');
+  });
+
+  test(
+    'temps, rang et points nuls sont omis, le statut toujours envoyé',
+    () async {
+      when(
+        () => http.post(any(), query: any(named: 'query')),
+      ).thenAnswer((_) async => {'success': true, 'id': 1});
+
+      await repository.submit(
+        result.copyWith(time: null, rank: null, points: null, status: 0),
+      );
+
+      final query = submitted();
+      expect(query.containsKey('temps'), false);
+      expect(query.containsKey('rang'), false);
+      expect(query.containsKey('points'), false);
+      expect(query['statut'], 0);
+    },
+  );
+
+  Map<String, dynamic> data(Map<String, dynamic> extra) => {
+    'data': {
+      'Id': 1,
+      'Statut': 0,
+      'engagement': {'Id': 2},
+      'serie': {'Id': 3},
+      ...extra,
+    },
+  };
+
+  for (final bad in <String, Object>{
+    'Temps': '17577.0',
+    'Rang': 'abc',
+    'points': 8.5,
+  }.entries) {
+    test('getResult rend null si ${bad.key} est illisible', () async {
+      when(
+        () => http.get(any()),
+      ).thenAnswer((_) async => data({bad.key: bad.value}));
+
+      expect(await repository.getResult(1), isNull);
+    });
+  }
+
+  test('Temps, Rang et points absents restent nuls', () async {
+    when(() => http.get(any())).thenAnswer((_) async => data({'Temps': null}));
+
+    final r = await repository.getResult(1);
+
+    expect(r!.time, isNull);
+    expect(r.rank, isNull);
+    expect(r.points, isNull);
+    expect(isValidatedByJudge(r), false);
+  });
+
+  test('complement : chaîne ou entier exact, le reste est vide', () async {
+    Future<String> read(Object? value) async {
+      when(
+        () => http.get(any()),
+      ).thenAnswer((_) async => data({'complement': value}));
+      return (await repository.getResult(1))!.complement;
+    }
+
+    expect(await read('12'), '12');
+    expect(await read(12), '12');
+    expect(await read(12.0), '12');
+    expect(await read(12.5), '');
+    expect(await read(<Object?>[]), '');
+    expect(await read(false), '');
+    expect(await read(<String, Object?>{'a': 1}), '');
+    expect(await read(null), '');
+  });
+
+  test('getHeatChronos reste tolérant là où getResult refuse', () async {
+    final row = {
+      'Id': 1,
+      'Statut': 0,
+      'Temps': 'abc',
+      'TempsLive1': 100,
+      'engagement': {'Id': 11},
+      'serie': {'Id': 3},
+    };
+    when(() => http.get(any())).thenAnswer(
+      (_) async => {
+        'data': {
+          'resultats': [row],
+          ...row,
+        },
+      },
+    );
+
+    expect(await repository.getHeatChronos(3), {
+      11: [100, null, null],
+    });
+    expect(await repository.getResult(1), isNull);
   });
 
   test('getResult lit les champs et lit 0 comme pas de chrono', () async {

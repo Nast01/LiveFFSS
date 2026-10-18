@@ -18,7 +18,7 @@ abstract class RaceResult with _$RaceResult {
 
     /// `TempsLive1..3` : les trois chronos, en centièmes ; nul = pas de chrono.
     @Default(<int?>[null, null, null]) List<int?> chronos,
-    @Default(0) int rank,
+    int? rank,
 
     /// 0 = OK, 1 = disqualifié, 2 = forfait, 3 = « F/DQ » (valeur de repli de
     /// FFSS quand l'envoi n'indique pas de statut).
@@ -45,6 +45,7 @@ abstract class ResultChange with _$ResultChange {
   }) = _ResultChange;
 }
 
+const int chronoCount = 3;
 const int statusOk = 0;
 const int statusDisqualified = 1;
 const int statusForfeit = 2;
@@ -54,7 +55,14 @@ const int statusForfeit = 2;
 RaceResult applyChange(RaceResult current, ResultChange change) {
   var result = current;
   final chronos = change.chronos;
-  if (chronos != null) result = result.copyWith(chronos: chronos);
+  if (chronos != null) {
+    // Exactement trois : l'envoi renvoie TempsLive1..3 et rien d'autre.
+    result = result.copyWith(
+      chronos: [
+        for (var i = 0; i < chronoCount; i++) chronos.elementAtOrNull(i),
+      ],
+    );
+  }
   switch (change.mark) {
     case null:
       break;

@@ -22,6 +22,18 @@ void main() {
     expect(r, base.copyWith(chronos: [5000, 5100, null]));
   });
 
+  test('des chronos hors de trois entrées sont ramenés à trois', () {
+    expect(applyChange(base, const ResultChange(chronos: [7])).chronos, [
+      7,
+      null,
+      null,
+    ]);
+    expect(
+      applyChange(base, const ResultChange(chronos: [1, 2, 3, 4])).chronos,
+      [1, 2, 3],
+    );
+  });
+
   test('une DQ pose le statut 1 et le code', () {
     final r = applyChange(
       base,

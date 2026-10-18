@@ -8,14 +8,14 @@ part of 'resultat_dto.dart';
 
 _ResultatDto _$ResultatDtoFromJson(Map<String, dynamic> json) => _ResultatDto(
   id: (_readAnyId(json, 'Id') as num?)?.toInt(),
-  time: (readInt(json, 'Temps') as num?)?.toInt(),
+  time: json['Temps'],
   chrono1: (readInt(json, 'TempsLive1') as num?)?.toInt(),
   chrono2: (readInt(json, 'TempsLive2') as num?)?.toInt(),
   chrono3: (readInt(json, 'TempsLive3') as num?)?.toInt(),
-  rank: (readInt(json, 'Rang') as num?)?.toInt(),
+  rank: json['Rang'],
   status: (readInt(json, 'Statut') as num?)?.toInt(),
   complement: json['complement'],
-  points: (readInt(json, 'points') as num?)?.toInt(),
+  points: json['points'],
   entry: readMap(json, 'engagement') == null
       ? null
       : ResultatRefDto.fromJson(
