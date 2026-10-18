@@ -291,6 +291,31 @@ void main() {
     });
 
     test(
+      'le rafraîchissement des épreuves ne relit pas les classements',
+      () async {
+        final c = container();
+        addTearDown(c.dispose);
+        final before = await standings(c);
+        const key = (competitionId: competitionId, eventId: 36073);
+        c.listen(eventRankingProvider(key), (_, _) {});
+        await c.read(eventRankingProvider(key).future);
+        clearInteractions(results);
+
+        now = now.add(const Duration(minutes: 3));
+        await c.read(eventsProvider(competitionId).notifier).refresh();
+        await c.read(eventRankingProvider(key).future);
+        await pumpEventQueue();
+
+        verify(() => results.getEvents(competitionId)).called(1);
+        // L'épreuve choisie seule, pas les ~60 des classements.
+        expect(verify(() => results.getEventSeries(captureAny())).captured, [
+          36073,
+        ]);
+        expect(c.read(standingsProvider(competitionId)).value, same(before));
+      },
+    );
+
+    test(
       'fermé pendant la lecture : plus aucune lecture, aucune erreur',
       () async {
         final reads = <Completer<List<EventSeries>>>[];

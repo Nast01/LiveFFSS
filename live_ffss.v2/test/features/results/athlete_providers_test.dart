@@ -19,6 +19,7 @@ import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
+import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../support/fixtures.dart';
@@ -372,6 +373,30 @@ void main() {
 
       expect((await settled(c)).value, hasLength(6));
       verify(() => results.getEvents(competitionId)).called(2);
+    });
+    test('ne relit pas les classements des clubs', () async {
+      var fail = true;
+      when(() => results.getEvents(any())).thenAnswer((_) async {
+        if (fail) throw const NetworkException('hors ligne');
+        return events;
+      });
+      final c = container();
+      addTearDown(c.dispose);
+      c.listen(standingsProvider(competitionId), (_, _) {});
+      c.listen(athleteCardProvider(key), (_, _) {});
+      expect((await settled(c)).hasError, isTrue);
+      clearInteractions(results);
+
+      fail = false;
+      retryAthleteCard(c, key);
+      final races = (await settled(c)).value!;
+      await pumpEventQueue();
+
+      // Les épreuves de la fiche seulement, pas une lecture par épreuve.
+      expect(
+        verify(() => results.getEventSeries(captureAny())).captured.toSet(),
+        {for (final race in races) race.event.id},
+      );
     });
   });
 

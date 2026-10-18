@@ -82,7 +82,9 @@ class EventsNotifier extends AsyncNotifier<List<CompetitionEvent>> {
   Future<List<CompetitionEvent>> build() async =>
       (await ref.watch(_resultsSourceProvider(competitionId).future)).events;
 
-  /// Relit les épreuves ; les classements écoutés, qui en dépendent, suivent.
+  /// Relit les épreuves et le classement de l'épreuve écoutée ; pas les
+  /// classements des clubs, une lecture par épreuve, qui ont leur
+  /// rafraîchissement.
   Future<void> refresh() async {
     // Onglet fermé : plus rien à relire, et `ref` ne sert plus.
     if (!ref.mounted) return;
@@ -95,8 +97,8 @@ class EventsNotifier extends AsyncNotifier<List<CompetitionEvent>> {
   }
 }
 
-/// Relit les épreuves et, s'il a échoué, le programme ; les classements qui
-/// en dépendent suivent.
+/// Relit les épreuves et, s'il a échoué, le programme ; les classements
+/// d'épreuve écoutés suivent.
 void _refreshSource(Ref ref, int competitionId) {
   _retryFailedProgramme(ref, competitionId);
   ref.invalidate(_resultsSourceProvider(competitionId));
@@ -185,9 +187,19 @@ class StandingsNotifier extends AsyncNotifier<Standings> {
     final runRef = ref;
     final repository = ref.read(resultsRepositoryProvider);
     final clock = ref.read(clockProvider);
-    final source = await ref.watch(
+    // Écoutée le temps de la lecture, pas observée : le rafraîchissement des
+    // Épreuves relit la source, et ne doit pas refaire une lecture par
+    // épreuve. Seul [refresh] relit les classements.
+    final subscription = ref.listen(
       _resultsSourceProvider(competitionId).future,
+      (_, _) {},
     );
+    final ({List<CompetitionEvent> events, Programme programme}) source;
+    try {
+      source = await subscription.read();
+    } finally {
+      subscription.close();
+    }
     final events = source.events;
 
     final rankings = <int, EventRanking>{};
