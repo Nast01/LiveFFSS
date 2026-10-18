@@ -64,7 +64,7 @@ Constats faits sur de vraies réponses de la recette (`https://site.ffss.io/api/
 
 - **`evenement/:id/me` détaille les rôles** : `licencie {id, nom, prenom}`, `officiel {id, niveau, niveauLabel, principal}`, `referent_sportif [{id, label, sigle, nom}]` (un objet par club dont le compte est référent). Les codes de rôle sont aussi dans `roles`.
 - **Même numérotation des clubs partout** : l'`id` d'un `referent_sportif` de `/me`, l'`idClub` des participants et l'id des `organismes` désignent le même club. L'app rattache donc un club référent à ses participants par cet id.
-- **Un rôle `licencie` ne dit pas que le compte est engagé** : le licencié de `/me` peut être absent des participants de la compétition. Seule la liste des participants (`licencie.id` contre l'id du participant) le dit.
+- **Un rôle `licencie` ne dit pas que le compte est engagé** : le licencié de `/me` peut être absent des participants de la compétition. Seule la liste des participants le dit : `licencie.id` contre `Participant.idLicencie` (pas contre l'id du participant, d'une autre numérotation).
 - **`competition/evenement/:id/officiels`** → liste d'officiels avec un niveau (`A`, `B`, `C`, parfois vide), un indicateur de juge principal, les jours où ils officient et leur club. Les champs personnels ne sont **pas lus** : l'app ne garde que nom, niveau, principal, jours et club.
 - **Aucun champ `forfait` sur la lecture des engagements**, contrairement à la doc : un forfait déclaré avant la course n'est lisible que par les places (statut, `complement`). Lot 6b.
 - **`evenement/:id` publie les contacts de l'organisateur** (téléphone, e-mail). L'app ne les lit pas et les DTO ne les déclarent pas.

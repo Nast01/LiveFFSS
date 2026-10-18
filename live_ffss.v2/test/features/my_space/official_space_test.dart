@@ -32,10 +32,10 @@ import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
-import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/my_space/official_space_providers.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
+import 'package:live_ffss_v2/features/shell/space_competition.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../support/fixtures.dart';

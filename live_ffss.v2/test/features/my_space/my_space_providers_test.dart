@@ -27,12 +27,12 @@ import 'package:live_ffss_v2/domain/officials.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
-import 'package:live_ffss_v2/features/follows/follows_providers.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
+import 'package:live_ffss_v2/features/follows/follows_providers.dart';
+import 'package:live_ffss_v2/features/follows/reminder_records.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
-import 'package:live_ffss_v2/features/reminders/reminder_records.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:live_ffss_v2/features/shell/active_competition.dart';
@@ -314,6 +314,8 @@ void main() {
           ),
         );
         await cards();
+        // Enregistré sans être attendu, une fois sa première lecture finie.
+        await pumpEventQueue();
       }
 
       Future<FollowedAthlete?> self() {
@@ -354,6 +356,7 @@ void main() {
         container.invalidate(competitionRolesProvider(competitionId));
 
         await cards();
+        await pumpEventQueue();
 
         expect(store.values.containsKey(key), isFalse);
       });

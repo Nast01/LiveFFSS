@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CompetitionMeDto {
 
- List<Object?> get roles;@JsonKey(name: 'licencie', readValue: readMap) Object? get licensee;@JsonKey(name: 'officiel', readValue: readMap) Object? get official;@JsonKey(name: 'referent_sportif', readValue: readList) List<Object?> get refereeClubs;
+@JsonKey(readValue: readList) List<Object?> get roles;@JsonKey(name: 'licencie', readValue: readMap) Object? get licensee;@JsonKey(name: 'officiel', readValue: readMap) Object? get official;@JsonKey(name: 'referent_sportif', readValue: readList) List<Object?> get refereeClubs;
 /// Create a copy of CompetitionMeDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $CompetitionMeDtoCopyWith<$Res>  {
   factory $CompetitionMeDtoCopyWith(CompetitionMeDto value, $Res Function(CompetitionMeDto) _then) = _$CompetitionMeDtoCopyWithImpl;
 @useResult
 $Res call({
- List<Object?> roles,@JsonKey(name: 'licencie', readValue: readMap) Object? licensee,@JsonKey(name: 'officiel', readValue: readMap) Object? official,@JsonKey(name: 'referent_sportif', readValue: readList) List<Object?> refereeClubs
+@JsonKey(readValue: readList) List<Object?> roles,@JsonKey(name: 'licencie', readValue: readMap) Object? licensee,@JsonKey(name: 'officiel', readValue: readMap) Object? official,@JsonKey(name: 'referent_sportif', readValue: readList) List<Object?> refereeClubs
 });
 
 
@@ -160,7 +160,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Object?> roles, @JsonKey(name: 'licencie', readValue: readMap)  Object? licensee, @JsonKey(name: 'officiel', readValue: readMap)  Object? official, @JsonKey(name: 'referent_sportif', readValue: readList)  List<Object?> refereeClubs)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(readValue: readList)  List<Object?> roles, @JsonKey(name: 'licencie', readValue: readMap)  Object? licensee, @JsonKey(name: 'officiel', readValue: readMap)  Object? official, @JsonKey(name: 'referent_sportif', readValue: readList)  List<Object?> refereeClubs)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CompetitionMeDto() when $default != null:
 return $default(_that.roles,_that.licensee,_that.official,_that.refereeClubs);case _:
@@ -181,7 +181,7 @@ return $default(_that.roles,_that.licensee,_that.official,_that.refereeClubs);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Object?> roles, @JsonKey(name: 'licencie', readValue: readMap)  Object? licensee, @JsonKey(name: 'officiel', readValue: readMap)  Object? official, @JsonKey(name: 'referent_sportif', readValue: readList)  List<Object?> refereeClubs)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(readValue: readList)  List<Object?> roles, @JsonKey(name: 'licencie', readValue: readMap)  Object? licensee, @JsonKey(name: 'officiel', readValue: readMap)  Object? official, @JsonKey(name: 'referent_sportif', readValue: readList)  List<Object?> refereeClubs)  $default,) {final _that = this;
 switch (_that) {
 case _CompetitionMeDto():
 return $default(_that.roles,_that.licensee,_that.official,_that.refereeClubs);case _:
@@ -201,7 +201,7 @@ return $default(_that.roles,_that.licensee,_that.official,_that.refereeClubs);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Object?> roles, @JsonKey(name: 'licencie', readValue: readMap)  Object? licensee, @JsonKey(name: 'officiel', readValue: readMap)  Object? official, @JsonKey(name: 'referent_sportif', readValue: readList)  List<Object?> refereeClubs)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(readValue: readList)  List<Object?> roles, @JsonKey(name: 'licencie', readValue: readMap)  Object? licensee, @JsonKey(name: 'officiel', readValue: readMap)  Object? official, @JsonKey(name: 'referent_sportif', readValue: readList)  List<Object?> refereeClubs)?  $default,) {final _that = this;
 switch (_that) {
 case _CompetitionMeDto() when $default != null:
 return $default(_that.roles,_that.licensee,_that.official,_that.refereeClubs);case _:
@@ -216,11 +216,11 @@ return $default(_that.roles,_that.licensee,_that.official,_that.refereeClubs);ca
 @JsonSerializable()
 
 class _CompetitionMeDto implements CompetitionMeDto {
-  const _CompetitionMeDto({ List<Object?> roles = const <Object?>[], @JsonKey(name: 'licencie', readValue: readMap) this.licensee, @JsonKey(name: 'officiel', readValue: readMap) this.official, @JsonKey(name: 'referent_sportif', readValue: readList)  List<Object?> refereeClubs = const <Object?>[]}): _roles = roles,_refereeClubs = refereeClubs;
+  const _CompetitionMeDto({@JsonKey(readValue: readList)  List<Object?> roles = const <Object?>[], @JsonKey(name: 'licencie', readValue: readMap) this.licensee, @JsonKey(name: 'officiel', readValue: readMap) this.official, @JsonKey(name: 'referent_sportif', readValue: readList)  List<Object?> refereeClubs = const <Object?>[]}): _roles = roles,_refereeClubs = refereeClubs;
   factory _CompetitionMeDto.fromJson(Map<String, dynamic> json) => _$CompetitionMeDtoFromJson(json);
 
  final  List<Object?> _roles;
-@override@JsonKey() List<Object?> get roles {
+@override@JsonKey(readValue: readList) List<Object?> get roles {
   if (_roles is EqualUnmodifiableListView) return _roles;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_roles);
@@ -271,7 +271,7 @@ abstract mixin class _$CompetitionMeDtoCopyWith<$Res> implements $CompetitionMeD
   factory _$CompetitionMeDtoCopyWith(_CompetitionMeDto value, $Res Function(_CompetitionMeDto) _then) = __$CompetitionMeDtoCopyWithImpl;
 @override @useResult
 $Res call({
- List<Object?> roles,@JsonKey(name: 'licencie', readValue: readMap) Object? licensee,@JsonKey(name: 'officiel', readValue: readMap) Object? official,@JsonKey(name: 'referent_sportif', readValue: readList) List<Object?> refereeClubs
+@JsonKey(readValue: readList) List<Object?> roles,@JsonKey(name: 'licencie', readValue: readMap) Object? licensee,@JsonKey(name: 'officiel', readValue: readMap) Object? official,@JsonKey(name: 'referent_sportif', readValue: readList) List<Object?> refereeClubs
 });
 
 

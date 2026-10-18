@@ -15,27 +15,39 @@ import 'package:live_ffss_v2/data/ffss/mappers/reunion_mapper.dart';
 import 'package:live_ffss_v2/data/repositories/auth_repository.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/results_repository.dart';
+import 'package:live_ffss_v2/domain/account.dart';
 import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/competition_summary.dart';
 import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
+import 'package:live_ffss_v2/features/auth/session.dart';
+import 'package:live_ffss_v2/features/follows/reminder_records.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
+import 'package:live_ffss_v2/features/shell/space_competition.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../support/fixtures.dart';
+import '../../support/in_memory_local_store.dart';
 
 class _MockResultsRepository extends Mock implements ResultsRepository {}
 
 class _MockMeetingRepository extends Mock implements MeetingRepository {}
 
 class _MockHttpClient extends Mock implements HttpClient {}
+
+/// Personne de connecté, sans réseau.
+class _NoSession extends SessionNotifier {
+  @override
+  Future<Account?> build() async => null;
+}
 
 List<Map<String, dynamic>> _rows(String name) =>
     (fixture(name)['data'] as List<dynamic>).cast<Map<String, dynamic>>();
@@ -263,6 +275,61 @@ void main() {
       };
       expect(athletes, {632572, 630812});
     });
+
+    test(
+      "des athlètes non suivis : aucune série gardée pour les rappels",
+      () async {
+        // Leurs séries de 36073 publiées mais pas courues, au programme non
+        // plus : la fiche de chacun connaît sa course.
+        final waiting = programme.copyWith(
+          meetings: [
+            for (final meeting in programme.meetings)
+              meeting.copyWith(
+                items: [
+                  for (final item in meeting.items)
+                    item.copyWith(
+                      heats: [
+                        for (final heat in item.heats)
+                          heat.copyWith(status: RunStatus.waiting),
+                      ],
+                    ),
+                ],
+              ),
+          ],
+        );
+        when(
+          () => meetings.getProgramme(any()),
+        ).thenAnswer((_) async => waiting);
+        when(() => results.getEventSeries(any())).thenAnswer((
+          invocation,
+        ) async {
+          final id = invocation.positionalArguments.first as int;
+          return [
+            for (final one in series[id] ?? const <EventSeries>[])
+              one.copyWith(
+                results: [for (final r in one.results) r.copyWith(time: null)],
+              ),
+          ];
+        });
+        final store = InMemoryLocalStore();
+        final c = container(
+          overrides: [
+            localStoreProvider.overrideWithValue(store),
+            sessionProvider.overrideWith(_NoSession.new),
+          ],
+        );
+
+        final read = await schedule(c, clubId);
+        await pumpEventQueue();
+
+        expect(
+          splitClubRaces(read.races).toRun.map((r) => r.race.series),
+          contains(isNotNull),
+        );
+        expect(await c.read(knownHeatsProvider(competitionId).future), isEmpty);
+        expect(store.values.containsKey('known_heats_$competitionId'), isFalse);
+      },
+    );
 
     test('compétition côtière : ni épreuves ni classements lus', () async {
       disciplines = {Discipline.coastal};

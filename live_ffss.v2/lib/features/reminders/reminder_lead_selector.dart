@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
-import 'package:live_ffss_v2/features/reminders/reminder_lead.dart';
 import 'package:live_ffss_v2/features/reminders/reminders_formatting.dart';
-import 'package:live_ffss_v2/features/reminders/reminders_providers.dart';
+import 'package:live_ffss_v2/features/settings/reminder_lead.dart';
 
 /// Le délai des rappels avant une course ; dit pourquoi ils se sont
 /// désactivés si les notifications ont été refusées.

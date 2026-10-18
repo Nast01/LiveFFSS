@@ -15,6 +15,7 @@ import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
 import 'package:live_ffss_v2/features/programme/programme_providers.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
+import 'package:live_ffss_v2/features/shell/space_competition.dart';
 
 /// L'accès rapide de l'espace officiel, tiré du programme comme la carte en
 /// direct : aucune lecture de plus que celles du programme.

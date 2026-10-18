@@ -203,11 +203,13 @@ String competitionDatesLine(
   competition.disciplineLabel(l10n),
 ].join(' · ');
 
-/// « 346 athlètes · 46 clubs · 60 épreuves ».
+/// « 346 athlètes · 46 clubs · 60 épreuves d'eau plate ». Seules les
+/// épreuves eau plate sont comptées : une compétition côtière seule n'en a
+/// aucune, et « 0 épreuve » y serait faux.
 String competitionCountsLine(CompetitionInfo info, AppLocalizations l10n) => [
   l10n.mySpaceAthleteCount(info.athletes),
   l10n.mySpaceClubCount(info.clubs.length),
-  l10n.mySpaceEventCount(info.events),
+  if (info.events > 0) l10n.mySpaceFlatWaterEventCount(info.events),
 ].join(' · ');
 
 String clubAthletesLabel(int count, AppLocalizations l10n) =>

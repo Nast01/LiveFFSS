@@ -11,7 +11,6 @@ import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
-import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/my_space/official_space_providers.dart';
 import 'package:live_ffss_v2/features/my_space/widgets/my_space_rows.dart';
 import 'package:live_ffss_v2/features/officiel/entry_view.dart';
@@ -21,6 +20,7 @@ import 'package:live_ffss_v2/features/programme/programme_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
 import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
+import 'package:live_ffss_v2/features/shell/space_competition.dart';
 
 /// L'espace officiel : la série en cours et sa saisie, les saisies du
 /// compte, puis ce qui se lit à la demande (séries à saisir, DQ et

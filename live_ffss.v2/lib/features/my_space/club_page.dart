@@ -16,6 +16,7 @@ import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:live_ffss_v2/features/results/widgets/choice_chips_row.dart';
 import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
+import 'package:live_ffss_v2/features/shell/space_competition.dart';
 
 enum _ClubTab { planning, results, forfeits }
 

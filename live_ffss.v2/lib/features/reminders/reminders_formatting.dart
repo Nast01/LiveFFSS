@@ -2,8 +2,8 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/notifications/reminder_scheduler.dart';
 import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
-import 'package:live_ffss_v2/features/reminders/reminder_lead.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
+import 'package:live_ffss_v2/features/settings/reminder_lead.dart';
 
 /// L'id du rappel d'un athlète sur une épreuve. Pris au participant, pas à
 /// l'engagement : un suivi garde ses engagements et ses épreuves sans les

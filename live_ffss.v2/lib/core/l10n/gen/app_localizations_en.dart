@@ -817,12 +817,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String mySpaceEventCount(int count) {
+  String mySpaceFlatWaterEventCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count events',
-      one: '$count event',
+      other: '$count flat-water events',
+      one: '$count flat-water event',
     );
     return '$_temp0';
   }

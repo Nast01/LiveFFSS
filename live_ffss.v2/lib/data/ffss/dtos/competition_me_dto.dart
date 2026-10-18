@@ -11,7 +11,9 @@ part 'competition_me_dto.g.dart';
 @freezed
 abstract class CompetitionMeDto with _$CompetitionMeDto {
   const factory CompetitionMeDto({
-    @Default(<Object?>[]) List<Object?> roles,
+    // Hors liste, des rôles lus vides, donc `public` : le reste de la réponse
+    // reste lu.
+    @JsonKey(readValue: readList) @Default(<Object?>[]) List<Object?> roles,
     @JsonKey(name: 'licencie', readValue: readMap) Object? licensee,
     @JsonKey(name: 'officiel', readValue: readMap) Object? official,
     @JsonKey(name: 'referent_sportif', readValue: readList)

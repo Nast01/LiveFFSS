@@ -12,7 +12,7 @@ import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
-import 'package:live_ffss_v2/features/reminders/reminder_records.dart';
+import 'package:live_ffss_v2/features/follows/reminder_records.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 
 part 'athlete_providers.freezed.dart';

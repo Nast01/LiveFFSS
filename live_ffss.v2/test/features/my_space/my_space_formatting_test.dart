@@ -337,13 +337,23 @@ void main() {
       );
       expect(
         competitionCountsLine(info, fr),
-        '346 athlètes · 1 club · 60 épreuves',
+        "346 athlètes · 1 club · 60 épreuves d'eau plate",
       );
       expect(
         competitionCountsLine(info, en),
-        '346 athletes · 1 club · 60 events',
+        '346 athletes · 1 club · 60 flat-water events',
       );
       expect(clubAthletesLabel(12, fr), '12 athlètes');
+    });
+
+    test('côtier seul : pas de nombre d\'épreuves', () {
+      final info = CompetitionInfo(
+        competition: summary,
+        athletes: 120,
+        clubs: [(id: 15, label: 'Club', athletes: 12)],
+        events: 0,
+      );
+      expect(competitionCountsLine(info, fr), '120 athlètes · 1 club');
     });
   });
 

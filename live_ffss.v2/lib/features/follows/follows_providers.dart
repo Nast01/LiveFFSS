@@ -7,6 +7,7 @@ import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/results_mapper.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
+import 'package:live_ffss_v2/features/settings/reminder_lead.dart';
 
 part 'follows_providers.freezed.dart';
 part 'follows_providers.g.dart';
@@ -195,3 +196,24 @@ final followsProvider =
     AsyncNotifierProvider.family<FollowsNotifier, Follows, int>(
       FollowsNotifier.new,
     );
+
+/// L'étoile de la fiche : suivre un athlète, rappels actifs, demande la
+/// permission si elle manque. La page passe le conteneur de son
+/// `ProviderScope`.
+Future<void> toggleAthleteFollow(
+  ProviderContainer container,
+  int competitionId,
+  Participant participant,
+) async {
+  final follows = container.read(followsProvider(competitionId).notifier);
+  await follows.toggleAthlete(participant);
+  final followed =
+      container
+          .read(followsProvider(competitionId))
+          .value
+          ?.followsAthlete(participant.id) ??
+      false;
+  if (followed) {
+    await container.read(reminderLeadProvider.notifier).ensurePermission();
+  }
+}

@@ -13,11 +13,12 @@ import 'package:live_ffss_v2/domain/officials.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/follows/follows_providers.dart';
-import 'package:live_ffss_v2/features/reminders/reminder_records.dart';
+import 'package:live_ffss_v2/features/follows/reminder_records.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:live_ffss_v2/features/shell/active_competition.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
+import 'package:live_ffss_v2/features/shell/space_competition.dart';
 
 part 'my_space_providers.freezed.dart';
 
@@ -116,35 +117,6 @@ void retryMySpaceCards(ProviderContainer container, int competitionId) {
     container.invalidate(participants);
   }
   container.invalidate(mySpaceCardsProvider(competitionId));
-}
-
-/// La compétition d'une page de Mon espace : celle des onglets si c'est
-/// elle (lue sans être suivie : la liste de l'accueil, relue, ne doit rien
-/// relancer), sinon relue par son id. Elle dit si les résultats se lisent
-/// ([isCoastalOnly]).
-final spaceCompetitionProvider = FutureProvider.autoDispose
-    .family<CompetitionSummary, int>((ref, competitionId) async {
-      final current = ref.read(currentCompetitionProvider);
-      if (current != null && current.id == competitionId) return current;
-      final competition = await ref.watch(
-        competitionByIdProvider(competitionId).future,
-      );
-      if (competition == null) {
-        throw NotFoundException('competition $competitionId');
-      }
-      return competition;
-    });
-
-/// Une compétition en échec est relue au rafraîchissement d'une page qui
-/// en dépend.
-void retryFailedSpaceCompetition(
-  ProviderContainer container,
-  int competitionId,
-) {
-  final competition = spaceCompetitionProvider(competitionId);
-  if (container.exists(competition) && container.read(competition).hasError) {
-    container.invalidate(competition);
-  }
 }
 
 typedef CompetitionClub = ({int id, String label, int athletes});

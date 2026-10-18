@@ -29,13 +29,13 @@ import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/follows/follows_providers.dart';
-import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/programme/programme_providers.dart';
-import 'package:live_ffss_v2/features/reminders/reminder_lead.dart';
 import 'package:live_ffss_v2/features/reminders/reminders_formatting.dart';
 import 'package:live_ffss_v2/features/reminders/reminders_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
+import 'package:live_ffss_v2/features/settings/reminder_lead.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
+import 'package:live_ffss_v2/features/shell/space_competition.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../support/competitions.dart';

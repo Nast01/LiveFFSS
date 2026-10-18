@@ -8,7 +8,7 @@ part of 'competition_me_dto.dart';
 
 _CompetitionMeDto _$CompetitionMeDtoFromJson(Map<String, dynamic> json) =>
     _CompetitionMeDto(
-      roles: json['roles'] as List<dynamic>? ?? const <Object?>[],
+      roles: readList(json, 'roles') as List<dynamic>? ?? const <Object?>[],
       licensee: readMap(json, 'licencie'),
       official: readMap(json, 'officiel'),
       refereeClubs:

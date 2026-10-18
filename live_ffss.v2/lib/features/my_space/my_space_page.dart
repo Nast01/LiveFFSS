@@ -22,6 +22,7 @@ import 'package:live_ffss_v2/features/settings/language_selector.dart';
 import 'package:live_ffss_v2/features/settings/start_tab_selector.dart';
 import 'package:live_ffss_v2/features/shell/choose_competition_prompt.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
+import 'package:live_ffss_v2/features/shell/space_competition.dart';
 
 /// Mon espace : le compte (ou la connexion), les espaces du compte sur la
 /// compétition active, ce que tout le monde y consulte, et les préférences.

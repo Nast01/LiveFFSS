@@ -1388,11 +1388,11 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} club} other{{count} clubs}}'**
   String mySpaceClubCount(int count);
 
-  /// No description provided for @mySpaceEventCount.
+  /// No description provided for @mySpaceFlatWaterEventCount.
   ///
   /// In fr, this message translates to:
-  /// **'{count, plural, one{{count} épreuve} other{{count} épreuves}}'**
-  String mySpaceEventCount(int count);
+  /// **'{count, plural, one{{count} épreuve d\'eau plate} other{{count} épreuves d\'eau plate}}'**
+  String mySpaceFlatWaterEventCount(int count);
 
   /// No description provided for @mySpaceInfos.
   ///
