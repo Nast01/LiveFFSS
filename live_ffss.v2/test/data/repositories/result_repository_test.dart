@@ -38,7 +38,8 @@ void main() {
           ).captured.single
           as Map<String, dynamic>;
 
-  test('submit envoie tous les champs dans l\'adresse, sans corps', () async {
+  test('submit envoie dans l\'adresse, sans corps, ce qui doit être '
+      'renvoyé, jamais temps ni rang', () async {
     when(
       () => http.post(any(), query: any(named: 'query')),
     ).thenAnswer((_) async => {'success': true, 'id': 572548});
@@ -50,11 +51,9 @@ void main() {
       'id': 572548,
       'serie': 94894,
       'engagement': 566311,
-      'temps': 17577,
       'tempsLive1': '17500',
       'tempsLive2': '',
       'tempsLive3': '17600',
-      'rang': 3,
       'statut': 1,
       'complement': '12',
       'points': 8,
@@ -122,24 +121,21 @@ void main() {
     expect(query['tempsLive3'], '');
   });
 
-  test(
-    'temps, rang et points nuls sont omis, le statut toujours envoyé',
-    () async {
-      when(
-        () => http.post(any(), query: any(named: 'query')),
-      ).thenAnswer((_) async => {'success': true, 'id': 1});
+  test('points nuls omis, le statut toujours envoyé', () async {
+    when(
+      () => http.post(any(), query: any(named: 'query')),
+    ).thenAnswer((_) async => {'success': true, 'id': 1});
 
-      await repository.submit(
-        result.copyWith(time: null, rank: null, points: null, status: 0),
-      );
+    await repository.submit(
+      result.copyWith(time: null, rank: null, points: null, status: 0),
+    );
 
-      final query = submitted();
-      expect(query.containsKey('temps'), false);
-      expect(query.containsKey('rang'), false);
-      expect(query.containsKey('points'), false);
-      expect(query['statut'], 0);
-    },
-  );
+    final query = submitted();
+    expect(query.containsKey('temps'), false);
+    expect(query.containsKey('rang'), false);
+    expect(query.containsKey('points'), false);
+    expect(query['statut'], 0);
+  });
 
   Map<String, dynamic> data(Map<String, dynamic> extra) => {
     'data': {

@@ -41,7 +41,7 @@ Constats faits sur de vraies réponses de la recette (`https://site.ffss.io/api/
 - **Écriture `POST competition/resultat/submit`, vérifiée le 2026-10-18 sur le résultat 572548 (série 94894, engagement 566311) :**
   - **Les paramètres passent dans l'adresse** (query string, comme le jeton), sans corps : un corps JSON répond **HTTP 500** sans message, même avec tous les champs. C'est ce que faisait la v1.
   - Réponse : `{"success":true,"message":"résultat enregistré","isRecord":false,"isCreation":false,"id":572548}`.
-  - **Un `statut` omis n'est pas conservé** : il retombe à **3 (« F/DQ »)** et `isValid` passe à `false`. `temps`, `rang`, `tempsLiveN` et `complement` omis sont conservés. **Toujours renvoyer tous les champs** après relecture.
+  - **Un `statut` omis n'est pas conservé** : il retombe à **3 (« F/DQ »)** et `isValid` passe à `false`. `temps`, `rang`, `tempsLiveN` et `complement` omis sont conservés. Après relecture, **toujours renvoyer `statut`, `complement` et `tempsLive1..3`** ; **`temps` et `rang` ne sont jamais envoyés** (omis, ils sont gardés, alors que les renvoyer écraserait un temps publié par le juge entre la lecture et l'écriture).
   - DQ : `statut` 1 + `complement` (le code, ex. « 12 ») → `statutLabel` « DQ », `isDisqualifie` vrai ; `disqualificationCode` reste `null`.
   - **Un `tempsLiveN` envoyé vide devient `0`**, pas `null` : lire 0 comme « pas de chrono ».
   - **`complement` ne s'efface pas** : vide ou omis, il garde sa valeur (« 12 » resté après retour au statut 0). Une DQ annulée laisse donc son code dans `complement` ; ne l'afficher que si le statut est DQ. À signaler au développeur de l'API.

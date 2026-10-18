@@ -306,8 +306,9 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
       if (resultId == null) {
         current = RaceResult(seriesId: op.seriesId, entryId: op.entryId);
       } else {
-        // Relu juste avant l'écriture : l'envoi renvoie tous les champs, et
-        // ne doit pas effacer ce que le juge a posé depuis la saisie.
+        // Relu juste avant l'écriture : l'envoi renvoie le statut, le code
+        // et les chronos, et ne doit pas effacer ce que le juge a posé
+        // depuis la saisie.
         final read = await results.getResult(resultId);
         if (lost()) return _Outcome.stop;
         if (read == null) return _fault(op, OutboxRejection.unreadableResult);

@@ -80,13 +80,15 @@ class ResultRepositoryImpl implements ResultRepository {
   }
 
   /// Les paramètres passent dans l'adresse et sans corps : un corps JSON
-  /// répond HTTP 500. Tous les champs sont renvoyés à chaque fois, car un
-  /// `statut` omis retombe à 3. Un chrono vide part en `''` (stocké 0).
-  /// Temps, rang et points nuls sont omis.
+  /// répond HTTP 500. `statut`, `complement` et les chronos relus sont
+  /// renvoyés à chaque fois, car un `statut` omis retombe à 3. Un chrono vide
+  /// part en `''` (stocké 0). `temps` et `rang` ne partent jamais : omis, le
+  /// site les garde, alors que les renvoyer écraserait un temps publié par le
+  /// juge entre notre lecture et notre écriture. Des points nuls sont omis.
   @override
   Future<int> submit(RaceResult result) async {
-    // Un chrono vidé part en `''` ; temps, rang et points absents sont omis :
-    // FFSS les conserve, alors qu'un `''` les remettrait à 0.
+    // Des points absents sont omis : FFSS les conserve, alors qu'un `''` les
+    // remettrait à 0.
     String chrono(int i) => result.chronos.elementAtOrNull(i)?.toString() ?? '';
     final body = await _http.post(
       ApiEndpoints.resultSubmit,
@@ -94,11 +96,9 @@ class ResultRepositoryImpl implements ResultRepository {
         'id': ?result.id,
         'serie': result.seriesId,
         'engagement': result.entryId,
-        'temps': ?result.time,
         'tempsLive1': chrono(0),
         'tempsLive2': chrono(1),
         'tempsLive3': chrono(2),
-        'rang': ?result.rank,
         'statut': result.status,
         'complement': result.complement,
         'points': ?result.points,
