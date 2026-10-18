@@ -62,4 +62,55 @@ void main() {
       expect(entryHeatId({}), isNull);
     });
   });
+
+  group('routes des résultats', () {
+    test('recherche et fiche restent dans la branche des résultats', () {
+      expect(
+        Routes.resultsSearch(1416),
+        '/resultats/competition/1416/recherche',
+      );
+      expect(
+        Routes.resultsAthlete(1416, 632821),
+        '/resultats/competition/1416/athlete/632821',
+      );
+      expect(Routes.resultsSearch(1416), startsWith('${Routes.results}/'));
+      expect(
+        Routes.resultsAthlete(1416, 632821),
+        startsWith('${Routes.results}/'),
+      );
+    });
+
+    test('athleteKey lit la compétition et le participant', () {
+      expect(athleteKey({'competitionId': '1416', 'participantId': '632821'}), (
+        competitionId: 1416,
+        participantId: 632821,
+      ));
+      expect(
+        athleteKey({'competitionId': '1416', 'participantId': 'x'}),
+        isNull,
+      );
+      expect(athleteKey({'participantId': '632821'}), isNull);
+    });
+
+    test('un lien de recherche illisible retombe sur les résultats', () {
+      expect(searchRedirect({'competitionId': '1416'}), isNull);
+      expect(searchRedirect({'competitionId': 'abc'}), Routes.results);
+      expect(searchRedirect({}), Routes.results);
+    });
+
+    test("un lien de fiche illisible retombe sur les résultats", () {
+      expect(
+        athleteRedirect({'competitionId': '1416', 'participantId': '632821'}),
+        isNull,
+      );
+      expect(
+        athleteRedirect({'competitionId': '1416', 'participantId': ''}),
+        Routes.results,
+      );
+      expect(
+        athleteRedirect({'competitionId': 'x', 'participantId': '632821'}),
+        Routes.results,
+      );
+    });
+  });
 }
