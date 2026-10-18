@@ -82,10 +82,28 @@ void main() {
   test('une copie de côté garde la valeur sous sa propre clé', () async {
     final at = DateTime.utc(2026, 10, 18);
     await store.backup('{pas du json', at);
-    expect(local.values, {
-      '${OutboxStore.backupKeyPrefix}${at.millisecondsSinceEpoch}':
-          '{pas du json',
-    });
+    expect(
+      local
+          .values['${OutboxStore.backupKeyPrefix}${at.millisecondsSinceEpoch}'],
+      '{pas du json',
+    );
+  });
+
+  test('seules les 3 copies de côté les plus récentes sont gardées', () async {
+    final start = DateTime.utc(2026, 10, 18);
+    String key(int i) =>
+        '${OutboxStore.backupKeyPrefix}'
+        '${start.add(Duration(minutes: i)).millisecondsSinceEpoch}';
+    for (var i = 0; i < 5; i++) {
+      await store.backup('copie $i', start.add(Duration(minutes: i)));
+    }
+    final backups = Map.fromEntries(
+      local.values.entries.where(
+        (e) => e.key.startsWith(OutboxStore.backupKeyPrefix),
+      ),
+    );
+    expect(backups, {key(2): 'copie 2', key(3): 'copie 3', key(4): 'copie 4'});
+    expect(local.values.containsKey(OutboxStore.storageKey), isFalse);
   });
 
   test('une ligne illisible est gardée telle quelle et réécrite', () async {

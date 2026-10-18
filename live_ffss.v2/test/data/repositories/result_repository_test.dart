@@ -99,12 +99,13 @@ void main() {
     );
   });
 
-  test('une réponse sans id lève ApiException', () async {
+  test('une réponse sans id lève UnknownException', () async {
+    // Pas un refus : la file réessaie (elle relit la place, sans doublon).
     when(
       () => http.post(any(), query: any(named: 'query')),
     ).thenAnswer((_) async => {'success': true});
 
-    expect(repository.submit(result), throwsA(isA<ApiException>()));
+    expect(repository.submit(result), throwsA(isA<UnknownException>()));
   });
 
   test('un résultat à chronos hors de trois entrées part complet', () async {

@@ -455,6 +455,43 @@ void main() {
     });
   });
 
+  test('portail captif (réponse hors enveloppe) : jamais refusée', () {
+    fakeAsync((async) {
+      serverResultIds[11] = 42;
+      var reads = 0;
+      when(() => results.getResult(42)).thenAnswer((_) async {
+        reads++;
+        if (reads.isOdd) {
+          throw const ApiException(
+            'Invalid JSON: <html>',
+            statusCode: 200,
+            malformedResponse: true,
+          );
+        }
+        return const RaceResult(id: 42, seriesId: 5, entryId: 7);
+      });
+      when(() => results.submit(any())).thenThrow(
+        const ApiException(
+          'Unexpected response shape',
+          statusCode: 200,
+          malformedResponse: true,
+        ),
+      );
+      final c = container();
+      async.flushMicrotasks();
+
+      unawaited(add(c));
+      async.flushMicrotasks();
+      async.elapse(const Duration(minutes: 30));
+
+      verify(() => results.submit(any())).called(greaterThan(maxFaults));
+      final op = c.read(outboxProvider).single;
+      expect(op.state, OutboxState.pending);
+      expect(op.faults, 0);
+      c.dispose();
+    });
+  });
+
   test('coupure : jamais refusée, même longtemps', () {
     fakeAsync((async) {
       when(

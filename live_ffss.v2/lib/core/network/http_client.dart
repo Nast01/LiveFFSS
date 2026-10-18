@@ -206,9 +206,12 @@ class HttpClient {
 
     if (status >= 400) {
       throw ApiException(
-        _extractMessage(rawBody) ?? 'HTTP $status',
+        message ?? 'HTTP $status',
         statusCode: status,
         authenticated: authenticated,
+        // Une erreur sans corps JSON vient d'un proxy, d'un portail ou d'une
+        // panne, pas d'un refus formulé par FFSS.
+        malformedResponse: !_isJsonObject(rawBody),
       );
     }
 
@@ -216,10 +219,12 @@ class HttpClient {
     try {
       body = jsonDecode(rawBody);
     } on FormatException catch (e) {
+      // Le portail captif d'un Wi-Fi sert sa page de connexion en 200.
       throw ApiException(
         'Invalid JSON: ${e.message}',
         statusCode: status,
         authenticated: authenticated,
+        malformedResponse: true,
       );
     }
 
@@ -239,6 +244,7 @@ class HttpClient {
         'Unexpected response shape',
         statusCode: status,
         authenticated: authenticated,
+        malformedResponse: true,
       );
     }
 
@@ -269,6 +275,14 @@ class HttpClient {
     if (cb == null) return;
     // Fire-and-forget; swallow errors so the AuthException always propagates.
     cb().catchError((Object _) {});
+  }
+
+  static bool _isJsonObject(String rawBody) {
+    try {
+      return jsonDecode(rawBody) is Map<String, dynamic>;
+    } on FormatException {
+      return false;
+    }
   }
 
   String? _extractMessage(String rawBody) {

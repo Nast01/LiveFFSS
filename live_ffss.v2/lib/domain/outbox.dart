@@ -79,6 +79,9 @@ List<OutboxOperation> enqueue(List<OutboxOperation> queue, OutboxOperation op) {
     ..[index] = existing.copyWith(
       resultId: op.resultId ?? existing.resultId,
       change: mergeChanges(existing.change, op.change),
+      // Une saisie neuve repart de zéro : elle n'hérite pas des échecs passés.
+      attempts: 0,
+      faults: 0,
     );
 }
 

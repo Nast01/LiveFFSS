@@ -77,6 +77,14 @@ void main() {
       expect(queue.single.resultId, 99);
     });
 
+    test('une nouvelle saisie n\'hérite pas des échecs passés', () {
+      final queue = enqueue([
+        op('a').copyWith(attempts: 7, faults: 4),
+      ], op('b'));
+      expect(queue.single.attempts, 0);
+      expect(queue.single.faults, 0);
+    });
+
     test('pas de fusion avec un autre compte', () {
       final queue = enqueue([op('a')], op('b', account: 'MARTIN Paul'));
       expect(queue.map((o) => o.id), ['a', 'b']);

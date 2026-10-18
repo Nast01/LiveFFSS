@@ -87,7 +87,9 @@ class ResultRepositoryImpl implements ResultRepository {
     );
     final id = body['id'];
     final parsed = id is String ? int.tryParse(id) : id;
-    if (parsed is! int) throw const ApiException('réponse sans id');
+    // Pas un refus : l'écriture a pu aboutir, et la file d'envoi qui réessaie
+    // relit la place avant (sans doublon).
+    if (parsed is! int) throw const UnknownException('réponse sans id');
     return parsed;
   }
 }

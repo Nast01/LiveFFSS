@@ -335,6 +335,9 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
           return _Outcome.stop;
         case NetworkException():
           return _retryLater(op);
+        case ApiException(malformedResponse: true):
+          // Une page de portail captif ou de proxy : hors ligne, en somme.
+          return _retryLater(op);
         case ApiException(:final statusCode?) when _isTransient(statusCode):
           return _retryLater(op);
         case UnknownException():

@@ -130,6 +130,13 @@ class OutboxStore {
   static const storageKey = 'outbox';
   static const backupKeyPrefix = 'outbox_backup_';
 
+  /// La liste des copies de côté, du plus ancien au plus récent :
+  /// [LocalStore] ne sait pas énumérer ses clés.
+  static const backupIndexKey = 'outbox_backups';
+
+  /// Assez pour remonter quelques incidents, sans remplir l'appareil.
+  static const maxBackups = 3;
+
   final LocalStore _local;
 
   /// Lève une [AppException] si le stockage ne répond pas.
@@ -143,9 +150,33 @@ class OutboxStore {
 
   /// Met de côté une valeur illisible, sous une clé à part, avant qu'un
   /// enregistrement ne la remplace : elle contient peut-être des saisies.
-  Future<void> backup(String raw, DateTime at) => _guard(
-    () => _local.write('$backupKeyPrefix${at.millisecondsSinceEpoch}', raw),
-  );
+  /// Seules les [maxBackups] plus récentes sont gardées.
+  Future<void> backup(String raw, DateTime at) => _guard(() async {
+    final key = '$backupKeyPrefix${at.millisecondsSinceEpoch}';
+    // La copie d'abord : un index en échec ne doit pas la faire perdre.
+    await _local.write(key, raw);
+    final keys = [..._decodeIndex(await _local.read(backupIndexKey))]
+      ..remove(key)
+      ..add(key);
+    final dropped = keys.length > maxBackups
+        ? keys.sublist(0, keys.length - maxBackups)
+        : const <String>[];
+    final kept = keys.sublist(dropped.length);
+    await _local.write(backupIndexKey, jsonEncode(kept));
+    for (final old in dropped) {
+      await _local.delete(old);
+    }
+  });
+
+  static List<String> _decodeIndex(String? raw) {
+    if (raw == null) return const [];
+    try {
+      final keys = jsonDecode(raw);
+      return keys is List ? keys.whereType<String>().toList() : const [];
+    } on FormatException {
+      return const [];
+    }
+  }
 
   /// Le stockage sécurisé lève ses propres erreurs (`PlatformException`…) :
   /// traduites en [AppException], la seule que les appelants attrapent.

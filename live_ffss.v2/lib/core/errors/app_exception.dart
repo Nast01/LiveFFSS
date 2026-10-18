@@ -22,10 +22,16 @@ class ApiException extends AppException {
     this.statusCode,
     this.code,
     this.authenticated,
+    this.malformedResponse = false,
   });
 
   final int? statusCode;
   final String? code;
+
+  /// La réponse n'était pas une enveloppe FFSS : une page HTML (portail
+  /// captif d'un Wi-Fi, proxy, panne) ou un JSON d'une autre forme. Ce n'est
+  /// pas un refus du site, et un nouvel essai peut réussir.
+  final bool malformedResponse;
 
   /// Whether the request that failed carried a token. Null when nobody
   /// recorded it.
