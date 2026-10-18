@@ -117,6 +117,20 @@ List<LinkedSeries> linkSeries(
   return [for (final index in byHeat.keys.toList()..sort()) byHeat[index]!];
 }
 
+/// La finale de [event] prévue au déroulement, nulle sans finale : elle donne
+/// le nombre de finales et leurs places, qui fixent les points (V3
+/// `RacePoints`), même avant que la moindre finale ne soit publiée.
+Stage? finalStageOf(Programme programme, CompetitionEvent event) {
+  final progression = progressionOfEvent(programme.progressions, event);
+  if (progression == null) return null;
+  for (final stage in progression.stages) {
+    if (stage.level == StageLevel.finalStage && _stageCovers(stage, event)) {
+      return stage;
+    }
+  }
+  return null;
+}
+
 /// Les finales sont publiées par catégorie (« Finale - Cadet ») et peuvent se
 /// suivre à quelques minutes : sans ce filtre, avec du retard, la finale A
 /// Cadet prendrait la course de la finale A Junior.

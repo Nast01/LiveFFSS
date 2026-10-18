@@ -11,6 +11,7 @@ import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/domain/progression.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 
@@ -86,6 +87,41 @@ List<LinkedSeries> _sixteenHeats() => [
     for (var e = 2; e <= 16; e += 2) _r(e, time: 6000 + e),
   ]),
 ];
+
+Stage _finals(int heatCount, {int places = 8}) => Stage(
+  id: 143,
+  order: 2,
+  level: StageLevel.finalStage,
+  name: 'Finale - Cadet',
+  qualification: QualificationMethod.none,
+  heatCount: heatCount,
+  placesPerHeat: places,
+);
+
+(Programme, CompetitionEvent, List<LinkedSeries>) _fixture36073() {
+  List<Map<String, dynamic>> rows(String name) =>
+      (fixture(name)['data'] as List<dynamic>).cast<Map<String, dynamic>>();
+  final progressions = [
+    for (final row in rows('deroulement'))
+      ?DeroulementDto.fromJson(row).toDomain(),
+  ];
+  final meetings = [
+    for (final row in rows('reunion')) ?ReunionDto.fromJson(row).toDomain(),
+  ];
+  final programme = Programme(
+    meetings: withRaces(meetings, progressions),
+    progressions: progressions,
+  );
+  final event = [
+    for (final row in rows('epreuves_1416'))
+      ?EpreuveDto.fromJson(row).toDomain(),
+  ].firstWhere((e) => e.id == 36073);
+  final series = [
+    for (final row in rows('serie_epreuve_36073'))
+      ?SerieResultsDto.fromJson(row).toDomain(),
+  ];
+  return (programme, event, linkSeries(programme, event, series));
+}
 
 void main() {
   test('barème de V3, 0 au-delà', () {
@@ -328,30 +364,153 @@ void main() {
     });
   });
 
-  test('fixture 36073 rattachée : aucun doublon d\'engagement', () {
-    List<Map<String, dynamic>> rows(String name) =>
-        (fixture(name)['data'] as List<dynamic>).cast<Map<String, dynamic>>();
-    final progressions = [
-      for (final row in rows('deroulement'))
-        ?DeroulementDto.fromJson(row).toDomain(),
-    ];
-    final meetings = [
-      for (final row in rows('reunion')) ?ReunionDto.fromJson(row).toDomain(),
-    ];
-    final programme = Programme(
-      meetings: withRaces(meetings, progressions),
-      progressions: progressions,
+  group('finales prévues au programme', () {
+    test('deux finales prévues, aucune rattachée : séries à 0 point', () {
+      final ranking = rankEvent(
+        _event,
+        _sixteenHeats(),
+        finalStage: _finals(2),
+      );
+      expect(ranking.rows.map((r) => r.rank), [
+        for (var e = 1; e <= 16; e++) e,
+      ]);
+      expect(ranking.rows.map((r) => r.points), everyElement(0));
+    });
+
+    test('une finale prévue, pas courue : QFA attend, les autres 9-16', () {
+      final ranking = rankEvent(_event, [
+        _s(EventRound.heats, 1, [
+          _r(1, time: 3000, complement: 'QFA'),
+          _r(2, time: 3100),
+          _r(3, time: 3200),
+        ]),
+      ], finalStage: _finals(1));
+      expect(_table(ranking), [
+        (1, 1, 0),
+        (2, 2, pointsFor(9)),
+        (3, 3, pointsFor(10)),
+      ]);
+    });
+
+    test('places de la finale prises au déroulement', () {
+      final ranking = rankEvent(_event, [
+        _s(EventRound.heats, 1, [
+          _r(1, time: 3000, complement: 'QFA'),
+          _r(2, time: 3100),
+        ]),
+      ], finalStage: _finals(1, places: 6));
+      expect(_table(ranking).last, (2, 2, pointsFor(7)));
+    });
+
+    test('finale B courue avant la finale A', () {
+      final ranking = rankEvent(_event, [
+        _s(EventRound.heats, 1, [
+          for (var e = 1; e <= 18; e++)
+            _r(
+              e,
+              time: 6000 + e,
+              complement: e <= 8
+                  ? 'QFA'
+                  : e <= 16
+                  ? 'QFB'
+                  : '',
+            ),
+        ]),
+        _s(EventRound.finalB, 0, [
+          for (var e = 9; e <= 16; e++) _r(e, time: 5000 + e),
+        ]),
+        _s(EventRound.finalA, 0, const [], status: RunStatus.waiting),
+      ], finalStage: _finals(2));
+      expect(_table(ranking), [
+        for (var e = 9; e <= 16; e++) (e, e, pointsFor(e)),
+        for (var e = 1; e <= 8; e++) (e, null, 0),
+        (17, 17, 0),
+        (18, 18, 0),
+      ]);
+      expect(ranking.rows[8].qualification, Qualification.finalA);
+      final ranks = [for (final row in ranking.rows) ?row.rank];
+      expect(ranks.toSet().length, ranks.length);
+    });
+
+    test('un FF avec temps est classé, jamais qualifié, même avec QFA', () {
+      final ranking = rankEvent(_event, [
+        _s(EventRound.heats, 1, [
+          _r(1, time: 3000, complement: 'FF'),
+          _r(2, time: 3100, complement: 'QFA'),
+          _r(3, time: 3200),
+        ]),
+      ], finalStage: _finals(1));
+      final byEntry = {for (final row in ranking.rows) row.result.entryId: row};
+      expect(byEntry[1]!.rank, 1);
+      expect(byEntry[1]!.qualification, Qualification.none);
+      // Il ne va pas en finale : il marque comme les non-qualifiés.
+      expect(byEntry[1]!.points, pointsFor(9));
+      expect(byEntry[2]!.points, 0);
+      expect(byEntry[3]!.points, pointsFor(10));
+    });
+
+    test('finale A seule : ex æquo parmi les non-qualifiés', () {
+      final ranking = rankEvent(_event, [
+        _s(EventRound.heats, 1, [
+          _r(1, time: 3000, complement: 'QFA'),
+          _r(2, time: 3100),
+          _r(3, time: 3100),
+          _r(4, time: 3200),
+        ]),
+      ], finalStage: _finals(1));
+      expect(_table(ranking), [
+        (1, 1, 0),
+        (2, 2, pointsFor(9)),
+        (3, 2, pointsFor(9)),
+        (4, 4, pointsFor(11)),
+      ]);
+    });
+  });
+
+  test('un engagement deux fois dans les séries ne compte qu\'une fois', () {
+    final ranking = rankEvent(_event, [
+      _s(EventRound.heats, 1, [_r(1, time: 3000), _r(2, time: 3100)]),
+      _s(EventRound.heats, 2, [_r(1, time: 2900, id: 50)]),
+    ]);
+    expect(_table(ranking), [(1, 1, 20), (2, 2, 18)]);
+  });
+
+  test('un engagement en finale A et en finale B : une ligne, la A', () {
+    final ranking = rankEvent(_event, [
+      _s(EventRound.heats, 1, [_r(1, time: 3000), _r(2, time: 3100)]),
+      _s(EventRound.finalA, 0, [_r(1, time: 2900, id: 60)]),
+      _s(EventRound.finalB, 0, [
+        _r(1, time: 2800, id: 61),
+        _r(2, time: 3000, id: 62),
+      ]),
+    ], finalStage: _finals(2));
+    expect(
+      [for (final row in ranking.rows) (row.result.id, row.rank, row.round)],
+      [(60, 1, EventRound.finalA), (62, 9, EventRound.finalB)],
     );
-    final event = [
-      for (final row in rows('epreuves_1416'))
-        ?EpreuveDto.fromJson(row).toDomain(),
-    ].firstWhere((e) => e.id == 36073);
-    final series = [
-      for (final row in rows('serie_epreuve_36073'))
-        ?SerieResultsDto.fromJson(row).toDomain(),
+  });
+
+  test('fixture 36073 : deux finales prévues, séries à 0 point', () {
+    final (programme, event, linked) = _fixture36073();
+    final stage = finalStageOf(programme, event);
+    expect(stage?.id, 143);
+    expect(stage?.heatCount, 2);
+    final ranking = rankEvent(event, linked, finalStage: stage);
+    final heatRows = [
+      for (final row in ranking.rows)
+        if (row.round == EventRound.heats) row,
     ];
-    final linked = linkSeries(programme, event, series);
-    final ranking = rankEvent(event, linked);
+    expect(heatRows, isNotEmpty);
+    expect(heatRows.map((r) => r.points), everyElement(0));
+  });
+
+  test('fixture 36073 rattachée : aucun doublon d\'engagement', () {
+    final (programme, event, linked) = _fixture36073();
+    final ranking = rankEvent(
+      event,
+      linked,
+      finalStage: finalStageOf(programme, event),
+    );
 
     final entries = [for (final row in ranking.rows) row.result.entryId];
     expect(entries, isNotEmpty);
