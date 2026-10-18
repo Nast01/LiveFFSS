@@ -3,6 +3,7 @@ import 'package:live_ffss_v2/data/ffss/dtos/epreuve_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/participant_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/serie_results_dto.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/results_mapper.dart';
+import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
 
@@ -34,6 +35,23 @@ void main() {
       expect(event.categoryName, 'Cadet');
       expect(event.teamSize, 1);
       expect(event.isRelay, isFalse);
+    });
+
+    test('la spécialité : 2 eau plate, 1 côtier, autre ou absente nulle', () {
+      expect(
+        events.map((e) => e.discipline),
+        everyElement(Discipline.flatWater),
+      );
+      EpreuveDto withSpeciality(int? code) => EpreuveDto(
+        id: 1,
+        disciplineId: 2,
+        gender: 'F',
+        discipline: EpreuveDisciplineDto(speciality: code),
+        categories: const [EpreuveCategorieDto(id: 3, name: 'Cadet')],
+      );
+      expect(withSpeciality(1).toDomain()?.discipline, Discipline.coastal);
+      expect(withSpeciality(3).toDomain()?.discipline, isNull);
+      expect(withSpeciality(null).toDomain()?.discipline, isNull);
     });
 
     test('le relais 4 x 50 m est un relais', () {

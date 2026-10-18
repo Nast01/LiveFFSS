@@ -37,6 +37,7 @@ _EpreuveDisciplineDto _$EpreuveDisciplineDtoFromJson(
   label: json['label'] as String?,
   name: json['Nom'] as String?,
   teamSize: (readInt(json, 'NbAthleteParEquipe') as num?)?.toInt(),
+  speciality: (readInt(json, 'Specialite') as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$EpreuveDisciplineDtoToJson(
@@ -45,6 +46,7 @@ Map<String, dynamic> _$EpreuveDisciplineDtoToJson(
   'label': instance.label,
   'Nom': instance.name,
   'NbAthleteParEquipe': instance.teamSize,
+  'Specialite': instance.speciality,
 };
 
 _EpreuveCategorieDto _$EpreuveCategorieDtoFromJson(Map<String, dynamic> json) =>

@@ -2,6 +2,7 @@ import 'package:live_ffss_v2/data/ffss/dtos/epreuve_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/participant_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/serie_results_dto.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/reunion_mapper.dart';
+import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 
 /// Décode chaque ligne seule : une ligne qui n'est pas un objet, mal typée
@@ -52,6 +53,11 @@ extension EpreuveMapper on EpreuveDto {
       categoryId: categoryId,
       categoryName: category?.name?.trim() ?? '',
       teamSize: discipline?.teamSize ?? 1,
+      discipline: switch (discipline?.speciality) {
+        2 => Discipline.flatWater,
+        1 => Discipline.coastal,
+        _ => null,
+      },
     );
   }
 }

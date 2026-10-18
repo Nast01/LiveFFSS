@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
 
@@ -18,6 +19,10 @@ abstract class CompetitionEvent with _$CompetitionEvent {
     required int categoryId,
     required String categoryName,
     required int teamSize,
+
+    /// La spécialité de la discipline ; nulle quand FFSS n'en donne pas une
+    /// connue : l'épreuve n'est alors montrée nulle part.
+    Discipline? discipline,
   }) = _CompetitionEvent;
 
   bool get isRelay => teamSize > 1;

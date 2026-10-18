@@ -28,6 +28,7 @@ abstract class EpreuveDisciplineDto with _$EpreuveDisciplineDto {
     @JsonKey(name: 'label') String? label,
     @JsonKey(name: 'Nom') String? name,
     @JsonKey(name: 'NbAthleteParEquipe', readValue: readInt) int? teamSize,
+    @JsonKey(name: 'Specialite', readValue: readInt) int? speciality,
   }) = _EpreuveDisciplineDto;
 
   factory EpreuveDisciplineDto.fromJson(Map<String, dynamic> json) =>

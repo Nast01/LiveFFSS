@@ -328,7 +328,7 @@ $EpreuveDisciplineDtoCopyWith<$Res>? get discipline {
 /// @nodoc
 mixin _$EpreuveDisciplineDto {
 
-@JsonKey(name: 'label') String? get label;@JsonKey(name: 'Nom') String? get name;@JsonKey(name: 'NbAthleteParEquipe', readValue: readInt) int? get teamSize;
+@JsonKey(name: 'label') String? get label;@JsonKey(name: 'Nom') String? get name;@JsonKey(name: 'NbAthleteParEquipe', readValue: readInt) int? get teamSize;@JsonKey(name: 'Specialite', readValue: readInt) int? get speciality;
 /// Create a copy of EpreuveDisciplineDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -342,20 +342,20 @@ $EpreuveDisciplineDtoCopyWith<EpreuveDisciplineDto> get copyWith => _$EpreuveDis
 @override
 bool operator ==(Object other) {
   final _this = this as EpreuveDisciplineDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EpreuveDisciplineDto&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.teamSize, _this.teamSize) || other.teamSize == _this.teamSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EpreuveDisciplineDto&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.teamSize, _this.teamSize) || other.teamSize == _this.teamSize)&&(identical(other.speciality, _this.speciality) || other.speciality == _this.speciality));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as EpreuveDisciplineDto;
-  return Object.hash(runtimeType,_this.label,_this.name,_this.teamSize);
+  return Object.hash(runtimeType,_this.label,_this.name,_this.teamSize,_this.speciality);
 }
 
 @override
 String toString() {
   final _this = this as EpreuveDisciplineDto;
-  return 'EpreuveDisciplineDto(label: ${_this.label}, name: ${_this.name}, teamSize: ${_this.teamSize})';
+  return 'EpreuveDisciplineDto(label: ${_this.label}, name: ${_this.name}, teamSize: ${_this.teamSize}, speciality: ${_this.speciality})';
 }
 
 
@@ -366,7 +366,7 @@ abstract mixin class $EpreuveDisciplineDtoCopyWith<$Res>  {
   factory $EpreuveDisciplineDtoCopyWith(EpreuveDisciplineDto value, $Res Function(EpreuveDisciplineDto) _then) = _$EpreuveDisciplineDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'label') String? label,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'NbAthleteParEquipe', readValue: readInt) int? teamSize
+@JsonKey(name: 'label') String? label,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'NbAthleteParEquipe', readValue: readInt) int? teamSize,@JsonKey(name: 'Specialite', readValue: readInt) int? speciality
 });
 
 
@@ -383,11 +383,12 @@ class _$EpreuveDisciplineDtoCopyWithImpl<$Res>
 
 /// Create a copy of EpreuveDisciplineDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? label = freezed,Object? name = freezed,Object? teamSize = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? label = freezed,Object? name = freezed,Object? teamSize = freezed,Object? speciality = freezed,}) {
   return _then(EpreuveDisciplineDto(
 label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,teamSize: freezed == teamSize ? _self.teamSize : teamSize // ignore: cast_nullable_to_non_nullable
+as int?,speciality: freezed == speciality ? _self.speciality : speciality // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }
@@ -473,10 +474,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'label')  String? label, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'NbAthleteParEquipe', readValue: readInt)  int? teamSize)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'label')  String? label, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'NbAthleteParEquipe', readValue: readInt)  int? teamSize, @JsonKey(name: 'Specialite', readValue: readInt)  int? speciality)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EpreuveDisciplineDto() when $default != null:
-return $default(_that.label,_that.name,_that.teamSize);case _:
+return $default(_that.label,_that.name,_that.teamSize,_that.speciality);case _:
   return orElse();
 
 }
@@ -494,10 +495,10 @@ return $default(_that.label,_that.name,_that.teamSize);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'label')  String? label, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'NbAthleteParEquipe', readValue: readInt)  int? teamSize)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'label')  String? label, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'NbAthleteParEquipe', readValue: readInt)  int? teamSize, @JsonKey(name: 'Specialite', readValue: readInt)  int? speciality)  $default,) {final _that = this;
 switch (_that) {
 case _EpreuveDisciplineDto():
-return $default(_that.label,_that.name,_that.teamSize);case _:
+return $default(_that.label,_that.name,_that.teamSize,_that.speciality);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -514,10 +515,10 @@ return $default(_that.label,_that.name,_that.teamSize);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'label')  String? label, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'NbAthleteParEquipe', readValue: readInt)  int? teamSize)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'label')  String? label, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'NbAthleteParEquipe', readValue: readInt)  int? teamSize, @JsonKey(name: 'Specialite', readValue: readInt)  int? speciality)?  $default,) {final _that = this;
 switch (_that) {
 case _EpreuveDisciplineDto() when $default != null:
-return $default(_that.label,_that.name,_that.teamSize);case _:
+return $default(_that.label,_that.name,_that.teamSize,_that.speciality);case _:
   return null;
 
 }
@@ -529,12 +530,13 @@ return $default(_that.label,_that.name,_that.teamSize);case _:
 @JsonSerializable()
 
 class _EpreuveDisciplineDto implements EpreuveDisciplineDto {
-  const _EpreuveDisciplineDto({@JsonKey(name: 'label') this.label, @JsonKey(name: 'Nom') this.name, @JsonKey(name: 'NbAthleteParEquipe', readValue: readInt) this.teamSize});
+  const _EpreuveDisciplineDto({@JsonKey(name: 'label') this.label, @JsonKey(name: 'Nom') this.name, @JsonKey(name: 'NbAthleteParEquipe', readValue: readInt) this.teamSize, @JsonKey(name: 'Specialite', readValue: readInt) this.speciality});
   factory _EpreuveDisciplineDto.fromJson(Map<String, dynamic> json) => _$EpreuveDisciplineDtoFromJson(json);
 
 @override@JsonKey(name: 'label') final  String? label;
 @override@JsonKey(name: 'Nom') final  String? name;
 @override@JsonKey(name: 'NbAthleteParEquipe', readValue: readInt) final  int? teamSize;
+@override@JsonKey(name: 'Specialite', readValue: readInt) final  int? speciality;
 
 /// Create a copy of EpreuveDisciplineDto
 /// with the given fields replaced by the non-null parameter values.
@@ -549,18 +551,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _EpreuveDisciplineDto&&(identical(other.label, label) || other.label == label)&&(identical(other.name, name) || other.name == name)&&(identical(other.teamSize, teamSize) || other.teamSize == teamSize));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _EpreuveDisciplineDto&&(identical(other.label, label) || other.label == label)&&(identical(other.name, name) || other.name == name)&&(identical(other.teamSize, teamSize) || other.teamSize == teamSize)&&(identical(other.speciality, speciality) || other.speciality == speciality));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,label,name,teamSize);
+    return Object.hash(runtimeType,label,name,teamSize,speciality);
 }
 
 @override
 String toString() {
-    return 'EpreuveDisciplineDto(label: $label, name: $name, teamSize: $teamSize)';
+    return 'EpreuveDisciplineDto(label: $label, name: $name, teamSize: $teamSize, speciality: $speciality)';
 }
 
 
@@ -571,7 +573,7 @@ abstract mixin class _$EpreuveDisciplineDtoCopyWith<$Res> implements $EpreuveDis
   factory _$EpreuveDisciplineDtoCopyWith(_EpreuveDisciplineDto value, $Res Function(_EpreuveDisciplineDto) _then) = __$EpreuveDisciplineDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'label') String? label,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'NbAthleteParEquipe', readValue: readInt) int? teamSize
+@JsonKey(name: 'label') String? label,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'NbAthleteParEquipe', readValue: readInt) int? teamSize,@JsonKey(name: 'Specialite', readValue: readInt) int? speciality
 });
 
 
@@ -588,11 +590,12 @@ class __$EpreuveDisciplineDtoCopyWithImpl<$Res>
 
 /// Create a copy of EpreuveDisciplineDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? label = freezed,Object? name = freezed,Object? teamSize = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? label = freezed,Object? name = freezed,Object? teamSize = freezed,Object? speciality = freezed,}) {
   return _then(_EpreuveDisciplineDto(
 label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,teamSize: freezed == teamSize ? _self.teamSize : teamSize // ignore: cast_nullable_to_non_nullable
+as int?,speciality: freezed == speciality ? _self.speciality : speciality // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }

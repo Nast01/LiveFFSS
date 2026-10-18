@@ -15,7 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CompetitionEvent {
 
- int get id; int get disciplineId; String get disciplineName; Gender get gender; int get categoryId; String get categoryName; int get teamSize;
+ int get id; int get disciplineId; String get disciplineName; Gender get gender; int get categoryId; String get categoryName; int get teamSize;/// La spécialité de la discipline ; nulle quand FFSS n'en donne pas une
+/// connue : l'épreuve n'est alors montrée nulle part.
+ Discipline? get discipline;
 /// Create a copy of CompetitionEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +29,20 @@ $CompetitionEventCopyWith<CompetitionEvent> get copyWith => _$CompetitionEventCo
 @override
 bool operator ==(Object other) {
   final _this = this as CompetitionEvent;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompetitionEvent&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.disciplineId, _this.disciplineId) || other.disciplineId == _this.disciplineId)&&(identical(other.disciplineName, _this.disciplineName) || other.disciplineName == _this.disciplineName)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.categoryId, _this.categoryId) || other.categoryId == _this.categoryId)&&(identical(other.categoryName, _this.categoryName) || other.categoryName == _this.categoryName)&&(identical(other.teamSize, _this.teamSize) || other.teamSize == _this.teamSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompetitionEvent&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.disciplineId, _this.disciplineId) || other.disciplineId == _this.disciplineId)&&(identical(other.disciplineName, _this.disciplineName) || other.disciplineName == _this.disciplineName)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.categoryId, _this.categoryId) || other.categoryId == _this.categoryId)&&(identical(other.categoryName, _this.categoryName) || other.categoryName == _this.categoryName)&&(identical(other.teamSize, _this.teamSize) || other.teamSize == _this.teamSize)&&(identical(other.discipline, _this.discipline) || other.discipline == _this.discipline));
 }
 
 
 @override
 int get hashCode {
   final _this = this as CompetitionEvent;
-  return Object.hash(runtimeType,_this.id,_this.disciplineId,_this.disciplineName,_this.gender,_this.categoryId,_this.categoryName,_this.teamSize);
+  return Object.hash(runtimeType,_this.id,_this.disciplineId,_this.disciplineName,_this.gender,_this.categoryId,_this.categoryName,_this.teamSize,_this.discipline);
 }
 
 @override
 String toString() {
   final _this = this as CompetitionEvent;
-  return 'CompetitionEvent(id: ${_this.id}, disciplineId: ${_this.disciplineId}, disciplineName: ${_this.disciplineName}, gender: ${_this.gender}, categoryId: ${_this.categoryId}, categoryName: ${_this.categoryName}, teamSize: ${_this.teamSize})';
+  return 'CompetitionEvent(id: ${_this.id}, disciplineId: ${_this.disciplineId}, disciplineName: ${_this.disciplineName}, gender: ${_this.gender}, categoryId: ${_this.categoryId}, categoryName: ${_this.categoryName}, teamSize: ${_this.teamSize}, discipline: ${_this.discipline})';
 }
 
 
@@ -51,7 +53,7 @@ abstract mixin class $CompetitionEventCopyWith<$Res>  {
   factory $CompetitionEventCopyWith(CompetitionEvent value, $Res Function(CompetitionEvent) _then) = _$CompetitionEventCopyWithImpl;
 @useResult
 $Res call({
- int id, int disciplineId, String disciplineName, Gender gender, int categoryId, String categoryName, int teamSize
+ int id, int disciplineId, String disciplineName, Gender gender, int categoryId, String categoryName, int teamSize, Discipline? discipline
 });
 
 
@@ -68,7 +70,7 @@ class _$CompetitionEventCopyWithImpl<$Res>
 
 /// Create a copy of CompetitionEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? disciplineId = null,Object? disciplineName = null,Object? gender = null,Object? categoryId = null,Object? categoryName = null,Object? teamSize = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? disciplineId = null,Object? disciplineName = null,Object? gender = null,Object? categoryId = null,Object? categoryName = null,Object? teamSize = null,Object? discipline = freezed,}) {
   return _then(CompetitionEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,disciplineId: null == disciplineId ? _self.disciplineId : disciplineId // ignore: cast_nullable_to_non_nullable
@@ -77,7 +79,8 @@ as String,gender: null == gender ? _self.gender : gender // ignore: cast_nullabl
 as Gender,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as int,categoryName: null == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable
 as String,teamSize: null == teamSize ? _self.teamSize : teamSize // ignore: cast_nullable_to_non_nullable
-as int,
+as int,discipline: freezed == discipline ? _self.discipline : discipline // ignore: cast_nullable_to_non_nullable
+as Discipline?,
   ));
 }
 
@@ -162,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int disciplineId,  String disciplineName,  Gender gender,  int categoryId,  String categoryName,  int teamSize)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int disciplineId,  String disciplineName,  Gender gender,  int categoryId,  String categoryName,  int teamSize,  Discipline? discipline)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CompetitionEvent() when $default != null:
-return $default(_that.id,_that.disciplineId,_that.disciplineName,_that.gender,_that.categoryId,_that.categoryName,_that.teamSize);case _:
+return $default(_that.id,_that.disciplineId,_that.disciplineName,_that.gender,_that.categoryId,_that.categoryName,_that.teamSize,_that.discipline);case _:
   return orElse();
 
 }
@@ -183,10 +186,10 @@ return $default(_that.id,_that.disciplineId,_that.disciplineName,_that.gender,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int disciplineId,  String disciplineName,  Gender gender,  int categoryId,  String categoryName,  int teamSize)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int disciplineId,  String disciplineName,  Gender gender,  int categoryId,  String categoryName,  int teamSize,  Discipline? discipline)  $default,) {final _that = this;
 switch (_that) {
 case _CompetitionEvent():
-return $default(_that.id,_that.disciplineId,_that.disciplineName,_that.gender,_that.categoryId,_that.categoryName,_that.teamSize);case _:
+return $default(_that.id,_that.disciplineId,_that.disciplineName,_that.gender,_that.categoryId,_that.categoryName,_that.teamSize,_that.discipline);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +206,10 @@ return $default(_that.id,_that.disciplineId,_that.disciplineName,_that.gender,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int disciplineId,  String disciplineName,  Gender gender,  int categoryId,  String categoryName,  int teamSize)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int disciplineId,  String disciplineName,  Gender gender,  int categoryId,  String categoryName,  int teamSize,  Discipline? discipline)?  $default,) {final _that = this;
 switch (_that) {
 case _CompetitionEvent() when $default != null:
-return $default(_that.id,_that.disciplineId,_that.disciplineName,_that.gender,_that.categoryId,_that.categoryName,_that.teamSize);case _:
+return $default(_that.id,_that.disciplineId,_that.disciplineName,_that.gender,_that.categoryId,_that.categoryName,_that.teamSize,_that.discipline);case _:
   return null;
 
 }
@@ -218,7 +221,7 @@ return $default(_that.id,_that.disciplineId,_that.disciplineName,_that.gender,_t
 
 
 class _CompetitionEvent extends CompetitionEvent {
-  const _CompetitionEvent({required this.id, required this.disciplineId, required this.disciplineName, required this.gender, required this.categoryId, required this.categoryName, required this.teamSize}): super._();
+  const _CompetitionEvent({required this.id, required this.disciplineId, required this.disciplineName, required this.gender, required this.categoryId, required this.categoryName, required this.teamSize, this.discipline}): super._();
   
 
 @override final  int id;
@@ -228,6 +231,9 @@ class _CompetitionEvent extends CompetitionEvent {
 @override final  int categoryId;
 @override final  String categoryName;
 @override final  int teamSize;
+/// La spécialité de la discipline ; nulle quand FFSS n'en donne pas une
+/// connue : l'épreuve n'est alors montrée nulle part.
+@override final  Discipline? discipline;
 
 /// Create a copy of CompetitionEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -239,18 +245,18 @@ _$CompetitionEventCopyWith<_CompetitionEvent> get copyWith => __$CompetitionEven
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompetitionEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.disciplineId, disciplineId) || other.disciplineId == disciplineId)&&(identical(other.disciplineName, disciplineName) || other.disciplineName == disciplineName)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.teamSize, teamSize) || other.teamSize == teamSize));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompetitionEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.disciplineId, disciplineId) || other.disciplineId == disciplineId)&&(identical(other.disciplineName, disciplineName) || other.disciplineName == disciplineName)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.teamSize, teamSize) || other.teamSize == teamSize)&&(identical(other.discipline, discipline) || other.discipline == discipline));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,disciplineId,disciplineName,gender,categoryId,categoryName,teamSize);
+    return Object.hash(runtimeType,id,disciplineId,disciplineName,gender,categoryId,categoryName,teamSize,discipline);
 }
 
 @override
 String toString() {
-    return 'CompetitionEvent(id: $id, disciplineId: $disciplineId, disciplineName: $disciplineName, gender: $gender, categoryId: $categoryId, categoryName: $categoryName, teamSize: $teamSize)';
+    return 'CompetitionEvent(id: $id, disciplineId: $disciplineId, disciplineName: $disciplineName, gender: $gender, categoryId: $categoryId, categoryName: $categoryName, teamSize: $teamSize, discipline: $discipline)';
 }
 
 
@@ -261,7 +267,7 @@ abstract mixin class _$CompetitionEventCopyWith<$Res> implements $CompetitionEve
   factory _$CompetitionEventCopyWith(_CompetitionEvent value, $Res Function(_CompetitionEvent) _then) = __$CompetitionEventCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int disciplineId, String disciplineName, Gender gender, int categoryId, String categoryName, int teamSize
+ int id, int disciplineId, String disciplineName, Gender gender, int categoryId, String categoryName, int teamSize, Discipline? discipline
 });
 
 
@@ -278,7 +284,7 @@ class __$CompetitionEventCopyWithImpl<$Res>
 
 /// Create a copy of CompetitionEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? disciplineId = null,Object? disciplineName = null,Object? gender = null,Object? categoryId = null,Object? categoryName = null,Object? teamSize = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? disciplineId = null,Object? disciplineName = null,Object? gender = null,Object? categoryId = null,Object? categoryName = null,Object? teamSize = null,Object? discipline = freezed,}) {
   return _then(_CompetitionEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,disciplineId: null == disciplineId ? _self.disciplineId : disciplineId // ignore: cast_nullable_to_non_nullable
@@ -287,7 +293,8 @@ as String,gender: null == gender ? _self.gender : gender // ignore: cast_nullabl
 as Gender,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as int,categoryName: null == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable
 as String,teamSize: null == teamSize ? _self.teamSize : teamSize // ignore: cast_nullable_to_non_nullable
-as int,
+as int,discipline: freezed == discipline ? _self.discipline : discipline // ignore: cast_nullable_to_non_nullable
+as Discipline?,
   ));
 }
 
