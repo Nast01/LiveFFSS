@@ -1,5 +1,7 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
+import 'package:live_ffss_v2/core/errors/app_exception.dart';
 
 /// Les préférences de l'appareil (favoris, compétition active). Une interface
 /// pour que les tests des fournisseurs tournent sur une simple Map, sans
@@ -24,12 +26,24 @@ class SecureLocalStore implements LocalStore {
       : '${_environment.storagePrefix}$key';
 
   @override
-  Future<String?> read(String key) => _storage.read(key: _scoped(key));
+  Future<String?> read(String key) =>
+      _guard(() => _storage.read(key: _scoped(key)));
 
   @override
   Future<void> write(String key, String value) =>
-      _storage.write(key: _scoped(key), value: value);
+      _guard(() => _storage.write(key: _scoped(key), value: value));
 
   @override
-  Future<void> delete(String key) => _storage.delete(key: _scoped(key));
+  Future<void> delete(String key) =>
+      _guard(() => _storage.delete(key: _scoped(key)));
+
+  /// La plateforme lève des `PlatformException`, que les appelants n'attrapent
+  /// pas : traduites en [AppException], la seule qu'ils attrapent.
+  static Future<T> _guard<T>(Future<T> Function() operation) async {
+    try {
+      return await operation();
+    } on PlatformException catch (e) {
+      throw StorageException(e.message ?? e.code);
+    }
+  }
 }

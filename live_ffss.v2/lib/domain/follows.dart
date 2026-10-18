@@ -53,7 +53,8 @@ abstract class Follows with _$Follows {
   bool _followsEntry(int? entryId) =>
       entryId != null && athletes.any((a) => a.entryIds.contains(entryId));
 
-  /// Un libellé vide ne désigne aucun club : il ne doit pas faire suivre
+  /// Suivre un club, c'est voir tous ses nageurs : le libellé vaut pour les
+  /// places individuelles comme pour les relais. Un libellé vide ne désigne aucun club : il ne doit pas faire suivre
   /// toutes les lignes sans club.
   bool _followsClubLabel(String label) {
     final wanted = label.trim();

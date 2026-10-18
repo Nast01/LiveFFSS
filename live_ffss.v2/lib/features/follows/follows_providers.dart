@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
+import 'package:live_ffss_v2/data/ffss/mappers/results_mapper.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
 
@@ -58,26 +59,30 @@ abstract class FollowedClubDto with _$FollowedClubDto {
       _$FollowedClubDtoFromJson(json);
 }
 
-extension FollowsDtoMapper on FollowsDto {
-  /// Une ligne sans identifiant ou sans nom est écartée : elle ne pourrait
-  /// ni marquer une ligne ni se retirer.
-  Follows toDomain() => Follows(
-    athletes: [
-      for (final a in athletes ?? const <FollowedAthleteDto>[])
-        if (a.participantId case final id? when a.name != null)
-          FollowedAthlete(
-            participantId: id,
-            name: a.name!,
-            club: a.club ?? '',
-            entryIds: a.entryIds ?? const [],
-          ),
-    ],
-    clubs: [
-      for (final c in clubs ?? const <FollowedClubDto>[])
-        if (c.id case final id? when c.label != null)
-          FollowedClub(id: id, label: c.label!),
-    ],
-  );
+extension FollowedAthleteDtoMapper on FollowedAthleteDto {
+  /// Nul sans identifiant ou sans nom : la ligne ne pourrait ni marquer une
+  /// place ni se retirer.
+  FollowedAthlete? toDomain() {
+    final id = participantId;
+    final name = this.name;
+    if (id == null || name == null) return null;
+    return FollowedAthlete(
+      participantId: id,
+      name: name,
+      club: club ?? '',
+      entryIds: entryIds ?? const [],
+    );
+  }
+}
+
+extension FollowedClubDtoMapper on FollowedClubDto {
+  FollowedClub? toDomain() {
+    final id = this.id;
+    final label = this.label;
+    return id == null || label == null
+        ? null
+        : FollowedClub(id: id, label: label);
+  }
 }
 
 /// Les athlètes et clubs suivis d'une compétition, gardés sur l'appareil
@@ -90,8 +95,15 @@ class FollowsNotifier extends AsyncNotifier<Follows> {
   String get storageKey => 'follows_$competitionId';
 
   @override
-  Future<Follows> build() async =>
-      _decode(await ref.watch(localStoreProvider).read(storageKey));
+  Future<Follows> build() async {
+    try {
+      return _decode(await ref.watch(localStoreProvider).read(storageKey));
+    } on AppException {
+      // Une lecture en panne ne doit pas fermer la compétition : on repart
+      // de rien, comme pour une valeur illisible.
+      return const Follows();
+    }
+  }
 
   Future<void> toggleAthlete(Participant participant) => _update((current) {
     final others = [
@@ -137,10 +149,26 @@ class FollowsNotifier extends AsyncNotifier<Follows> {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, dynamic>) return const Follows();
-      return FollowsDto.fromJson(decoded).toDomain();
+      // Chaque ligne seule : une ligne abîmée ne fait pas perdre les autres.
+      final athletes = decoded['athletes'];
+      final clubs = decoded['clubs'];
+      return Follows(
+        athletes: athletes is List<Object?>
+            ? decodeRows(
+                athletes,
+                FollowedAthleteDto.fromJson,
+                (FollowedAthleteDto d) => d.toDomain(),
+              )
+            : const [],
+        clubs: clubs is List<Object?>
+            ? decodeRows(
+                clubs,
+                FollowedClubDto.fromJson,
+                (FollowedClubDto d) => d.toDomain(),
+              )
+            : const [],
+      );
     } on FormatException {
-      return const Follows();
-    } on TypeError {
       return const Follows();
     }
   }

@@ -60,6 +60,12 @@ class UnknownException extends AppException {
   const UnknownException(super.message);
 }
 
+/// Le stockage de l'appareil ne répond pas (trousseau verrouillé, erreur de
+/// la plateforme) : les appelants gardent leur état en mémoire.
+class StorageException extends AppException {
+  const StorageException(super.message);
+}
+
 /// Ce qu'on demande n'existe pas, ou plus : un lien vers un créneau retiré du
 /// programme, par exemple. Distinct d'une panne, qu'un nouvel essai réglerait.
 class NotFoundException extends AppException {

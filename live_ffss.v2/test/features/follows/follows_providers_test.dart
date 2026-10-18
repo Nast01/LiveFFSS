@@ -14,6 +14,12 @@ class _FailingWrites extends InMemoryLocalStore {
       throw const UnknownException('disque plein');
 }
 
+class _FailingReads extends InMemoryLocalStore {
+  @override
+  Future<String?> read(String key) async =>
+      throw const StorageException('illisible');
+}
+
 const _participant = Participant(
   id: 4,
   firstName: 'Un',
@@ -114,5 +120,62 @@ void main() {
     final state = container.read(followsProvider(1416));
     expect(state.hasError, isFalse);
     expect(state.value!.clubs.single.id, 7);
+  });
+
+  test('une lecture en échec part de suivis vides, sans erreur', () async {
+    final container = _container(_FailingReads());
+
+    final follows = await container.read(followsProvider(1416).future);
+
+    expect(follows.athletes, isEmpty);
+    expect(follows.clubs, isEmpty);
+  });
+
+  test('une ligne illisible est écartée seule', () async {
+    final store = InMemoryLocalStore()
+      ..values['follows_1416'] =
+          '{"athletes":[3,{"participantId":4,"name":"A","entryIds":[1]},'
+          '{"participantId":"x","name":"B"}],'
+          '"clubs":["z",{"id":7,"label":"Club B"}]}';
+    final container = _container(store);
+
+    final follows = await container.read(followsProvider(1416).future);
+
+    expect(follows.athletes.map((a) => a.participantId), [4]);
+    expect(follows.clubs.map((c) => c.id), [7]);
+  });
+
+  test('un retrait enregistré est relu par un autre conteneur', () async {
+    final store = InMemoryLocalStore();
+    final first = _container(store);
+    await first.read(followsProvider(1416).future);
+    final notifier = first.read(followsProvider(1416).notifier);
+    await notifier.toggleClub(7, 'Club B');
+    await notifier.toggleClub(7, 'Club B');
+
+    final second = _container(store);
+    final follows = await second.read(followsProvider(1416).future);
+
+    expect(follows.clubs, isEmpty);
+  });
+
+  test('deux bascules de suite sont toutes deux gardées', () async {
+    final store = InMemoryLocalStore();
+    final container = _container(store);
+    await container.read(followsProvider(1416).future);
+    final notifier = container.read(followsProvider(1416).notifier);
+
+    await Future.wait([
+      notifier.toggleClub(7, 'Club B'),
+      notifier.toggleAthlete(_participant),
+    ]);
+
+    final follows = container.read(followsProvider(1416)).value!;
+    expect(follows.clubs.single.id, 7);
+    expect(follows.athletes.single.participantId, 4);
+    final second = _container(store);
+    final reread = await second.read(followsProvider(1416).future);
+    expect(reread.clubs.single.id, 7);
+    expect(reread.athletes.single.participantId, 4);
   });
 }
