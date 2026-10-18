@@ -429,7 +429,18 @@ void main() {
       );
       expect(
         athleteRaceDetail(race, l10n),
+        'Série 4 · 1re de la série · 1re de l\'épreuve',
+      );
+      expect(
+        athleteRaceDetail(
+          race.copyWith(event: event(1, gender: Gender.male)),
+          l10n,
+        ),
         'Série 4 · 1er de la série · 1er de l\'épreuve',
+      );
+      expect(
+        athleteRaceDetail(race, lookupAppLocalizations(const Locale('en'))),
+        'Série 4 · 1st in heat · 1st in the event',
       );
     });
 
@@ -467,5 +478,81 @@ void main() {
         'Finale A · ligne 2',
       );
     });
+
+    test('splitRaces : courues, puis à courir', () {
+      final r = row(result(time: 6234), rank: 1);
+      final run = AthleteRace(event: e, entry: entry, series: r.series, row: r);
+      final toRun = AthleteRace(event: e, entry: entry);
+      final split = splitRaces([toRun, run]);
+      expect(split.run, [run]);
+      expect(split.toRun, [toRun]);
+    });
+  });
+
+  group('ordinal', () {
+    test('français : 1er, 1re au féminin, 2e…', () {
+      expect(ordinal(1, 'fr'), '1er');
+      expect(ordinal(1, 'fr', feminine: true), '1re');
+      expect(ordinal(2, 'fr', feminine: true), '2e');
+      expect(ordinal(11, 'fr'), '11e');
+    });
+
+    test('anglais : st, nd, rd, th, et 11th à 13th', () {
+      expect(
+        [
+          for (final n in [1, 2, 3, 4, 11, 12, 13, 21, 22, 23, 101, 111])
+            ordinal(n, 'en'),
+        ],
+        [
+          '1st',
+          '2nd',
+          '3rd',
+          '4th',
+          '11th',
+          '12th',
+          '13th',
+          '21st',
+          '22nd',
+          '23rd',
+          '101st',
+          '111th',
+        ],
+      );
+    });
+  });
+
+  test('licenseeSubtitle : club et nombre de courses', () {
+    expect(licenseeSubtitle(licensee(1), l10n), 'Club A · 2 courses');
+    expect(
+      licenseeSubtitle(licensee(1).copyWith(club: '', races: 1), l10n),
+      '1 course',
+    );
+  });
+
+  group('rowOpening', () {
+    test('sans athlète : rien', () {
+      expect(rowOpening(result(athletes: [])), isA<OpenNothing>());
+    });
+
+    test('un athlète : sa fiche', () {
+      expect(
+        rowOpening(result()),
+        isA<OpenAthlete>().having((o) => o.athleteId, 'athleteId', 100),
+      );
+    });
+
+    test('un relais : le choix du relayeur', () {
+      expect(
+        rowOpening(result(athletes: ['ATHLETE Un', 'ATHLETE Deux'])),
+        isA<PickAthlete>().having((o) => o.athletes, 'athletes', hasLength(2)),
+      );
+    });
+  });
+
+  test('participantById', () {
+    final p = participant();
+    expect(participantById([p], 1), same(p));
+    expect(participantById([p], 2), isNull);
+    expect(participantById(null, 1), isNull);
   });
 }

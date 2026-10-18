@@ -13,8 +13,6 @@ import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:live_ffss_v2/features/results/widgets/choice_chips_row.dart';
 import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
 
-enum _StandingsKind { clubs, licensees }
-
 /// Le sous-onglet Classements : clubs ou licenciés.
 class StandingsView extends ConsumerStatefulWidget {
   const StandingsView({
@@ -35,10 +33,6 @@ class StandingsView extends ConsumerStatefulWidget {
 }
 
 class _StandingsViewState extends ConsumerState<StandingsView> {
-  _StandingsKind _kind = _StandingsKind.clubs;
-  Gender? _gender;
-  String? _category;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -51,6 +45,10 @@ class _StandingsViewState extends ConsumerState<StandingsView> {
         ).showSnackBar(SnackBar(content: Text(l10n.refreshFailed)));
       }
     });
+    final filter = ref.watch(standingsFilterProvider(widget.competitionId));
+    final filters = ref.read(
+      standingsFilterProvider(widget.competitionId).notifier,
+    );
     final standings = ref.watch(provider);
     final value = standings.value;
     if (value == null) {
@@ -80,19 +78,24 @@ class _StandingsViewState extends ConsumerState<StandingsView> {
         children: [
           widget.tabs,
           const SizedBox(height: 8),
-          ChoiceChipsRow<_StandingsKind>(
-            options: _StandingsKind.values,
-            selected: _kind,
+          ChoiceChipsRow<StandingsKind>(
+            options: StandingsKind.values,
+            selected: filter.kind,
             label: (kind) => switch (kind) {
-              _StandingsKind.clubs => l10n.standingsClubs,
-              _StandingsKind.licensees => l10n.standingsLicensees,
+              StandingsKind.clubs => l10n.standingsClubs,
+              StandingsKind.licensees => l10n.standingsLicensees,
             },
-            onSelect: (kind) => setState(() => _kind = kind),
+            onSelect: filters.selectKind,
           ),
           const SizedBox(height: 12),
-          ...switch (_kind) {
-            _StandingsKind.clubs => _clubs(value.clubs, l10n),
-            _StandingsKind.licensees => _licensees(value.licensees, l10n),
+          ...switch (filter.kind) {
+            StandingsKind.clubs => _clubs(value.clubs, l10n),
+            StandingsKind.licensees => _licensees(
+              value.licensees,
+              filter,
+              filters,
+              l10n,
+            ),
           },
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -174,13 +177,15 @@ class _StandingsViewState extends ConsumerState<StandingsView> {
 
   List<Widget> _licensees(
     List<LicenseeStanding> licensees,
+    StandingsFilter filter,
+    StandingsFilterNotifier filters,
     AppLocalizations l10n,
   ) {
     final genders = licenseeGenders(licensees);
-    final gender = chosenOrFirst(genders, _gender);
+    final gender = chosenOrFirst(genders, filter.gender);
     if (gender == null) return [_empty(l10n)];
     final categories = licenseeCategories(licensees, gender);
-    final category = chosenOrFirst(categories, _category);
+    final category = chosenOrFirst(categories, filter.category);
     final shown = category == null
         ? const <LicenseeStanding>[]
         : licenseesOf(licensees, gender, category);
@@ -189,40 +194,40 @@ class _StandingsViewState extends ConsumerState<StandingsView> {
         options: genders,
         selected: gender,
         label: (g) => genderLabel(g, l10n),
-        onSelect: (g) => setState(() => _gender = g),
+        onSelect: filters.selectGender,
       ),
       const SizedBox(height: 8),
       ChoiceChipsRow<String>(
         options: categories,
         selected: category,
         label: (c) => c,
-        onSelect: (c) => setState(() => _category = c),
+        onSelect: filters.selectCategory,
       ),
-      Card(
-        margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-        child: Column(
-          children: [
-            for (final (i, licensee) in shown.indexed) ...[
-              if (i > 0) const Divider(height: 1),
-              _StandingTile(
-                rank: licensee.rank,
-                title: licensee.name,
-                subtitle: [
-                  if (licensee.club.isNotEmpty) licensee.club,
-                  l10n.standingsRaces(licensee.races),
-                ].join(' · '),
-                points: l10n.standingsPoints(licensee.points),
-                onTap: () => context.go(
-                  Routes.resultsAthlete(
-                    widget.competitionId,
-                    licensee.athleteId,
+      if (shown.isEmpty)
+        _empty(l10n)
+      else
+        Card(
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Column(
+            children: [
+              for (final (i, licensee) in shown.indexed) ...[
+                if (i > 0) const Divider(height: 1),
+                _StandingTile(
+                  rank: licensee.rank,
+                  title: licensee.name,
+                  subtitle: licenseeSubtitle(licensee, l10n),
+                  points: l10n.standingsPoints(licensee.points),
+                  onTap: () => context.go(
+                    Routes.resultsAthlete(
+                      widget.competitionId,
+                      licensee.athleteId,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
-      ),
     ];
   }
 }

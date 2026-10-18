@@ -16,6 +16,7 @@ import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/results_repository.dart';
 import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
+import 'package:live_ffss_v2/domain/gender.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
@@ -407,6 +408,35 @@ void main() {
         c.read(resultsSelectionProvider(competitionId)).eventId,
         events.first.id,
       );
+    });
+  });
+
+  group('standingsFilterProvider', () {
+    test('clubs par défaut, puis le choix est gardé', () {
+      final c = container();
+      addTearDown(c.dispose);
+      c.listen(standingsFilterProvider(competitionId), (_, _) {});
+      final notifier = c.read(standingsFilterProvider(competitionId).notifier);
+
+      expect(c.read(standingsFilterProvider(competitionId)), (
+        kind: StandingsKind.clubs,
+        gender: null,
+        category: null,
+      ));
+
+      notifier
+        ..selectKind(StandingsKind.licensees)
+        ..selectGender(Gender.male)
+        ..selectCategory('Cadet');
+      expect(c.read(standingsFilterProvider(competitionId)), (
+        kind: StandingsKind.licensees,
+        gender: Gender.male,
+        category: 'Cadet',
+      ));
+
+      // Changer de sexe garde la catégorie : elle peut exister des deux côtés.
+      notifier.selectGender(Gender.female);
+      expect(c.read(standingsFilterProvider(competitionId)).category, 'Cadet');
     });
   });
 }

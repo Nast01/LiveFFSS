@@ -666,35 +666,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String athleteHeatPlace(String place) {
-    String _temp0 = intl.Intl.selectLogic(place, {
-      '1': '1st',
-      '2': '2nd',
-      '3': '3rd',
-      'other': '${place}th',
-    });
-    return '$_temp0 in heat';
+    return '$place in heat';
   }
 
   @override
   String athleteEventRank(String rank) {
-    String _temp0 = intl.Intl.selectLogic(rank, {
-      '1': '1st',
-      '2': '2nd',
-      '3': '3rd',
-      'other': '${rank}th',
-    });
-    return '$_temp0 in the event';
+    return '$rank in the event';
   }
 
   @override
   String athleteEventRankProvisional(String rank) {
-    String _temp0 = intl.Intl.selectLogic(rank, {
-      '1': '1st',
-      '2': '2nd',
-      '3': '3rd',
-      'other': '${rank}th',
-    });
-    return '$_temp0 in the event (provisional)';
+    return '$rank in the event (provisional)';
   }
 
   @override

@@ -326,6 +326,77 @@ void main() {
     });
   });
 
+  group('retryAthleteCard', () {
+    const key = (competitionId: competitionId, participantId: 632572);
+
+    Future<AsyncValue<List<AthleteRace>>> settled(ProviderContainer c) async {
+      try {
+        await c.read(athleteCardProvider(key).future);
+      } on AppException {
+        // L'état porte l'erreur.
+      }
+      return c.read(athleteCardProvider(key));
+    }
+
+    test('participants en échec, puis lus : la fiche se charge', () async {
+      var fail = true;
+      when(() => results.getParticipants(any())).thenAnswer((_) async {
+        if (fail) throw const NetworkException('hors ligne');
+        return participants;
+      });
+      final c = container();
+      addTearDown(c.dispose);
+      c.listen(athleteCardProvider(key), (_, _) {});
+      expect((await settled(c)).hasError, isTrue);
+
+      fail = false;
+      retryAthleteCard(c, key);
+
+      expect((await settled(c)).value, hasLength(6));
+      verify(() => results.getParticipants(competitionId)).called(2);
+    });
+
+    test('épreuves en échec, puis lues : la fiche se charge', () async {
+      var fail = true;
+      when(() => results.getEvents(any())).thenAnswer((_) async {
+        if (fail) throw const NetworkException('hors ligne');
+        return events;
+      });
+      final c = container();
+      addTearDown(c.dispose);
+      c.listen(athleteCardProvider(key), (_, _) {});
+      expect((await settled(c)).hasError, isTrue);
+
+      fail = false;
+      retryAthleteCard(c, key);
+
+      expect((await settled(c)).value, hasLength(6));
+      verify(() => results.getEvents(competitionId)).called(2);
+    });
+  });
+
+  group('refreshAthleteCard', () {
+    test('relit participants et classements de ses épreuves, pas les '
+        'épreuves', () async {
+      const key = (competitionId: competitionId, participantId: 632572);
+      final c = container();
+      addTearDown(c.dispose);
+      c.listen(athleteCardProvider(key), (_, _) {});
+      final races = await c.read(athleteCardProvider(key).future);
+      final eventIds = {for (final race in races) race.event.id};
+      clearInteractions(results);
+
+      await refreshAthleteCard(c, key);
+
+      expect(c.read(athleteCardProvider(key)).value, hasLength(6));
+      verifyNever(() => results.getEvents(any()));
+      verify(() => results.getParticipants(competitionId)).called(1);
+      for (final eventId in eventIds) {
+        verify(() => results.getEventSeries(eventId)).called(1);
+      }
+    });
+  });
+
   group('laneFinderProvider', () {
     const entryId = 424242;
     const key = (

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
@@ -143,6 +145,46 @@ final athleteCardProvider = FutureProvider.autoDispose
         });
       return [for (final (_, race) in indexed) race];
     });
+
+typedef AthleteKey = ({int competitionId, int participantId});
+
+/// « Réessayer » d'une fiche en échec. Les lectures en amont gardent leur
+/// erreur tant qu'on ne les relance pas : relancer la fiche seule rendrait la
+/// même erreur. La page passe le conteneur de son `ProviderScope`.
+void retryAthleteCard(ProviderContainer container, AthleteKey key) {
+  final competitionId = key.competitionId;
+  if (container.read(participantsProvider(competitionId)).hasError) {
+    container.invalidate(participantsProvider(competitionId));
+  }
+  if (container.read(eventsProvider(competitionId)).hasError ||
+      container.read(resultsProgrammeProvider(competitionId)).hasError) {
+    // `refresh` porte son échec dans l'état, qu'il n'y a pas à attendre.
+    unawaited(container.read(eventsProvider(competitionId).notifier).refresh());
+  }
+  container.invalidate(athleteCardProvider(key));
+}
+
+/// Rafraîchissement d'une fiche : les participants et les classements de ses
+/// épreuves seulement. Relire les épreuves (`eventsProvider.refresh`) referait
+/// aussi les classements des clubs, une lecture par épreuve.
+Future<void> refreshAthleteCard(
+  ProviderContainer container,
+  AthleteKey key,
+) async {
+  final competitionId = key.competitionId;
+  final races = container.read(athleteCardProvider(key)).value ?? const [];
+  container.invalidate(participantsProvider(competitionId));
+  for (final eventId in {for (final race in races) race.event.id}) {
+    container.invalidate(
+      eventRankingProvider((competitionId: competitionId, eventId: eventId)),
+    );
+  }
+  try {
+    await container.read(athleteCardProvider(key).future);
+  } on AppException {
+    // L'échec est dans l'état de la fiche, que la page montre.
+  }
+}
 
 AthleteRace _race(
   CompetitionEvent event,

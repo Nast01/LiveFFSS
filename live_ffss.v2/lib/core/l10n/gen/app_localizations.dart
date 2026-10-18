@@ -1175,19 +1175,19 @@ abstract class AppLocalizations {
   /// No description provided for @athleteHeatPlace.
   ///
   /// In fr, this message translates to:
-  /// **'{place, select, 1{1er} other{{place}e}} de la série'**
+  /// **'{place} de la série'**
   String athleteHeatPlace(String place);
 
   /// No description provided for @athleteEventRank.
   ///
   /// In fr, this message translates to:
-  /// **'{rank, select, 1{1er} other{{rank}e}} de l\'épreuve'**
+  /// **'{rank} de l\'épreuve'**
   String athleteEventRank(String rank);
 
   /// No description provided for @athleteEventRankProvisional.
   ///
   /// In fr, this message translates to:
-  /// **'{rank, select, 1{1er} other{{rank}e}} de l\'épreuve (provisoire)'**
+  /// **'{rank} de l\'épreuve (provisoire)'**
   String athleteEventRankProvisional(String rank);
 
   /// No description provided for @athleteRaceUnavailable.

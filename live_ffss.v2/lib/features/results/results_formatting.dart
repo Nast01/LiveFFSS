@@ -223,15 +223,86 @@ String athleteRaceDetail(AthleteRace race, AppLocalizations l10n) {
   if (row == null || series == null) return '';
   final place = race.heatPlace;
   final rank = row.rank;
+  String rankText(int n) =>
+      ordinal(n, l10n.localeName, feminine: race.event.gender == Gender.female);
   return [
     if (series.heat.name.isNotEmpty) series.heat.name,
-    if (place != null) l10n.athleteHeatPlace('$place'),
+    if (place != null) l10n.athleteHeatPlace(rankText(place)),
     if (rank != null)
       series.provisional
-          ? l10n.athleteEventRankProvisional('$rank')
-          : l10n.athleteEventRank('$rank'),
+          ? l10n.athleteEventRankProvisional(rankText(rank))
+          : l10n.athleteEventRank(rankText(rank)),
   ].join(' · ');
 }
+
+/// « 1er » (« 1re » au féminin), « 2e » ; « 1st », « 2nd », « 3rd »,
+/// « 11th »–« 13th », « 21st ». Une règle par langue : un message ICU ne
+/// sait pas dire 21st sans lister chaque nombre.
+String ordinal(int n, String localeName, {bool feminine = false}) {
+  if (localeName.startsWith('en')) {
+    final suffix = n % 100 >= 11 && n % 100 <= 13
+        ? 'th'
+        : switch (n % 10) {
+            1 => 'st',
+            2 => 'nd',
+            3 => 'rd',
+            _ => 'th',
+          };
+    return '$n$suffix';
+  }
+  if (n == 1) return feminine ? '1re' : '1er';
+  return '${n}e';
+}
+
+({List<AthleteRace> run, List<AthleteRace> toRun}) splitRaces(
+  List<AthleteRace> races,
+) => (
+  run: [
+    for (final race in races)
+      if (!race.toRun) race,
+  ],
+  toRun: [
+    for (final race in races)
+      if (race.toRun) race,
+  ],
+);
+
+/// « Club A · 2 courses ».
+String licenseeSubtitle(LicenseeStanding licensee, AppLocalizations l10n) => [
+  if (licensee.club.isNotEmpty) licensee.club,
+  l10n.standingsRaces(licensee.races),
+].join(' · ');
+
+/// Ce qu'ouvre le toucher d'une ligne de classement.
+sealed class RowOpening {
+  const RowOpening();
+}
+
+final class OpenNothing extends RowOpening {
+  const OpenNothing();
+}
+
+final class OpenAthlete extends RowOpening {
+  const OpenAthlete(this.athleteId);
+
+  final int athleteId;
+}
+
+/// Un relais : on choisit lequel des relayeurs ouvrir.
+final class PickAthlete extends RowOpening {
+  const PickAthlete(this.athletes);
+
+  final List<ResultAthlete> athletes;
+}
+
+RowOpening rowOpening(EventResult result) => switch (result.athletes) {
+  [] => const OpenNothing(),
+  [final athlete] => OpenAthlete(athlete.id),
+  final athletes => PickAthlete(athletes),
+};
+
+Participant? participantById(List<Participant>? participants, int id) =>
+    participants?.where((p) => p.id == id).firstOrNull;
 
 /// « Série 3 · ligne 5 » ; une course sans numéro garde son nom.
 String laneFoundLabel(LaneFound found, AppLocalizations l10n) => [

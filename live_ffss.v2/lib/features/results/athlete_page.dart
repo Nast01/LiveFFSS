@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
@@ -8,24 +6,8 @@ import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
-import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
-import 'package:live_ffss_v2/features/shell/active_competition.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
-
-/// Ouverte par un lien direct, une page des résultats rend aussi sa
-/// compétition active aux autres onglets, comme le détail d'un créneau.
-void activateFromLink(WidgetRef ref, int competitionId) {
-  final currentId = ref.read(currentCompetitionProvider)?.id;
-  if (!needsActivation(currentId, competitionId)) return;
-  unawaited(() async {
-    try {
-      await ref.read(activeCompetitionProvider.notifier).ensure(competitionId);
-    } on AppException {
-      // La page s'affiche quand même ; les onglets gardent leur compétition.
-    }
-  }());
-}
 
 class AthletePage extends ConsumerStatefulWidget {
   const AthletePage({
@@ -52,19 +34,13 @@ class _AthletePageState extends ConsumerState<AthletePage> {
     activateFromLink(ref, widget.competitionId);
   }
 
-  ({int competitionId, int participantId}) get _key => (
+  AthleteKey get _key => (
     competitionId: widget.competitionId,
     participantId: widget.participantId,
   );
 
-  Future<void> _refresh() async {
-    try {
-      await ref.read(eventsProvider(widget.competitionId).notifier).refresh();
-      await ref.read(athleteCardProvider(_key).future);
-    } on AppException {
-      // Signalé par le `ref.listen` de build, qui garde la fiche affichée.
-    }
-  }
+  ProviderContainer get _container =>
+      ProviderScope.containerOf(context, listen: false);
 
   @override
   Widget build(BuildContext context) {
@@ -80,11 +56,10 @@ class _AthletePageState extends ConsumerState<AthletePage> {
     });
     final card = ref.watch(provider);
     final races = card.value;
-    final participant = ref
-        .watch(participantsProvider(widget.competitionId))
-        .value
-        ?.where((p) => p.id == widget.participantId)
-        .firstOrNull;
+    final participant = participantById(
+      ref.watch(participantsProvider(widget.competitionId)).value,
+      widget.participantId,
+    );
 
     final Widget body;
     if (races == null) {
@@ -95,7 +70,7 @@ class _AthletePageState extends ConsumerState<AthletePage> {
           ? ResultsMessage(text: l10n.athleteNotFound)
           : ResultsMessage(
               text: l10n.athleteLoadError,
-              onRetry: () => ref.invalidate(provider),
+              onRetry: () => retryAthleteCard(_container, _key),
             );
     } else {
       body = _card(participant, races, l10n);
@@ -110,7 +85,11 @@ class _AthletePageState extends ConsumerState<AthletePage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: l10n.resultsRefresh,
-            onPressed: () => _refreshKey.currentState?.show(),
+            // Sans fiche, l'indicateur n'est pas monté ; l'échec a son
+            // « Réessayer ».
+            onPressed: races == null
+                ? null
+                : () => _refreshKey.currentState?.show(),
           ),
         ],
       ),
@@ -123,14 +102,7 @@ class _AthletePageState extends ConsumerState<AthletePage> {
     List<AthleteRace> races,
     AppLocalizations l10n,
   ) {
-    final run = [
-      for (final race in races)
-        if (!race.toRun) race,
-    ];
-    final toRun = [
-      for (final race in races)
-        if (race.toRun) race,
-    ];
+    final split = splitRaces(races);
 
     Widget section(String title) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -142,7 +114,7 @@ class _AthletePageState extends ConsumerState<AthletePage> {
 
     return RefreshIndicator(
       key: _refreshKey,
-      onRefresh: _refresh,
+      onRefresh: () => refreshAthleteCard(_container, _key),
       child: ListView(
         // Toujours défilable : sans cela, le geste de rafraîchissement ne
         // part pas sur une fiche plus courte que l'écran.
@@ -174,14 +146,18 @@ class _AthletePageState extends ConsumerState<AthletePage> {
                 style: const TextStyle(color: AppColors.textSecondary),
               ),
             ),
-          if (run.isNotEmpty) ...[
+          if (split.run.isNotEmpty) ...[
             section(l10n.athleteRun),
-            for (final race in run) _RaceTile(race: race),
+            for (final race in split.run)
+              _RaceTile(key: ValueKey(race.entry.entryId), race: race),
           ],
-          if (toRun.isNotEmpty) ...[
+          if (split.toRun.isNotEmpty) ...[
             section(l10n.athleteToRun),
-            for (final race in toRun)
+            // La clé garde la recherche de série de chaque engagement quand
+            // la liste change après un rafraîchissement.
+            for (final race in split.toRun)
               _RaceTile(
+                key: ValueKey(race.entry.entryId),
                 race: race,
                 finder: _LaneFinder(
                   competitionId: widget.competitionId,
@@ -196,7 +172,7 @@ class _AthletePageState extends ConsumerState<AthletePage> {
 }
 
 class _RaceTile extends StatelessWidget {
-  const _RaceTile({required this.race, this.finder});
+  const _RaceTile({super.key, required this.race, this.finder});
 
   final AthleteRace race;
 

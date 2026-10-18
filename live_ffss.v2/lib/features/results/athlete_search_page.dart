@@ -5,10 +5,10 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/athlete_search.dart';
-import 'package:live_ffss_v2/features/results/athlete_page.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
 import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
+import 'package:live_ffss_v2/features/shell/current_competition.dart';
 
 class AthleteSearchPage extends ConsumerStatefulWidget {
   const AthleteSearchPage({super.key, required this.competitionId});

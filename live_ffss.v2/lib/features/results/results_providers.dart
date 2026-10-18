@@ -6,6 +6,7 @@ import 'package:live_ffss_v2/data/repositories/results_repository.dart';
 import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/event_ranking.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
+import 'package:live_ffss_v2/domain/gender.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/domain/standings.dart';
@@ -280,4 +281,39 @@ class ResultsSelectionNotifier extends Notifier<({int? eventId})> {
     _chosen = eventId;
     state = (eventId: eventId);
   }
+}
+
+enum StandingsKind { clubs, licensees }
+
+typedef StandingsFilter = ({
+  StandingsKind kind,
+  Gender? gender,
+  String? category,
+});
+
+/// Les puces choisies dans Classements (clubs ou licenciés, sexe, catégorie).
+/// Hors de la page : passer par Épreuves et revenir ne doit pas les perdre.
+/// Nuls : le premier proposé (`chosenOrFirst`).
+final standingsFilterProvider = NotifierProvider.autoDispose
+    .family<StandingsFilterNotifier, StandingsFilter, int>(
+      StandingsFilterNotifier.new,
+    );
+
+class StandingsFilterNotifier extends Notifier<StandingsFilter> {
+  StandingsFilterNotifier(this.competitionId);
+
+  final int competitionId;
+
+  @override
+  StandingsFilter build() =>
+      (kind: StandingsKind.clubs, gender: null, category: null);
+
+  void selectKind(StandingsKind kind) =>
+      state = (kind: kind, gender: state.gender, category: state.category);
+
+  void selectGender(Gender gender) =>
+      state = (kind: state.kind, gender: gender, category: state.category);
+
+  void selectCategory(String category) =>
+      state = (kind: state.kind, gender: state.gender, category: category);
 }

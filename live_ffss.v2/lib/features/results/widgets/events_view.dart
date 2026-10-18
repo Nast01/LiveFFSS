@@ -244,14 +244,12 @@ class _RankingRowTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final names = resultNames(row.result, relay: relay);
     final badge = qualificationBadge(row.qualification);
-    final athletes = row.result.athletes;
-
     return InkWell(
-      onTap: athletes.isEmpty
-          ? null
-          : () => athletes.length == 1
-                ? onOpen(athletes.first.id)
-                : _chooseAthlete(context, athletes),
+      onTap: switch (rowOpening(row.result)) {
+        OpenNothing() => null,
+        OpenAthlete(:final athleteId) => () => onOpen(athleteId),
+        PickAthlete(:final athletes) => () => _chooseAthlete(context, athletes),
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(

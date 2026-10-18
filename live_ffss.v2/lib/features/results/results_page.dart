@@ -5,6 +5,7 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/discipline.dart';
+import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:live_ffss_v2/features/results/widgets/choice_chips_row.dart';
 import 'package:live_ffss_v2/features/results/widgets/events_view.dart';
 import 'package:live_ffss_v2/features/results/widgets/standings_view.dart';
@@ -26,6 +27,9 @@ class _ResultsPageState extends ConsumerState<ResultsPage> {
   final _refreshKey = GlobalKey<RefreshIndicatorState>();
   _ResultsTab _tab = _ResultsTab.events;
 
+  /// Les compétitions dont Classements a été ouvert.
+  final _standingsOpened = <int>{};
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -34,6 +38,28 @@ class _ResultsPageState extends ConsumerState<ResultsPage> {
         competition != null &&
         competition.disciplines.contains(Discipline.flatWater);
 
+    var hasList = false;
+    if (flatWater) {
+      final id = competition.id;
+      // Les choix (épreuve, puces des classements) survivent au passage par
+      // l'autre sous-onglet, qui démonte la vue.
+      ref.listen(resultsSelectionProvider(id), (_, _) {});
+      ref.listen(standingsFilterProvider(id), (_, _) {});
+      // Une lecture par épreuve : les classements ne sont lus qu'à la première
+      // ouverture de Classements, puis gardés tant que la page vit.
+      if (_standingsOpened.contains(id)) {
+        ref.listen(standingsProvider(id), (_, _) {});
+      }
+      hasList = switch (_tab) {
+        _ResultsTab.events => ref.watch(
+          eventsProvider(id).select((s) => s.hasValue),
+        ),
+        _ResultsTab.standings => ref.watch(
+          standingsProvider(id).select((s) => s.hasValue),
+        ),
+      };
+    }
+
     final tabs = ChoiceChipsRow<_ResultsTab>(
       options: _ResultsTab.values,
       selected: _tab,
@@ -41,7 +67,12 @@ class _ResultsPageState extends ConsumerState<ResultsPage> {
         _ResultsTab.events => l10n.resultsEvents,
         _ResultsTab.standings => l10n.resultsStandings,
       },
-      onSelect: (tab) => setState(() => _tab = tab),
+      onSelect: (tab) => setState(() {
+        _tab = tab;
+        if (tab == _ResultsTab.standings && competition != null) {
+          _standingsOpened.add(competition.id);
+        }
+      }),
     );
 
     return Scaffold(
@@ -71,8 +102,10 @@ class _ResultsPageState extends ConsumerState<ResultsPage> {
               icon: const Icon(Icons.refresh),
               tooltip: l10n.resultsRefresh,
               // Sans liste (premier chargement, échec), l'indicateur n'est pas
-              // monté : rien ne part, et l'échec a son « Réessayer ».
-              onPressed: () => _refreshKey.currentState?.show(),
+              // monté, et l'échec a son « Réessayer ».
+              onPressed: hasList
+                  ? () => _refreshKey.currentState?.show()
+                  : null,
             ),
           ],
         ],
