@@ -6,12 +6,12 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
-import 'package:live_ffss_v2/domain/now_running.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
+import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/my_space/official_space_providers.dart';
 import 'package:live_ffss_v2/features/my_space/widgets/my_space_rows.dart';
 import 'package:live_ffss_v2/features/officiel/entry_view.dart';
@@ -46,6 +46,9 @@ class _OfficialSpacePageState extends ConsumerState<OfficialSpacePage> {
     final l10n = AppLocalizations.of(context);
     final id = widget.competitionId;
     final programme = ref.watch(programmeProvider(id)).value;
+    final coastal =
+        resultsGate(ref.watch(spaceCompetitionProvider(id))) ==
+        ResultsGate.coastal;
     final entries = myEntries(
       ref.watch(outboxProvider),
       ref.watch(sessionProvider).value?.label,
@@ -68,29 +71,33 @@ class _OfficialSpacePageState extends ConsumerState<OfficialSpacePage> {
           MySpaceBox(
             children: [
               if (entries.isEmpty) MySpaceRow(title: l10n.officialNoEntries),
-              for (final op in [
-                ...entries.rejected,
-                ...entries.pending,
-                ...entries.sent,
-              ])
+              for (final op in entries.ordered)
                 _EntryRow(competitionId: id, op: op, programme: programme),
             ],
           ),
           MySpaceHeader(l10n.officialCompetition),
           MySpaceBox(
             children: [
-              MySpaceRow(
-                icon: Icons.edit_note,
-                title: l10n.officialHeatsToEnter,
-                subtitle: l10n.officialHeatsToEnterSubtitle,
-                onTap: () => context.push(Routes.mySpaceHeatsToEnter(id)),
-              ),
-              MySpaceRow(
-                icon: Icons.gavel,
-                title: l10n.officialDecisions,
-                subtitle: l10n.officialDecisionsSubtitle,
-                onTap: () => context.push(Routes.mySpaceDecisions(id)),
-              ),
+              if (coastal)
+                MySpaceRow(
+                  icon: Icons.edit_note,
+                  title: l10n.officialHeatsToEnter,
+                  subtitle: l10n.coastalComingSoon,
+                )
+              else ...[
+                MySpaceRow(
+                  icon: Icons.edit_note,
+                  title: l10n.officialHeatsToEnter,
+                  subtitle: l10n.officialHeatsToEnterSubtitle,
+                  onTap: () => context.push(Routes.mySpaceHeatsToEnter(id)),
+                ),
+                MySpaceRow(
+                  icon: Icons.gavel,
+                  title: l10n.officialDecisions,
+                  subtitle: l10n.officialDecisionsSubtitle,
+                  onTap: () => context.push(Routes.mySpaceDecisions(id)),
+                ),
+              ],
               MySpaceRow(
                 icon: Icons.groups_outlined,
                 title: l10n.mySpaceOfficials,
@@ -120,16 +127,12 @@ class _QuickAccessCard extends ConsumerWidget {
       competitionId,
       canEnter: ref.watch(canEnterProvider(competitionId)),
     );
+    final notice = quickAccessNotice(async, l10n);
     final Widget content;
     if (access == null) {
-      content = async.isLoading
+      content = notice == null
           ? const Center(child: CircularProgressIndicator())
-          : Text(
-              async.hasError
-                  ? l10n.officialHeatsError
-                  : l10n.officialNothingRunning,
-              style: const TextStyle(color: Colors.white70),
-            );
+          : Text(notice, style: const TextStyle(color: Colors.white70));
     } else {
       final following = access.following;
       content = Row(
@@ -139,9 +142,7 @@ class _QuickAccessCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  access.current.kind == NowRunningKind.now
-                      ? l10n.nowRunning
-                      : l10n.nextUp,
+                  quickAccessKindLabel(access, l10n),
                   style: const TextStyle(
                     color: AppColors.yellow,
                     fontWeight: FontWeight.w700,
@@ -288,11 +289,14 @@ class _HeatsToEnterPageState extends ConsumerState<HeatsToEnterPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final id = widget.competitionId;
+    final gate = resultsGate(ref.watch(spaceCompetitionProvider(id)));
     final async = ref.watch(heatsToEnterProvider(id));
     final value = async.value;
     final canEnter = ref.watch(canEnterProvider(id));
     final Widget body;
-    if (value == null) {
+    if (gate == ResultsGate.coastal) {
+      body = ResultsMessage(text: l10n.coastalComingSoon);
+    } else if (value == null) {
       body = async.hasError
           ? ResultsMessage(text: l10n.officialHeatsError, onRetry: _refresh)
           : const Center(child: CircularProgressIndicator());
@@ -343,7 +347,7 @@ class _HeatsToEnterPageState extends ConsumerState<HeatsToEnterPage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: l10n.resultsRefresh,
-            onPressed: value == null
+            onPressed: value == null || gate == ResultsGate.coastal
                 ? null
                 : () => _refreshKey.currentState?.show(),
           ),
@@ -392,8 +396,11 @@ class _OfficialDecisionsPageState extends ConsumerState<OfficialDecisionsPage> {
       id,
     );
     final programme = ref.watch(programmeProvider(id)).value;
+    final gate = resultsGate(ref.watch(spaceCompetitionProvider(id)));
     final Widget body;
-    if (value == null) {
+    if (gate == ResultsGate.coastal) {
+      body = ResultsMessage(text: l10n.coastalComingSoon);
+    } else if (value == null) {
       body = async.hasError
           ? ResultsMessage(text: l10n.officialDecisionsError, onRetry: _refresh)
           : const Center(child: CircularProgressIndicator());
@@ -430,7 +437,7 @@ class _OfficialDecisionsPageState extends ConsumerState<OfficialDecisionsPage> {
                 ],
               ),
             ],
-            if (value.events.isEmpty && queued.isEmpty)
+            if (decisionsEmpty(value, queued))
               Padding(
                 padding: const EdgeInsets.only(top: 48),
                 child: ResultsMessage(text: l10n.officialDecisionsEmpty),
@@ -441,12 +448,8 @@ class _OfficialDecisionsPageState extends ConsumerState<OfficialDecisionsPage> {
                 children: [
                   for (final row in event.rows)
                     _DecisionRow(
-                      names: resultNames(
-                        row.result,
-                        relay: event.event.isRelay,
-                      ),
+                      names: decisionNames(row, event.event),
                       label: resultLabel(row.result),
-                      series: row.series.heat.name,
                     ),
                 ],
               ),
@@ -462,7 +465,7 @@ class _OfficialDecisionsPageState extends ConsumerState<OfficialDecisionsPage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: l10n.resultsRefresh,
-            onPressed: value == null
+            onPressed: value == null || gate == ResultsGate.coastal
                 ? null
                 : () => _refreshKey.currentState?.show(),
           ),
@@ -474,23 +477,15 @@ class _OfficialDecisionsPageState extends ConsumerState<OfficialDecisionsPage> {
 }
 
 class _DecisionRow extends StatelessWidget {
-  const _DecisionRow({
-    required this.names,
-    required this.label,
-    required this.series,
-  });
+  const _DecisionRow({required this.names, required this.label});
 
   final ({String title, String subtitle}) names;
   final ResultLabel label;
-  final String series;
 
   @override
   Widget build(BuildContext context) => MySpaceRow(
     title: names.title,
-    subtitle: [
-      names.subtitle,
-      series,
-    ].where((part) => part.isNotEmpty).join(' · '),
+    subtitle: names.subtitle,
     trailing: ResultText(label: label),
   );
 }

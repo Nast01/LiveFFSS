@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss_v2/domain/competition_summary.dart';
+import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
@@ -124,6 +126,27 @@ void main() {
         isEmpty,
       );
       expect(heatsToCheck(const Programme()), isEmpty);
+    });
+  });
+
+  group('isCoastalOnly', () {
+    CompetitionSummary summary(Set<Discipline> disciplines) =>
+        CompetitionSummary(
+          id: 1,
+          name: 'c',
+          startDate: DateTime(2026, 10, 18),
+          endDate: DateTime(2026, 10, 18),
+          disciplines: disciplines,
+        );
+
+    test('sans eau plate : rien à lire des résultats', () {
+      expect(isCoastalOnly(summary({Discipline.coastal})), isTrue);
+      expect(isCoastalOnly(summary({})), isTrue);
+      expect(
+        isCoastalOnly(summary({Discipline.coastal, Discipline.flatWater})),
+        isFalse,
+      );
+      expect(isCoastalOnly(summary({Discipline.flatWater})), isFalse);
     });
   });
 

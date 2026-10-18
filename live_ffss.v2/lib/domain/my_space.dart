@@ -1,4 +1,6 @@
 import 'package:live_ffss_v2/domain/competition_roles.dart';
+import 'package:live_ffss_v2/domain/competition_summary.dart';
+import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
@@ -92,6 +94,11 @@ List<Heat> heatsToCheck(Programme programme) => [
       for (final heat in item.heats)
         if (heat.status == RunStatus.finished && heat.seriesId != null) heat,
 ];
+
+/// Une compétition sans eau plate n'a ni classement ni série à saisir que
+/// l'app sache lire : le côtier viendra plus tard. Rien n'y est lu.
+bool isCoastalOnly(CompetitionSummary competition) =>
+    !competition.disciplines.contains(Discipline.flatWater);
 
 /// Une série et le créneau qui la porte : la saisie s'ouvre sur le créneau.
 typedef HeatInItem = ({MeetingItem item, Heat heat});

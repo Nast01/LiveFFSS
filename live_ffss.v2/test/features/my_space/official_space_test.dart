@@ -16,6 +16,8 @@ import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/data/repositories/results_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
+import 'package:live_ffss_v2/domain/competition_summary.dart';
+import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/event_ranking.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
@@ -30,6 +32,7 @@ import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
+import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/my_space/official_space_providers.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
@@ -161,6 +164,14 @@ OutboxOperation _op(
   rejection: rejection,
 );
 
+CompetitionSummary _summary(Set<Discipline> disciplines) => CompetitionSummary(
+  id: _competition,
+  name: 'Championnat',
+  startDate: DateTime(2026, 10, 18),
+  endDate: DateTime(2026, 10, 19),
+  disciplines: disciplines,
+);
+
 class _Reads {
   final ids = <int>[];
   var peak = 0;
@@ -175,6 +186,7 @@ void main() {
   late _MockMeetingRepository meetings;
   late _FakeOutbox outbox;
   late Map<int, Map<int, RaceResult>> heatResults;
+  late CompetitionSummary competition;
 
   final fixtureProgramme = _fixtureProgramme();
   final events = [
@@ -189,6 +201,7 @@ void main() {
     meetings = _MockMeetingRepository();
     outbox = _FakeOutbox(const []);
     heatResults = {};
+    competition = _summary({Discipline.flatWater});
     series = {
       for (final id in const [36073, 36074, 36087])
         id: [
@@ -218,6 +231,7 @@ void main() {
     final c = ProviderContainer(
       overrides: [
         resultRepositoryProvider.overrideWithValue(result),
+        spaceCompetitionProvider.overrideWith((ref, id) async => competition),
         resultsRepositoryProvider.overrideWithValue(results),
         meetingRepositoryProvider.overrideWithValue(meetings),
         sessionProvider.overrideWith(() => _FakeSession(account)),
@@ -362,6 +376,59 @@ void main() {
       expect(reads.ids, [for (var i = 101; i <= 108; i++) i]);
     });
 
+    test('un statut posé par le juge sans temps (DQ, forfait) : exclue ; '
+        'le statut de repli 3 : non', () async {
+      heatResults[101] = {
+        1: _result(101, 1).copyWith(status: statusDisqualified),
+      };
+      heatResults[102] = {2: _result(102, 2).copyWith(status: statusForfeit)};
+      heatResults[103] = {3: _result(103, 3).copyWith(status: 3)};
+      final c = container();
+
+      final ids = (await toEnter(c)).heats.map((h) => h.heat.id);
+
+      expect(ids, [3, 4, 5, 6, 7, 8]);
+    });
+
+    test("une saisie d'une autre compétition n'exclut pas la série", () async {
+      outbox = _FakeOutbox([_op('a', seriesId: 101, competitionId: 99)]);
+      final c = container();
+
+      expect((await toEnter(c)).heats.map((h) => h.heat.id), contains(1));
+    });
+
+    test('rafraîchir : 6 lectures au plus en vol aussi', () async {
+      final c = container();
+      await toEnter(c);
+      final reads = _Reads();
+      var inFlight = 0;
+      when(() => result.getHeatResults(any())).thenAnswer((invocation) async {
+        reads.ids.add(invocation.positionalArguments.first as int);
+        inFlight++;
+        if (inFlight > reads.peak) reads.peak = inFlight;
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        inFlight--;
+        return const <int, RaceResult>{};
+      });
+
+      await refreshHeatsToEnter(c, _competition);
+
+      expect(reads.ids, hasLength(8));
+      expect(reads.peak, 6);
+    });
+
+    test('compétition côtière : rien de lu', () async {
+      competition = _summary({Discipline.coastal});
+      final c = container();
+
+      final read = await toEnter(c);
+
+      expect(read.heats, isEmpty);
+      expect(read.unread, 0);
+      verifyNever(() => meetings.getProgramme(any()));
+      verifyNever(() => result.getHeatResults(any()));
+    });
+
     test('rafraîchir relit les séries', () async {
       final c = container();
       await toEnter(c);
@@ -485,6 +552,17 @@ void main() {
       expect(read.events.map((e) => e.event.id), [36087]);
     });
 
+    test('compétition côtière : rien de lu', () async {
+      competition = _summary({Discipline.coastal});
+      final c = container();
+
+      final read = await decisions(c);
+
+      expect(read.events, isEmpty);
+      verifyNever(() => results.getEvents(any()));
+      verifyNever(() => results.getEventSeries(any()));
+    });
+
     test('6 classements au plus en vol, chacun lu une fois', () async {
       final reads = countReads();
       final c = container();
@@ -560,6 +638,13 @@ void main() {
       expect(entries.pending.map((o) => o.id), ['pending', 'same, other case']);
       expect(entries.sent.map((o) => o.id), ['sent']);
       expect(entries.isEmpty, isFalse);
+      // Refusées d'abord, puis en attente, puis envoyées.
+      expect(entries.ordered.map((o) => o.id), [
+        'rejected',
+        'pending',
+        'same, other case',
+        'sent',
+      ]);
     });
 
     test('sans compte : rien', () {
@@ -690,6 +775,115 @@ void main() {
         following: null,
       );
       expect(quickEntryRoute(noSeries, _competition, canEnter: true), isNull);
+    });
+  });
+
+  group('résultats côtiers', () {
+    test('côtière : la page dit « bientôt » ; eau plate ou inconnue : non', () {
+      expect(
+        resultsGate(AsyncData(_summary({Discipline.coastal}))),
+        ResultsGate.coastal,
+      );
+      expect(
+        resultsGate(
+          AsyncData(_summary({Discipline.coastal, Discipline.flatWater})),
+        ),
+        ResultsGate.open,
+      );
+      expect(resultsGate(const AsyncLoading()), ResultsGate.waiting);
+      // Compétition illisible : les lectures disent leur propre échec.
+      expect(
+        resultsGate(const AsyncError(NetworkException('x'), StackTrace.empty)),
+        ResultsGate.open,
+      );
+    });
+  });
+
+  group("logique de l'espace officiel", () {
+    final heat = _heat(3, RunStatus.inProgress, seriesId: 103);
+    QuickAccess access(NowRunningKind kind) => (
+      current: NowRunning(heat: heat, kind: kind, position: 1, total: 1),
+      item: const MeetingItem(id: 7, name: 'C7'),
+      following: null,
+    );
+
+    test('en cours ou à suivre', () {
+      expect(
+        quickAccessKindLabel(access(NowRunningKind.now), l10n),
+        l10n.nowRunning,
+      );
+      expect(
+        quickAccessKindLabel(access(NowRunningKind.next), l10n),
+        l10n.nextUp,
+      );
+    });
+
+    test(
+      "le message de l'accès rapide : programme illisible, rien à courir",
+      () {
+        expect(
+          quickAccessNotice(
+            const AsyncError(NetworkException('x'), StackTrace.empty),
+            l10n,
+          ),
+          l10n.programmeLoadError,
+        );
+        expect(
+          quickAccessNotice(const AsyncData(null), l10n),
+          l10n.officialNothingRunning,
+        );
+        expect(quickAccessNotice(const AsyncLoading(), l10n), isNull);
+        expect(
+          quickAccessNotice(AsyncData(access(NowRunningKind.now)), l10n),
+          isNull,
+        );
+      },
+    );
+
+    test('une DQ : le nom, puis le club et la série', () {
+      final event = events.firstWhere((e) => !e.isRelay);
+      const result = EventResult(
+        id: 1,
+        entryId: 2,
+        eventId: 3,
+        categoryName: 'Open',
+        status: statusDisqualified,
+        complement: '53',
+        club: 'Biarritz',
+        athletes: [ResultAthlete(id: 4, name: 'ATHLETE Un')],
+      );
+      final row = RankingRow(
+        result: result,
+        points: 0,
+        qualification: Qualification.none,
+        series: LinkedSeries(
+          series: const EventSeries(id: 9, eventId: 3, number: 2, name: 'S2'),
+          heat: heat.copyWith(name: 'Série 2'),
+          round: EventRound.heats,
+        ),
+      );
+      expect(decisionNames(row, event), (
+        title: 'ATHLETE Un',
+        subtitle: 'Biarritz · Série 2',
+      ));
+    });
+
+    test('rien à montrer : ni DQ ni forfait, ni rien en file', () {
+      const none = (
+        events: <EventDecisions>[],
+        unreadEvents: 0,
+        entries: <int, ({CompetitionEvent event, EventResult result})>{},
+      );
+      expect(decisionsEmpty(none, const []), isTrue);
+      expect(decisionsEmpty(none, [_op('a')]), isFalse);
+      expect(
+        decisionsEmpty((
+          events: [(event: events.first, rows: const <RankingRow>[])],
+          unreadEvents: 0,
+          entries: none.entries,
+        ), const []),
+        isFalse,
+      );
     });
   });
 }

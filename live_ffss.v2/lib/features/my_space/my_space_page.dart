@@ -199,14 +199,20 @@ class _AthleteRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final races = ref
-        .watch(
-          athleteCardProvider((
-            competitionId: competitionId,
-            participantId: participantId,
-          )),
-        )
-        .value;
+    // La fiche lit les classements : pas de badge sans eau plate.
+    final open =
+        resultsGate(ref.watch(spaceCompetitionProvider(competitionId))) ==
+        ResultsGate.open;
+    final races = open
+        ? ref
+              .watch(
+                athleteCardProvider((
+                  competitionId: competitionId,
+                  participantId: participantId,
+                )),
+              )
+              .value
+        : null;
     return _CardRow(
       competitionId: competitionId,
       card: card,

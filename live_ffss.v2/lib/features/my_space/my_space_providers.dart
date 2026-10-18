@@ -103,6 +103,35 @@ void retryMySpaceCards(ProviderContainer container, int competitionId) {
   container.invalidate(mySpaceCardsProvider(competitionId));
 }
 
+/// La compétition d'une page de Mon espace : celle des onglets si c'est
+/// elle (lue sans être suivie : la liste de l'accueil, relue, ne doit rien
+/// relancer), sinon relue par son id. Elle dit si les résultats se lisent
+/// ([isCoastalOnly]).
+final spaceCompetitionProvider = FutureProvider.autoDispose
+    .family<CompetitionSummary, int>((ref, competitionId) async {
+      final current = ref.read(currentCompetitionProvider);
+      if (current != null && current.id == competitionId) return current;
+      final competition = await ref.watch(
+        competitionByIdProvider(competitionId).future,
+      );
+      if (competition == null) {
+        throw NotFoundException('competition $competitionId');
+      }
+      return competition;
+    });
+
+/// Une compétition en échec est relue au rafraîchissement d'une page qui
+/// en dépend.
+void retryFailedSpaceCompetition(
+  ProviderContainer container,
+  int competitionId,
+) {
+  final competition = spaceCompetitionProvider(competitionId);
+  if (container.exists(competition) && container.read(competition).hasError) {
+    container.invalidate(competition);
+  }
+}
+
 typedef CompetitionClub = ({int id, String label, int athletes});
 
 /// Les infos de la compétition : ce que l'accueil a lu, plus ses nombres.
@@ -289,6 +318,13 @@ final clubScheduleProvider = FutureProvider.autoDispose
       }
 
       try {
+        // Une compétition côtière n'a pas de classement : rien n'est lu.
+        final competition = await ref.watch(
+          spaceCompetitionProvider(competitionId).future,
+        );
+        if (!ref.mounted || isCoastalOnly(competition)) {
+          return const ClubSchedule(races: []);
+        }
         // Lues ensemble ; celle qu'on n'attend pas encore ne doit pas
         // remonter son échec comme non traité.
         final clubRead = ref.watch(clubProvider(key).future);
@@ -461,6 +497,7 @@ Future<void> refreshClubSchedule(
   if (container.exists(club) && container.read(club).hasError) {
     container.invalidate(club);
   }
+  retryFailedSpaceCompetition(container, key.competitionId);
   // Les épreuves ne sont pas gardées par le planning : en échec, elles ont
   // été jetées, et sa lecture les relit.
   container.read(_clubRefreshProvider(key).notifier).request();

@@ -119,8 +119,13 @@ class _ClubPageState extends ConsumerState<ClubPage> {
   }
 
   Widget _content(ClubInfo club, ClubRole role, AppLocalizations l10n) {
+    final coastal =
+        resultsGate(
+          ref.watch(spaceCompetitionProvider(widget.competitionId)),
+        ) ==
+        ResultsGate.coastal;
     final schedule = ref.watch(clubScheduleProvider(_key));
-    final races = schedule.value?.races;
+    final races = coastal ? null : schedule.value?.races;
     final forfeits = races == null ? null : clubForfeits(races);
 
     final standingsOfClubs = standingsProvider(widget.competitionId);
@@ -128,13 +133,14 @@ class _ClubPageState extends ConsumerState<ClubPage> {
     // Résultats pendant que la page est ouverte n'y paraissent qu'à sa
     // prochaine reconstruction. Les suivre d'emblée les calculerait (une
     // lecture par épreuve) à chaque ouverture ; « Calculer » reste là.
-    final rankAsked = _rankAsked || ref.exists(standingsOfClubs);
+    final rankAsked = !coastal && (_rankAsked || ref.exists(standingsOfClubs));
     final standings = rankAsked ? ref.watch(standingsOfClubs) : null;
     final rank = clubRankView(
       asked: rankAsked,
       failed: standings?.hasError ?? false,
       standings: standings?.value,
       club: club.label,
+      coastal: coastal,
     );
 
     return RefreshIndicator(
@@ -200,48 +206,52 @@ class _ClubPageState extends ConsumerState<ClubPage> {
           ])
             _padded(child),
           const SizedBox(height: 12),
-          ChoiceChipsRow<_ClubTab>(
-            options: _ClubTab.values,
-            selected: _tab,
-            label: (tab) => switch (tab) {
-              _ClubTab.planning => l10n.mySpacePlanning,
-              _ClubTab.results => l10n.tabResults,
-              _ClubTab.forfeits => l10n.mySpaceForfeits,
-            },
-            onSelect: (tab) => setState(() => _tab = tab),
-          ),
-          for (final child in [
-            if (races == null)
-              schedule.hasError
-                  ? ResultsMessage(
-                      text: l10n.mySpaceClubError,
-                      onRetry: () => refreshClubSchedule(_container, _key),
-                    )
-                  : const Padding(
-                      padding: EdgeInsets.only(top: 48),
-                      child: Center(child: CircularProgressIndicator()),
-                    )
-            else ...[
-              if (schedule.value!.failedAthletes > 0)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Text(
-                    l10n.mySpaceCardsFailed(schedule.value!.failedAthletes),
-                    style: const TextStyle(color: AppColors.red),
-                  ),
-                ),
-              ...switch (_tab) {
-                _ClubTab.planning => _planning(races, l10n),
-                _ClubTab.results => _results(races, l10n),
-                _ClubTab.forfeits => _forfeits(
-                  forfeits!,
-                  canManageForfeits(role),
-                  l10n,
-                ),
+          if (coastal)
+            ResultsMessage(text: l10n.coastalComingSoon)
+          else ...[
+            ChoiceChipsRow<_ClubTab>(
+              options: _ClubTab.values,
+              selected: _tab,
+              label: (tab) => switch (tab) {
+                _ClubTab.planning => l10n.mySpacePlanning,
+                _ClubTab.results => l10n.tabResults,
+                _ClubTab.forfeits => l10n.mySpaceForfeits,
               },
-            ],
-          ])
-            _padded(child),
+              onSelect: (tab) => setState(() => _tab = tab),
+            ),
+            for (final child in [
+              if (races == null)
+                schedule.hasError
+                    ? ResultsMessage(
+                        text: l10n.mySpaceClubError,
+                        onRetry: () => refreshClubSchedule(_container, _key),
+                      )
+                    : const Padding(
+                        padding: EdgeInsets.only(top: 48),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+              else ...[
+                if (schedule.value!.failedAthletes > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(
+                      l10n.mySpaceCardsFailed(schedule.value!.failedAthletes),
+                      style: const TextStyle(color: AppColors.red),
+                    ),
+                  ),
+                ...switch (_tab) {
+                  _ClubTab.planning => _planning(races, l10n),
+                  _ClubTab.results => _results(races, l10n),
+                  _ClubTab.forfeits => _forfeits(
+                    forfeits!,
+                    canManageForfeits(role),
+                    l10n,
+                  ),
+                },
+              ],
+            ])
+              _padded(child),
+          ],
         ],
       ),
     );

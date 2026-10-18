@@ -54,6 +54,11 @@ class _AthleteSpacePageState extends ConsumerState<AthleteSpacePage> {
       ),
     );
     final shown = view.athlete;
+    // La fiche lit les classements : rien n'est lu tant que la compétition
+    // n'a pas dit qu'elle a de l'eau plate.
+    final gate = resultsGate(
+      ref.watch(spaceCompetitionProvider(widget.competitionId)),
+    );
     final body = switch (view.body) {
       AthleteSpaceBody.loading => const Center(
         child: CircularProgressIndicator(),
@@ -65,7 +70,11 @@ class _AthleteSpacePageState extends ConsumerState<AthleteSpacePage> {
       AthleteSpaceBody.notEntered => ResultsMessage(
         text: l10n.mySpaceNotEngaged,
       ),
-      AthleteSpaceBody.card => _card(shown!, l10n),
+      AthleteSpaceBody.card => switch (gate) {
+        ResultsGate.waiting => const Center(child: CircularProgressIndicator()),
+        ResultsGate.coastal => ResultsMessage(text: l10n.coastalComingSoon),
+        ResultsGate.open => _card(shown!, l10n),
+      },
     };
     return Scaffold(
       appBar: AppBar(
@@ -78,6 +87,7 @@ class _AthleteSpacePageState extends ConsumerState<AthleteSpacePage> {
             // « Réessayer ».
             onPressed:
                 shown == null ||
+                    gate != ResultsGate.open ||
                     ref.watch(athleteCardProvider(_keyOf(shown))).value == null
                 ? null
                 : () => _refreshKey.currentState?.show(),

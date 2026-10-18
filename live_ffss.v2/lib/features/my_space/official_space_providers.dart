@@ -32,7 +32,7 @@ typedef HeatsToEnter = ({List<HeatInItem> heats, int unread});
 typedef _BlankHeat = ({
   HeatInItem at,
   Map<int, List<int?>> chronos,
-  Set<int> published,
+  Set<int> settled,
 });
 
 typedef _HeatReads = ({List<_BlankHeat> heats, int unread});
@@ -46,8 +46,14 @@ final _heatReadsProvider = FutureProvider.autoDispose.family<_HeatReads, int>((
   ref,
   competitionId,
 ) async {
-  // Tout ce qui sert de `ref` est pris avant la première attente.
   final repository = ref.read(resultRepositoryProvider);
+  // Une compétition côtière n'a pas de série que l'app sache saisir.
+  final competition = await ref.watch(
+    spaceCompetitionProvider(competitionId).future,
+  );
+  if (!ref.mounted || isCoastalOnly(competition)) {
+    return (heats: const <_BlankHeat>[], unread: 0);
+  }
   final subscription = ref.listen(programmeProvider(competitionId), (_, _) {});
   final Programme programme;
   try {
@@ -68,14 +74,20 @@ final _heatReadsProvider = FutureProvider.autoDispose.family<_HeatReads, int>((
     try {
       final results = (await repository.getHeatResults(heat.seriesId!)).values;
       final chronos = {for (final r in results) r.entryId: r.chronos};
-      final published = {
+      // Une DQ ou un forfait posé par le juge, même sans temps, est une
+      // décision : la série n'attend pas de saisie. Le statut 3 n'est que la
+      // valeur de repli du site, pas une décision.
+      final settled = {
         for (final r in results)
-          if (isValidatedByJudge(r)) r.entryId,
+          if (isValidatedByJudge(r) ||
+              r.status == statusDisqualified ||
+              r.status == statusForfeit)
+            r.entryId,
       };
-      if (!needsEntry(chronos, published, const [])) return;
+      if (!needsEntry(chronos, settled, const [])) return;
       final at = findHeat(programme, (h) => h.id == heat.id);
       if (at == null) return;
-      blank[heat.id] = (at: at, chronos: chronos, published: published);
+      blank[heat.id] = (at: at, chronos: chronos, settled: settled);
     } on AppException {
       unread++;
     }
@@ -99,10 +111,11 @@ final heatsToEnterProvider = FutureProvider.autoDispose
       return (
         heats: [
           for (final blank in reads.heats)
-            if (needsEntry(blank.chronos, blank.published, [
+            if (needsEntry(blank.chronos, blank.settled, [
               if (account != null)
                 for (final op in queue)
-                  if (op.seriesId == blank.at.heat.seriesId &&
+                  if (op.competitionId == competitionId &&
+                      op.seriesId == blank.at.heat.seriesId &&
                       isSameAccount(op.account, account))
                     op,
             ]))
@@ -119,6 +132,7 @@ Future<void> refreshHeatsToEnter(
   ProviderContainer container,
   int competitionId,
 ) async {
+  retryFailedSpaceCompetition(container, competitionId);
   final programme = programmeProvider(competitionId);
   if (container.exists(programme) && container.read(programme).hasError) {
     container.invalidate(programme);
@@ -170,6 +184,11 @@ final officialDecisionsProvider = FutureProvider.autoDispose
         entries: <int, ({CompetitionEvent event, EventResult result})>{},
       );
       try {
+        // Une compétition côtière n'a pas de classement : rien n'est lu.
+        final competition = await ref.watch(
+          spaceCompetitionProvider(competitionId).future,
+        );
+        if (!ref.mounted || isCoastalOnly(competition)) return none;
         final events = await readOnce(eventsProvider(competitionId).future);
         if (!ref.mounted) return none;
         final rankings = <int, EventRanking>{};
@@ -230,6 +249,7 @@ Future<void> refreshOfficialDecisions(
   ProviderContainer container,
   int competitionId,
 ) async {
+  retryFailedSpaceCompetition(container, competitionId);
   final events = eventsProvider(competitionId);
   if (container.exists(events) && container.read(events).hasError) {
     // `refresh` porte son échec dans l'état, qu'il n'y a pas à attendre.

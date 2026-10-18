@@ -1,15 +1,18 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/domain/account.dart';
 import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/competition_summary.dart';
+import 'package:live_ffss_v2/domain/event_ranking.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
-import 'package:live_ffss_v2/domain/my_space.dart';
-import 'package:live_ffss_v2/domain/officials.dart';
 import 'package:live_ffss_v2/domain/manual_timing.dart';
+import 'package:live_ffss_v2/domain/my_space.dart';
+import 'package:live_ffss_v2/domain/now_running.dart';
+import 'package:live_ffss_v2/domain/officials.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
@@ -434,13 +437,16 @@ final class RankShown extends ClubRankView {
 /// [asked] : les classements sont calculés ou demandés (l'onglet Résultats
 /// les a, ou « Calculer » a été touché). Un calcul déjà fait reste montré,
 /// même pendant une relecture ou après son échec. Le classement des clubs se
-/// fait par libellé (`clubStandings`).
+/// fait par libellé (`clubStandings`). Une compétition côtière n'a pas de
+/// classement : « – », sans « Calculer ».
 ClubRankView clubRankView({
   required bool asked,
   required bool failed,
   required Standings? standings,
   required String club,
+  bool coastal = false,
 }) {
+  if (coastal) return const RankShown(null);
   if (standings != null) {
     final wanted = club.trim();
     return RankShown(
@@ -559,6 +565,10 @@ final class MyEntries {
   final List<OutboxOperation> sent;
 
   bool get isEmpty => rejected.isEmpty && pending.isEmpty && sent.isEmpty;
+
+  /// L'ordre de la page : refusées d'abord (elles attendent un geste), puis
+  /// en attente, puis envoyées.
+  List<OutboxOperation> get ordered => [...rejected, ...pending, ...sent];
 }
 
 /// Celles d'un autre compte ne le regardent pas ; une envoyée ne reste que
@@ -675,3 +685,61 @@ String followingHeatLabel(Heat heat, AppLocalizations l10n) =>
     l10n.officialFollowing(
       heat.name.isEmpty ? timeLabel(heat.plannedStart) : heat.name,
     );
+
+/// Ce qu'une page de Mon espace fait des résultats de sa compétition.
+enum ResultsGate {
+  /// La compétition se lit encore.
+  waiting,
+
+  /// Sans eau plate : « bientôt disponible », rien n'est lu.
+  coastal,
+  open,
+}
+
+/// Une compétition illisible ouvre les résultats : leurs lectures disent
+/// leur propre échec, avec leur « Réessayer ».
+ResultsGate resultsGate(AsyncValue<CompetitionSummary> competition) {
+  final value = competition.value;
+  if (value != null) {
+    return isCoastalOnly(value) ? ResultsGate.coastal : ResultsGate.open;
+  }
+  return competition.hasError ? ResultsGate.open : ResultsGate.waiting;
+}
+
+/// « MAINTENANT » ou « À SUIVRE », comme la carte en direct.
+String quickAccessKindLabel(QuickAccess access, AppLocalizations l10n) =>
+    access.current.kind == NowRunningKind.now ? l10n.nowRunning : l10n.nextUp;
+
+/// Le message de l'accès rapide à la place de la série : programme
+/// illisible, ou plus rien à courir ; nul pendant la lecture ou avec une
+/// série à montrer.
+String? quickAccessNotice(
+  AsyncValue<QuickAccess?> access,
+  AppLocalizations l10n,
+) {
+  if (access.value != null) return null;
+  if (access.hasError) return l10n.programmeLoadError;
+  return access.isLoading ? null : l10n.officialNothingRunning;
+}
+
+/// Une DQ ou un forfait publié : le nom (le club pour un relais), puis le
+/// reste et sa série.
+({String title, String subtitle}) decisionNames(
+  RankingRow row,
+  CompetitionEvent event,
+) {
+  final names = resultNames(row.result, relay: event.isRelay);
+  return (
+    title: names.title,
+    subtitle: [
+      names.subtitle,
+      row.series.heat.name,
+    ].where((part) => part.isNotEmpty).join(' · '),
+  );
+}
+
+/// Rien à montrer : ni DQ ni forfait publié, ni rien du compte en file.
+bool decisionsEmpty(
+  OfficialDecisions decisions,
+  List<OutboxOperation> queued,
+) => decisions.events.isEmpty && queued.isEmpty;

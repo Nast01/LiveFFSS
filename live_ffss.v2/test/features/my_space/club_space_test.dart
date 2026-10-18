@@ -16,6 +16,8 @@ import 'package:live_ffss_v2/data/repositories/auth_repository.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/results_repository.dart';
 import 'package:live_ffss_v2/domain/competition_roles.dart';
+import 'package:live_ffss_v2/domain/competition_summary.dart';
+import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
@@ -101,12 +103,22 @@ void main() {
 
   late _MockResultsRepository results;
   late _MockMeetingRepository meetings;
+  var disciplines = {Discipline.flatWater};
 
   ProviderContainer container({List<Override> overrides = const []}) {
     final c = ProviderContainer(
       overrides: [
         resultsRepositoryProvider.overrideWithValue(results),
         meetingRepositoryProvider.overrideWithValue(meetings),
+        spaceCompetitionProvider.overrideWith(
+          (ref, id) async => CompetitionSummary(
+            id: id,
+            name: 'Championnat',
+            startDate: DateTime(2026, 3, 27),
+            endDate: DateTime(2026, 3, 29),
+            disciplines: disciplines,
+          ),
+        ),
         clockProvider.overrideWithValue(() => DateTime(2026, 3, 27, 7)),
         ...overrides,
       ],
@@ -117,6 +129,7 @@ void main() {
   }
 
   setUp(() {
+    disciplines = {Discipline.flatWater};
     results = _MockResultsRepository();
     meetings = _MockMeetingRepository();
     when(() => meetings.getProgramme(any())).thenAnswer((_) async => programme);
@@ -249,6 +262,17 @@ void main() {
           for (final a in r.athletes) a.id,
       };
       expect(athletes, {632572, 630812});
+    });
+
+    test('compétition côtière : ni épreuves ni classements lus', () async {
+      disciplines = {Discipline.coastal};
+      final c = container();
+
+      final read = await schedule(c, clubId);
+
+      expect(read.races, isEmpty);
+      verifyNever(() => results.getEvents(any()));
+      verifyNever(() => results.getEventSeries(any()));
     });
 
     test('6 classements au plus en vol, chacun lu une fois', () async {

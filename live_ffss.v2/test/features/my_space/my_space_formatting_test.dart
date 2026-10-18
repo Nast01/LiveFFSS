@@ -669,6 +669,19 @@ void main() {
         computedAt: now,
       );
 
+      test('compétition côtière : pas de rang, rien à calculer', () {
+        expect(
+          clubRankView(
+            asked: true,
+            failed: false,
+            standings: null,
+            club: 'x',
+            coastal: true,
+          ),
+          const RankShown(null),
+        );
+      });
+
       test('pas encore calculé : « Calculer »', () {
         expect(
           clubRankView(asked: false, failed: false, standings: null, club: 'x'),
