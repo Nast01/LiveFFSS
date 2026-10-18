@@ -874,4 +874,109 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mySpaceFollowsError => 'Couldn\'t read your follows';
+
+  @override
+  String get mySpaceAthleteSpaceTitle => 'My athlete space';
+
+  @override
+  String get mySpaceNextRaceTitle => 'My next race';
+
+  @override
+  String get mySpaceCellTime => 'Time';
+
+  @override
+  String get mySpaceCellSeries => 'Heat';
+
+  @override
+  String get mySpaceCellLane => 'Lane';
+
+  @override
+  String get mySpaceMyPlanning => 'My schedule';
+
+  @override
+  String get mySpaceMyResults => 'My results';
+
+  @override
+  String get mySpaceNotEngaged =>
+      'Your account isn\'t entered in any event of this competition.';
+
+  @override
+  String get mySpaceNoRaceRun => 'No race swum yet';
+
+  @override
+  String get mySpaceRefereeTag => 'CLUB REP';
+
+  @override
+  String get mySpaceAdminTag => 'ADMIN';
+
+  @override
+  String mySpaceFigureAthletes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'athletes',
+      one: 'athlete',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mySpaceFigureRank => 'clubs (prov.)';
+
+  @override
+  String mySpaceFigureForfeits(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'withdrawals',
+      one: 'withdrawal',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mySpaceCompute => 'Compute';
+
+  @override
+  String get mySpacePlanning => 'Schedule';
+
+  @override
+  String get mySpaceForfeits => 'Withdrawals';
+
+  @override
+  String get mySpaceUpcoming => 'Upcoming';
+
+  @override
+  String mySpaceCardsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count athlete cards couldn\'t be read',
+      one: '1 athlete card couldn\'t be read',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mySpaceForfeitsHint =>
+      'Withdrawals taken from the published results.';
+
+  @override
+  String get mySpaceForfeitsLater =>
+      'Declaring or cancelling a withdrawal, replacing a relay swimmer: in lot 6b.';
+
+  @override
+  String get mySpaceNoForfeit => 'No withdrawal in the published results';
+
+  @override
+  String get mySpaceClubError => 'Couldn\'t load the club space.';
+
+  @override
+  String get mySpaceClubNoAthlete => 'No athlete from this club is entered.';
+
+  @override
+  String get mySpaceClubFallback => 'Club';
+
+  @override
+  String get followClub => 'Follow this club';
 }

@@ -2,7 +2,9 @@ import 'package:intl/intl.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/domain/account.dart';
+import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/competition_summary.dart';
+import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/domain/officials.dart';
@@ -11,6 +13,8 @@ import 'package:live_ffss_v2/features/home/competition_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
+import 'package:live_ffss_v2/features/results/results_formatting.dart';
+import 'package:live_ffss_v2/features/results/results_providers.dart';
 
 String mySpaceCardTitle(MySpaceCard card, AppLocalizations l10n) =>
     switch (card) {
@@ -263,4 +267,200 @@ SpacesView spacesView({
   if (cards == null) return const SpacesLoading();
   if (cards.cards.isEmpty && !cards.athleteUnknown) return const SpacesNone();
   return SpacesShown(cards);
+}
+
+/// L'athlète de l'espace athlète : celui de la carte Athlète, nul si le
+/// compte n'est pas engagé.
+Participant? spaceAthlete(MySpaceCards cards) {
+  for (final card in cards.cards) {
+    if (card is AthleteSpaceCard) return card.participant;
+  }
+  return null;
+}
+
+/// « Ma prochaine course · dans 2 h » ; sans heure prévue, le titre seul.
+String nextRaceHeadline(
+  AthleteRace race,
+  DateTime now,
+  AppLocalizations l10n,
+) => [
+  l10n.mySpaceNextRaceTitle,
+  ?startsInLabel(race.plannedStart, now, l10n),
+].join(' · ');
+
+typedef NextRaceCells = ({String time, String series, String lane});
+
+/// Les cases de la prochaine course. La série vient de « Trouver sa série »
+/// ([found]), sinon de sa série déjà publiée ; la ligne, de [found] seul.
+NextRaceCells nextRaceCells(AthleteRace race, LaneFound? found) {
+  const none = '–';
+  final time = athleteRaceTime(race);
+  final heat = found?.heat ?? race.series?.heat;
+  final series = heat == null
+      ? none
+      : heat.number > 0
+      ? '${heat.number}'
+      : heat.name.isEmpty
+      ? none
+      : heat.name;
+  return (
+    time: time.isEmpty ? none : time,
+    series: series,
+    lane: found == null ? none : '${found.lane}',
+  );
+}
+
+({List<ClubRace> run, List<ClubRace> toRun}) splitClubRaces(
+  List<ClubRace> races,
+) => (
+  run: [
+    for (final race in races)
+      if (!race.race.toRun) race,
+  ],
+  toRun: [
+    for (final race in races)
+      if (race.race.toRun) race,
+  ],
+);
+
+/// Ses athlètes : un relais nomme ceux du club qui le courent.
+String clubRaceTitle(ClubRace race) =>
+    [for (final athlete in race.athletes) participantName(athlete)].join(', ');
+
+/// « 100m Bouée tube · Dames · Cadet · Série 6 » : l'épreuve et, si elle est
+/// connue, sa série.
+String clubRaceLine(ClubRace race, AppLocalizations l10n) {
+  final heatName = race.race.series?.heat.name ?? '';
+  return [
+    athleteRaceTitle(race.race.event, l10n),
+    if (race.race.unavailable)
+      l10n.athleteRaceUnavailable
+    else if (heatName.isNotEmpty)
+      heatName,
+  ].join(' · ');
+}
+
+typedef ClubEventResults = ({CompetitionEvent event, List<ClubRace> races});
+
+/// Les courues groupées par épreuve, dans l'ordre où elles viennent
+/// ([clubRaces] les range par épreuve).
+List<ClubEventResults> clubResultsByEvent(List<ClubRace> run) {
+  final groups = <int, ClubEventResults>{};
+  for (final race in run) {
+    groups
+        .putIfAbsent(
+          race.race.event.id,
+          () => (event: race.race.event, races: <ClubRace>[]),
+        )
+        .races
+        .add(race);
+  }
+  return groups.values.toList();
+}
+
+/// Les forfaits du club tirés des résultats publiés ([isForfeit]).
+List<ClubRace> clubForfeits(List<ClubRace> races) => [
+  for (final race in races)
+    if (race.race.row case final row? when isForfeit(row.result)) race,
+];
+
+String? clubRoleTag(ClubRole role, AppLocalizations l10n) => switch (role) {
+  ClubRole.referee => l10n.mySpaceRefereeTag,
+  ClubRole.admin => l10n.mySpaceAdminTag,
+  ClubRole.none => null,
+};
+
+/// Le forfait se déclarera au lot 6b : ses interrupteurs, inactifs, ne se
+/// montrent qu'à ceux qui pourront s'en servir.
+bool canManageForfeits(ClubRole role) => role != ClubRole.none;
+
+/// Le rang provisoire du club dans les chiffres de son espace.
+sealed class ClubRankView {
+  const ClubRankView();
+}
+
+/// Les classements des clubs (une lecture par épreuve) ne sont pas encore
+/// calculés : « Calculer ».
+final class RankNotComputed extends ClubRankView {
+  const RankNotComputed();
+
+  @override
+  bool operator ==(Object other) => other is RankNotComputed;
+
+  @override
+  int get hashCode => 0;
+}
+
+final class RankComputing extends ClubRankView {
+  const RankComputing();
+
+  @override
+  bool operator ==(Object other) => other is RankComputing;
+
+  @override
+  int get hashCode => 1;
+}
+
+final class RankFailed extends ClubRankView {
+  const RankFailed();
+
+  @override
+  bool operator ==(Object other) => other is RankFailed;
+
+  @override
+  int get hashCode => 2;
+}
+
+/// [rank] nul : le club n'a pas de points.
+final class RankShown extends ClubRankView {
+  const RankShown(this.rank);
+
+  final int? rank;
+
+  @override
+  bool operator ==(Object other) => other is RankShown && other.rank == rank;
+
+  @override
+  int get hashCode => rank.hashCode;
+}
+
+/// [asked] : les classements sont calculés ou demandés (l'onglet Résultats
+/// les a, ou « Calculer » a été touché). Un calcul déjà fait reste montré,
+/// même pendant une relecture ou après son échec. Le classement des clubs se
+/// fait par libellé (`clubStandings`).
+ClubRankView clubRankView({
+  required bool asked,
+  required bool failed,
+  required Standings? standings,
+  required String club,
+}) {
+  if (standings != null) {
+    final wanted = club.trim();
+    return RankShown(
+      standings.clubs.where((c) => c.club.trim() == wanted).firstOrNull?.rank,
+    );
+  }
+  if (!asked) return const RankNotComputed();
+  return failed ? const RankFailed() : const RankComputing();
+}
+
+/// « 6e », « 6th » ; « – » sans rang.
+String clubRankLabel(RankShown view, AppLocalizations l10n) {
+  final rank = view.rank;
+  return rank == null ? '–' : ordinal(rank, l10n.localeName);
+}
+
+/// Le libellé de ses engagés, sinon celui que donnent les rôles du référent
+/// (un club sans engagé), sinon « Club ».
+String clubTitle(
+  ClubInfo? club,
+  CompetitionRoles? roles,
+  int clubId,
+  AppLocalizations l10n,
+) {
+  final label = club?.label.trim() ?? '';
+  if (label.isNotEmpty) return label;
+  final referee = roles?.refereeClubs.where((c) => c.id == clubId).firstOrNull;
+  final refereeLabel = referee?.label.trim() ?? '';
+  return refereeLabel.isNotEmpty ? refereeLabel : l10n.mySpaceClubFallback;
 }

@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/features/home/all_competitions_page.dart';
 import 'package:live_ffss_v2/features/home/home_page.dart';
 import 'package:live_ffss_v2/features/live/live_page.dart';
+import 'package:live_ffss_v2/features/my_space/athlete_space_page.dart';
+import 'package:live_ffss_v2/features/my_space/club_page.dart';
 import 'package:live_ffss_v2/features/my_space/coming_soon_page.dart';
 import 'package:live_ffss_v2/features/my_space/competition_info_page.dart';
 import 'package:live_ffss_v2/features/my_space/follows_page.dart';
@@ -302,13 +304,16 @@ final _mySpaceRoutes = [
   _mySpaceRoute('infos', (id) => CompetitionInfoPage(competitionId: id)),
   _mySpaceRoute('officiels', (id) => OfficialsPage(competitionId: id)),
   _mySpaceRoute('suivis', (id) => FollowsPage(competitionId: id)),
-  // Espaces athlète et officiel : tâches suivantes du lot 6a.
-  _mySpaceRoute('athlete', (_) => const ComingSoonPage()),
+  _mySpaceRoute('athlete', (id) => AthleteSpacePage(competitionId: id)),
+  // Espace officiel : tâche suivante du lot 6a.
   _mySpaceRoute('officiel', (_) => const ComingSoonPage()),
   GoRoute(
     path: 'competition/:competitionId/club/:clubId',
     redirect: (context, state) => clubRedirect(state.pathParameters),
-    builder: (context, state) => const ComingSoonPage(),
+    builder: (context, state) {
+      final key = clubKey(state.pathParameters)!;
+      return ClubPage(competitionId: key.competitionId, clubId: key.clubId);
+    },
   ),
   GoRoute(
     path: 'competition/:competitionId/fiche/:participantId',

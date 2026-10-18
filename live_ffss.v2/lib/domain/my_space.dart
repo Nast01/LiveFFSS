@@ -1,3 +1,4 @@
+import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
@@ -32,6 +33,28 @@ List<Participant> clubAthletes(List<Participant> participants, int clubId) {
   });
   return athletes;
 }
+
+/// Ce que le compte est pour un club : son référent, ou l'admin, qui peut
+/// ouvrir l'espace de n'importe quel club. Les deux pourront déclarer les
+/// forfaits du club (lot 6b) ; les autres le consultent seulement.
+enum ClubRole { referee, admin, none }
+
+/// Référent d'abord : un admin référent d'un club y est d'abord son référent.
+/// Sans rôles lus, rien : un droit ne se suppose pas.
+ClubRole clubRole(CompetitionRoles? roles, int clubId) {
+  if (roles == null) return ClubRole.none;
+  if (roles.refereeClubs.any((club) => club.id == clubId)) {
+    return ClubRole.referee;
+  }
+  return roles.isAdmin ? ClubRole.admin : ClubRole.none;
+}
+
+/// Un forfait publié : statut 2 (codes de V3, `ResultPublisher`), ou le
+/// complément `F` ou `FF` (forfait pour la finale). Le site ne publie pas les
+/// forfaits déclarés avant la course ailleurs que dans les places, lues une à
+/// une : ils viendront au lot 6b.
+bool isForfeit(EventResult result) =>
+    result.status == 2 || result.complement == 'F' || result.complement == 'FF';
 
 /// Les clubs de la compétition, par `clubId` : un participant sans `clubId`
 /// n'a pas de club à qui le rattacher. Le libellé est celui du premier

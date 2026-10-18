@@ -10,14 +10,17 @@ import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
+import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/domain/officials.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
+import 'package:live_ffss_v2/domain/standings.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
+import 'package:live_ffss_v2/features/results/results_providers.dart';
 
 import '../../support/competitions.dart';
 
@@ -426,6 +429,219 @@ void main() {
         ),
         '1 club',
       );
+    });
+  });
+
+  group('espace athlète', () {
+    test("l'athlète des cartes, nul sans carte Athlète", () {
+      expect(
+        spaceAthlete(
+          const MySpaceCards(
+            cards: [MySpaceCard.admin(), MySpaceCard.athlete(_participant)],
+          ),
+        ),
+        _participant,
+      );
+      expect(
+        spaceAthlete(const MySpaceCards(cards: [MySpaceCard.admin()])),
+        isNull,
+      );
+    });
+
+    test('titre de la prochaine course : quand elle part', () {
+      expect(
+        nextRaceHeadline(_toRun(1, 'x', DateTime(2026, 3, 27, 9, 4)), now, fr),
+        'Ma prochaine course · dans 2 h',
+      );
+      expect(
+        nextRaceHeadline(_toRun(1, 'x', null), now, fr),
+        'Ma prochaine course',
+      );
+      expect(nextRaceHeadline(_toRun(1, 'x', null), now, en), 'My next race');
+    });
+
+    test('heure, série et ligne : « Trouver sa série » les complète', () {
+      final race = _toRun(1, 'x', DateTime(2026, 3, 27, 8, 58));
+      expect(nextRaceCells(race, null), (
+        time: '08:58',
+        series: '–',
+        lane: '–',
+      ));
+      const heat = Heat(
+        id: 4,
+        name: 'Série 6',
+        number: 6,
+        status: RunStatus.waiting,
+      );
+      expect(nextRaceCells(race, const LaneFound(heat: heat, lane: 4)), (
+        time: '08:58',
+        series: '6',
+        lane: '4',
+      ));
+      // Sa série déjà publiée : connue sans chercher.
+      final published = race.copyWith(
+        series: const LinkedSeries(
+          series: EventSeries(id: 1, eventId: 1, number: 6, name: 'Série 6'),
+          heat: heat,
+          round: EventRound.heats,
+        ),
+      );
+      expect(nextRaceCells(published, null).series, '6');
+      expect(nextRaceCells(_toRun(1, 'x', null), null).time, '–');
+    });
+  });
+
+  group('espace club', () {
+    final race = _toRun(1, '100m Bouée tube', DateTime(2026, 3, 27, 8, 58));
+    const other = Participant(id: 8, firstName: 'Deux', lastName: 'ATHLETE');
+
+    test('titre : ses athlètes ; ligne : épreuve et série', () {
+      final relay = ClubRace(athletes: const [_participant, other], race: race);
+      expect(clubRaceTitle(relay), 'Un ATHLETE, Deux ATHLETE');
+      expect(
+        clubRaceLine(ClubRace(athletes: const [_participant], race: race), fr),
+        '100m Bouée tube · Dames · Cadet',
+      );
+      final withSeries = race.copyWith(
+        series: const LinkedSeries(
+          series: EventSeries(id: 1, eventId: 1, number: 6, name: 'Série 6'),
+          heat: Heat(
+            id: 4,
+            name: 'Série 6',
+            number: 6,
+            status: RunStatus.waiting,
+          ),
+          round: EventRound.heats,
+        ),
+      );
+      expect(
+        clubRaceLine(
+          ClubRace(athletes: const [_participant], race: withSeries),
+          fr,
+        ),
+        '100m Bouée tube · Dames · Cadet · Série 6',
+      );
+      expect(
+        clubRaceLine(
+          ClubRace(
+            athletes: const [_participant],
+            race: race.copyWith(unavailable: true),
+          ),
+          fr,
+        ),
+        '100m Bouée tube · Dames · Cadet · '
+        'Résultats illisibles pour cette épreuve',
+      );
+    });
+
+    test('résultats groupés par épreuve, dans leur ordre', () {
+      final a = ClubRace(athletes: const [_participant], race: race);
+      final b = ClubRace(athletes: const [other], race: race);
+      final c = ClubRace(
+        athletes: const [other],
+        race: _toRun(2, '200m Obstacles', null),
+      );
+
+      final groups = clubResultsByEvent([a, b, c]);
+
+      expect(groups.map((g) => g.event.id), [1, 2]);
+      expect(groups.first.races, [a, b]);
+      expect(groups.last.races, [c]);
+    });
+
+    test('titre : le libellé des engagés, sinon des rôles, sinon « Club »', () {
+      const club = ClubInfo(id: 15, label: 'Les Dauphins', athletes: []);
+      const roles = CompetitionRoles(
+        roles: ['public', 'referent_sportif'],
+        refereeClubs: [ClubRef(id: 15, label: 'Dauphins (rôle)')],
+      );
+      expect(clubTitle(club, roles, 15, fr), 'Les Dauphins');
+      expect(
+        clubTitle(
+          const ClubInfo(id: 15, label: '', athletes: []),
+          roles,
+          15,
+          fr,
+        ),
+        'Dauphins (rôle)',
+      );
+      expect(clubTitle(null, null, 15, fr), 'Club');
+      expect(clubTitle(null, roles, 16, fr), 'Club');
+    });
+
+    test('étiquette RÉFÉRENT / ADMIN, interrupteurs pour eux seuls', () {
+      expect(clubRoleTag(ClubRole.referee, fr), 'RÉFÉRENT');
+      expect(clubRoleTag(ClubRole.admin, fr), 'ADMIN');
+      expect(clubRoleTag(ClubRole.none, fr), isNull);
+      expect(canManageForfeits(ClubRole.referee), isTrue);
+      expect(canManageForfeits(ClubRole.admin), isTrue);
+      expect(canManageForfeits(ClubRole.none), isFalse);
+    });
+
+    group('rang provisoire du club', () {
+      final standings = Standings(
+        clubs: const [
+          ClubStanding(rank: 1, club: 'Club A', points: 40),
+          ClubStanding(rank: 2, club: 'Les Dauphins', points: 30),
+        ],
+        licensees: const [],
+        finishedSeries: 1,
+        totalSeries: 2,
+        failedEvents: 0,
+        computedAt: now,
+      );
+
+      test('pas encore calculé : « Calculer »', () {
+        expect(
+          clubRankView(asked: false, failed: false, standings: null, club: 'x'),
+          const RankNotComputed(),
+        );
+      });
+
+      test('en calcul, en échec', () {
+        expect(
+          clubRankView(asked: true, failed: false, standings: null, club: 'x'),
+          const RankComputing(),
+        );
+        expect(
+          clubRankView(asked: true, failed: true, standings: null, club: 'x'),
+          const RankFailed(),
+        );
+      });
+
+      test('calculé : son rang par libellé, ou rien', () {
+        expect(
+          clubRankView(
+            asked: true,
+            failed: false,
+            standings: standings,
+            club: ' Les Dauphins ',
+          ),
+          const RankShown(2),
+        );
+        expect(
+          clubRankView(
+            asked: true,
+            failed: false,
+            standings: standings,
+            club: 'Inconnu',
+          ),
+          const RankShown(null),
+        );
+        // Une relecture en échec garde le calcul précédent.
+        expect(
+          clubRankView(
+            asked: true,
+            failed: true,
+            standings: standings,
+            club: 'Club A',
+          ),
+          const RankShown(1),
+        );
+        expect(clubRankLabel(const RankShown(2), fr), '2e');
+        expect(clubRankLabel(const RankShown(1), en), '1st');
+        expect(clubRankLabel(const RankShown(null), fr), '–');
+      });
     });
   });
 }

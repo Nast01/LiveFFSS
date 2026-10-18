@@ -1031,4 +1031,856 @@ $CompetitionSummaryCopyWith<$Res> get competition {
 }
 }
 
+/// @nodoc
+mixin _$ClubInfo {
+
+ int get id;/// Celui de ses participants ; vide pour un club sans engagé.
+ String get label;/// Par nom puis prénom (`clubAthletes`).
+ List<Participant> get athletes;
+/// Create a copy of ClubInfo
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ClubInfoCopyWith<ClubInfo> get copyWith => _$ClubInfoCopyWithImpl<ClubInfo>(this as ClubInfo, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as ClubInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClubInfo&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.label, _this.label) || other.label == _this.label)&&const DeepCollectionEquality().equals(other.athletes, _this.athletes));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as ClubInfo;
+  return Object.hash(runtimeType,_this.id,_this.label,const DeepCollectionEquality().hash(_this.athletes));
+}
+
+@override
+String toString() {
+  final _this = this as ClubInfo;
+  return 'ClubInfo(id: ${_this.id}, label: ${_this.label}, athletes: ${_this.athletes})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ClubInfoCopyWith<$Res>  {
+  factory $ClubInfoCopyWith(ClubInfo value, $Res Function(ClubInfo) _then) = _$ClubInfoCopyWithImpl;
+@useResult
+$Res call({
+ int id, String label, List<Participant> athletes
+});
+
+
+
+
+}
+/// @nodoc
+class _$ClubInfoCopyWithImpl<$Res>
+    implements $ClubInfoCopyWith<$Res> {
+  _$ClubInfoCopyWithImpl(this._self, this._then);
+
+  final ClubInfo _self;
+  final $Res Function(ClubInfo) _then;
+
+/// Create a copy of ClubInfo
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? athletes = null,}) {
+  return _then(ClubInfo(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,athletes: null == athletes ? _self.athletes : athletes // ignore: cast_nullable_to_non_nullable
+as List<Participant>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ClubInfo].
+extension ClubInfoPatterns on ClubInfo {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ClubInfo value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ClubInfo() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ClubInfo value)  $default,){
+final _that = this;
+switch (_that) {
+case _ClubInfo():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ClubInfo value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ClubInfo() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String label,  List<Participant> athletes)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ClubInfo() when $default != null:
+return $default(_that.id,_that.label,_that.athletes);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String label,  List<Participant> athletes)  $default,) {final _that = this;
+switch (_that) {
+case _ClubInfo():
+return $default(_that.id,_that.label,_that.athletes);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String label,  List<Participant> athletes)?  $default,) {final _that = this;
+switch (_that) {
+case _ClubInfo() when $default != null:
+return $default(_that.id,_that.label,_that.athletes);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _ClubInfo implements ClubInfo {
+  const _ClubInfo({required this.id, required this.label, required  List<Participant> athletes}): _athletes = athletes;
+  
+
+@override final  int id;
+/// Celui de ses participants ; vide pour un club sans engagé.
+@override final  String label;
+/// Par nom puis prénom (`clubAthletes`).
+ final  List<Participant> _athletes;
+/// Par nom puis prénom (`clubAthletes`).
+@override List<Participant> get athletes {
+  if (_athletes is EqualUnmodifiableListView) return _athletes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_athletes);
+}
+
+
+/// Create a copy of ClubInfo
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ClubInfoCopyWith<_ClubInfo> get copyWith => __$ClubInfoCopyWithImpl<_ClubInfo>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClubInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&const DeepCollectionEquality().equals(other.athletes, _athletes));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,id,label,const DeepCollectionEquality().hash(_athletes));
+}
+
+@override
+String toString() {
+    return 'ClubInfo(id: $id, label: $label, athletes: $athletes)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ClubInfoCopyWith<$Res> implements $ClubInfoCopyWith<$Res> {
+  factory _$ClubInfoCopyWith(_ClubInfo value, $Res Function(_ClubInfo) _then) = __$ClubInfoCopyWithImpl;
+@override @useResult
+$Res call({
+ int id, String label, List<Participant> athletes
+});
+
+
+
+
+}
+/// @nodoc
+class __$ClubInfoCopyWithImpl<$Res>
+    implements _$ClubInfoCopyWith<$Res> {
+  __$ClubInfoCopyWithImpl(this._self, this._then);
+
+  final _ClubInfo _self;
+  final $Res Function(_ClubInfo) _then;
+
+/// Create a copy of ClubInfo
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? athletes = null,}) {
+  return _then(_ClubInfo(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,athletes: null == athletes ? _self._athletes : athletes // ignore: cast_nullable_to_non_nullable
+as List<Participant>,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$ClubRace {
+
+ List<Participant> get athletes; AthleteRace get race;
+/// Create a copy of ClubRace
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ClubRaceCopyWith<ClubRace> get copyWith => _$ClubRaceCopyWithImpl<ClubRace>(this as ClubRace, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as ClubRace;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClubRace&&const DeepCollectionEquality().equals(other.athletes, _this.athletes)&&(identical(other.race, _this.race) || other.race == _this.race));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as ClubRace;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.athletes),_this.race);
+}
+
+@override
+String toString() {
+  final _this = this as ClubRace;
+  return 'ClubRace(athletes: ${_this.athletes}, race: ${_this.race})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ClubRaceCopyWith<$Res>  {
+  factory $ClubRaceCopyWith(ClubRace value, $Res Function(ClubRace) _then) = _$ClubRaceCopyWithImpl;
+@useResult
+$Res call({
+ List<Participant> athletes, AthleteRace race
+});
+
+
+$AthleteRaceCopyWith<$Res> get race;
+
+}
+/// @nodoc
+class _$ClubRaceCopyWithImpl<$Res>
+    implements $ClubRaceCopyWith<$Res> {
+  _$ClubRaceCopyWithImpl(this._self, this._then);
+
+  final ClubRace _self;
+  final $Res Function(ClubRace) _then;
+
+/// Create a copy of ClubRace
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? athletes = null,Object? race = null,}) {
+  return _then(ClubRace(
+athletes: null == athletes ? _self.athletes : athletes // ignore: cast_nullable_to_non_nullable
+as List<Participant>,race: null == race ? _self.race : race // ignore: cast_nullable_to_non_nullable
+as AthleteRace,
+  ));
+}
+/// Create a copy of ClubRace
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$AthleteRaceCopyWith<$Res> get race {
+  
+  return $AthleteRaceCopyWith<$Res>(_self.race, (value) {
+    return _then(_self.copyWith(race: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [ClubRace].
+extension ClubRacePatterns on ClubRace {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ClubRace value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ClubRace() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ClubRace value)  $default,){
+final _that = this;
+switch (_that) {
+case _ClubRace():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ClubRace value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ClubRace() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Participant> athletes,  AthleteRace race)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ClubRace() when $default != null:
+return $default(_that.athletes,_that.race);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Participant> athletes,  AthleteRace race)  $default,) {final _that = this;
+switch (_that) {
+case _ClubRace():
+return $default(_that.athletes,_that.race);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Participant> athletes,  AthleteRace race)?  $default,) {final _that = this;
+switch (_that) {
+case _ClubRace() when $default != null:
+return $default(_that.athletes,_that.race);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _ClubRace implements ClubRace {
+  const _ClubRace({required  List<Participant> athletes, required this.race}): _athletes = athletes;
+  
+
+ final  List<Participant> _athletes;
+@override List<Participant> get athletes {
+  if (_athletes is EqualUnmodifiableListView) return _athletes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_athletes);
+}
+
+@override final  AthleteRace race;
+
+/// Create a copy of ClubRace
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ClubRaceCopyWith<_ClubRace> get copyWith => __$ClubRaceCopyWithImpl<_ClubRace>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClubRace&&const DeepCollectionEquality().equals(other.athletes, _athletes)&&(identical(other.race, race) || other.race == race));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_athletes),race);
+}
+
+@override
+String toString() {
+    return 'ClubRace(athletes: $athletes, race: $race)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ClubRaceCopyWith<$Res> implements $ClubRaceCopyWith<$Res> {
+  factory _$ClubRaceCopyWith(_ClubRace value, $Res Function(_ClubRace) _then) = __$ClubRaceCopyWithImpl;
+@override @useResult
+$Res call({
+ List<Participant> athletes, AthleteRace race
+});
+
+
+@override $AthleteRaceCopyWith<$Res> get race;
+
+}
+/// @nodoc
+class __$ClubRaceCopyWithImpl<$Res>
+    implements _$ClubRaceCopyWith<$Res> {
+  __$ClubRaceCopyWithImpl(this._self, this._then);
+
+  final _ClubRace _self;
+  final $Res Function(_ClubRace) _then;
+
+/// Create a copy of ClubRace
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? athletes = null,Object? race = null,}) {
+  return _then(_ClubRace(
+athletes: null == athletes ? _self._athletes : athletes // ignore: cast_nullable_to_non_nullable
+as List<Participant>,race: null == race ? _self.race : race // ignore: cast_nullable_to_non_nullable
+as AthleteRace,
+  ));
+}
+
+/// Create a copy of ClubRace
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$AthleteRaceCopyWith<$Res> get race {
+  
+  return $AthleteRaceCopyWith<$Res>(_self.race, (value) {
+    return _then(_self.copyWith(race: value));
+  });
+}
+}
+
+/// @nodoc
+mixin _$ClubSchedule {
+
+/// À courir d'abord, puis courues (voir [clubRaces]).
+ List<ClubRace> get races;/// Athlètes dont la fiche n'a pu être lue : leurs courses manquent, ce
+/// que la page dit.
+ int get failedAthletes;
+/// Create a copy of ClubSchedule
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ClubScheduleCopyWith<ClubSchedule> get copyWith => _$ClubScheduleCopyWithImpl<ClubSchedule>(this as ClubSchedule, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as ClubSchedule;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClubSchedule&&const DeepCollectionEquality().equals(other.races, _this.races)&&(identical(other.failedAthletes, _this.failedAthletes) || other.failedAthletes == _this.failedAthletes));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as ClubSchedule;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.races),_this.failedAthletes);
+}
+
+@override
+String toString() {
+  final _this = this as ClubSchedule;
+  return 'ClubSchedule(races: ${_this.races}, failedAthletes: ${_this.failedAthletes})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ClubScheduleCopyWith<$Res>  {
+  factory $ClubScheduleCopyWith(ClubSchedule value, $Res Function(ClubSchedule) _then) = _$ClubScheduleCopyWithImpl;
+@useResult
+$Res call({
+ List<ClubRace> races, int failedAthletes
+});
+
+
+
+
+}
+/// @nodoc
+class _$ClubScheduleCopyWithImpl<$Res>
+    implements $ClubScheduleCopyWith<$Res> {
+  _$ClubScheduleCopyWithImpl(this._self, this._then);
+
+  final ClubSchedule _self;
+  final $Res Function(ClubSchedule) _then;
+
+/// Create a copy of ClubSchedule
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? races = null,Object? failedAthletes = null,}) {
+  return _then(ClubSchedule(
+races: null == races ? _self.races : races // ignore: cast_nullable_to_non_nullable
+as List<ClubRace>,failedAthletes: null == failedAthletes ? _self.failedAthletes : failedAthletes // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ClubSchedule].
+extension ClubSchedulePatterns on ClubSchedule {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ClubSchedule value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ClubSchedule() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ClubSchedule value)  $default,){
+final _that = this;
+switch (_that) {
+case _ClubSchedule():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ClubSchedule value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ClubSchedule() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<ClubRace> races,  int failedAthletes)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ClubSchedule() when $default != null:
+return $default(_that.races,_that.failedAthletes);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<ClubRace> races,  int failedAthletes)  $default,) {final _that = this;
+switch (_that) {
+case _ClubSchedule():
+return $default(_that.races,_that.failedAthletes);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<ClubRace> races,  int failedAthletes)?  $default,) {final _that = this;
+switch (_that) {
+case _ClubSchedule() when $default != null:
+return $default(_that.races,_that.failedAthletes);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _ClubSchedule implements ClubSchedule {
+  const _ClubSchedule({required  List<ClubRace> races, this.failedAthletes = 0}): _races = races;
+  
+
+/// À courir d'abord, puis courues (voir [clubRaces]).
+ final  List<ClubRace> _races;
+/// À courir d'abord, puis courues (voir [clubRaces]).
+@override List<ClubRace> get races {
+  if (_races is EqualUnmodifiableListView) return _races;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_races);
+}
+
+/// Athlètes dont la fiche n'a pu être lue : leurs courses manquent, ce
+/// que la page dit.
+@override@JsonKey() final  int failedAthletes;
+
+/// Create a copy of ClubSchedule
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ClubScheduleCopyWith<_ClubSchedule> get copyWith => __$ClubScheduleCopyWithImpl<_ClubSchedule>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClubSchedule&&const DeepCollectionEquality().equals(other.races, _races)&&(identical(other.failedAthletes, failedAthletes) || other.failedAthletes == failedAthletes));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_races),failedAthletes);
+}
+
+@override
+String toString() {
+    return 'ClubSchedule(races: $races, failedAthletes: $failedAthletes)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ClubScheduleCopyWith<$Res> implements $ClubScheduleCopyWith<$Res> {
+  factory _$ClubScheduleCopyWith(_ClubSchedule value, $Res Function(_ClubSchedule) _then) = __$ClubScheduleCopyWithImpl;
+@override @useResult
+$Res call({
+ List<ClubRace> races, int failedAthletes
+});
+
+
+
+
+}
+/// @nodoc
+class __$ClubScheduleCopyWithImpl<$Res>
+    implements _$ClubScheduleCopyWith<$Res> {
+  __$ClubScheduleCopyWithImpl(this._self, this._then);
+
+  final _ClubSchedule _self;
+  final $Res Function(_ClubSchedule) _then;
+
+/// Create a copy of ClubSchedule
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? races = null,Object? failedAthletes = null,}) {
+  return _then(_ClubSchedule(
+races: null == races ? _self._races : races // ignore: cast_nullable_to_non_nullable
+as List<ClubRace>,failedAthletes: null == failedAthletes ? _self.failedAthletes : failedAthletes // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
 // dart format on

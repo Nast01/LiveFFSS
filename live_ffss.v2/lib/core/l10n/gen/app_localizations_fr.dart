@@ -883,4 +883,108 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mySpaceFollowsError => 'Impossible de lire vos suivis';
+
+  @override
+  String get mySpaceAthleteSpaceTitle => 'Mon espace athlète';
+
+  @override
+  String get mySpaceNextRaceTitle => 'Ma prochaine course';
+
+  @override
+  String get mySpaceCellTime => 'Heure';
+
+  @override
+  String get mySpaceCellSeries => 'Série';
+
+  @override
+  String get mySpaceCellLane => 'Ligne';
+
+  @override
+  String get mySpaceMyPlanning => 'Mon planning';
+
+  @override
+  String get mySpaceMyResults => 'Mes résultats';
+
+  @override
+  String get mySpaceNotEngaged =>
+      'Votre compte n\'est engagé sur aucune épreuve de cette compétition.';
+
+  @override
+  String get mySpaceNoRaceRun => 'Aucune course courue pour le moment';
+
+  @override
+  String get mySpaceRefereeTag => 'RÉFÉRENT';
+
+  @override
+  String get mySpaceAdminTag => 'ADMIN';
+
+  @override
+  String mySpaceFigureAthletes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'athlètes',
+      one: 'athlète',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mySpaceFigureRank => 'clubs (prov.)';
+
+  @override
+  String mySpaceFigureForfeits(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'forfaits',
+      one: 'forfait',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mySpaceCompute => 'Calculer';
+
+  @override
+  String get mySpacePlanning => 'Planning';
+
+  @override
+  String get mySpaceForfeits => 'Forfaits';
+
+  @override
+  String get mySpaceUpcoming => 'À venir';
+
+  @override
+  String mySpaceCardsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fiches d\'athlète n\'ont pu être lues',
+      one: '1 fiche d\'athlète n\'a pu être lue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mySpaceForfeitsHint => 'Forfaits tirés des résultats publiés.';
+
+  @override
+  String get mySpaceForfeitsLater =>
+      'Déclarer ou annuler un forfait, remplacer un relayeur : au lot 6b.';
+
+  @override
+  String get mySpaceNoForfeit => 'Aucun forfait dans les résultats publiés';
+
+  @override
+  String get mySpaceClubError => 'Impossible de charger l\'espace du club.';
+
+  @override
+  String get mySpaceClubNoAthlete => 'Aucun athlète de ce club n\'est engagé.';
+
+  @override
+  String get mySpaceClubFallback => 'Club';
+
+  @override
+  String get followClub => 'Suivre ce club';
 }

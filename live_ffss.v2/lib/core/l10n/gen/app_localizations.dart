@@ -1483,6 +1483,162 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Impossible de lire vos suivis'**
   String get mySpaceFollowsError;
+
+  /// No description provided for @mySpaceAthleteSpaceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon espace athlète'**
+  String get mySpaceAthleteSpaceTitle;
+
+  /// No description provided for @mySpaceNextRaceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ma prochaine course'**
+  String get mySpaceNextRaceTitle;
+
+  /// No description provided for @mySpaceCellTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure'**
+  String get mySpaceCellTime;
+
+  /// No description provided for @mySpaceCellSeries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série'**
+  String get mySpaceCellSeries;
+
+  /// No description provided for @mySpaceCellLane.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ligne'**
+  String get mySpaceCellLane;
+
+  /// No description provided for @mySpaceMyPlanning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon planning'**
+  String get mySpaceMyPlanning;
+
+  /// No description provided for @mySpaceMyResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes résultats'**
+  String get mySpaceMyResults;
+
+  /// No description provided for @mySpaceNotEngaged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre compte n\'est engagé sur aucune épreuve de cette compétition.'**
+  String get mySpaceNotEngaged;
+
+  /// No description provided for @mySpaceNoRaceRun.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune course courue pour le moment'**
+  String get mySpaceNoRaceRun;
+
+  /// No description provided for @mySpaceRefereeTag.
+  ///
+  /// In fr, this message translates to:
+  /// **'RÉFÉRENT'**
+  String get mySpaceRefereeTag;
+
+  /// No description provided for @mySpaceAdminTag.
+  ///
+  /// In fr, this message translates to:
+  /// **'ADMIN'**
+  String get mySpaceAdminTag;
+
+  /// No description provided for @mySpaceFigureAthletes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{athlète} other{athlètes}}'**
+  String mySpaceFigureAthletes(int count);
+
+  /// No description provided for @mySpaceFigureRank.
+  ///
+  /// In fr, this message translates to:
+  /// **'clubs (prov.)'**
+  String get mySpaceFigureRank;
+
+  /// No description provided for @mySpaceFigureForfeits.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{forfait} other{forfaits}}'**
+  String mySpaceFigureForfeits(int count);
+
+  /// No description provided for @mySpaceCompute.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calculer'**
+  String get mySpaceCompute;
+
+  /// No description provided for @mySpacePlanning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planning'**
+  String get mySpacePlanning;
+
+  /// No description provided for @mySpaceForfeits.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfaits'**
+  String get mySpaceForfeits;
+
+  /// No description provided for @mySpaceUpcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'À venir'**
+  String get mySpaceUpcoming;
+
+  /// No description provided for @mySpaceCardsFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 fiche d\'athlète n\'a pu être lue} other{{count} fiches d\'athlète n\'ont pu être lues}}'**
+  String mySpaceCardsFailed(int count);
+
+  /// No description provided for @mySpaceForfeitsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfaits tirés des résultats publiés.'**
+  String get mySpaceForfeitsHint;
+
+  /// No description provided for @mySpaceForfeitsLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclarer ou annuler un forfait, remplacer un relayeur : au lot 6b.'**
+  String get mySpaceForfeitsLater;
+
+  /// No description provided for @mySpaceNoForfeit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun forfait dans les résultats publiés'**
+  String get mySpaceNoForfeit;
+
+  /// No description provided for @mySpaceClubError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger l\'espace du club.'**
+  String get mySpaceClubError;
+
+  /// No description provided for @mySpaceClubNoAthlete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun athlète de ce club n\'est engagé.'**
+  String get mySpaceClubNoAthlete;
+
+  /// No description provided for @mySpaceClubFallback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Club'**
+  String get mySpaceClubFallback;
+
+  /// No description provided for @followClub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivre ce club'**
+  String get followClub;
 }
 
 class _AppLocalizationsDelegate

@@ -202,3 +202,239 @@ final followedRacesProvider = FutureProvider.autoDispose
             athlete.participantId: followedNextRace(athlete, events, programme),
       };
     });
+
+typedef ClubKey = ({int competitionId, int clubId});
+
+/// Un club de la compétition : son libellé et ses athlètes engagés.
+@freezed
+abstract class ClubInfo with _$ClubInfo {
+  const factory ClubInfo({
+    required int id,
+
+    /// Celui de ses participants ; vide pour un club sans engagé.
+    required String label,
+
+    /// Par nom puis prénom (`clubAthletes`).
+    required List<Participant> athletes,
+  }) = _ClubInfo;
+}
+
+/// Ouvert à tout le monde (décision du 2026-10-18) : on suit le club d'un
+/// proche sans compte.
+final clubProvider = FutureProvider.autoDispose.family<ClubInfo, ClubKey>((
+  ref,
+  key,
+) async {
+  ref.read(participantsKeeperProvider(key.competitionId).notifier).keep();
+  final participants = await ref.watch(
+    participantsProvider(key.competitionId).future,
+  );
+  final athletes = clubAthletes(participants, key.clubId);
+  return ClubInfo(
+    id: key.clubId,
+    label: athletes.firstOrNull?.club ?? '',
+    athletes: athletes,
+  );
+});
+
+/// Une course d'un club : un engagement et ceux de ses athlètes qui le
+/// courent, plusieurs pour un relais.
+@freezed
+abstract class ClubRace with _$ClubRace {
+  const factory ClubRace({
+    required List<Participant> athletes,
+    required AthleteRace race,
+  }) = _ClubRace;
+}
+
+@freezed
+abstract class ClubSchedule with _$ClubSchedule {
+  const factory ClubSchedule({
+    /// À courir d'abord, puis courues (voir [clubRaces]).
+    required List<ClubRace> races,
+
+    /// Athlètes dont la fiche n'a pu être lue : leurs courses manquent, ce
+    /// que la page dit.
+    @Default(0) int failedAthletes,
+  }) = _ClubSchedule;
+}
+
+/// Le planning et les résultats d'un club, tirés des fiches de ses athlètes
+/// (lot 5). Lu à l'ouverture de son espace, sans minuterie. Une fiche en
+/// échec n'emporte pas les autres.
+///
+/// Chaque fiche lit les classements de ses épreuves d'un coup : six fiches
+/// en vol feraient des dizaines de lectures à la fois. Les classements des
+/// épreuves du club sont donc lus d'abord, 6 au plus en vol
+/// ([maxConcurrentSeries]) ; les fiches, lues ensuite 6 à la fois, les
+/// trouvent prêts.
+final clubScheduleProvider = FutureProvider.autoDispose
+    .family<ClubSchedule, ClubKey>((ref, key) async {
+      final competitionId = key.competitionId;
+      // Lues ensemble ; celle qu'on n'attend pas encore ne doit pas remonter
+      // son échec comme non traité.
+      final clubRead = ref.watch(clubProvider(key).future);
+      final eventsRead = ref.watch(eventsProvider(competitionId).future)
+        ..ignore();
+      final club = await clubRead;
+      final events = await eventsRead;
+      if (!ref.mounted) return const ClubSchedule(races: []);
+
+      // Les épreuves côtières n'ont pas de classement : la fiche les écarte.
+      final flatWater = {for (final event in events) event.id};
+      final eventIds = {
+        for (final athlete in club.athletes)
+          for (final entry in athlete.entries)
+            if (flatWater.contains(entry.eventId)) entry.eventId,
+      };
+      await _inPool(eventIds, () => ref.mounted, (eventId) async {
+        try {
+          await ref.watch(
+            eventRankingProvider((
+              competitionId: competitionId,
+              eventId: eventId,
+            )).future,
+          );
+        } on AppException {
+          // La fiche trouvera l'échec et dira l'épreuve illisible.
+        }
+      });
+      if (!ref.mounted) return const ClubSchedule(races: []);
+
+      final cards = <int, List<AthleteRace>>{};
+      var failed = 0;
+      await _inPool(club.athletes, () => ref.mounted, (athlete) async {
+        try {
+          cards[athlete.id] = await ref.watch(
+            athleteCardProvider((
+              competitionId: competitionId,
+              participantId: athlete.id,
+            )).future,
+          );
+        } on AppException {
+          failed++;
+        }
+      });
+      if (!ref.mounted) return const ClubSchedule(races: []);
+      return ClubSchedule(
+        races: clubRaces(club.athletes, cards, events),
+        failedAthletes: failed,
+      );
+    });
+
+/// [task] sur chaque élément, [maxConcurrentSeries] au plus en vol. Les
+/// travailleurs tirent dans le même itérateur : `moveNext` + `current` sans
+/// `await` entre les deux est sûr. [alive] faux : une lecture remplacée
+/// (rafraîchissement, page fermée) ne lance plus rien.
+Future<void> _inPool<T>(
+  Iterable<T> items,
+  bool Function() alive,
+  Future<void> Function(T item) task,
+) async {
+  final pending = items.iterator;
+  Future<void> worker() async {
+    while (alive() && pending.moveNext()) {
+      await task(pending.current);
+    }
+  }
+
+  await Future.wait([for (var i = 0; i < maxConcurrentSeries; i++) worker()]);
+}
+
+/// Les courses des [athletes] d'après leurs fiches ([cards], par id de
+/// participant) : un relais, présent sur la fiche de chacun de ses
+/// relayeurs, ne fait qu'une course. À courir d'abord, par heure prévue
+/// (celles sans heure après), puis courues, par épreuve dans l'ordre de
+/// [events] et par rang ; à égalité, l'ordre des athlètes (par nom).
+List<ClubRace> clubRaces(
+  List<Participant> athletes,
+  Map<int, List<AthleteRace>> cards,
+  List<CompetitionEvent> events,
+) {
+  final byEntry = <int, ({AthleteRace race, List<Participant> athletes})>{};
+  for (final athlete in athletes) {
+    for (final race in cards[athlete.id] ?? const <AthleteRace>[]) {
+      byEntry
+          .putIfAbsent(race.entry.entryId, () => (race: race, athletes: []))
+          .athletes
+          .add(athlete);
+    }
+  }
+  final eventOrder = {for (final (i, event) in events.indexed) event.id: i};
+  int orderOf(AthleteRace race) =>
+      eventOrder[race.event.id] ?? eventOrder.length;
+
+  int compare(AthleteRace a, AthleteRace b) {
+    final byRun = (a.toRun ? 0 : 1).compareTo(b.toRun ? 0 : 1);
+    if (byRun != 0) return byRun;
+    if (a.toRun) {
+      final byStart = _nullsLast(a.plannedStart, b.plannedStart);
+      return byStart != 0 ? byStart : orderOf(a).compareTo(orderOf(b));
+    }
+    final byEvent = orderOf(a).compareTo(orderOf(b));
+    return byEvent != 0 ? byEvent : _nullsLast(a.row?.rank, b.row?.rank);
+  }
+
+  // `sort` n'est pas stable : l'indice départage.
+  final indexed = byEntry.values.indexed.toList()
+    ..sort((a, b) {
+      final byRace = compare(a.$2.race, b.$2.race);
+      return byRace != 0 ? byRace : a.$1.compareTo(b.$1);
+    });
+  return [
+    for (final (_, entry) in indexed)
+      ClubRace(athletes: entry.athletes, race: entry.race),
+  ];
+}
+
+int _nullsLast<T extends Comparable<Object>>(T? a, T? b) {
+  if (a == null) return b == null ? 0 : 1;
+  if (b == null) return -1;
+  return a.compareTo(b);
+}
+
+/// Rafraîchissement et « Réessayer » de l'espace d'un club : les classements
+/// de ses épreuves, les fiches en échec, et ce qui en amont a échoué. Les
+/// participants (3,6 Mo) ne sont relus que s'ils ont échoué. La page passe le
+/// conteneur de son `ProviderScope`.
+Future<void> refreshClubSchedule(
+  ProviderContainer container,
+  ClubKey key,
+) async {
+  final competitionId = key.competitionId;
+  final participants = participantsProvider(competitionId);
+  if (container.read(participants).hasError) {
+    container.invalidate(participants);
+  }
+  if (container.read(eventsProvider(competitionId)).hasError ||
+      container.read(resultsProgrammeProvider(competitionId)).hasError) {
+    // `refresh` porte son échec dans l'état, qu'il n'y a pas à attendre.
+    unawaited(container.read(eventsProvider(competitionId).notifier).refresh());
+  }
+  final club = container.read(clubProvider(key));
+  if (club.hasError) container.invalidate(clubProvider(key));
+  final athletes = club.value?.athletes ?? const <Participant>[];
+  for (final eventId in {
+    for (final athlete in athletes)
+      for (final entry in athlete.entries) entry.eventId,
+  }) {
+    container.invalidate(
+      eventRankingProvider((competitionId: competitionId, eventId: eventId)),
+    );
+  }
+  for (final athlete in athletes) {
+    final card = athleteCardProvider((
+      competitionId: competitionId,
+      participantId: athlete.id,
+    ));
+    if (container.exists(card) && container.read(card).hasError) {
+      container.invalidate(card);
+    }
+  }
+  container.invalidate(clubScheduleProvider(key));
+  try {
+    await container.read(clubScheduleProvider(key).future);
+  } on AppException {
+    // L'échec est dans l'état du planning, que la page montre.
+  }
+}
