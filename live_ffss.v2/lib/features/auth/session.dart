@@ -58,7 +58,7 @@ class SessionNotifier extends AsyncNotifier<Account?> {
     }
     if (!_isCurrent(generation)) return null;
 
-    if (stored != null && !_sameAccount(stored, account.label)) {
+    if (stored != null && !isSameAccount(stored, account.label)) {
       await _forget(tokens, store);
       return null;
     }
@@ -155,10 +155,6 @@ class SessionNotifier extends AsyncNotifier<Account?> {
       throw UnknownException(e.toString());
     }
   }
-
-  /// Même personne : même nom affiché, à la casse et aux espaces près.
-  static bool _sameAccount(String a, String b) =>
-      a.trim().toLowerCase() == b.trim().toLowerCase();
 }
 
 final sessionProvider = AsyncNotifierProvider<SessionNotifier, Account?>(

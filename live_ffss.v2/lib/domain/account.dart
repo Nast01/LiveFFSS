@@ -15,3 +15,8 @@ abstract class Account with _$Account {
     String? type,
   }) = _Account;
 }
+
+/// Même personne : même nom affiché, à la casse et aux espaces près. Le site
+/// ne donne pas d'identifiant de compte stable (comme dans V3).
+bool isSameAccount(String a, String b) =>
+    a.trim().toLowerCase() == b.trim().toLowerCase();
