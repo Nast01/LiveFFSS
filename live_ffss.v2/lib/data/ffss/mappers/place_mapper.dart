@@ -26,6 +26,8 @@ extension PlaceMapper on PlaceDto {
       ],
       club: _nonBlank(engagement?.clubLabel) ?? '',
       category: _nonBlank(epreuveCategorie?.categorie?.name),
+      resultId: result?.id,
+      entryId: engagement?.id,
       forfeit: engagement?.isForfeit ?? false,
       isRelay: epreuveCategorie?.epreuve?.discipline?.isRelay ?? false,
       performance: result == null

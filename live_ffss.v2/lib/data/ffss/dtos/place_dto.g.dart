@@ -30,6 +30,7 @@ Map<String, dynamic> _$PlaceDtoToJson(_PlaceDto instance) => <String, dynamic>{
 
 _PlaceEngagementDto _$PlaceEngagementDtoFromJson(Map<String, dynamic> json) =>
     _PlaceEngagementDto(
+      id: (readInt(json, 'id') as num?)?.toInt(),
       clubLabel: json['clubLabel'] as String?,
       isForfeit: json['isForfait'] as bool?,
       athletes:
@@ -46,6 +47,7 @@ _PlaceEngagementDto _$PlaceEngagementDtoFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$PlaceEngagementDtoToJson(_PlaceEngagementDto instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'clubLabel': instance.clubLabel,
       'isForfait': instance.isForfeit,
       'athletes': instance.athletes,
@@ -106,6 +108,7 @@ Map<String, dynamic> _$PlaceDisciplineDtoToJson(_PlaceDisciplineDto instance) =>
 
 _PlaceResultDto _$PlaceResultDtoFromJson(Map<String, dynamic> json) =>
     _PlaceResultDto(
+      id: (readInt(json, 'id') as num?)?.toInt(),
       time: json['tempsLabel'] as String?,
       statusLabel: json['statutLabel'] as String?,
       rankLabel: json['rangLabel'] as String?,
@@ -117,6 +120,7 @@ _PlaceResultDto _$PlaceResultDtoFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$PlaceResultDtoToJson(_PlaceResultDto instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'tempsLabel': instance.time,
       'statutLabel': instance.statusLabel,
       'rangLabel': instance.rankLabel,
