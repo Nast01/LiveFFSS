@@ -67,6 +67,22 @@ void main() {
     },
   );
 
+  test("unfollowAthlete retire par l'id, sans le participant", () async {
+    final store = InMemoryLocalStore();
+    final container = _container(store);
+    await container.read(followsProvider(1416).future);
+    final notifier = container.read(followsProvider(1416).notifier);
+    await notifier.toggleAthlete(_participant);
+
+    await notifier.unfollowAthlete(_participant.id);
+    expect(container.read(followsProvider(1416)).value!.athletes, isEmpty);
+    expect(store.values['follows_1416'], isNot(contains('Un ATHLETE')));
+
+    // Déjà retiré : rien ne change.
+    await notifier.unfollowAthlete(_participant.id);
+    expect(container.read(followsProvider(1416)).value!.athletes, isEmpty);
+  });
+
   test('toggleClub suit puis retire', () async {
     final container = _container(InMemoryLocalStore());
     await container.read(followsProvider(1416).future);

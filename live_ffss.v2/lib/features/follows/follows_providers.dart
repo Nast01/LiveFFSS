@@ -117,6 +117,18 @@ class FollowsNotifier extends AsyncNotifier<Follows> {
     );
   });
 
+  /// Le retrait depuis « Mes suivis », qui n'a que l'athlète suivi, pas le
+  /// participant : relire les participants (3,6 Mo) pour une étoile serait
+  /// démesuré.
+  Future<void> unfollowAthlete(int participantId) => _update(
+    (current) => current.copyWith(
+      athletes: [
+        for (final a in current.athletes)
+          if (a.participantId != participantId) a,
+      ],
+    ),
+  );
+
   Future<void> toggleClub(int id, String label) => _update((current) {
     final others = [
       for (final c in current.clubs)

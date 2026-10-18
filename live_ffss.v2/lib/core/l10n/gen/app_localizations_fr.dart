@@ -710,4 +710,171 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get unfollowAthlete => 'Ne plus suivre cet athlète';
+
+  @override
+  String get unfollowClub => 'Ne plus suivre ce club';
+
+  @override
+  String get mySpaceSpaces => 'Mes espaces sur cette compétition';
+
+  @override
+  String get mySpaceEveryone => 'Compétition (tout le monde)';
+
+  @override
+  String get mySpacePreferences => 'Préférences';
+
+  @override
+  String get mySpaceNoSpace =>
+      'Ce compte n\'a pas d\'espace sur cette compétition.';
+
+  @override
+  String get mySpaceRolesError =>
+      'Impossible de lire vos espaces sur cette compétition.';
+
+  @override
+  String get mySpaceAthlete => 'Athlète';
+
+  @override
+  String get mySpaceAthleteSubtitle => 'Planning, résultats';
+
+  @override
+  String mySpaceClub(String label) {
+    return 'Club · $label';
+  }
+
+  @override
+  String get mySpaceClubSubtitle => 'Athlètes, planning, résultats';
+
+  @override
+  String get mySpaceOfficial => 'Officiel';
+
+  @override
+  String get mySpaceOfficialSubtitle => 'Saisies, séries à saisir';
+
+  @override
+  String get mySpaceAdmin => 'Admin';
+
+  @override
+  String get mySpaceAdminSubtitle => 'L\'espace de n\'importe quel club';
+
+  @override
+  String get mySpacePrincipalJudge => 'Juge principal';
+
+  @override
+  String get mySpaceStartsNow => 'maintenant';
+
+  @override
+  String mySpaceStartsInMinutes(int minutes) {
+    return 'dans $minutes min';
+  }
+
+  @override
+  String mySpaceStartsInHours(int hours) {
+    return 'dans $hours h';
+  }
+
+  @override
+  String mySpaceRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count refusées',
+      one: '1 refusée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mySpaceFollows => 'Mes suivis';
+
+  @override
+  String get mySpaceNoFollow => 'Aucun suivi';
+
+  @override
+  String get mySpaceFollowsHint =>
+      'On suit depuis une fiche d\'athlète ou l\'espace d\'un club (étoile). Les courses suivies ressortent dans le Live et les résultats.';
+
+  @override
+  String mySpaceNextRace(String label) {
+    return 'Prochaine : $label';
+  }
+
+  @override
+  String get mySpaceNoNextRace => 'Aucune course à venir';
+
+  @override
+  String mySpaceAthleteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count athlètes',
+      one: '$count athlète',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String mySpaceClubCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count clubs',
+      one: '$count club',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String mySpaceEventCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count épreuves',
+      one: '$count épreuve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mySpaceInfos => 'Infos de la compétition';
+
+  @override
+  String get mySpaceInfosSubtitle => 'Lieu, dates, engagés';
+
+  @override
+  String get mySpaceInfosError =>
+      'Impossible de charger les infos de la compétition.';
+
+  @override
+  String get mySpaceOrganizer => 'Organisateur';
+
+  @override
+  String get mySpaceClubs => 'Clubs';
+
+  @override
+  String get mySpaceOfficials => 'Officiels';
+
+  @override
+  String get mySpaceOfficialsSubtitle => 'Juge principal, niveaux, jours';
+
+  @override
+  String get mySpaceOfficialsEmpty =>
+      'Aucun officiel publié pour cette compétition.';
+
+  @override
+  String get mySpaceOfficialsError => 'Impossible de charger les officiels.';
+
+  @override
+  String mySpaceOfficialLevel(String level) {
+    return 'Niveau $level';
+  }
+
+  @override
+  String get mySpaceOfficialLevelUnknown => 'Niveau non renseigné';
+
+  @override
+  String get mySpaceComingSoon => 'À venir';
+
+  @override
+  String get startTabTitle => 'Onglet d\'ouverture';
 }

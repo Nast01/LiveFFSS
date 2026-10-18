@@ -112,5 +112,56 @@ void main() {
         Routes.results,
       );
     });
+
+    test(
+      'une fiche ailleurs que dans les résultats retombe sur son onglet',
+      () {
+        expect(
+          athleteRedirect({'competitionId': 'x'}, fallback: Routes.mySpace),
+          Routes.mySpace,
+        );
+      },
+    );
+  });
+
+  group('routes de Mon espace', () {
+    test('restent dans la branche Mon espace', () {
+      expect(Routes.mySpaceInfos(1416), '/espace/competition/1416/infos');
+      expect(
+        Routes.mySpaceOfficials(1416),
+        '/espace/competition/1416/officiels',
+      );
+      expect(Routes.mySpaceFollows(1416), '/espace/competition/1416/suivis');
+      expect(Routes.mySpaceAthlete(1416), '/espace/competition/1416/athlete');
+      expect(Routes.mySpaceClub(1416, 15), '/espace/competition/1416/club/15');
+      expect(Routes.mySpaceOfficial(1416), '/espace/competition/1416/officiel');
+      expect(
+        Routes.mySpaceParticipant(1416, 632821),
+        '/espace/competition/1416/fiche/632821',
+      );
+      for (final route in [
+        Routes.mySpaceInfos(1416),
+        Routes.mySpaceClub(1416, 15),
+        Routes.mySpaceParticipant(1416, 1),
+      ]) {
+        expect(route, startsWith('${Routes.mySpace}/'));
+      }
+    });
+
+    test('un lien illisible retombe sur Mon espace', () {
+      expect(mySpaceRedirect({'competitionId': '1416'}), isNull);
+      expect(mySpaceRedirect({'competitionId': 'abc'}), Routes.mySpace);
+      expect(mySpaceRedirect({}), Routes.mySpace);
+    });
+
+    test('club : la compétition et le club', () {
+      expect(clubKey({'competitionId': '1416', 'clubId': '15'}), (
+        competitionId: 1416,
+        clubId: 15,
+      ));
+      expect(clubKey({'competitionId': '1416', 'clubId': 'x'}), isNull);
+      expect(clubRedirect({'competitionId': '1416', 'clubId': '15'}), isNull);
+      expect(clubRedirect({'competitionId': '1416'}), Routes.mySpace);
+    });
   });
 }
