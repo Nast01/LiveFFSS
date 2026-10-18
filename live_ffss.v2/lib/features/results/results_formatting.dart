@@ -139,11 +139,16 @@ String standingsFooter(Standings standings, AppLocalizations l10n) =>
       timeLabel(standings.computedAt),
     );
 
-/// Nul quand toutes les épreuves ont été lues.
-String? standingsIncompleteLabel(Standings standings, AppLocalizations l10n) =>
-    standings.failedEvents == 0
-    ? null
-    : l10n.standingsIncomplete(standings.failedEvents);
+/// Nul quand toutes les épreuves ont été lues, et relues au dernier
+/// rafraîchissement.
+String? standingsIncompleteLabel(Standings standings, AppLocalizations l10n) {
+  final parts = [
+    if (standings.failedEvents > 0)
+      l10n.standingsIncomplete(standings.failedEvents),
+    if (standings.staleEvents > 0) l10n.standingsStale(standings.staleEvents),
+  ];
+  return parts.isEmpty ? null : parts.join(' · ');
+}
 
 /// Rien pour le premier, ni pour un ex æquo : son rang le dit déjà.
 String gapLabel(int? gap, AppLocalizations l10n) =>

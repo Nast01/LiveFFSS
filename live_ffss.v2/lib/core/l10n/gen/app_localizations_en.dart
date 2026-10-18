@@ -614,6 +614,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String standingsStale(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count events couldn\'t be re-read: their previous standings are kept',
+      one: '1 event couldn\'t be re-read: its previous standings are kept',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get standingsEmpty => 'No points scored yet';
 
   @override

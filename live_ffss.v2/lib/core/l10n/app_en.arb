@@ -220,6 +220,8 @@
   },
   "standingsIncomplete": "{count, plural, one{1 event couldn't be read: standings incomplete} other{{count} events couldn't be read: standings incomplete}}",
   "@standingsIncomplete": {"placeholders": {"count": {"type": "int"}}},
+  "standingsStale": "{count, plural, one{1 event couldn't be re-read: its previous standings are kept} other{{count} events couldn't be re-read: their previous standings are kept}}",
+  "@standingsStale": {"placeholders": {"count": {"type": "int"}}},
   "standingsEmpty": "No points scored yet",
   "standingsLoadError": "Couldn't compute the standings.",
   "searchTitle": "Search for an athlete",

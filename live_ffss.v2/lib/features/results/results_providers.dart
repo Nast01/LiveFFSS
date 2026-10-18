@@ -162,9 +162,14 @@ abstract class Standings with _$Standings {
     required int finishedSeries,
     required int totalSeries,
 
-    /// Épreuves dont les séries n'ont pu être lues : absentes des
-    /// classements, que la page dit alors incomplets.
+    /// Épreuves dont les séries n'ont pu être lues, sans classement
+    /// antérieur : absentes des classements, que la page dit alors
+    /// incomplets.
     required int failedEvents,
+
+    /// Épreuves que le dernier rafraîchissement n'a pu relire : leur
+    /// classement précédent est gardé, que la page dit alors ancien.
+    @Default(0) int staleEvents,
     required DateTime computedAt,
   }) = _Standings;
 }
@@ -178,6 +183,10 @@ class StandingsNotifier extends AsyncNotifier<Standings> {
   StandingsNotifier(this.competitionId);
 
   final int competitionId;
+
+  // Les classements d'épreuve du dernier calcul. Dans un champ : le notifier
+  // survit à ses reconstructions, l'état n'en garde que les cumuls.
+  Map<int, EventRanking> _rankings = const {};
 
   @override
   Future<Standings> build() async {
@@ -202,8 +211,13 @@ class StandingsNotifier extends AsyncNotifier<Standings> {
     }
     final events = source.events;
 
+    // Un rafraîchissement en partie en échec ne doit pas rendre des
+    // classements plus pauvres que les précédents : une épreuve non relue
+    // garde son classement d'avant.
+    final previous = _rankings;
     final rankings = <int, EventRanking>{};
     var failedEvents = 0;
+    var staleEvents = 0;
     final pending = events.iterator;
     // Les travailleurs tirent dans le même itérateur : `moveNext` + `current`
     // sans `await` entre les deux est sûr, le code n'est pas préemptif.
@@ -214,7 +228,12 @@ class StandingsNotifier extends AsyncNotifier<Standings> {
           final series = await repository.getEventSeries(event.id);
           rankings[event.id] = _rank(source.programme, event, series);
         } on AppException {
-          failedEvents++;
+          if (previous[event.id] case final kept?) {
+            rankings[event.id] = kept;
+            staleEvents++;
+          } else {
+            failedEvents++;
+          }
         }
       }
     }
@@ -231,9 +250,11 @@ class StandingsNotifier extends AsyncNotifier<Standings> {
         finishedSeries: 0,
         totalSeries: 0,
         failedEvents: failedEvents,
+        staleEvents: staleEvents,
         computedAt: clock(),
       );
     }
+    _rankings = rankings;
 
     // Dans l'ordre des épreuves, pas dans celui des réponses.
     final ordered = [for (final event in events) ?rankings[event.id]];
@@ -243,6 +264,7 @@ class StandingsNotifier extends AsyncNotifier<Standings> {
       finishedSeries: ordered.fold(0, (sum, r) => sum + r.finishedSeries),
       totalSeries: ordered.fold(0, (sum, r) => sum + r.totalSeries),
       failedEvents: failedEvents,
+      staleEvents: staleEvents,
       computedAt: clock(),
     );
   }

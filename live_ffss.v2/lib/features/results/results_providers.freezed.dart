@@ -17,7 +17,9 @@ mixin _$Standings {
 
  List<ClubStanding> get clubs; List<LicenseeStanding> get licensees; int get finishedSeries; int get totalSeries;/// Épreuves dont les séries n'ont pu être lues : absentes des
 /// classements, que la page dit alors incomplets.
- int get failedEvents; DateTime get computedAt;
+ int get failedEvents;/// Épreuves que le dernier rafraîchissement n'a pu relire : leur
+/// classement précédent est gardé, que la page dit alors ancien.
+ int get staleEvents; DateTime get computedAt;
 /// Create a copy of Standings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,20 +31,20 @@ $StandingsCopyWith<Standings> get copyWith => _$StandingsCopyWithImpl<Standings>
 @override
 bool operator ==(Object other) {
   final _this = this as Standings;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Standings&&const DeepCollectionEquality().equals(other.clubs, _this.clubs)&&const DeepCollectionEquality().equals(other.licensees, _this.licensees)&&(identical(other.finishedSeries, _this.finishedSeries) || other.finishedSeries == _this.finishedSeries)&&(identical(other.totalSeries, _this.totalSeries) || other.totalSeries == _this.totalSeries)&&(identical(other.failedEvents, _this.failedEvents) || other.failedEvents == _this.failedEvents)&&(identical(other.computedAt, _this.computedAt) || other.computedAt == _this.computedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Standings&&const DeepCollectionEquality().equals(other.clubs, _this.clubs)&&const DeepCollectionEquality().equals(other.licensees, _this.licensees)&&(identical(other.finishedSeries, _this.finishedSeries) || other.finishedSeries == _this.finishedSeries)&&(identical(other.totalSeries, _this.totalSeries) || other.totalSeries == _this.totalSeries)&&(identical(other.failedEvents, _this.failedEvents) || other.failedEvents == _this.failedEvents)&&(identical(other.staleEvents, _this.staleEvents) || other.staleEvents == _this.staleEvents)&&(identical(other.computedAt, _this.computedAt) || other.computedAt == _this.computedAt));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Standings;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.clubs),const DeepCollectionEquality().hash(_this.licensees),_this.finishedSeries,_this.totalSeries,_this.failedEvents,_this.computedAt);
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.clubs),const DeepCollectionEquality().hash(_this.licensees),_this.finishedSeries,_this.totalSeries,_this.failedEvents,_this.staleEvents,_this.computedAt);
 }
 
 @override
 String toString() {
   final _this = this as Standings;
-  return 'Standings(clubs: ${_this.clubs}, licensees: ${_this.licensees}, finishedSeries: ${_this.finishedSeries}, totalSeries: ${_this.totalSeries}, failedEvents: ${_this.failedEvents}, computedAt: ${_this.computedAt})';
+  return 'Standings(clubs: ${_this.clubs}, licensees: ${_this.licensees}, finishedSeries: ${_this.finishedSeries}, totalSeries: ${_this.totalSeries}, failedEvents: ${_this.failedEvents}, staleEvents: ${_this.staleEvents}, computedAt: ${_this.computedAt})';
 }
 
 
@@ -53,7 +55,7 @@ abstract mixin class $StandingsCopyWith<$Res>  {
   factory $StandingsCopyWith(Standings value, $Res Function(Standings) _then) = _$StandingsCopyWithImpl;
 @useResult
 $Res call({
- List<ClubStanding> clubs, List<LicenseeStanding> licensees, int finishedSeries, int totalSeries, int failedEvents, DateTime computedAt
+ List<ClubStanding> clubs, List<LicenseeStanding> licensees, int finishedSeries, int totalSeries, int failedEvents, int staleEvents, DateTime computedAt
 });
 
 
@@ -70,13 +72,14 @@ class _$StandingsCopyWithImpl<$Res>
 
 /// Create a copy of Standings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? clubs = null,Object? licensees = null,Object? finishedSeries = null,Object? totalSeries = null,Object? failedEvents = null,Object? computedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? clubs = null,Object? licensees = null,Object? finishedSeries = null,Object? totalSeries = null,Object? failedEvents = null,Object? staleEvents = null,Object? computedAt = null,}) {
   return _then(Standings(
 clubs: null == clubs ? _self.clubs : clubs // ignore: cast_nullable_to_non_nullable
 as List<ClubStanding>,licensees: null == licensees ? _self.licensees : licensees // ignore: cast_nullable_to_non_nullable
 as List<LicenseeStanding>,finishedSeries: null == finishedSeries ? _self.finishedSeries : finishedSeries // ignore: cast_nullable_to_non_nullable
 as int,totalSeries: null == totalSeries ? _self.totalSeries : totalSeries // ignore: cast_nullable_to_non_nullable
 as int,failedEvents: null == failedEvents ? _self.failedEvents : failedEvents // ignore: cast_nullable_to_non_nullable
+as int,staleEvents: null == staleEvents ? _self.staleEvents : staleEvents // ignore: cast_nullable_to_non_nullable
 as int,computedAt: null == computedAt ? _self.computedAt : computedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
@@ -163,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<ClubStanding> clubs,  List<LicenseeStanding> licensees,  int finishedSeries,  int totalSeries,  int failedEvents,  DateTime computedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<ClubStanding> clubs,  List<LicenseeStanding> licensees,  int finishedSeries,  int totalSeries,  int failedEvents,  int staleEvents,  DateTime computedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Standings() when $default != null:
-return $default(_that.clubs,_that.licensees,_that.finishedSeries,_that.totalSeries,_that.failedEvents,_that.computedAt);case _:
+return $default(_that.clubs,_that.licensees,_that.finishedSeries,_that.totalSeries,_that.failedEvents,_that.staleEvents,_that.computedAt);case _:
   return orElse();
 
 }
@@ -184,10 +187,10 @@ return $default(_that.clubs,_that.licensees,_that.finishedSeries,_that.totalSeri
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<ClubStanding> clubs,  List<LicenseeStanding> licensees,  int finishedSeries,  int totalSeries,  int failedEvents,  DateTime computedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<ClubStanding> clubs,  List<LicenseeStanding> licensees,  int finishedSeries,  int totalSeries,  int failedEvents,  int staleEvents,  DateTime computedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Standings():
-return $default(_that.clubs,_that.licensees,_that.finishedSeries,_that.totalSeries,_that.failedEvents,_that.computedAt);case _:
+return $default(_that.clubs,_that.licensees,_that.finishedSeries,_that.totalSeries,_that.failedEvents,_that.staleEvents,_that.computedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +207,10 @@ return $default(_that.clubs,_that.licensees,_that.finishedSeries,_that.totalSeri
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<ClubStanding> clubs,  List<LicenseeStanding> licensees,  int finishedSeries,  int totalSeries,  int failedEvents,  DateTime computedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<ClubStanding> clubs,  List<LicenseeStanding> licensees,  int finishedSeries,  int totalSeries,  int failedEvents,  int staleEvents,  DateTime computedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Standings() when $default != null:
-return $default(_that.clubs,_that.licensees,_that.finishedSeries,_that.totalSeries,_that.failedEvents,_that.computedAt);case _:
+return $default(_that.clubs,_that.licensees,_that.finishedSeries,_that.totalSeries,_that.failedEvents,_that.staleEvents,_that.computedAt);case _:
   return null;
 
 }
@@ -219,7 +222,7 @@ return $default(_that.clubs,_that.licensees,_that.finishedSeries,_that.totalSeri
 
 
 class _Standings implements Standings {
-  const _Standings({required  List<ClubStanding> clubs, required  List<LicenseeStanding> licensees, required this.finishedSeries, required this.totalSeries, required this.failedEvents, required this.computedAt}): _clubs = clubs,_licensees = licensees;
+  const _Standings({required  List<ClubStanding> clubs, required  List<LicenseeStanding> licensees, required this.finishedSeries, required this.totalSeries, required this.failedEvents, this.staleEvents = 0, required this.computedAt}): _clubs = clubs,_licensees = licensees;
   
 
  final  List<ClubStanding> _clubs;
@@ -241,6 +244,9 @@ class _Standings implements Standings {
 /// Épreuves dont les séries n'ont pu être lues : absentes des
 /// classements, que la page dit alors incomplets.
 @override final  int failedEvents;
+/// Épreuves que le dernier rafraîchissement n'a pu relire : leur
+/// classement précédent est gardé, que la page dit alors ancien.
+@override@JsonKey() final  int staleEvents;
 @override final  DateTime computedAt;
 
 /// Create a copy of Standings
@@ -253,18 +259,18 @@ _$StandingsCopyWith<_Standings> get copyWith => __$StandingsCopyWithImpl<_Standi
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Standings&&const DeepCollectionEquality().equals(other.clubs, _clubs)&&const DeepCollectionEquality().equals(other.licensees, _licensees)&&(identical(other.finishedSeries, finishedSeries) || other.finishedSeries == finishedSeries)&&(identical(other.totalSeries, totalSeries) || other.totalSeries == totalSeries)&&(identical(other.failedEvents, failedEvents) || other.failedEvents == failedEvents)&&(identical(other.computedAt, computedAt) || other.computedAt == computedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Standings&&const DeepCollectionEquality().equals(other.clubs, _clubs)&&const DeepCollectionEquality().equals(other.licensees, _licensees)&&(identical(other.finishedSeries, finishedSeries) || other.finishedSeries == finishedSeries)&&(identical(other.totalSeries, totalSeries) || other.totalSeries == totalSeries)&&(identical(other.failedEvents, failedEvents) || other.failedEvents == failedEvents)&&(identical(other.staleEvents, staleEvents) || other.staleEvents == staleEvents)&&(identical(other.computedAt, computedAt) || other.computedAt == computedAt));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_clubs),const DeepCollectionEquality().hash(_licensees),finishedSeries,totalSeries,failedEvents,computedAt);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_clubs),const DeepCollectionEquality().hash(_licensees),finishedSeries,totalSeries,failedEvents,staleEvents,computedAt);
 }
 
 @override
 String toString() {
-    return 'Standings(clubs: $clubs, licensees: $licensees, finishedSeries: $finishedSeries, totalSeries: $totalSeries, failedEvents: $failedEvents, computedAt: $computedAt)';
+    return 'Standings(clubs: $clubs, licensees: $licensees, finishedSeries: $finishedSeries, totalSeries: $totalSeries, failedEvents: $failedEvents, staleEvents: $staleEvents, computedAt: $computedAt)';
 }
 
 
@@ -275,7 +281,7 @@ abstract mixin class _$StandingsCopyWith<$Res> implements $StandingsCopyWith<$Re
   factory _$StandingsCopyWith(_Standings value, $Res Function(_Standings) _then) = __$StandingsCopyWithImpl;
 @override @useResult
 $Res call({
- List<ClubStanding> clubs, List<LicenseeStanding> licensees, int finishedSeries, int totalSeries, int failedEvents, DateTime computedAt
+ List<ClubStanding> clubs, List<LicenseeStanding> licensees, int finishedSeries, int totalSeries, int failedEvents, int staleEvents, DateTime computedAt
 });
 
 
@@ -292,13 +298,14 @@ class __$StandingsCopyWithImpl<$Res>
 
 /// Create a copy of Standings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? clubs = null,Object? licensees = null,Object? finishedSeries = null,Object? totalSeries = null,Object? failedEvents = null,Object? computedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? clubs = null,Object? licensees = null,Object? finishedSeries = null,Object? totalSeries = null,Object? failedEvents = null,Object? staleEvents = null,Object? computedAt = null,}) {
   return _then(_Standings(
 clubs: null == clubs ? _self._clubs : clubs // ignore: cast_nullable_to_non_nullable
 as List<ClubStanding>,licensees: null == licensees ? _self._licensees : licensees // ignore: cast_nullable_to_non_nullable
 as List<LicenseeStanding>,finishedSeries: null == finishedSeries ? _self.finishedSeries : finishedSeries // ignore: cast_nullable_to_non_nullable
 as int,totalSeries: null == totalSeries ? _self.totalSeries : totalSeries // ignore: cast_nullable_to_non_nullable
 as int,failedEvents: null == failedEvents ? _self.failedEvents : failedEvents // ignore: cast_nullable_to_non_nullable
+as int,staleEvents: null == staleEvents ? _self.staleEvents : staleEvents // ignore: cast_nullable_to_non_nullable
 as int,computedAt: null == computedAt ? _self.computedAt : computedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));

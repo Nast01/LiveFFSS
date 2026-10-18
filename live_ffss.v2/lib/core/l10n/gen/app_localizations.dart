@@ -1082,6 +1082,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{1 épreuve n\'a pu être lue : classement incomplet} other{{count} épreuves n\'ont pu être lues : classement incomplet}}'**
   String standingsIncomplete(int count);
 
+  /// No description provided for @standingsStale.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 épreuve n\'a pu être relue : son classement précédent est gardé} other{{count} épreuves n\'ont pu être relues : leur classement précédent est gardé}}'**
+  String standingsStale(int count);
+
   /// No description provided for @standingsEmpty.
   ///
   /// In fr, this message translates to:

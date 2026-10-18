@@ -614,6 +614,18 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String standingsStale(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count épreuves n\'ont pu être relues : leur classement précédent est gardé',
+      one: '1 épreuve n\'a pu être relue : son classement précédent est gardé',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get standingsEmpty => 'Aucun point marqué pour l\'instant';
 
   @override

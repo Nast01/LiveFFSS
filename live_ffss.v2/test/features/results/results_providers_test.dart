@@ -274,6 +274,30 @@ void main() {
       },
     );
 
+    test(
+      'refresh() en partie en échec : le classement précédent est gardé',
+      () async {
+        final c = container();
+        addTearDown(c.dispose);
+        final first = await standings(c);
+
+        failing = {36074};
+        await c.read(standingsProvider(competitionId).notifier).refresh();
+        final second = c.read(standingsProvider(competitionId)).value!;
+
+        expect(second.failedEvents, 0);
+        expect(second.staleEvents, 1);
+        expect(second.totalSeries, first.totalSeries);
+        expect(second.clubs, first.clubs);
+        expect(second.licensees, first.licensees);
+
+        // Relue avec succès : plus rien d'ancien.
+        failing = {};
+        await c.read(standingsProvider(competitionId).notifier).refresh();
+        expect(c.read(standingsProvider(competitionId)).value!.staleEvents, 0);
+      },
+    );
+
     test('refresh() relit les épreuves et leurs séries', () async {
       final c = container();
       addTearDown(c.dispose);

@@ -320,6 +320,22 @@ void main() {
       );
     });
 
+    test('standingsIncompleteLabel : classements précédents gardés', () {
+      expect(
+        standingsIncompleteLabel(standings.copyWith(staleEvents: 2), l10n),
+        '2 épreuves n\'ont pu être relues : leur classement précédent est '
+        'gardé',
+      );
+      expect(
+        standingsIncompleteLabel(
+          standings.copyWith(failedEvents: 1, staleEvents: 1),
+          l10n,
+        ),
+        '1 épreuve n\'a pu être lue : classement incomplet · 1 épreuve n\'a '
+        'pu être relue : son classement précédent est gardé',
+      );
+    });
+
     test('gapLabel', () {
       expect(gapLabel(5, l10n), 'Écart au précédent −5');
       expect(gapLabel(null, l10n), '');

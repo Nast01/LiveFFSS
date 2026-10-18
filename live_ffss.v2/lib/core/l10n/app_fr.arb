@@ -230,6 +230,8 @@
   },
   "standingsIncomplete": "{count, plural, one{1 épreuve n'a pu être lue : classement incomplet} other{{count} épreuves n'ont pu être lues : classement incomplet}}",
   "@standingsIncomplete": {"placeholders": {"count": {"type": "int"}}},
+  "standingsStale": "{count, plural, one{1 épreuve n'a pu être relue : son classement précédent est gardé} other{{count} épreuves n'ont pu être relues : leur classement précédent est gardé}}",
+  "@standingsStale": {"placeholders": {"count": {"type": "int"}}},
   "standingsEmpty": "Aucun point marqué pour l'instant",
   "standingsLoadError": "Impossible de calculer les classements.",
   "searchTitle": "Rechercher un athlète",
