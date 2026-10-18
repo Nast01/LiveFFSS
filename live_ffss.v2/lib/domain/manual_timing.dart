@@ -1,9 +1,13 @@
+import 'package:live_ffss_v2/domain/lane_assignment.dart';
+
 /// Règle qui a produit le temps manuel, pour que l'écran dise d'où il vient.
 enum ManualTimeRule { single, average, median }
 
+typedef ManualTime = ({int hundredths, ManualTimeRule rule});
+
 /// Temps manuel (centièmes) déduit des chronos saisis. Les chronos nuls ou
 /// <= 0 sont ignorés : le serveur range un chrono vidé en `0`.
-({int hundredths, ManualTimeRule rule})? manualTime(List<int?> chronos) {
+ManualTime? manualTime(List<int?> chronos) {
   final valid = [
     for (final c in chronos)
       if (c != null && c > 0) c,
@@ -22,6 +26,31 @@ enum ManualTimeRule { single, average, median }
     default:
       return (hundredths: valid[1], rule: ManualTimeRule.median);
   }
+}
+
+/// Le temps manuel des places qui n'ont pas de temps publié (id de la place →
+/// temps). [chronos] est indexé par engagement. Une place disqualifiée, en
+/// forfait ou avec un statut autre que OK n'en montre pas : son statut dit
+/// déjà pourquoi elle n'a pas de temps.
+Map<int, ManualTime> manualTimesOfLanes(
+  Iterable<LaneAssignment> lanes,
+  Map<int, List<int?>> chronos,
+) {
+  final times = <int, ManualTime>{};
+  for (final lane in lanes) {
+    final performance = lane.performance;
+    final hasTime =
+        performance?.timeHundredths != null ||
+        (performance?.time?.trim().isNotEmpty ?? false);
+    final hasStatus =
+        lane.forfeit ||
+        (performance != null &&
+            (performance.isDisqualified || !performance.isOk));
+    final entryChronos = chronos[lane.entryId];
+    if (hasTime || hasStatus || entryChronos == null) continue;
+    if (manualTime(entryChronos) case final time?) times[lane.id] = time;
+  }
+  return times;
 }
 
 /// Lit les chiffres tapés au pavé comme `mmsscc` complété à gauche

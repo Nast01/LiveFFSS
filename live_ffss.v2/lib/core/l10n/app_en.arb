@@ -146,6 +146,7 @@
   "entryRuleAverage": "average of 2",
   "entryRuleMedian": "median of 3",
   "entryNotFinal": "not final",
+  "manualTimeNote": "manual, not final",
   "entryNoChrono": "No time entered",
   "entryInvalidChrono": "Seconds must be 59 or less",
   "entryDisqualify": "DQ…",

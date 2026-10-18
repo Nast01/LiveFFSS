@@ -160,6 +160,7 @@
   "entryRuleAverage": "moyenne de 2",
   "entryRuleMedian": "médiane de 3",
   "entryNotFinal": "non définitif",
+  "manualTimeNote": "manuel, non définitif",
   "entryNoChrono": "Aucun chrono saisi",
   "entryInvalidChrono": "Secondes au plus 59",
   "entryDisqualify": "DQ…",

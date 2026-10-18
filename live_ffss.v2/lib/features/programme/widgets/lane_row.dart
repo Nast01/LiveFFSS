@@ -2,15 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
+import 'package:live_ffss_v2/domain/manual_timing.dart';
+import 'package:live_ffss_v2/features/officiel/entry_formatting.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 
 class LaneRow extends StatelessWidget {
-  const LaneRow({super.key, required this.lane, this.place});
+  const LaneRow({super.key, required this.lane, this.place, this.manualTime});
 
   final LaneAssignment lane;
 
   /// La place dans la série, calculée par [heatPlaces] ; nulle sans temps.
   final int? place;
+
+  /// Le temps des chronos, pour un officiel, quand la place n'a pas de temps
+  /// publié.
+  final ManualTime? manualTime;
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +24,7 @@ class LaneRow extends StatelessWidget {
     final performance = lane.performance;
     final result = performanceText(lane, l10n);
     final place = this.place;
+    final manual = manualTime;
     final rank = place == null ? null : l10n.heatPlace('$place');
     // Un relais s'annonce sous le nom de son club ; ses relayeurs dessous.
     final title = lane.isRelay ? lane.club : lane.athletes.join(', ');
@@ -76,7 +83,7 @@ class LaneRow extends StatelessWidget {
               ],
             ),
           ),
-          if (result != null || rank != null)
+          if (result != null || rank != null || manual != null)
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -92,6 +99,22 @@ class LaneRow extends StatelessWidget {
                           : AppColors.red,
                     ),
                   ),
+                if (result == null && manual != null) ...[
+                  Text(
+                    hundredthsLabel(manual.hundredths),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    l10n.manualTimeNote,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
                 if (rank != null)
                   Text(
                     rank,

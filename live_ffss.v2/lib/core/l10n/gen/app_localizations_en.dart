@@ -418,6 +418,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryNotFinal => 'not final';
 
   @override
+  String get manualTimeNote => 'manual, not final';
+
+  @override
   String get entryNoChrono => 'No time entered';
 
   @override

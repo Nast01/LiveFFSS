@@ -6,17 +6,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
+import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
+import 'package:live_ffss_v2/domain/manual_timing.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
+import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_providers.dart';
 import 'package:live_ffss_v2/features/programme/programme_providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockMeetingRepository extends Mock implements MeetingRepository {}
+
+class _MockResultRepository extends Mock implements ResultRepository {}
 
 void main() {
   const key = (competitionId: 1453, itemId: 10);
@@ -40,6 +45,8 @@ void main() {
   );
 
   late _MockMeetingRepository repository;
+  late _MockResultRepository results;
+  var canEnter = false;
   late MeetingItem item;
   late Map<int, LaneAssignment?> lanes;
   late List<Set<int>> laneRequests;
@@ -88,6 +95,8 @@ void main() {
   ProviderContainer container([FakeAsync? async]) => ProviderContainer(
     overrides: [
       meetingRepositoryProvider.overrideWithValue(repository),
+      resultRepositoryProvider.overrideWithValue(results),
+      canEnterProvider.overrideWith((ref, _) => canEnter),
       clockProvider.overrideWithValue(
         () => now.add(async?.elapsed ?? Duration.zero),
       ),
@@ -102,6 +111,9 @@ void main() {
 
   setUp(() {
     repository = _MockMeetingRepository();
+    results = _MockResultRepository();
+    canEnter = false;
+    when(() => results.getHeatChronos(any())).thenAnswer((_) async => {});
     item = itemWith(RunStatus.inProgress, RunStatus.waiting);
     lanes = {
       11: lane(11, 2, 'Alice'),
@@ -661,5 +673,115 @@ void main() {
     expect(c.read(progressionExpandedProvider), isFalse);
     c.read(progressionExpandedProvider.notifier).toggle();
     expect(c.read(progressionExpandedProvider), isTrue);
+  });
+
+  group('temps manuel', () {
+    // Série 1 : Alice (engagement 501) sans temps, Bea (502) avec un temps
+    // publié. Les chronos des deux existent.
+    void setUpManual() {
+      lanes = {
+        11: const LaneAssignment(
+          id: 11,
+          lane: 2,
+          athletes: ['Alice'],
+          entryId: 501,
+        ),
+        12: const LaneAssignment(
+          id: 12,
+          lane: 1,
+          athletes: ['Bea'],
+          entryId: 502,
+          performance: Performance(time: '30"00', timeHundredths: 3000),
+        ),
+        21: lane(21, 1, 'Chloé'),
+        22: null,
+      };
+      when(() => results.getHeatChronos(101)).thenAnswer(
+        (_) async => {
+          501: [3100, 3200, null],
+          502: [2900, null, null],
+        },
+      );
+    }
+
+    test('un spectateur ne déclenche aucun appel aux chronos', () {
+      fakeAsync((async) {
+        setUpManual();
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 90));
+
+        verifyNever(() => results.getHeatChronos(any()));
+        final detail = c.read(meetingItemDetailProvider(key)).value!;
+        expect(detail.chronos, isEmpty);
+        expect(detail.manualTimesOf(item.heats[0]), isEmpty);
+
+        c.dispose();
+      });
+    });
+
+    test(
+      'un officiel voit le temps manuel des places sans temps seulement',
+      () {
+        fakeAsync((async) {
+          setUpManual();
+          canEnter = true;
+          final c = container(async);
+          c.listen(meetingItemDetailProvider(key), (_, _) {});
+          async.flushMicrotasks();
+
+          final times = c
+              .read(meetingItemDetailProvider(key))
+              .value!
+              .manualTimesOf(item.heats[0]);
+          expect(times.keys, [11]);
+          expect(times[11]!.hundredths, 3150);
+          expect(times[11]!.rule, ManualTimeRule.average);
+
+          c.dispose();
+        });
+      },
+    );
+
+    test('les chronos suivent la cadence des places des courses en cours', () {
+      fakeAsync((async) {
+        setUpManual();
+        item = itemWith(RunStatus.inProgress, RunStatus.finished);
+        canEnter = true;
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+        clearInteractions(results);
+
+        async.elapse(itemDetailRefresh);
+        async.flushMicrotasks();
+
+        verify(() => results.getHeatChronos(101)).called(1);
+        verifyNever(() => results.getHeatChronos(102));
+
+        c.dispose();
+      });
+    });
+
+    test('un échec des chronos ne fait pas échouer le détail', () {
+      fakeAsync((async) {
+        setUpManual();
+        canEnter = true;
+        when(
+          () => results.getHeatChronos(any()),
+        ).thenThrow(const NetworkException('hors ligne'));
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+
+        final state = c.read(meetingItemDetailProvider(key));
+        expect(state.hasError, isFalse);
+        expect(state.value!.manualTimesOf(item.heats[0]), isEmpty);
+        expect(state.value!.lanesOf(item.heats[0]), hasLength(2));
+
+        c.dispose();
+      });
+    });
   });
 }

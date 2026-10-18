@@ -758,6 +758,12 @@ abstract class AppLocalizations {
   /// **'non définitif'**
   String get entryNotFinal;
 
+  /// No description provided for @manualTimeNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'manuel, non définitif'**
+  String get manualTimeNote;
+
   /// No description provided for @entryNoChrono.
   ///
   /// In fr, this message translates to:

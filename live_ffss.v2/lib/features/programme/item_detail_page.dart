@@ -188,6 +188,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
               HeatCard(
                 heat: heat,
                 lanes: detail.lanesOf(heat),
+                manualTimes: detail.manualTimesOf(heat),
                 onEnter: canEnter && canEnterHeat(heat)
                     ? () => context.go(
                         Routes.itemEntry(
