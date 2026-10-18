@@ -26,6 +26,7 @@ class _AthleteSearchPageState extends ConsumerState<AthleteSearchPage> {
   void initState() {
     super.initState();
     activateFromLink(ref, widget.competitionId);
+    ref.read(participantsKeeperProvider(widget.competitionId).notifier).keep();
   }
 
   @override

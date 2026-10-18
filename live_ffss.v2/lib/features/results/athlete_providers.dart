@@ -16,14 +16,39 @@ import 'package:live_ffss_v2/features/results/results_providers.dart';
 
 part 'athlete_providers.freezed.dart';
 
-/// Les participants de la compétition, lus une fois tant que la recherche (ou
-/// une fiche) les écoute : la liste est lourde, la recherche la filtre sur
-/// place.
+/// Les participants de la compétition (3,6 Mo pour 1416), filtrés sur place
+/// par la recherche. Lus une fois : [participantsKeeperProvider] les garde
+/// tant que l'onglet Résultats vit.
 final participantsProvider = FutureProvider.autoDispose
     .family<List<Participant>, int>(
       (ref, competitionId) =>
           ref.read(resultsRepositoryProvider).getParticipants(competitionId),
     );
+
+/// Garde [participantsProvider] en vie dès sa première lecture (recherche ou
+/// fiche) et tant que l'onglet Résultats l'écoute : sans lui, chaque fiche
+/// ouverte relirait la liste. Rien ne la lit avant : la recherche peut ne
+/// jamais servir.
+final participantsKeeperProvider = NotifierProvider.autoDispose
+    .family<ParticipantsKeeper, void, int>(ParticipantsKeeper.new);
+
+class ParticipantsKeeper extends Notifier<void> {
+  ParticipantsKeeper(this.competitionId);
+
+  final int competitionId;
+
+  ProviderSubscription<AsyncValue<List<Participant>>>? _subscription;
+
+  @override
+  void build() {}
+
+  /// Sans écoute de l'onglet, ce gardien est jeté aussitôt, et son écoute
+  /// avec lui.
+  void keep() => _subscription ??= ref.listen(
+    participantsProvider(competitionId),
+    (_, _) {},
+  );
+}
 
 /// Une épreuve de la fiche d'un athlète. [row] nul : à courir.
 @freezed
@@ -65,6 +90,7 @@ final athleteCardProvider = FutureProvider.autoDispose
       ref,
       key,
     ) async {
+      ref.read(participantsKeeperProvider(key.competitionId).notifier).keep();
       // Les trois lectures partent ensemble. Celles qu'on n'attend pas encore
       // ne doivent pas remonter leur échec comme non traité : `await` le
       // reçoit quand même.
@@ -164,16 +190,15 @@ void retryAthleteCard(ProviderContainer container, AthleteKey key) {
   container.invalidate(athleteCardProvider(key));
 }
 
-/// Rafraîchissement d'une fiche : les participants et les classements de ses
-/// épreuves seulement. Relire les épreuves (`eventsProvider.refresh`) referait
-/// aussi les classements des clubs, une lecture par épreuve.
+/// Rafraîchissement d'une fiche : les classements de ses épreuves seulement.
+/// Les participants (3,6 Mo) ne sont relus que par « Réessayer » s'ils ont
+/// échoué ; les engagements changent peu pendant une compétition.
 Future<void> refreshAthleteCard(
   ProviderContainer container,
   AthleteKey key,
 ) async {
   final competitionId = key.competitionId;
   final races = container.read(athleteCardProvider(key)).value ?? const [];
-  container.invalidate(participantsProvider(competitionId));
   for (final eventId in {for (final race in races) race.event.id}) {
     container.invalidate(
       eventRankingProvider((competitionId: competitionId, eventId: eventId)),

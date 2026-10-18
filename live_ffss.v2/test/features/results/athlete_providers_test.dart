@@ -146,6 +146,45 @@ void main() {
       expect(second, same(first));
       verify(() => results.getParticipants(competitionId)).called(1);
     });
+
+    Future<void> openAndClose(ProviderContainer c, int participantId) async {
+      final key = (competitionId: competitionId, participantId: participantId);
+      final subscription = c.listen(athleteCardProvider(key), (_, _) {});
+      await c.read(athleteCardProvider(key).future);
+      subscription.close();
+      await pumpEventQueue();
+    }
+
+    test(
+      "deux fiches de suite, l'onglet Résultats ouvert : lus une fois",
+      () async {
+        final c = container();
+        addTearDown(c.dispose);
+        // Ce qu'écoute l'onglet Résultats.
+        c.listen(participantsKeeperProvider(competitionId), (_, _) {});
+
+        await openAndClose(c, 632572);
+        await openAndClose(c, 632821);
+
+        verify(() => results.getParticipants(competitionId)).called(1);
+      },
+    );
+
+    test("l'onglet Résultats fermé : plus rien ne les garde", () async {
+      final c = container();
+      addTearDown(c.dispose);
+      final tab = c.listen(
+        participantsKeeperProvider(competitionId),
+        (_, _) {},
+      );
+      await openAndClose(c, 632572);
+      tab.close();
+      await pumpEventQueue();
+
+      await openAndClose(c, 632821);
+
+      verify(() => results.getParticipants(competitionId)).called(2);
+    });
   });
 
   group('athleteCardProvider', () {
@@ -401,7 +440,7 @@ void main() {
   });
 
   group('refreshAthleteCard', () {
-    test('relit participants et classements de ses épreuves, pas les '
+    test('relit les classements de ses épreuves, ni participants ni '
         'épreuves', () async {
       const key = (competitionId: competitionId, participantId: 632572);
       final c = container();
@@ -415,7 +454,7 @@ void main() {
 
       expect(c.read(athleteCardProvider(key)).value, hasLength(6));
       verifyNever(() => results.getEvents(any()));
-      verify(() => results.getParticipants(competitionId)).called(1);
+      verifyNever(() => results.getParticipants(any()));
       for (final eventId in eventIds) {
         verify(() => results.getEventSeries(eventId)).called(1);
       }

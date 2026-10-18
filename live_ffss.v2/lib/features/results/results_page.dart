@@ -5,6 +5,7 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/discipline.dart';
+import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:live_ffss_v2/features/results/widgets/choice_chips_row.dart';
 import 'package:live_ffss_v2/features/results/widgets/events_view.dart';
@@ -45,6 +46,9 @@ class _ResultsPageState extends ConsumerState<ResultsPage> {
       // l'autre sous-onglet, qui démonte la vue.
       ref.listen(resultsSelectionProvider(id), (_, _) {});
       ref.listen(standingsFilterProvider(id), (_, _) {});
+      // Les participants, lus à la première recherche ou fiche, sont gardés
+      // tant que la page vit.
+      ref.listen(participantsKeeperProvider(id), (_, _) {});
       // Une lecture par épreuve : les classements ne sont lus qu'à la première
       // ouverture de Classements, puis gardés tant que la page vit.
       if (_standingsOpened.contains(id)) {
