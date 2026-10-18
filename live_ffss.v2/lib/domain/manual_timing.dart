@@ -53,6 +53,15 @@ Map<int, ManualTime> manualTimesOfLanes(
   return times;
 }
 
+/// `43"21`, `1'02"34` : un temps comme le pavé l'affiche.
+String hundredthsLabel(int hundredths) {
+  final minutes = hundredths ~/ 6000;
+  final seconds = hundredths % 6000 ~/ 100;
+  final cc = (hundredths % 100).toString().padLeft(2, '0');
+  if (minutes == 0) return '$seconds"$cc';
+  return "$minutes'${seconds.toString().padLeft(2, '0')}\"$cc";
+}
+
 /// Lit les chiffres tapés au pavé comme `mmsscc` complété à gauche
 /// (`4321` -> 43"21) et rend des centièmes. Nul si l'entrée est vide, trop
 /// longue, non numérique ou si les secondes dépassent 59.

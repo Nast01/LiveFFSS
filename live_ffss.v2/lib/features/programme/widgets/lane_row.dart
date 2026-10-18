@@ -3,7 +3,6 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/manual_timing.dart';
-import 'package:live_ffss_v2/features/officiel/entry_formatting.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 
 class LaneRow extends StatelessWidget {

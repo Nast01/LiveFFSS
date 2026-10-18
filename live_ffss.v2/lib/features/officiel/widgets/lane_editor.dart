@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
+import 'package:live_ffss_v2/domain/manual_timing.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/features/officiel/entry_formatting.dart';
 import 'package:live_ffss_v2/features/officiel/entry_providers.dart';

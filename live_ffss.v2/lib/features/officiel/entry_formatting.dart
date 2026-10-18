@@ -5,10 +5,6 @@ import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/features/officiel/entry_view.dart';
 
-/// `43"21`, `1'02"34` : un temps comme le pavé l'affiche.
-String hundredthsLabel(int hundredths) =>
-    chronoDigitsLabel(chronoDigitsOf(hundredths));
-
 String manualRuleLabel(ManualTimeRule rule, AppLocalizations l10n) =>
     switch (rule) {
       ManualTimeRule.single => l10n.entryRuleSingle,

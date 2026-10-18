@@ -23,6 +23,16 @@ class _MockMeetingRepository extends Mock implements MeetingRepository {}
 
 class _MockResultRepository extends Mock implements ResultRepository {}
 
+/// Les droits d'un officiel, que les tests font arriver ou partir.
+final _canEnterFlag = NotifierProvider<_CanEnterFlag, bool>(_CanEnterFlag.new);
+
+class _CanEnterFlag extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool value) => state = value;
+}
+
 void main() {
   const key = (competitionId: 1453, itemId: 10);
   final day = DateTime(2026, 3, 27);
@@ -96,13 +106,13 @@ void main() {
     overrides: [
       meetingRepositoryProvider.overrideWithValue(repository),
       resultRepositoryProvider.overrideWithValue(results),
-      canEnterProvider.overrideWith((ref, _) => canEnter),
+      canEnterProvider.overrideWith((ref, _) => ref.watch(_canEnterFlag)),
       clockProvider.overrideWithValue(
         () => now.add(async?.elapsed ?? Duration.zero),
       ),
     ],
     retry: noRetry,
-  );
+  )..read(_canEnterFlag.notifier).set(canEnter);
 
   setUpAll(() {
     registerFallbackValue(DateTime(2000));
@@ -779,6 +789,106 @@ void main() {
         expect(state.hasError, isFalse);
         expect(state.value!.manualTimesOf(item.heats[0]), isEmpty);
         expect(state.value!.lanesOf(item.heats[0]), hasLength(2));
+
+        c.dispose();
+      });
+    });
+
+    test('droit perdu pendant le premier chargement : aucun temps manuel', () {
+      fakeAsync((async) {
+        setUpManual();
+        canEnter = true;
+        final pending = Completer<Map<int, List<int?>>>();
+        when(
+          () => results.getHeatChronos(any()),
+        ).thenAnswer((_) => pending.future);
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+
+        // Les places sont déjà affichées, les chronos pas encore revenus.
+        expect(c.read(meetingItemDetailProvider(key)).hasValue, isTrue);
+        c.read(_canEnterFlag.notifier).set(false);
+        pending.complete({
+          501: [3100, 3200, null],
+        });
+        async.flushMicrotasks();
+
+        final detail = c.read(meetingItemDetailProvider(key)).value!;
+        expect(detail.chronos, isEmpty);
+        expect(detail.manualTimesOf(item.heats[0]), isEmpty);
+
+        c.dispose();
+      });
+    });
+
+    test('droits arrivés après le chargement : chronos lus et montrés', () {
+      fakeAsync((async) {
+        setUpManual();
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+        verifyNever(() => results.getHeatChronos(any()));
+
+        c.read(_canEnterFlag.notifier).set(true);
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 1));
+
+        final detail = c.read(meetingItemDetailProvider(key)).value!;
+        expect(detail.manualTimesOf(item.heats[0]).keys, [11]);
+
+        c.dispose();
+      });
+    });
+
+    test('droits perdus : chronos effacés aussitôt', () {
+      fakeAsync((async) {
+        setUpManual();
+        canEnter = true;
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+        expect(
+          c.read(meetingItemDetailProvider(key)).value!.chronos,
+          isNotEmpty,
+        );
+
+        c.read(_canEnterFlag.notifier).set(false);
+
+        expect(c.read(meetingItemDetailProvider(key)).value!.chronos, isEmpty);
+
+        c.dispose();
+      });
+    });
+
+    test('les séries se lisent en parallèle, 6 au plus à la fois', () {
+      fakeAsync((async) {
+        setUpManual();
+        canEnter = true;
+        item = MeetingItem(
+          id: 10,
+          name: '100 m bouée tube',
+          roundId: 100,
+          heats: [
+            for (var i = 1; i <= 8; i++) heat(i, RunStatus.waiting, [i * 10]),
+          ],
+        );
+        var inFlight = 0;
+        var peak = 0;
+        when(() => results.getHeatChronos(any())).thenAnswer((_) async {
+          inFlight++;
+          if (inFlight > peak) peak = inFlight;
+          await Future<void>.delayed(const Duration(seconds: 1));
+          inFlight--;
+          return {};
+        });
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 5));
+
+        verify(() => results.getHeatChronos(any())).called(8);
+        expect(peak, maxConcurrentChronos);
 
         c.dispose();
       });
