@@ -121,4 +121,113 @@ void main() {
       expect(first.isGuest, isFalse);
     });
   });
+
+  group('lignes illisibles et cas limites', () {
+    Map<String, dynamic> result(int id, {Object? athletes, int statut = 0}) => {
+      'Id': id,
+      'Statut': statut,
+      'Temps': 1000,
+      'complement': 'Q',
+      'Athletes': athletes ?? <Object?>[],
+      'engagement': {'Id': id + 100, 'IdEpreuve': 5, 'clubLabel': 'Club E'},
+    };
+
+    test(
+      'le club vide du premier athlète retombe sur celui de l\'engagement',
+      () {
+        final dto = ResultatSerieDto.fromJson(
+          result(
+            1,
+            athletes: [
+              {'Id': 9, 'label': 'A', 'clubLabel': ''},
+            ],
+          ),
+        );
+        expect(dto.toDomain(5)!.club, 'Club E');
+      },
+    );
+
+    test('un résultat mal typé est écarté seul', () {
+      final series = SerieResultsDto.fromJson({
+        'Id': 1,
+        'epreuve': {'Id': 5},
+        'resultats': [
+          result(1),
+          {'Id': 2, 'Statut': 'x', 'Temps': {}},
+          'pas un objet',
+          result(3),
+        ],
+      }).toDomain()!;
+      expect(series.results.map((r) => r.id), [1, 3]);
+    });
+
+    test('un athlète mal typé est écarté seul', () {
+      final series = SerieResultsDto.fromJson({
+        'Id': 1,
+        'epreuve': {'Id': 5},
+        'resultats': [
+          result(
+            1,
+            athletes: [
+              {'Id': 9, 'label': 123},
+              {'Id': 10, 'label': 'B'},
+            ],
+          ),
+        ],
+      }).toDomain()!;
+      expect(series.results.single.athletes.map((a) => a.id), [10]);
+    });
+
+    test('un engagement mal typé est écarté seul', () {
+      final participant = ParticipantDto.fromJson({
+        'Id': 1,
+        'engagements': [
+          {
+            'id': 1,
+            'epreuve': {'Id': 7, 'categories': 'x'},
+          },
+          {
+            'id': 2,
+            'epreuve': {'Id': 7},
+          },
+        ],
+      }).toDomain()!;
+      expect(participant.entries.map((e) => e.entryId), [2]);
+    });
+
+    test('statut, complément et invité sont lus', () {
+      final r = ResultatSerieDto.fromJson(
+        result(
+          1,
+          statut: 3,
+          athletes: [
+            {'Id': 9, 'label': 'A', 'isInvite': true},
+          ],
+        ),
+      ).toDomain(5)!;
+      expect(r.status, 3);
+      expect(r.complement, 'Q');
+      expect(r.athletes.single.isGuest, isTrue);
+    });
+
+    test('une heure de début illisible laisse la série sans heure', () {
+      final series = SerieResultsDto.fromJson({
+        'Id': 1,
+        'Debut': 'pas une date',
+        'epreuve': {'Id': 5},
+      }).toDomain()!;
+      expect(series.start, isNull);
+    });
+
+    test('une épreuve sans discipline est écartée', () {
+      expect(
+        const EpreuveDto(
+          id: 1,
+          gender: 'F',
+          categories: [EpreuveCategorieDto(id: 2, name: 'Cadet')],
+        ).toDomain(),
+        isNull,
+      );
+    });
+  });
 }

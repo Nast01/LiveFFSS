@@ -16,9 +16,9 @@ abstract class SerieResultsDto with _$SerieResultsDto {
     @JsonKey(name: 'Nom') String? name,
     @JsonKey(name: 'Debut') String? start,
     @JsonKey(name: 'epreuve', readValue: readMap) EpreuveDto? event,
-    @JsonKey(name: 'resultats')
-    @Default(<ResultatSerieDto>[])
-    List<ResultatSerieDto> results,
+    // Lignes brutes : le mapper décode chacune seule, pour qu'une ligne mal
+    // typée n'emporte pas la série.
+    @JsonKey(name: 'resultats') @Default(<Object?>[]) List<Object?> results,
   }) = _SerieResultsDto;
 
   factory SerieResultsDto.fromJson(Map<String, dynamic> json) =>
@@ -32,9 +32,7 @@ abstract class ResultatSerieDto with _$ResultatSerieDto {
     @JsonKey(name: 'Statut', readValue: readInt) int? status,
     @JsonKey(name: 'Temps', readValue: readInt) int? time,
     @JsonKey(name: 'complement') String? complement,
-    @JsonKey(name: 'Athletes')
-    @Default(<AthleteResultDto>[])
-    List<AthleteResultDto> athletes,
+    @JsonKey(name: 'Athletes') @Default(<Object?>[]) List<Object?> athletes,
     @JsonKey(name: 'engagement', readValue: readMap) EngagementResultDto? entry,
   }) = _ResultatSerieDto;
 

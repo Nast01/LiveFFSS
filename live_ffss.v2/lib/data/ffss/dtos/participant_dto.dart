@@ -17,9 +17,8 @@ abstract class ParticipantDto with _$ParticipantDto {
     @JsonKey(name: 'Sexe') String? gender,
     @JsonKey(name: 'clubLabel') String? club,
     @JsonKey(name: 'isInvite') bool? isGuest,
-    @JsonKey(name: 'engagements')
-    @Default(<ParticipantEngagementDto>[])
-    List<ParticipantEngagementDto> entries,
+    // Lignes brutes : une ligne mal typée est écartée seule par le mapper.
+    @JsonKey(name: 'engagements') @Default(<Object?>[]) List<Object?> entries,
   }) = _ParticipantDto;
 
   factory ParticipantDto.fromJson(Map<String, dynamic> json) =>

@@ -14,15 +14,7 @@ _ParticipantDto _$ParticipantDtoFromJson(Map<String, dynamic> json) =>
       gender: json['Sexe'] as String?,
       club: json['clubLabel'] as String?,
       isGuest: json['isInvite'] as bool?,
-      entries:
-          (json['engagements'] as List<dynamic>?)
-              ?.map(
-                (e) => ParticipantEngagementDto.fromJson(
-                  e as Map<String, dynamic>,
-                ),
-              )
-              .toList() ??
-          const <ParticipantEngagementDto>[],
+      entries: json['engagements'] as List<dynamic>? ?? const <Object?>[],
     );
 
 Map<String, dynamic> _$ParticipantDtoToJson(_ParticipantDto instance) =>

@@ -17,11 +17,7 @@ _SerieResultsDto _$SerieResultsDtoFromJson(Map<String, dynamic> json) =>
           : EpreuveDto.fromJson(
               readMap(json, 'epreuve') as Map<String, dynamic>,
             ),
-      results:
-          (json['resultats'] as List<dynamic>?)
-              ?.map((e) => ResultatSerieDto.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const <ResultatSerieDto>[],
+      results: json['resultats'] as List<dynamic>? ?? const <Object?>[],
     );
 
 Map<String, dynamic> _$SerieResultsDtoToJson(_SerieResultsDto instance) =>
@@ -40,11 +36,7 @@ _ResultatSerieDto _$ResultatSerieDtoFromJson(Map<String, dynamic> json) =>
       status: (readInt(json, 'Statut') as num?)?.toInt(),
       time: (readInt(json, 'Temps') as num?)?.toInt(),
       complement: json['complement'] as String?,
-      athletes:
-          (json['Athletes'] as List<dynamic>?)
-              ?.map((e) => AthleteResultDto.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const <AthleteResultDto>[],
+      athletes: json['Athletes'] as List<dynamic>? ?? const <Object?>[],
       entry: readMap(json, 'engagement') == null
           ? null
           : EngagementResultDto.fromJson(

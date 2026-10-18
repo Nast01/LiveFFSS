@@ -4,6 +4,28 @@ import 'package:live_ffss_v2/data/ffss/dtos/serie_results_dto.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/reunion_mapper.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 
+/// Décode chaque ligne seule : une ligne qui n'est pas un objet, mal typée
+/// (`TypeError`) ou que [toDomain] rejette est écartée sans emporter les autres.
+List<T> decodeRows<D, T>(
+  List<Object?> rows,
+  D Function(Map<String, dynamic>) fromJson,
+  T? Function(D) toDomain,
+) {
+  final result = <T>[];
+  for (final row in rows) {
+    if (row is! Map<String, dynamic>) continue;
+    final D dto;
+    try {
+      dto = fromJson(row);
+    } on TypeError {
+      continue;
+    }
+    final item = toDomain(dto);
+    if (item != null) result.add(item);
+  }
+  return result;
+}
+
 extension EpreuveMapper on EpreuveDto {
   /// Nulle sans id, sans genre ou sans catégorie lisibles : une épreuve est
   /// une catégorie, la première de `categories`.
@@ -12,11 +34,17 @@ extension EpreuveMapper on EpreuveDto {
     final gender = parseGender(this.gender);
     final category = categories.isEmpty ? null : categories.first;
     final categoryId = category?.id;
-    if (id == null || gender == null || categoryId == null) return null;
+    final disciplineId = this.disciplineId;
+    if (id == null ||
+        gender == null ||
+        categoryId == null ||
+        disciplineId == null) {
+      return null;
+    }
     final label = discipline?.label?.trim();
     return CompetitionEvent(
       id: id,
-      disciplineId: disciplineId ?? 0,
+      disciplineId: disciplineId,
       disciplineName: label != null && label.isNotEmpty
           ? label
           : discipline?.name?.trim() ?? '',
@@ -51,17 +79,22 @@ extension ResultatSerieMapper on ResultatSerieDto {
     final entry = this.entry;
     final entryId = entry?.id;
     if (id == null || entryId == null) return null;
-    final athletes = [for (final athlete in this.athletes) ?athlete.toDomain()];
+    final athletes = decodeRows(
+      this.athletes,
+      AthleteResultDto.fromJson,
+      (AthleteResultDto dto) => dto.toDomain(),
+    );
     final time = this.time;
     return EventResult(
       id: id,
       entryId: entryId,
       eventId: entry?.eventId ?? eventId,
       categoryName: entry?.category?.name?.trim() ?? '',
+      // V3 envoie toujours `Statut` : 0 (OK) n'est qu'un repli défensif.
       status: status ?? 0,
       time: time == null || time <= 0 ? null : time,
       complement: complement?.trim() ?? '',
-      club: athletes.isNotEmpty
+      club: athletes.isNotEmpty && athletes.first.club.isNotEmpty
           ? athletes.first.club
           : entry?.club?.trim() ?? '',
       athletes: athletes,
@@ -84,7 +117,11 @@ extension SerieResultsMapper on SerieResultsDto {
       name: name?.trim() ?? '',
       // `yyyy-MM-dd HH:mm:ss` sans fuseau : `tryParse` le lit en heure locale.
       start: start == null ? null : DateTime.tryParse(start.trim()),
-      results: [for (final result in results) ?result.toDomain(eventId)],
+      results: decodeRows(
+        results,
+        ResultatSerieDto.fromJson,
+        (ResultatSerieDto dto) => dto.toDomain(eventId),
+      ),
     );
   }
 }
@@ -101,15 +138,18 @@ extension ParticipantMapper on ParticipantDto {
       gender: parseGender(gender),
       club: club?.trim() ?? '',
       isGuest: isGuest ?? false,
-      entries: [
-        for (final entry in entries)
-          if (entry.id != null && entry.event?.id != null)
-            ParticipantEntry(
-              entryId: entry.id!,
-              eventId: entry.event!.id!,
-              categoryName: entry.category?.label?.trim() ?? '',
-            ),
-      ],
+      entries: decodeRows(entries, ParticipantEngagementDto.fromJson, (
+        ParticipantEngagementDto entry,
+      ) {
+        final entryId = entry.id;
+        final eventId = entry.event?.id;
+        if (entryId == null || eventId == null) return null;
+        return ParticipantEntry(
+          entryId: entryId,
+          eventId: eventId,
+          categoryName: entry.category?.label?.trim() ?? '',
+        );
+      }),
     );
   }
 }

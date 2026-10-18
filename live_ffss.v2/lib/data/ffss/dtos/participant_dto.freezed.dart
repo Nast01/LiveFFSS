@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ParticipantDto {
 
-@JsonKey(name: 'Id', readValue: readInt) int? get id;@JsonKey(name: 'Prenom') String? get firstName;@JsonKey(name: 'Nom') String? get lastName;@JsonKey(name: 'Sexe') String? get gender;@JsonKey(name: 'clubLabel') String? get club;@JsonKey(name: 'isInvite') bool? get isGuest;@JsonKey(name: 'engagements') List<ParticipantEngagementDto> get entries;
+@JsonKey(name: 'Id', readValue: readInt) int? get id;@JsonKey(name: 'Prenom') String? get firstName;@JsonKey(name: 'Nom') String? get lastName;@JsonKey(name: 'Sexe') String? get gender;@JsonKey(name: 'clubLabel') String? get club;@JsonKey(name: 'isInvite') bool? get isGuest;@JsonKey(name: 'engagements') List<Object?> get entries;
 /// Create a copy of ParticipantDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $ParticipantDtoCopyWith<$Res>  {
   factory $ParticipantDtoCopyWith(ParticipantDto value, $Res Function(ParticipantDto) _then) = _$ParticipantDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Prenom') String? firstName,@JsonKey(name: 'Nom') String? lastName,@JsonKey(name: 'Sexe') String? gender,@JsonKey(name: 'clubLabel') String? club,@JsonKey(name: 'isInvite') bool? isGuest,@JsonKey(name: 'engagements') List<ParticipantEngagementDto> entries
+@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Prenom') String? firstName,@JsonKey(name: 'Nom') String? lastName,@JsonKey(name: 'Sexe') String? gender,@JsonKey(name: 'clubLabel') String? club,@JsonKey(name: 'isInvite') bool? isGuest,@JsonKey(name: 'engagements') List<Object?> entries
 });
 
 
@@ -80,7 +80,7 @@ as String?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nul
 as String?,club: freezed == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
 as String?,isGuest: freezed == isGuest ? _self.isGuest : isGuest // ignore: cast_nullable_to_non_nullable
 as bool?,entries: null == entries ? _self.entries : entries // ignore: cast_nullable_to_non_nullable
-as List<ParticipantEngagementDto>,
+as List<Object?>,
   ));
 }
 
@@ -165,7 +165,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<ParticipantEngagementDto> entries)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<Object?> entries)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ParticipantDto() when $default != null:
 return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.isGuest,_that.entries);case _:
@@ -186,7 +186,7 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<ParticipantEngagementDto> entries)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<Object?> entries)  $default,) {final _that = this;
 switch (_that) {
 case _ParticipantDto():
 return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.isGuest,_that.entries);case _:
@@ -206,7 +206,7 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<ParticipantEngagementDto> entries)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Prenom')  String? firstName, @JsonKey(name: 'Nom')  String? lastName, @JsonKey(name: 'Sexe')  String? gender, @JsonKey(name: 'clubLabel')  String? club, @JsonKey(name: 'isInvite')  bool? isGuest, @JsonKey(name: 'engagements')  List<Object?> entries)?  $default,) {final _that = this;
 switch (_that) {
 case _ParticipantDto() when $default != null:
 return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.isGuest,_that.entries);case _:
@@ -221,7 +221,7 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,
 @JsonSerializable()
 
 class _ParticipantDto implements ParticipantDto {
-  const _ParticipantDto({@JsonKey(name: 'Id', readValue: readInt) this.id, @JsonKey(name: 'Prenom') this.firstName, @JsonKey(name: 'Nom') this.lastName, @JsonKey(name: 'Sexe') this.gender, @JsonKey(name: 'clubLabel') this.club, @JsonKey(name: 'isInvite') this.isGuest, @JsonKey(name: 'engagements')  List<ParticipantEngagementDto> entries = const <ParticipantEngagementDto>[]}): _entries = entries;
+  const _ParticipantDto({@JsonKey(name: 'Id', readValue: readInt) this.id, @JsonKey(name: 'Prenom') this.firstName, @JsonKey(name: 'Nom') this.lastName, @JsonKey(name: 'Sexe') this.gender, @JsonKey(name: 'clubLabel') this.club, @JsonKey(name: 'isInvite') this.isGuest, @JsonKey(name: 'engagements')  List<Object?> entries = const <Object?>[]}): _entries = entries;
   factory _ParticipantDto.fromJson(Map<String, dynamic> json) => _$ParticipantDtoFromJson(json);
 
 @override@JsonKey(name: 'Id', readValue: readInt) final  int? id;
@@ -230,8 +230,8 @@ class _ParticipantDto implements ParticipantDto {
 @override@JsonKey(name: 'Sexe') final  String? gender;
 @override@JsonKey(name: 'clubLabel') final  String? club;
 @override@JsonKey(name: 'isInvite') final  bool? isGuest;
- final  List<ParticipantEngagementDto> _entries;
-@override@JsonKey(name: 'engagements') List<ParticipantEngagementDto> get entries {
+ final  List<Object?> _entries;
+@override@JsonKey(name: 'engagements') List<Object?> get entries {
   if (_entries is EqualUnmodifiableListView) return _entries;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_entries);
@@ -273,7 +273,7 @@ abstract mixin class _$ParticipantDtoCopyWith<$Res> implements $ParticipantDtoCo
   factory _$ParticipantDtoCopyWith(_ParticipantDto value, $Res Function(_ParticipantDto) _then) = __$ParticipantDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Prenom') String? firstName,@JsonKey(name: 'Nom') String? lastName,@JsonKey(name: 'Sexe') String? gender,@JsonKey(name: 'clubLabel') String? club,@JsonKey(name: 'isInvite') bool? isGuest,@JsonKey(name: 'engagements') List<ParticipantEngagementDto> entries
+@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Prenom') String? firstName,@JsonKey(name: 'Nom') String? lastName,@JsonKey(name: 'Sexe') String? gender,@JsonKey(name: 'clubLabel') String? club,@JsonKey(name: 'isInvite') bool? isGuest,@JsonKey(name: 'engagements') List<Object?> entries
 });
 
 
@@ -299,7 +299,7 @@ as String?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nul
 as String?,club: freezed == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
 as String?,isGuest: freezed == isGuest ? _self.isGuest : isGuest // ignore: cast_nullable_to_non_nullable
 as bool?,entries: null == entries ? _self._entries : entries // ignore: cast_nullable_to_non_nullable
-as List<ParticipantEngagementDto>,
+as List<Object?>,
   ));
 }
 

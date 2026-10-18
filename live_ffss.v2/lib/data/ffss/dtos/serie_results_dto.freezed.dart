@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SerieResultsDto {
 
-@JsonKey(name: 'Id', readValue: readInt) int? get id;@JsonKey(name: 'Numero', readValue: readInt) int? get number;@JsonKey(name: 'Nom') String? get name;@JsonKey(name: 'Debut') String? get start;@JsonKey(name: 'epreuve', readValue: readMap) EpreuveDto? get event;@JsonKey(name: 'resultats') List<ResultatSerieDto> get results;
+@JsonKey(name: 'Id', readValue: readInt) int? get id;@JsonKey(name: 'Numero', readValue: readInt) int? get number;@JsonKey(name: 'Nom') String? get name;@JsonKey(name: 'Debut') String? get start;@JsonKey(name: 'epreuve', readValue: readMap) EpreuveDto? get event;@JsonKey(name: 'resultats') List<Object?> get results;
 /// Create a copy of SerieResultsDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $SerieResultsDtoCopyWith<$Res>  {
   factory $SerieResultsDtoCopyWith(SerieResultsDto value, $Res Function(SerieResultsDto) _then) = _$SerieResultsDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Numero', readValue: readInt) int? number,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'Debut') String? start,@JsonKey(name: 'epreuve', readValue: readMap) EpreuveDto? event,@JsonKey(name: 'resultats') List<ResultatSerieDto> results
+@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Numero', readValue: readInt) int? number,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'Debut') String? start,@JsonKey(name: 'epreuve', readValue: readMap) EpreuveDto? event,@JsonKey(name: 'resultats') List<Object?> results
 });
 
 
@@ -79,7 +79,7 @@ as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_no
 as String?,start: freezed == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as String?,event: freezed == event ? _self.event : event // ignore: cast_nullable_to_non_nullable
 as EpreuveDto?,results: null == results ? _self.results : results // ignore: cast_nullable_to_non_nullable
-as List<ResultatSerieDto>,
+as List<Object?>,
   ));
 }
 /// Create a copy of SerieResultsDto
@@ -176,7 +176,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Debut')  String? start, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveDto? event, @JsonKey(name: 'resultats')  List<ResultatSerieDto> results)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Debut')  String? start, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveDto? event, @JsonKey(name: 'resultats')  List<Object?> results)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SerieResultsDto() when $default != null:
 return $default(_that.id,_that.number,_that.name,_that.start,_that.event,_that.results);case _:
@@ -197,7 +197,7 @@ return $default(_that.id,_that.number,_that.name,_that.start,_that.event,_that.r
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Debut')  String? start, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveDto? event, @JsonKey(name: 'resultats')  List<ResultatSerieDto> results)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Debut')  String? start, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveDto? event, @JsonKey(name: 'resultats')  List<Object?> results)  $default,) {final _that = this;
 switch (_that) {
 case _SerieResultsDto():
 return $default(_that.id,_that.number,_that.name,_that.start,_that.event,_that.results);case _:
@@ -217,7 +217,7 @@ return $default(_that.id,_that.number,_that.name,_that.start,_that.event,_that.r
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Debut')  String? start, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveDto? event, @JsonKey(name: 'resultats')  List<ResultatSerieDto> results)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Numero', readValue: readInt)  int? number, @JsonKey(name: 'Nom')  String? name, @JsonKey(name: 'Debut')  String? start, @JsonKey(name: 'epreuve', readValue: readMap)  EpreuveDto? event, @JsonKey(name: 'resultats')  List<Object?> results)?  $default,) {final _that = this;
 switch (_that) {
 case _SerieResultsDto() when $default != null:
 return $default(_that.id,_that.number,_that.name,_that.start,_that.event,_that.results);case _:
@@ -232,7 +232,7 @@ return $default(_that.id,_that.number,_that.name,_that.start,_that.event,_that.r
 @JsonSerializable()
 
 class _SerieResultsDto implements SerieResultsDto {
-  const _SerieResultsDto({@JsonKey(name: 'Id', readValue: readInt) this.id, @JsonKey(name: 'Numero', readValue: readInt) this.number, @JsonKey(name: 'Nom') this.name, @JsonKey(name: 'Debut') this.start, @JsonKey(name: 'epreuve', readValue: readMap) this.event, @JsonKey(name: 'resultats')  List<ResultatSerieDto> results = const <ResultatSerieDto>[]}): _results = results;
+  const _SerieResultsDto({@JsonKey(name: 'Id', readValue: readInt) this.id, @JsonKey(name: 'Numero', readValue: readInt) this.number, @JsonKey(name: 'Nom') this.name, @JsonKey(name: 'Debut') this.start, @JsonKey(name: 'epreuve', readValue: readMap) this.event, @JsonKey(name: 'resultats')  List<Object?> results = const <Object?>[]}): _results = results;
   factory _SerieResultsDto.fromJson(Map<String, dynamic> json) => _$SerieResultsDtoFromJson(json);
 
 @override@JsonKey(name: 'Id', readValue: readInt) final  int? id;
@@ -240,8 +240,8 @@ class _SerieResultsDto implements SerieResultsDto {
 @override@JsonKey(name: 'Nom') final  String? name;
 @override@JsonKey(name: 'Debut') final  String? start;
 @override@JsonKey(name: 'epreuve', readValue: readMap) final  EpreuveDto? event;
- final  List<ResultatSerieDto> _results;
-@override@JsonKey(name: 'resultats') List<ResultatSerieDto> get results {
+ final  List<Object?> _results;
+@override@JsonKey(name: 'resultats') List<Object?> get results {
   if (_results is EqualUnmodifiableListView) return _results;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_results);
@@ -283,7 +283,7 @@ abstract mixin class _$SerieResultsDtoCopyWith<$Res> implements $SerieResultsDto
   factory _$SerieResultsDtoCopyWith(_SerieResultsDto value, $Res Function(_SerieResultsDto) _then) = __$SerieResultsDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Numero', readValue: readInt) int? number,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'Debut') String? start,@JsonKey(name: 'epreuve', readValue: readMap) EpreuveDto? event,@JsonKey(name: 'resultats') List<ResultatSerieDto> results
+@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Numero', readValue: readInt) int? number,@JsonKey(name: 'Nom') String? name,@JsonKey(name: 'Debut') String? start,@JsonKey(name: 'epreuve', readValue: readMap) EpreuveDto? event,@JsonKey(name: 'resultats') List<Object?> results
 });
 
 
@@ -308,7 +308,7 @@ as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_no
 as String?,start: freezed == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as String?,event: freezed == event ? _self.event : event // ignore: cast_nullable_to_non_nullable
 as EpreuveDto?,results: null == results ? _self._results : results // ignore: cast_nullable_to_non_nullable
-as List<ResultatSerieDto>,
+as List<Object?>,
   ));
 }
 
@@ -331,7 +331,7 @@ $EpreuveDtoCopyWith<$Res>? get event {
 /// @nodoc
 mixin _$ResultatSerieDto {
 
-@JsonKey(name: 'Id', readValue: readInt) int? get id;@JsonKey(name: 'Statut', readValue: readInt) int? get status;@JsonKey(name: 'Temps', readValue: readInt) int? get time;@JsonKey(name: 'complement') String? get complement;@JsonKey(name: 'Athletes') List<AthleteResultDto> get athletes;@JsonKey(name: 'engagement', readValue: readMap) EngagementResultDto? get entry;
+@JsonKey(name: 'Id', readValue: readInt) int? get id;@JsonKey(name: 'Statut', readValue: readInt) int? get status;@JsonKey(name: 'Temps', readValue: readInt) int? get time;@JsonKey(name: 'complement') String? get complement;@JsonKey(name: 'Athletes') List<Object?> get athletes;@JsonKey(name: 'engagement', readValue: readMap) EngagementResultDto? get entry;
 /// Create a copy of ResultatSerieDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -369,7 +369,7 @@ abstract mixin class $ResultatSerieDtoCopyWith<$Res>  {
   factory $ResultatSerieDtoCopyWith(ResultatSerieDto value, $Res Function(ResultatSerieDto) _then) = _$ResultatSerieDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Statut', readValue: readInt) int? status,@JsonKey(name: 'Temps', readValue: readInt) int? time,@JsonKey(name: 'complement') String? complement,@JsonKey(name: 'Athletes') List<AthleteResultDto> athletes,@JsonKey(name: 'engagement', readValue: readMap) EngagementResultDto? entry
+@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Statut', readValue: readInt) int? status,@JsonKey(name: 'Temps', readValue: readInt) int? time,@JsonKey(name: 'complement') String? complement,@JsonKey(name: 'Athletes') List<Object?> athletes,@JsonKey(name: 'engagement', readValue: readMap) EngagementResultDto? entry
 });
 
 
@@ -393,7 +393,7 @@ as int?,status: freezed == status ? _self.status : status // ignore: cast_nullab
 as int?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as int?,complement: freezed == complement ? _self.complement : complement // ignore: cast_nullable_to_non_nullable
 as String?,athletes: null == athletes ? _self.athletes : athletes // ignore: cast_nullable_to_non_nullable
-as List<AthleteResultDto>,entry: freezed == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
+as List<Object?>,entry: freezed == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
 as EngagementResultDto?,
   ));
 }
@@ -491,7 +491,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'Temps', readValue: readInt)  int? time, @JsonKey(name: 'complement')  String? complement, @JsonKey(name: 'Athletes')  List<AthleteResultDto> athletes, @JsonKey(name: 'engagement', readValue: readMap)  EngagementResultDto? entry)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'Temps', readValue: readInt)  int? time, @JsonKey(name: 'complement')  String? complement, @JsonKey(name: 'Athletes')  List<Object?> athletes, @JsonKey(name: 'engagement', readValue: readMap)  EngagementResultDto? entry)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ResultatSerieDto() when $default != null:
 return $default(_that.id,_that.status,_that.time,_that.complement,_that.athletes,_that.entry);case _:
@@ -512,7 +512,7 @@ return $default(_that.id,_that.status,_that.time,_that.complement,_that.athletes
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'Temps', readValue: readInt)  int? time, @JsonKey(name: 'complement')  String? complement, @JsonKey(name: 'Athletes')  List<AthleteResultDto> athletes, @JsonKey(name: 'engagement', readValue: readMap)  EngagementResultDto? entry)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'Temps', readValue: readInt)  int? time, @JsonKey(name: 'complement')  String? complement, @JsonKey(name: 'Athletes')  List<Object?> athletes, @JsonKey(name: 'engagement', readValue: readMap)  EngagementResultDto? entry)  $default,) {final _that = this;
 switch (_that) {
 case _ResultatSerieDto():
 return $default(_that.id,_that.status,_that.time,_that.complement,_that.athletes,_that.entry);case _:
@@ -532,7 +532,7 @@ return $default(_that.id,_that.status,_that.time,_that.complement,_that.athletes
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'Temps', readValue: readInt)  int? time, @JsonKey(name: 'complement')  String? complement, @JsonKey(name: 'Athletes')  List<AthleteResultDto> athletes, @JsonKey(name: 'engagement', readValue: readMap)  EngagementResultDto? entry)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Id', readValue: readInt)  int? id, @JsonKey(name: 'Statut', readValue: readInt)  int? status, @JsonKey(name: 'Temps', readValue: readInt)  int? time, @JsonKey(name: 'complement')  String? complement, @JsonKey(name: 'Athletes')  List<Object?> athletes, @JsonKey(name: 'engagement', readValue: readMap)  EngagementResultDto? entry)?  $default,) {final _that = this;
 switch (_that) {
 case _ResultatSerieDto() when $default != null:
 return $default(_that.id,_that.status,_that.time,_that.complement,_that.athletes,_that.entry);case _:
@@ -547,15 +547,15 @@ return $default(_that.id,_that.status,_that.time,_that.complement,_that.athletes
 @JsonSerializable()
 
 class _ResultatSerieDto implements ResultatSerieDto {
-  const _ResultatSerieDto({@JsonKey(name: 'Id', readValue: readInt) this.id, @JsonKey(name: 'Statut', readValue: readInt) this.status, @JsonKey(name: 'Temps', readValue: readInt) this.time, @JsonKey(name: 'complement') this.complement, @JsonKey(name: 'Athletes')  List<AthleteResultDto> athletes = const <AthleteResultDto>[], @JsonKey(name: 'engagement', readValue: readMap) this.entry}): _athletes = athletes;
+  const _ResultatSerieDto({@JsonKey(name: 'Id', readValue: readInt) this.id, @JsonKey(name: 'Statut', readValue: readInt) this.status, @JsonKey(name: 'Temps', readValue: readInt) this.time, @JsonKey(name: 'complement') this.complement, @JsonKey(name: 'Athletes')  List<Object?> athletes = const <Object?>[], @JsonKey(name: 'engagement', readValue: readMap) this.entry}): _athletes = athletes;
   factory _ResultatSerieDto.fromJson(Map<String, dynamic> json) => _$ResultatSerieDtoFromJson(json);
 
 @override@JsonKey(name: 'Id', readValue: readInt) final  int? id;
 @override@JsonKey(name: 'Statut', readValue: readInt) final  int? status;
 @override@JsonKey(name: 'Temps', readValue: readInt) final  int? time;
 @override@JsonKey(name: 'complement') final  String? complement;
- final  List<AthleteResultDto> _athletes;
-@override@JsonKey(name: 'Athletes') List<AthleteResultDto> get athletes {
+ final  List<Object?> _athletes;
+@override@JsonKey(name: 'Athletes') List<Object?> get athletes {
   if (_athletes is EqualUnmodifiableListView) return _athletes;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_athletes);
@@ -598,7 +598,7 @@ abstract mixin class _$ResultatSerieDtoCopyWith<$Res> implements $ResultatSerieD
   factory _$ResultatSerieDtoCopyWith(_ResultatSerieDto value, $Res Function(_ResultatSerieDto) _then) = __$ResultatSerieDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Statut', readValue: readInt) int? status,@JsonKey(name: 'Temps', readValue: readInt) int? time,@JsonKey(name: 'complement') String? complement,@JsonKey(name: 'Athletes') List<AthleteResultDto> athletes,@JsonKey(name: 'engagement', readValue: readMap) EngagementResultDto? entry
+@JsonKey(name: 'Id', readValue: readInt) int? id,@JsonKey(name: 'Statut', readValue: readInt) int? status,@JsonKey(name: 'Temps', readValue: readInt) int? time,@JsonKey(name: 'complement') String? complement,@JsonKey(name: 'Athletes') List<Object?> athletes,@JsonKey(name: 'engagement', readValue: readMap) EngagementResultDto? entry
 });
 
 
@@ -622,7 +622,7 @@ as int?,status: freezed == status ? _self.status : status // ignore: cast_nullab
 as int?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as int?,complement: freezed == complement ? _self.complement : complement // ignore: cast_nullable_to_non_nullable
 as String?,athletes: null == athletes ? _self._athletes : athletes // ignore: cast_nullable_to_non_nullable
-as List<AthleteResultDto>,entry: freezed == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
+as List<Object?>,entry: freezed == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
 as EngagementResultDto?,
   ));
 }
