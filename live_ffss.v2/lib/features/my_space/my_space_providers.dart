@@ -305,7 +305,7 @@ final clubScheduleProvider = FutureProvider.autoDispose
             for (final entry in athlete.entries)
               if (flatWater.contains(entry.eventId)) entry.eventId,
         };
-        await _inPool(eventIds, () => ref.mounted, (eventId) async {
+        await inPool(eventIds, () => ref.mounted, (eventId) async {
           final ranking = eventRankingProvider((
             competitionId: competitionId,
             eventId: eventId,
@@ -324,7 +324,7 @@ final clubScheduleProvider = FutureProvider.autoDispose
 
         final cards = <int, List<AthleteRace>>{};
         var failed = 0;
-        await _inPool(club.athletes, () => ref.mounted, (athlete) async {
+        await inPool(club.athletes, () => ref.mounted, (athlete) async {
           final card = athleteCardProvider((
             competitionId: competitionId,
             participantId: athlete.id,
@@ -352,15 +352,13 @@ final clubScheduleProvider = FutureProvider.autoDispose
 /// Le signal de [refreshClubSchedule] : la prochaine lecture du planning
 /// relit ses classements, chacun juste avant sa lecture.
 final _clubRefreshProvider = NotifierProvider.autoDispose
-    .family<_ClubRefresh, int, ClubKey>(_ClubRefresh.new);
+    .family<RefreshSignal, int, ClubKey>((_) => RefreshSignal());
 
-class _ClubRefresh extends Notifier<int> {
-  _ClubRefresh(this.key);
-
-  final ClubKey key;
-
-  // Dans un champ : une lecture du planning sans rafraîchissement demandé
-  // (club relu) ne doit pas relire les classements.
+/// Le signal d'un rafraîchissement demandé : la lecture qui le suit le prend
+/// ([take]) et relit ce qu'elle garde d'ordinaire.
+class RefreshSignal extends Notifier<int> {
+  // Dans un champ : une lecture sans rafraîchissement demandé (une source
+  // relue, comme le club du planning) ne doit pas relire les classements.
   int _taken = 0;
 
   @override
@@ -380,7 +378,7 @@ class _ClubRefresh extends Notifier<int> {
 /// travailleurs tirent dans le même itérateur : `moveNext` + `current` sans
 /// `await` entre les deux est sûr. [alive] faux : une lecture remplacée
 /// (rafraîchissement, page fermée) ne lance plus rien.
-Future<void> _inPool<T>(
+Future<void> inPool<T>(
   Iterable<T> items,
   bool Function() alive,
   Future<void> Function(T item) task,

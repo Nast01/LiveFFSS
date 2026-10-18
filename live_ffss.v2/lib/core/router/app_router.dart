@@ -8,10 +8,10 @@ import 'package:live_ffss_v2/features/home/home_page.dart';
 import 'package:live_ffss_v2/features/live/live_page.dart';
 import 'package:live_ffss_v2/features/my_space/athlete_space_page.dart';
 import 'package:live_ffss_v2/features/my_space/club_page.dart';
-import 'package:live_ffss_v2/features/my_space/coming_soon_page.dart';
 import 'package:live_ffss_v2/features/my_space/competition_info_page.dart';
 import 'package:live_ffss_v2/features/my_space/follows_page.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_page.dart';
+import 'package:live_ffss_v2/features/my_space/official_space_page.dart';
 import 'package:live_ffss_v2/features/my_space/officials_page.dart';
 import 'package:live_ffss_v2/features/officiel/entry_page.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_page.dart';
@@ -72,6 +72,12 @@ abstract final class Routes {
       '${_mySpaceOf(competitionId)}/club/$clubId';
   static String mySpaceOfficial(int competitionId) =>
       '${_mySpaceOf(competitionId)}/officiel';
+
+  /// Les pages de l'espace officiel lues à la demande.
+  static String mySpaceHeatsToEnter(int competitionId) =>
+      '${mySpaceOfficial(competitionId)}/a-saisir';
+  static String mySpaceDecisions(int competitionId) =>
+      '${mySpaceOfficial(competitionId)}/dq-forfaits';
 
   /// La fiche d'un athlète (lot 5) ouverte depuis Mon espace.
   static String mySpaceParticipant(int competitionId, int participantId) =>
@@ -305,8 +311,18 @@ final _mySpaceRoutes = [
   _mySpaceRoute('officiels', (id) => OfficialsPage(competitionId: id)),
   _mySpaceRoute('suivis', (id) => FollowsPage(competitionId: id)),
   _mySpaceRoute('athlete', (id) => AthleteSpacePage(competitionId: id)),
-  // Espace officiel : tâche suivante du lot 6a.
-  _mySpaceRoute('officiel', (_) => const ComingSoonPage()),
+  _mySpaceRoute('officiel', (id) => OfficialSpacePage(competitionId: id)),
+  _mySpaceRoute(
+    'officiel/a-saisir',
+    (id) => HeatsToEnterPage(competitionId: id),
+  ),
+  _mySpaceRoute(
+    'officiel/dq-forfaits',
+    (id) => OfficialDecisionsPage(competitionId: id),
+  ),
+  // La saisie ouverte depuis l'espace officiel, sous son créneau : dans la
+  // branche de Mon espace, le retour y ramène.
+  _itemRoute(fallback: Routes.mySpace),
   GoRoute(
     path: 'competition/:competitionId/club/:clubId',
     redirect: (context, state) => clubRedirect(state.pathParameters),

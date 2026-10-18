@@ -2,6 +2,8 @@ import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
+import 'package:live_ffss_v2/domain/meeting.dart';
+import 'package:live_ffss_v2/domain/now_running.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
@@ -90,6 +92,49 @@ List<Heat> heatsToCheck(Programme programme) => [
       for (final heat in item.heats)
         if (heat.status == RunStatus.finished && heat.seriesId != null) heat,
 ];
+
+/// Une série et le créneau qui la porte : la saisie s'ouvre sur le créneau.
+typedef HeatInItem = ({MeetingItem item, Heat heat});
+
+/// La première série du programme qui passe [test], dans l'ordre du
+/// programme.
+HeatInItem? findHeat(Programme programme, bool Function(Heat heat) test) {
+  for (final meeting in programme.meetings) {
+    for (final item in meeting.items) {
+      for (final heat in item.heats) {
+        if (test(heat)) return (item: item, heat: heat);
+      }
+    }
+  }
+  return null;
+}
+
+/// L'accès rapide de l'officiel : la série de la carte en direct
+/// ([nowRunning]), son créneau, et la série qui la suit.
+typedef QuickAccess = ({NowRunning current, MeetingItem item, Heat? following});
+
+/// La suivante est la première série non terminée qui vient après dans le
+/// programme, même dans un autre créneau. Nul si rien ne reste à courir.
+QuickAccess? quickAccess(Programme programme) {
+  final current = nowRunning(programme.meetings);
+  if (current == null) return null;
+  final heats = [
+    for (final meeting in programme.meetings)
+      for (final item in meeting.items)
+        for (final heat in item.heats) (item: item, heat: heat),
+  ];
+  final index = heats.indexWhere((h) => h.heat.id == current.heat.id);
+  if (index < 0) return null;
+  return (
+    current: current,
+    item: heats[index].item,
+    following: heats
+        .skip(index + 1)
+        .where((h) => h.heat.status != RunStatus.finished)
+        .firstOrNull
+        ?.heat,
+  );
+}
 
 /// Un engagement attend une saisie quand ni les chronométreurs (aucun
 /// `TempsLive` > 0 dans [chronos]), ni le juge ([entryIdsWithPublishedTime]),

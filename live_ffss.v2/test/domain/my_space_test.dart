@@ -3,6 +3,7 @@ import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/my_space.dart';
+import 'package:live_ffss_v2/domain/now_running.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
@@ -123,6 +124,117 @@ void main() {
         isEmpty,
       );
       expect(heatsToCheck(const Programme()), isEmpty);
+    });
+  });
+
+  group('findHeat', () {
+    final programme = Programme(
+      meetings: [
+        Meeting(
+          id: 1,
+          name: 'm',
+          day: DateTime(2026, 10, 18),
+          items: [
+            const MeetingItem(
+              id: 7,
+              name: 'i7',
+              heats: [
+                Heat(id: 1, name: 'h1', number: 1, status: RunStatus.waiting),
+              ],
+            ),
+            const MeetingItem(
+              id: 8,
+              name: 'i8',
+              heats: [
+                Heat(
+                  id: 2,
+                  name: 'h2',
+                  number: 2,
+                  status: RunStatus.waiting,
+                  seriesId: 22,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    test('la série et son créneau', () {
+      final found = findHeat(programme, (h) => h.seriesId == 22);
+      expect(found?.item.id, 8);
+      expect(found?.heat.id, 2);
+    });
+
+    test('aucune : nul', () {
+      expect(findHeat(programme, (h) => h.id == 99), isNull);
+    });
+  });
+
+  group('quickAccess', () {
+    Heat heat(int id, RunStatus status, int minute) => Heat(
+      id: id,
+      name: 'Série $id',
+      number: id,
+      status: status,
+      plannedStart: DateTime(2026, 10, 18, 9, minute),
+      seriesId: id * 10,
+    );
+
+    Programme programme(List<Heat> first, List<Heat> second) => Programme(
+      meetings: [
+        Meeting(
+          id: 1,
+          name: 'm',
+          day: DateTime(2026, 10, 18),
+          items: [
+            MeetingItem(id: 7, name: 'i7', heats: first),
+            MeetingItem(id: 8, name: 'i8', heats: second),
+          ],
+        ),
+      ],
+    );
+
+    test(
+      'en cours, son créneau et la suivante, même dans un autre créneau',
+      () {
+        final access = quickAccess(
+          programme(
+            [heat(1, RunStatus.finished, 0), heat(2, RunStatus.inProgress, 5)],
+            [heat(3, RunStatus.waiting, 10), heat(4, RunStatus.waiting, 15)],
+          ),
+        );
+        expect(access?.current.kind, NowRunningKind.now);
+        expect(access?.current.heat.id, 2);
+        expect(access?.item.id, 7);
+        expect(access?.following?.id, 3);
+      },
+    );
+
+    test('rien en cours : la prochaine, puis celle qui la suit', () {
+      final access = quickAccess(
+        programme(
+          [heat(1, RunStatus.finished, 0)],
+          [heat(3, RunStatus.waiting, 10), heat(4, RunStatus.waiting, 15)],
+        ),
+      );
+      expect(access?.current.kind, NowRunningKind.next);
+      expect(access?.current.heat.id, 3);
+      expect(access?.item.id, 8);
+      expect(access?.following?.id, 4);
+    });
+
+    test('la dernière : pas de suivante ; tout couru : nul', () {
+      expect(
+        quickAccess(
+          programme([heat(1, RunStatus.inProgress, 0)], const []),
+        )?.following,
+        isNull,
+      );
+      expect(
+        quickAccess(programme([heat(1, RunStatus.finished, 0)], const [])),
+        isNull,
+      );
     });
   });
 

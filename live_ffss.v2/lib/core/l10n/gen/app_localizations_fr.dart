@@ -873,9 +873,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mySpaceOfficialLevelUnknown => 'Niveau non renseigné';
 
   @override
-  String get mySpaceComingSoon => 'À venir';
-
-  @override
   String get startTabTitle => 'Onglet d\'ouverture';
 
   @override
@@ -987,4 +984,85 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get followClub => 'Suivre ce club';
+
+  @override
+  String get officialSpaceTitle => 'Mon espace officiel';
+
+  @override
+  String get officialNothingRunning => 'Aucune série en cours ni à venir';
+
+  @override
+  String officialFollowing(String heat) {
+    return 'Suivante : $heat';
+  }
+
+  @override
+  String get officialMyEntries => 'Mes saisies';
+
+  @override
+  String get officialNoEntries => 'Aucune saisie sur cette compétition';
+
+  @override
+  String officialSentAt(String time) {
+    return 'Envoyée à $time';
+  }
+
+  @override
+  String get officialStatusCleared => 'Statut remis à OK';
+
+  @override
+  String get officialUnknownSeries => 'Série hors programme';
+
+  @override
+  String get officialCompetition => 'Compétition';
+
+  @override
+  String get officialHeatsToEnter => 'Séries à saisir';
+
+  @override
+  String get officialHeatsToEnterSubtitle => 'Courues sans chrono ni temps';
+
+  @override
+  String get officialHeatsToEnterEmpty =>
+      'Aucune série courue sans chrono ni temps.';
+
+  @override
+  String officialHeatsUnread(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count séries non lues',
+      one: '1 série non lue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get officialHeatsError => 'Impossible de lire les séries.';
+
+  @override
+  String get officialDecisions => 'DQ et forfaits';
+
+  @override
+  String get officialDecisionsSubtitle => 'Tirés des classements d\'épreuve';
+
+  @override
+  String get officialDecisionsEmpty => 'Aucune DQ ni aucun forfait publié.';
+
+  @override
+  String officialDecisionsUnread(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count épreuves non lues',
+      one: '1 épreuve non lue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get officialDecisionsError => 'Impossible de lire les classements.';
+
+  @override
+  String get officialQueued => 'En file d\'envoi';
 }

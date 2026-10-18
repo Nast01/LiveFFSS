@@ -6,11 +6,18 @@ import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/competition_summary.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
+import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/domain/officials.dart';
+import 'package:live_ffss_v2/domain/manual_timing.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
+import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/features/home/competition_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
+import 'package:live_ffss_v2/features/my_space/official_space_providers.dart';
+import 'package:live_ffss_v2/features/officiel/entry_formatting.dart';
+import 'package:live_ffss_v2/features/officiel/entry_view.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
@@ -502,3 +509,169 @@ ClubBody clubBody(ClubInfo? club, {required bool failed}) {
 /// « – » tant que le planning se lit : « 0 » dirait qu'il n'y en a pas.
 String forfeitsFigure(List<ClubRace>? forfeits) =>
     forfeits == null ? '–' : '${forfeits.length}';
+
+/// « 100m Bouée tube · Dames · Série 3 » ; le nom du créneau quand la série
+/// n'a pas d'épreuve.
+String officialHeatTitle(HeatInItem at, AppLocalizations l10n) {
+  final heat = at.heat;
+  return [
+    if (heat.raceName.isNotEmpty) heat.raceName else at.item.name,
+    if (heat.gender case final gender?) genderLabel(gender, l10n),
+    if (heat.name.isNotEmpty) heat.name,
+  ].where((part) => part.isNotEmpty).join(' · ');
+}
+
+/// La saisie de la série, dans la branche de Mon espace : le retour y
+/// ramène.
+String officialEntryRoute(int competitionId, HeatInItem at) => Routes.itemEntry(
+  Routes.mySpace,
+  competitionId,
+  at.item.id,
+  heatId: at.heat.id,
+);
+
+/// « Saisir » de l'accès rapide : la série de la carte en direct, si le
+/// compte peut saisir et qu'elle a une série FFSS ; nul sinon.
+String? quickEntryRoute(
+  QuickAccess? access,
+  int competitionId, {
+  required bool canEnter,
+}) {
+  if (access == null || !canEnter || !canEnterHeat(access.current.heat)) {
+    return null;
+  }
+  return officialEntryRoute(competitionId, (
+    item: access.item,
+    heat: access.current.heat,
+  ));
+}
+
+/// Les saisies du compte connecté sur la compétition, par état.
+final class MyEntries {
+  const MyEntries({
+    required this.rejected,
+    required this.pending,
+    required this.sent,
+  });
+
+  final List<OutboxOperation> rejected;
+  final List<OutboxOperation> pending;
+  final List<OutboxOperation> sent;
+
+  bool get isEmpty => rejected.isEmpty && pending.isEmpty && sent.isEmpty;
+}
+
+/// Celles d'un autre compte ne le regardent pas ; une envoyée ne reste que
+/// [sentRetention] (la file ne les oublie qu'à sa relecture).
+MyEntries myEntries(
+  List<OutboxOperation> queue,
+  String? account,
+  int competitionId,
+  DateTime now,
+) {
+  final mine = [
+    if (account != null)
+      for (final op in queue)
+        if (op.competitionId == competitionId &&
+            isSameAccount(op.account, account))
+          op,
+  ];
+  return MyEntries(
+    rejected: [
+      for (final op in mine)
+        if (op.state == OutboxState.rejected) op,
+    ],
+    pending: [
+      for (final op in mine)
+        if (op.state == OutboxState.pending) op,
+    ],
+    sent: [
+      for (final op in mine)
+        if (op.state == OutboxState.sent &&
+            op.sentAt != null &&
+            now.difference(op.sentAt!) < sentRetention)
+          op,
+    ],
+  );
+}
+
+/// Les DQ et forfaits du compte encore en file : pas encore dans les
+/// classements lus.
+List<OutboxOperation> queuedDecisions(
+  List<OutboxOperation> queue,
+  String? account,
+  int competitionId,
+) => [
+  if (account != null)
+    for (final op in queue)
+      if (op.state == OutboxState.pending &&
+          op.competitionId == competitionId &&
+          isSameAccount(op.account, account) &&
+          (op.change.mark == ResultMark.disqualified ||
+              op.change.mark == ResultMark.forfeit))
+        op,
+];
+
+/// Ce que pose une saisie : ses chronos, sa DQ, son forfait.
+String entryChangeLabel(ResultChange change, AppLocalizations l10n) {
+  final chronos = change.chronos;
+  return [
+    if (chronos != null)
+      switch ([
+        for (final chrono in chronos)
+          if (chrono != null && chrono > 0) hundredthsLabel(chrono),
+      ]) {
+        final times when times.isEmpty => l10n.entryNoChrono,
+        final times => times.join(' · '),
+      },
+    switch (change.mark) {
+      ResultMark.disqualified =>
+        l10n.entryDisqualified(change.code?.trim() ?? '').trim(),
+      ResultMark.forfeit => l10n.forfeit,
+      ResultMark.ok => l10n.officialStatusCleared,
+      null => '',
+    },
+  ].where((part) => part.isNotEmpty).join(' · ');
+}
+
+/// En attente, envoyée (et quand), ou refusée (et pourquoi).
+String entryStateLabel(OutboxOperation op, AppLocalizations l10n) =>
+    switch (op.state) {
+      OutboxState.pending => l10n.entryPending,
+      OutboxState.sent => l10n.officialSentAt(timeLabel(op.sentAt)),
+      OutboxState.rejected => l10n.entryRejected(rejectionReason(op, l10n)),
+    };
+
+/// La série d'une saisie, pour la nommer et rouvrir sa saisie ; nulle si le
+/// programme n'est pas lu ou ne la porte plus.
+HeatInItem? entrySeries(Programme? programme, OutboxOperation op) =>
+    programme == null
+    ? null
+    : findHeat(programme, (heat) => heat.seriesId == op.seriesId);
+
+/// Une DQ ou un forfait en file : l'engagement s'il a été lu dans les
+/// classements, sinon sa série.
+String queuedDecisionTitle(
+  OutboxOperation op,
+  OfficialDecisions? decisions,
+  Programme? programme,
+  AppLocalizations l10n,
+) {
+  if (decisions?.entries[op.entryId] case final entry?) {
+    return resultNames(entry.result, relay: entry.event.isRelay).title;
+  }
+  final at = entrySeries(programme, op);
+  return at == null ? l10n.officialUnknownSeries : officialHeatTitle(at, l10n);
+}
+
+/// « 1'02"34 · En attente d'envoi ».
+String myEntryLine(OutboxOperation op, AppLocalizations l10n) => [
+  entryChangeLabel(op.change, l10n),
+  entryStateLabel(op, l10n),
+].where((part) => part.isNotEmpty).join(' · ');
+
+/// « Suivante : Série 5 » ; son heure si la série n'a pas de nom.
+String followingHeatLabel(Heat heat, AppLocalizations l10n) =>
+    l10n.officialFollowing(
+      heat.name.isEmpty ? timeLabel(heat.plannedStart) : heat.name,
+    );

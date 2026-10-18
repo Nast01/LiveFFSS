@@ -864,9 +864,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mySpaceOfficialLevelUnknown => 'Level not given';
 
   @override
-  String get mySpaceComingSoon => 'Coming soon';
-
-  @override
   String get startTabTitle => 'Start tab';
 
   @override
@@ -979,4 +976,86 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get followClub => 'Follow this club';
+
+  @override
+  String get officialSpaceTitle => 'My official space';
+
+  @override
+  String get officialNothingRunning => 'No heat running or coming up';
+
+  @override
+  String officialFollowing(String heat) {
+    return 'Next: $heat';
+  }
+
+  @override
+  String get officialMyEntries => 'My entries';
+
+  @override
+  String get officialNoEntries => 'No entry for this competition';
+
+  @override
+  String officialSentAt(String time) {
+    return 'Sent at $time';
+  }
+
+  @override
+  String get officialStatusCleared => 'Status reset to OK';
+
+  @override
+  String get officialUnknownSeries => 'Heat not in the programme';
+
+  @override
+  String get officialCompetition => 'Competition';
+
+  @override
+  String get officialHeatsToEnter => 'Heats to enter';
+
+  @override
+  String get officialHeatsToEnterSubtitle =>
+      'Swum with no stopwatch time or result';
+
+  @override
+  String get officialHeatsToEnterEmpty =>
+      'No heat swum without a stopwatch time or result.';
+
+  @override
+  String officialHeatsUnread(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count heats not read',
+      one: '1 heat not read',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get officialHeatsError => 'Couldn\'t read the heats.';
+
+  @override
+  String get officialDecisions => 'DQs and forfeits';
+
+  @override
+  String get officialDecisionsSubtitle => 'From the event rankings';
+
+  @override
+  String get officialDecisionsEmpty => 'No DQ or forfeit published.';
+
+  @override
+  String officialDecisionsUnread(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count events not read',
+      one: '1 event not read',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get officialDecisionsError => 'Couldn\'t read the rankings.';
+
+  @override
+  String get officialQueued => 'Waiting to be sent';
 }

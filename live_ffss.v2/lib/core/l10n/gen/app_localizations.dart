@@ -1460,12 +1460,6 @@ abstract class AppLocalizations {
   /// **'Niveau non renseigné'**
   String get mySpaceOfficialLevelUnknown;
 
-  /// No description provided for @mySpaceComingSoon.
-  ///
-  /// In fr, this message translates to:
-  /// **'À venir'**
-  String get mySpaceComingSoon;
-
   /// No description provided for @startTabTitle.
   ///
   /// In fr, this message translates to:
@@ -1639,6 +1633,126 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Suivre ce club'**
   String get followClub;
+
+  /// No description provided for @officialSpaceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon espace officiel'**
+  String get officialSpaceTitle;
+
+  /// No description provided for @officialNothingRunning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune série en cours ni à venir'**
+  String get officialNothingRunning;
+
+  /// No description provided for @officialFollowing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivante : {heat}'**
+  String officialFollowing(String heat);
+
+  /// No description provided for @officialMyEntries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes saisies'**
+  String get officialMyEntries;
+
+  /// No description provided for @officialNoEntries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune saisie sur cette compétition'**
+  String get officialNoEntries;
+
+  /// No description provided for @officialSentAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyée à {time}'**
+  String officialSentAt(String time);
+
+  /// No description provided for @officialStatusCleared.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statut remis à OK'**
+  String get officialStatusCleared;
+
+  /// No description provided for @officialUnknownSeries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série hors programme'**
+  String get officialUnknownSeries;
+
+  /// No description provided for @officialCompetition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compétition'**
+  String get officialCompetition;
+
+  /// No description provided for @officialHeatsToEnter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Séries à saisir'**
+  String get officialHeatsToEnter;
+
+  /// No description provided for @officialHeatsToEnterSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courues sans chrono ni temps'**
+  String get officialHeatsToEnterSubtitle;
+
+  /// No description provided for @officialHeatsToEnterEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune série courue sans chrono ni temps.'**
+  String get officialHeatsToEnterEmpty;
+
+  /// No description provided for @officialHeatsUnread.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 série non lue} other{{count} séries non lues}}'**
+  String officialHeatsUnread(int count);
+
+  /// No description provided for @officialHeatsError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire les séries.'**
+  String get officialHeatsError;
+
+  /// No description provided for @officialDecisions.
+  ///
+  /// In fr, this message translates to:
+  /// **'DQ et forfaits'**
+  String get officialDecisions;
+
+  /// No description provided for @officialDecisionsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tirés des classements d\'épreuve'**
+  String get officialDecisionsSubtitle;
+
+  /// No description provided for @officialDecisionsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune DQ ni aucun forfait publié.'**
+  String get officialDecisionsEmpty;
+
+  /// No description provided for @officialDecisionsUnread.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 épreuve non lue} other{{count} épreuves non lues}}'**
+  String officialDecisionsUnread(int count);
+
+  /// No description provided for @officialDecisionsError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire les classements.'**
+  String get officialDecisionsError;
+
+  /// No description provided for @officialQueued.
+  ///
+  /// In fr, this message translates to:
+  /// **'En file d\'envoi'**
+  String get officialQueued;
 }
 
 class _AppLocalizationsDelegate
