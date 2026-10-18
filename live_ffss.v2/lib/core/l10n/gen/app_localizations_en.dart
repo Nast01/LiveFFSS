@@ -963,7 +963,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mySpaceForfeitsLater =>
-      'Declaring or cancelling a withdrawal, replacing a relay swimmer: in lot 6b.';
+      'Declaring or cancelling a forfeit and replacing a relay swimmer: coming soon.';
 
   @override
   String get mySpaceNoForfeit => 'No withdrawal in the published results';

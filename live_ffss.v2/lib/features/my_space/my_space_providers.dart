@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/data/repositories/officials_repository.dart';
@@ -260,67 +261,120 @@ abstract class ClubSchedule with _$ClubSchedule {
 }
 
 /// Le planning et les résultats d'un club, tirés des fiches de ses athlètes
-/// (lot 5). Lu à l'ouverture de son espace, sans minuterie. Une fiche en
-/// échec n'emporte pas les autres.
+/// (lot 5). Lu à l'ouverture de son espace et par [refreshClubSchedule],
+/// sans minuterie. Une fiche en échec n'emporte pas les autres.
 ///
 /// Chaque fiche lit les classements de ses épreuves d'un coup : six fiches
 /// en vol feraient des dizaines de lectures à la fois. Les classements des
 /// épreuves du club sont donc lus d'abord, 6 au plus en vol
 /// ([maxConcurrentSeries]) ; les fiches, lues ensuite 6 à la fois, les
 /// trouvent prêts.
+///
+/// Épreuves, classements et fiches sont lus sans être suivis, le temps du
+/// calcul : suivis, le rafraîchissement des Épreuves de l'onglet Résultats
+/// (qui relit la source de tous les classements) les relirait tous d'un
+/// coup, sans plafond. Le planning ne change donc que par son propre
+/// rafraîchissement. Les participants restent suivis par [clubProvider] :
+/// 3,6 Mo à ne pas relire.
 final clubScheduleProvider = FutureProvider.autoDispose
     .family<ClubSchedule, ClubKey>((ref, key) async {
       final competitionId = key.competitionId;
-      // Lues ensemble ; celle qu'on n'attend pas encore ne doit pas remonter
-      // son échec comme non traité.
-      final clubRead = ref.watch(clubProvider(key).future);
-      final eventsRead = ref.watch(eventsProvider(competitionId).future)
-        ..ignore();
-      final club = await clubRead;
-      final events = await eventsRead;
-      if (!ref.mounted) return const ClubSchedule(races: []);
+      ref.watch(_clubRefreshProvider(key));
+      final refreshing = ref.read(_clubRefreshProvider(key).notifier).take();
+      final subscriptions = <ProviderSubscription<Object?>>[];
+      Future<T> readOnce<T>(ProviderListenable<Future<T>> provider) {
+        final subscription = ref.listen(provider, (_, _) {});
+        subscriptions.add(subscription);
+        return subscription.read();
+      }
 
-      // Les épreuves côtières n'ont pas de classement : la fiche les écarte.
-      final flatWater = {for (final event in events) event.id};
-      final eventIds = {
-        for (final athlete in club.athletes)
-          for (final entry in athlete.entries)
-            if (flatWater.contains(entry.eventId)) entry.eventId,
-      };
-      await _inPool(eventIds, () => ref.mounted, (eventId) async {
-        try {
-          await ref.watch(
-            eventRankingProvider((
-              competitionId: competitionId,
-              eventId: eventId,
-            )).future,
-          );
-        } on AppException {
-          // La fiche trouvera l'échec et dira l'épreuve illisible.
-        }
-      });
-      if (!ref.mounted) return const ClubSchedule(races: []);
+      try {
+        // Lues ensemble ; celle qu'on n'attend pas encore ne doit pas
+        // remonter son échec comme non traité.
+        final clubRead = ref.watch(clubProvider(key).future);
+        final eventsRead = readOnce(eventsProvider(competitionId).future)
+          ..ignore();
+        final club = await clubRead;
+        final events = await eventsRead;
+        if (!ref.mounted) return const ClubSchedule(races: []);
 
-      final cards = <int, List<AthleteRace>>{};
-      var failed = 0;
-      await _inPool(club.athletes, () => ref.mounted, (athlete) async {
-        try {
-          cards[athlete.id] = await ref.watch(
-            athleteCardProvider((
-              competitionId: competitionId,
-              participantId: athlete.id,
-            )).future,
-          );
-        } on AppException {
-          failed++;
+        // Les épreuves côtières n'ont pas de classement : la fiche les écarte.
+        final flatWater = {for (final event in events) event.id};
+        final eventIds = {
+          for (final athlete in club.athletes)
+            for (final entry in athlete.entries)
+              if (flatWater.contains(entry.eventId)) entry.eventId,
+        };
+        await _inPool(eventIds, () => ref.mounted, (eventId) async {
+          final ranking = eventRankingProvider((
+            competitionId: competitionId,
+            eventId: eventId,
+          ));
+          // Invalidé juste avant sa lecture, pas tous d'avance : un
+          // classement que l'onglet Résultats écoute se relirait aussitôt,
+          // hors du plafond.
+          if (refreshing) ref.invalidate(ranking);
+          try {
+            await readOnce(ranking.future);
+          } on AppException {
+            // La fiche trouvera l'échec et dira l'épreuve illisible.
+          }
+        });
+        if (!ref.mounted) return const ClubSchedule(races: []);
+
+        final cards = <int, List<AthleteRace>>{};
+        var failed = 0;
+        await _inPool(club.athletes, () => ref.mounted, (athlete) async {
+          final card = athleteCardProvider((
+            competitionId: competitionId,
+            participantId: athlete.id,
+          ));
+          // Une fiche restée en échec (une autre page la suit) se relit.
+          if (refreshing) ref.invalidate(card);
+          try {
+            cards[athlete.id] = await readOnce(card.future);
+          } on AppException {
+            failed++;
+          }
+        });
+        if (!ref.mounted) return const ClubSchedule(races: []);
+        return ClubSchedule(
+          races: clubRaces(club.athletes, cards, events),
+          failedAthletes: failed,
+        );
+      } finally {
+        for (final subscription in subscriptions) {
+          subscription.close();
         }
-      });
-      if (!ref.mounted) return const ClubSchedule(races: []);
-      return ClubSchedule(
-        races: clubRaces(club.athletes, cards, events),
-        failedAthletes: failed,
-      );
+      }
     });
+
+/// Le signal de [refreshClubSchedule] : la prochaine lecture du planning
+/// relit ses classements, chacun juste avant sa lecture.
+final _clubRefreshProvider = NotifierProvider.autoDispose
+    .family<_ClubRefresh, int, ClubKey>(_ClubRefresh.new);
+
+class _ClubRefresh extends Notifier<int> {
+  _ClubRefresh(this.key);
+
+  final ClubKey key;
+
+  // Dans un champ : une lecture du planning sans rafraîchissement demandé
+  // (club relu) ne doit pas relire les classements.
+  int _taken = 0;
+
+  @override
+  int build() => 0;
+
+  void request() => state++;
+
+  /// Vrai une fois par rafraîchissement demandé.
+  bool take() {
+    final pending = state > _taken;
+    _taken = state;
+    return pending;
+  }
+}
 
 /// [task] sur chaque élément, [maxConcurrentSeries] au plus en vol. Les
 /// travailleurs tirent dans le même itérateur : `moveNext` + `current` sans
@@ -393,45 +447,25 @@ int _nullsLast<T extends Comparable<Object>>(T? a, T? b) {
   return a.compareTo(b);
 }
 
-/// Rafraîchissement et « Réessayer » de l'espace d'un club : les classements
-/// de ses épreuves, les fiches en échec, et ce qui en amont a échoué. Les
-/// participants (3,6 Mo) ne sont relus que s'ils ont échoué. La page passe le
-/// conteneur de son `ProviderScope`.
+/// Rafraîchissement et « Réessayer » de l'espace d'un club : ses
+/// classements et ses fiches, relus par le planning 6 au plus en vol, et ce
+/// qui en amont a échoué. Les participants (3,6 Mo) ne sont relus que s'ils
+/// ont échoué. La page passe le conteneur de son `ProviderScope`.
 Future<void> refreshClubSchedule(
   ProviderContainer container,
   ClubKey key,
 ) async {
-  final competitionId = key.competitionId;
-  final participants = participantsProvider(competitionId);
-  if (container.read(participants).hasError) {
+  final participants = participantsProvider(key.competitionId);
+  if (container.exists(participants) && container.read(participants).hasError) {
     container.invalidate(participants);
   }
-  if (container.read(eventsProvider(competitionId)).hasError ||
-      container.read(resultsProgrammeProvider(competitionId)).hasError) {
-    // `refresh` porte son échec dans l'état, qu'il n'y a pas à attendre.
-    unawaited(container.read(eventsProvider(competitionId).notifier).refresh());
+  final club = clubProvider(key);
+  if (container.exists(club) && container.read(club).hasError) {
+    container.invalidate(club);
   }
-  final club = container.read(clubProvider(key));
-  if (club.hasError) container.invalidate(clubProvider(key));
-  final athletes = club.value?.athletes ?? const <Participant>[];
-  for (final eventId in {
-    for (final athlete in athletes)
-      for (final entry in athlete.entries) entry.eventId,
-  }) {
-    container.invalidate(
-      eventRankingProvider((competitionId: competitionId, eventId: eventId)),
-    );
-  }
-  for (final athlete in athletes) {
-    final card = athleteCardProvider((
-      competitionId: competitionId,
-      participantId: athlete.id,
-    ));
-    if (container.exists(card) && container.read(card).hasError) {
-      container.invalidate(card);
-    }
-  }
-  container.invalidate(clubScheduleProvider(key));
+  // Les épreuves ne sont pas gardées par le planning : en échec, elles ont
+  // été jetées, et sa lecture les relit.
+  container.read(_clubRefreshProvider(key).notifier).request();
   try {
     await container.read(clubScheduleProvider(key).future);
   } on AppException {

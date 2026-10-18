@@ -971,7 +971,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mySpaceForfeitsLater =>
-      'Déclarer ou annuler un forfait, remplacer un relayeur : au lot 6b.';
+      'Déclarer ou annuler un forfait, remplacer un relayeur : bientôt disponible.';
 
   @override
   String get mySpaceNoForfeit => 'Aucun forfait dans les résultats publiés';

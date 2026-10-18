@@ -77,19 +77,15 @@ class _ClubPageState extends ConsumerState<ClubPage> {
             ?.followsClub(widget.clubId) ??
         false;
 
-    final Widget body;
-    if (club == null) {
-      body = clubState.hasError
-          ? ResultsMessage(
-              text: l10n.mySpaceClubError,
-              onRetry: () => refreshClubSchedule(_container, _key),
-            )
-          : const Center(child: CircularProgressIndicator());
-    } else if (club.athletes.isEmpty) {
-      body = ResultsMessage(text: l10n.mySpaceClubNoAthlete);
-    } else {
-      body = _content(club, role, l10n);
-    }
+    final body = switch (clubBody(club, failed: clubState.hasError)) {
+      ClubBody.loading => const Center(child: CircularProgressIndicator()),
+      ClubBody.failed => ResultsMessage(
+        text: l10n.mySpaceClubError,
+        onRetry: () => refreshClubSchedule(_container, _key),
+      ),
+      ClubBody.noAthlete => ResultsMessage(text: l10n.mySpaceClubNoAthlete),
+      ClubBody.shown => _content(club!, role, l10n),
+    };
 
     return Scaffold(
       appBar: AppBar(
@@ -128,6 +124,10 @@ class _ClubPageState extends ConsumerState<ClubPage> {
     final forfeits = races == null ? null : clubForfeits(races);
 
     final standingsOfClubs = standingsProvider(widget.competitionId);
+    // `exists` n'est pas suivi : des classements calculés par l'onglet
+    // Résultats pendant que la page est ouverte n'y paraissent qu'à sa
+    // prochaine reconstruction. Les suivre d'emblée les calculerait (une
+    // lecture par épreuve) à chaque ouverture ; « Calculer » reste là.
     final rankAsked = _rankAsked || ref.exists(standingsOfClubs);
     final standings = rankAsked ? ref.watch(standingsOfClubs) : null;
     final rank = clubRankView(
@@ -187,7 +187,7 @@ class _ClubPageState extends ConsumerState<ClubPage> {
                         },
                       ),
                       _Figure(
-                        value: forfeits == null ? '–' : '${forfeits.length}',
+                        value: forfeitsFigure(forfeits),
                         label: l10n.mySpaceFigureForfeits(
                           forfeits?.length ?? 0,
                         ),
@@ -308,10 +308,14 @@ class _ClubPageState extends ConsumerState<ClubPage> {
             _ClubRaceTile(
               title: clubRaceTitle(race),
               subtitle: clubRaceLine(race, l10n),
-              trailing: canManage
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ResultText(label: resultLabel(race.race.row!.result)),
                   // Inactif : la déclaration arrive au lot 6b.
-                  ? const Switch(value: true, onChanged: null)
-                  : ResultText(label: resultLabel(race.race.row!.result)),
+                  if (canManage) const Switch(value: true, onChanged: null),
+                ],
+              ),
               onTap: () => _open(race.athletes),
             ),
         ],

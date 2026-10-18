@@ -336,7 +336,7 @@
   "mySpaceCardsFailed": "{count, plural, one{1 fiche d'athlète n'a pu être lue} other{{count} fiches d'athlète n'ont pu être lues}}",
   "@mySpaceCardsFailed": {"placeholders": {"count": {"type": "int"}}},
   "mySpaceForfeitsHint": "Forfaits tirés des résultats publiés.",
-  "mySpaceForfeitsLater": "Déclarer ou annuler un forfait, remplacer un relayeur : au lot 6b.",
+  "mySpaceForfeitsLater": "Déclarer ou annuler un forfait, remplacer un relayeur : bientôt disponible.",
   "mySpaceNoForfeit": "Aucun forfait dans les résultats publiés",
   "mySpaceClubError": "Impossible de charger l'espace du club.",
   "mySpaceClubNoAthlete": "Aucun athlète de ce club n'est engagé.",

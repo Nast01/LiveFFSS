@@ -24,6 +24,7 @@ import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
+import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../support/fixtures.dart';
@@ -129,6 +130,30 @@ void main() {
     ).thenAnswer((_) async => participants);
   });
 
+  final flatWater = {for (final e in events) e.id};
+  final club27Events = {
+    for (final a in clubAthletes27(fixtureParticipants))
+      for (final e in a.entries)
+        if (flatWater.contains(e.eventId)) e.eventId,
+  };
+
+  /// Les séries lues à partir de maintenant, chacune un peu lente, et le
+  /// plus de lectures en vol.
+  _Reads countReads() {
+    final reads = _Reads();
+    var inFlight = 0;
+    when(() => results.getEventSeries(any())).thenAnswer((invocation) async {
+      final id = invocation.positionalArguments.first as int;
+      reads.ids.add(id);
+      inFlight++;
+      if (inFlight > reads.peak) reads.peak = inFlight;
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      inFlight--;
+      return series[id] ?? const [];
+    });
+    return reads;
+  }
+
   Future<ClubSchedule> schedule(ProviderContainer c, int clubId) {
     final key = (competitionId: competitionId, clubId: clubId);
     final sub = c.listen(clubScheduleProvider(key), (_, _) {});
@@ -227,37 +252,55 @@ void main() {
     });
 
     test('6 classements au plus en vol, chacun lu une fois', () async {
-      var inFlight = 0;
-      var peak = 0;
-      final read = <int>[];
-      when(() => results.getEventSeries(any())).thenAnswer((invocation) async {
-        final id = invocation.positionalArguments.first as int;
-        read.add(id);
-        inFlight++;
-        if (inFlight > peak) peak = inFlight;
-        await Future<void>.delayed(const Duration(milliseconds: 5));
-        inFlight--;
-        return series[id] ?? const [];
-      });
+      final reads = countReads();
       final c = container();
 
       await schedule(c, 27);
 
-      final flatWater = {for (final e in events) e.id};
-      final expected = {
-        for (final a in clubAthletes27(fixtureParticipants))
-          for (final e in a.entries)
-            if (flatWater.contains(e.eventId)) e.eventId,
-      };
-      expect(expected.length, greaterThan(6));
-      expect(peak, lessThanOrEqualTo(6));
-      expect(read.toSet(), containsAll(expected));
-      expect(read, hasLength(read.toSet().length));
+      expect(club27Events.length, greaterThan(6));
+      expect(reads.peak, lessThanOrEqualTo(6));
+      expect(reads.ids.toSet(), club27Events);
+      expect(reads.ids.toSet(), hasLength(reads.ids.length));
+    });
+
+    test('rafraîchir : 6 au plus en vol aussi, chacun relu une fois', () async {
+      final c = container();
+      await schedule(c, 27);
+      final reads = countReads();
+
+      await refreshClubSchedule(c, (competitionId: competitionId, clubId: 27));
+
+      expect(reads.peak, lessThanOrEqualTo(6));
+      expect(reads.ids.toSet(), club27Events);
+      expect(reads.ids.toSet(), hasLength(reads.ids.length));
+    });
+
+    test("le rafraîchissement des Épreuves ne relit pas les classements du "
+        "club", () async {
+      final c = container();
+      // L'onglet Résultats écoute ses épreuves.
+      final tab = c.listen(eventsProvider(competitionId), (_, _) {});
+      addTearDown(tab.close);
+      final before = await schedule(c, 27);
+      final reads = countReads();
+
+      await c.read(eventsProvider(competitionId).notifier).refresh();
+      await pumpEventQueue();
+
+      expect(reads.ids, isEmpty);
+      const key = (competitionId: competitionId, clubId: 27);
+      expect(c.read(clubScheduleProvider(key)).value, before);
     });
 
     test('rafraîchir relit les classements, pas les participants', () async {
       final c = container();
       const key = (competitionId: competitionId, clubId: clubId);
+      // L'onglet Résultats garde ce classement : il est relu quand même.
+      final tab = c.listen(
+        eventRankingProvider((competitionId: competitionId, eventId: 36073)),
+        (_, _) {},
+      );
+      addTearDown(tab.close);
       await schedule(c, clubId);
       clearInteractions(results);
 
@@ -357,6 +400,11 @@ void main() {
       expect(cells.lane, '–');
     });
   });
+}
+
+class _Reads {
+  final ids = <int>[];
+  var peak = 0;
 }
 
 /// Les athlètes du club 27 de la fixture, dans l'ordre de `clubAthletes`.

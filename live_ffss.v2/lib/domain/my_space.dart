@@ -4,6 +4,7 @@ import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 
@@ -49,12 +50,15 @@ ClubRole clubRole(CompetitionRoles? roles, int clubId) {
   return roles.isAdmin ? ClubRole.admin : ClubRole.none;
 }
 
-/// Un forfait publié : statut 2 (codes de V3, `ResultPublisher`), ou le
+/// Un forfait publié : statut [statusForfeit] (codes de V3,
+/// `ResultPublisher`), ou le
 /// complément `F` ou `FF` (forfait pour la finale). Le site ne publie pas les
 /// forfaits déclarés avant la course ailleurs que dans les places, lues une à
 /// une : ils viendront au lot 6b.
 bool isForfeit(EventResult result) =>
-    result.status == 2 || result.complement == 'F' || result.complement == 'FF';
+    result.status == statusForfeit ||
+    result.complement == 'F' ||
+    result.complement == 'FF';
 
 /// Les clubs de la compétition, par `clubId` : un participant sans `clubId`
 /// n'a pas de club à qui le rattacher. Le libellé est celui du premier

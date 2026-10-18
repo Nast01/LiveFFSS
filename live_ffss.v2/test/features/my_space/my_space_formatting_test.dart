@@ -448,6 +448,50 @@ void main() {
       );
     });
 
+    test('la page : fiche, Réessayer ou pas engagé', () {
+      const shown = MySpaceCards(cards: [MySpaceCard.athlete(_participant)]);
+      expect(athleteSpaceView(const SpacesShown(shown)), (
+        body: AthleteSpaceBody.card,
+        athlete: _participant,
+      ));
+      expect(athleteSpaceView(const SpacesLoading()), (
+        body: AthleteSpaceBody.loading,
+        athlete: null,
+      ));
+      expect(athleteSpaceView(const SpacesFailed()), (
+        body: AthleteSpaceBody.retry,
+        athlete: null,
+      ));
+      expect(athleteSpaceView(const SpacesNone()), (
+        body: AthleteSpaceBody.notEntered,
+        athlete: null,
+      ));
+      // Participants illisibles : on ne sait pas, Réessayer.
+      expect(
+        athleteSpaceView(
+          const SpacesShown(MySpaceCards(cards: [], athleteUnknown: true)),
+        ),
+        (body: AthleteSpaceBody.retry, athlete: null),
+      );
+      expect(
+        athleteSpaceView(
+          const SpacesShown(MySpaceCards(cards: [MySpaceCard.admin()])),
+        ),
+        (body: AthleteSpaceBody.notEntered, athlete: null),
+      );
+    });
+
+    test(
+      '« Trouver sa série » une fois : pas sur la tuile de la prochaine',
+      () {
+        final next = _toRun(1, 'x', DateTime(2026, 3, 27, 9));
+        final later = _toRun(2, 'y', DateTime(2026, 3, 27, 10));
+        expect(showsLaneFinder(next, next), isFalse);
+        expect(showsLaneFinder(later, next), isTrue);
+        expect(showsLaneFinder(later, null), isTrue);
+      },
+    );
+
     test('titre de la prochaine course : quand elle part', () {
       expect(
         nextRaceHeadline(_toRun(1, 'x', DateTime(2026, 3, 27, 9, 4)), now, fr),
@@ -567,6 +611,40 @@ void main() {
       );
       expect(clubTitle(null, null, 15, fr), 'Club');
       expect(clubTitle(null, roles, 16, fr), 'Club');
+    });
+
+    test('la page : chargement, échec, sans athlète, ou le club', () {
+      const empty = ClubInfo(id: 15, label: 'C', athletes: []);
+      const full = ClubInfo(id: 15, label: 'C', athletes: [_participant]);
+      expect(clubBody(null, failed: false), ClubBody.loading);
+      expect(clubBody(null, failed: true), ClubBody.failed);
+      expect(clubBody(empty, failed: false), ClubBody.noAthlete);
+      // Une relecture en échec garde le club affiché.
+      expect(clubBody(full, failed: true), ClubBody.shown);
+    });
+
+    test('le chiffre des forfaits : « – » tant que le planning se lit', () {
+      expect(forfeitsFigure(null), '–');
+      expect(forfeitsFigure(const []), '0');
+      expect(
+        forfeitsFigure([
+          ClubRace(athletes: const [_participant], race: race),
+        ]),
+        '1',
+      );
+    });
+
+    test('forfaits : sans mention de lot', () {
+      expect(
+        fr.mySpaceForfeitsLater,
+        'Déclarer ou annuler un forfait, remplacer un relayeur : bientôt '
+        'disponible.',
+      );
+      expect(
+        en.mySpaceForfeitsLater,
+        'Declaring or cancelling a forfeit and replacing a relay swimmer: '
+        'coming soon.',
+      );
     });
 
     test('étiquette RÉFÉRENT / ADMIN, interrupteurs pour eux seuls', () {

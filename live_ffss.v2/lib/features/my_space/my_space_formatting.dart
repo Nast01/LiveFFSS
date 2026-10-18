@@ -464,3 +464,41 @@ String clubTitle(
   final refereeLabel = referee?.label.trim() ?? '';
   return refereeLabel.isNotEmpty ? refereeLabel : l10n.mySpaceClubFallback;
 }
+
+enum AthleteSpaceBody { loading, retry, notEntered, card }
+
+typedef AthleteSpaceView = ({AthleteSpaceBody body, Participant? athlete});
+
+/// Ce que montre l'espace athlète d'après les cartes du compte : la fiche de
+/// son athlète, « Réessayer » si les rôles ou les participants n'ont pu être
+/// lus (on ne sait pas s'il est engagé), sinon « pas engagé ».
+AthleteSpaceView athleteSpaceView(SpacesView view) => switch (view) {
+  SpacesLoading() => (body: AthleteSpaceBody.loading, athlete: null),
+  SpacesFailed() => (body: AthleteSpaceBody.retry, athlete: null),
+  SpacesNone() => (body: AthleteSpaceBody.notEntered, athlete: null),
+  SpacesShown(:final cards) => switch (spaceAthlete(cards)) {
+    final athlete? => (body: AthleteSpaceBody.card, athlete: athlete),
+    null when cards.athleteUnknown => (
+      body: AthleteSpaceBody.retry,
+      athlete: null,
+    ),
+    null => (body: AthleteSpaceBody.notEntered, athlete: null),
+  },
+};
+
+/// La prochaine course a sa recherche de série dans sa carte en grand : sa
+/// tuile du planning n'en montre pas une seconde.
+bool showsLaneFinder(AthleteRace race, AthleteRace? next) =>
+    race.toRun && race.entry.entryId != next?.entry.entryId;
+
+enum ClubBody { loading, failed, noAthlete, shown }
+
+/// Un club déjà lu reste montré pendant une relecture ou après son échec.
+ClubBody clubBody(ClubInfo? club, {required bool failed}) {
+  if (club == null) return failed ? ClubBody.failed : ClubBody.loading;
+  return club.athletes.isEmpty ? ClubBody.noAthlete : ClubBody.shown;
+}
+
+/// « – » tant que le planning se lit : « 0 » dirait qu'il n'y en a pas.
+String forfeitsFigure(List<ClubRace>? forfeits) =>
+    forfeits == null ? '–' : '${forfeits.length}';

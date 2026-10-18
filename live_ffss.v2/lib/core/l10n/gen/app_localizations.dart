@@ -1607,7 +1607,7 @@ abstract class AppLocalizations {
   /// No description provided for @mySpaceForfeitsLater.
   ///
   /// In fr, this message translates to:
-  /// **'Déclarer ou annuler un forfait, remplacer un relayeur : au lot 6b.'**
+  /// **'Déclarer ou annuler un forfait, remplacer un relayeur : bientôt disponible.'**
   String get mySpaceForfeitsLater;
 
   /// No description provided for @mySpaceNoForfeit.

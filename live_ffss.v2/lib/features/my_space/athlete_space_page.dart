@@ -46,34 +46,27 @@ class _AthleteSpacePageState extends ConsumerState<AthleteSpacePage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final cards = ref.watch(mySpaceCardsProvider(widget.competitionId));
-    final view = spacesView(
-      loading: cards.isLoading,
-      failed: cards.hasError,
-      cards: cards.value,
+    final view = athleteSpaceView(
+      spacesView(
+        loading: cards.isLoading,
+        failed: cards.hasError,
+        cards: cards.value,
+      ),
     );
-    final retryCards = ResultsMessage(
-      text: l10n.mySpaceAthleteUnknown,
-      onRetry: () => retryMySpaceCards(_container, widget.competitionId),
-    );
-    final notEngaged = ResultsMessage(text: l10n.mySpaceNotEngaged);
-    final Widget body;
-    Participant? athlete;
-    switch (view) {
-      case SpacesLoading():
-        body = const Center(child: CircularProgressIndicator());
-      case SpacesFailed():
-        body = retryCards;
-      case SpacesNone():
-        body = notEngaged;
-      case SpacesShown(:final cards):
-        athlete = spaceAthlete(cards);
-        body = athlete != null
-            ? _card(athlete, l10n)
-            : cards.athleteUnknown
-            ? retryCards
-            : notEngaged;
-    }
-    final shown = athlete;
+    final shown = view.athlete;
+    final body = switch (view.body) {
+      AthleteSpaceBody.loading => const Center(
+        child: CircularProgressIndicator(),
+      ),
+      AthleteSpaceBody.retry => ResultsMessage(
+        text: l10n.mySpaceAthleteUnknown,
+        onRetry: () => retryMySpaceCards(_container, widget.competitionId),
+      ),
+      AthleteSpaceBody.notEntered => ResultsMessage(
+        text: l10n.mySpaceNotEngaged,
+      ),
+      AthleteSpaceBody.card => _card(shown!, l10n),
+    };
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.mySpaceAthleteSpaceTitle),
@@ -187,7 +180,7 @@ class _AthleteSpacePageState extends ConsumerState<AthleteSpacePage> {
             AthleteRaceTile(
               key: ValueKey(race.entry.entryId),
               race: race,
-              finder: race.toRun
+              finder: showsLaneFinder(race, next)
                   ? LaneFinderButton(
                       competitionId: widget.competitionId,
                       race: race,

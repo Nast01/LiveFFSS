@@ -326,7 +326,7 @@
   "mySpaceCardsFailed": "{count, plural, one{1 athlete card couldn't be read} other{{count} athlete cards couldn't be read}}",
   "@mySpaceCardsFailed": {"placeholders": {"count": {"type": "int"}}},
   "mySpaceForfeitsHint": "Withdrawals taken from the published results.",
-  "mySpaceForfeitsLater": "Declaring or cancelling a withdrawal, replacing a relay swimmer: in lot 6b.",
+  "mySpaceForfeitsLater": "Declaring or cancelling a forfeit and replacing a relay swimmer: coming soon.",
   "mySpaceNoForfeit": "No withdrawal in the published results",
   "mySpaceClubError": "Couldn't load the club space.",
   "mySpaceClubNoAthlete": "No athlete from this club is entered.",
