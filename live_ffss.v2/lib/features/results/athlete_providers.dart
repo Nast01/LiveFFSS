@@ -74,6 +74,11 @@ abstract class AthleteRace with _$AthleteRace {
     /// tour séries de l'épreuve.
     DateTime? plannedStart,
 
+    /// Le classement de l'épreuve est provisoire (`EventRanking.provisional`),
+    /// ce que le rang dans l'épreuve doit dire : sa série peut être validée
+    /// quand les autres, ou les finales, ne le sont pas. Vrai à défaut.
+    @Default(true) bool eventProvisional,
+
     /// Le classement de l'épreuve n'a pu être lu : ni série ni résultat.
     @Default(false) bool unavailable,
   }) = _AthleteRace;
@@ -230,7 +235,12 @@ AthleteRace _race(
       .where((r) => r.result.entryId == entry.entryId)
       .firstOrNull;
   if (row == null) {
-    return AthleteRace(event: event, entry: entry, plannedStart: roundStart);
+    return AthleteRace(
+      event: event,
+      entry: entry,
+      plannedStart: roundStart,
+      eventProvisional: ranking.provisional,
+    );
   }
   final series = row.series;
   final run = hasRun(row.result);
@@ -241,6 +251,7 @@ AthleteRace _race(
     row: run ? row : null,
     heatPlace: run ? heatPlace(row.result, series.series.results) : null,
     plannedStart: series.heat.plannedStart ?? roundStart,
+    eventProvisional: ranking.provisional,
   );
 }
 

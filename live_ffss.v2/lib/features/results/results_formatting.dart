@@ -229,7 +229,7 @@ String athleteRaceDetail(AthleteRace race, AppLocalizations l10n) {
     if (series.heat.name.isNotEmpty) series.heat.name,
     if (place != null) l10n.athleteHeatPlace(rankText(place)),
     if (rank != null)
-      series.provisional
+      race.eventProvisional
           ? l10n.athleteEventRankProvisional(rankText(rank))
           : l10n.athleteEventRank(rankText(rank)),
   ].join(' · ');

@@ -22,7 +22,10 @@ mixin _$AthleteRace {
  RankingRow? get row;/// Place dans sa série, parmi les résultats de sa catégorie.
  int? get heatPlace;/// Le départ prévu de sa course, sinon celui de la première course du
 /// tour séries de l'épreuve.
- DateTime? get plannedStart;/// Le classement de l'épreuve n'a pu être lu : ni série ni résultat.
+ DateTime? get plannedStart;/// Le classement de l'épreuve est provisoire (`EventRanking.provisional`),
+/// ce que le rang dans l'épreuve doit dire : sa série peut être validée
+/// quand les autres, ou les finales, ne le sont pas. Vrai à défaut.
+ bool get eventProvisional;/// Le classement de l'épreuve n'a pu être lu : ni série ni résultat.
  bool get unavailable;
 /// Create a copy of AthleteRace
 /// with the given fields replaced by the non-null parameter values.
@@ -35,20 +38,20 @@ $AthleteRaceCopyWith<AthleteRace> get copyWith => _$AthleteRaceCopyWithImpl<Athl
 @override
 bool operator ==(Object other) {
   final _this = this as AthleteRace;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AthleteRace&&(identical(other.event, _this.event) || other.event == _this.event)&&(identical(other.entry, _this.entry) || other.entry == _this.entry)&&(identical(other.series, _this.series) || other.series == _this.series)&&(identical(other.row, _this.row) || other.row == _this.row)&&(identical(other.heatPlace, _this.heatPlace) || other.heatPlace == _this.heatPlace)&&(identical(other.plannedStart, _this.plannedStart) || other.plannedStart == _this.plannedStart)&&(identical(other.unavailable, _this.unavailable) || other.unavailable == _this.unavailable));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AthleteRace&&(identical(other.event, _this.event) || other.event == _this.event)&&(identical(other.entry, _this.entry) || other.entry == _this.entry)&&(identical(other.series, _this.series) || other.series == _this.series)&&(identical(other.row, _this.row) || other.row == _this.row)&&(identical(other.heatPlace, _this.heatPlace) || other.heatPlace == _this.heatPlace)&&(identical(other.plannedStart, _this.plannedStart) || other.plannedStart == _this.plannedStart)&&(identical(other.eventProvisional, _this.eventProvisional) || other.eventProvisional == _this.eventProvisional)&&(identical(other.unavailable, _this.unavailable) || other.unavailable == _this.unavailable));
 }
 
 
 @override
 int get hashCode {
   final _this = this as AthleteRace;
-  return Object.hash(runtimeType,_this.event,_this.entry,_this.series,_this.row,_this.heatPlace,_this.plannedStart,_this.unavailable);
+  return Object.hash(runtimeType,_this.event,_this.entry,_this.series,_this.row,_this.heatPlace,_this.plannedStart,_this.eventProvisional,_this.unavailable);
 }
 
 @override
 String toString() {
   final _this = this as AthleteRace;
-  return 'AthleteRace(event: ${_this.event}, entry: ${_this.entry}, series: ${_this.series}, row: ${_this.row}, heatPlace: ${_this.heatPlace}, plannedStart: ${_this.plannedStart}, unavailable: ${_this.unavailable})';
+  return 'AthleteRace(event: ${_this.event}, entry: ${_this.entry}, series: ${_this.series}, row: ${_this.row}, heatPlace: ${_this.heatPlace}, plannedStart: ${_this.plannedStart}, eventProvisional: ${_this.eventProvisional}, unavailable: ${_this.unavailable})';
 }
 
 
@@ -59,7 +62,7 @@ abstract mixin class $AthleteRaceCopyWith<$Res>  {
   factory $AthleteRaceCopyWith(AthleteRace value, $Res Function(AthleteRace) _then) = _$AthleteRaceCopyWithImpl;
 @useResult
 $Res call({
- CompetitionEvent event, ParticipantEntry entry, LinkedSeries? series, RankingRow? row, int? heatPlace, DateTime? plannedStart, bool unavailable
+ CompetitionEvent event, ParticipantEntry entry, LinkedSeries? series, RankingRow? row, int? heatPlace, DateTime? plannedStart, bool eventProvisional, bool unavailable
 });
 
 
@@ -76,7 +79,7 @@ class _$AthleteRaceCopyWithImpl<$Res>
 
 /// Create a copy of AthleteRace
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? event = null,Object? entry = null,Object? series = freezed,Object? row = freezed,Object? heatPlace = freezed,Object? plannedStart = freezed,Object? unavailable = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? event = null,Object? entry = null,Object? series = freezed,Object? row = freezed,Object? heatPlace = freezed,Object? plannedStart = freezed,Object? eventProvisional = null,Object? unavailable = null,}) {
   return _then(AthleteRace(
 event: null == event ? _self.event : event // ignore: cast_nullable_to_non_nullable
 as CompetitionEvent,entry: null == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
@@ -84,7 +87,8 @@ as ParticipantEntry,series: freezed == series ? _self.series : series // ignore:
 as LinkedSeries?,row: freezed == row ? _self.row : row // ignore: cast_nullable_to_non_nullable
 as RankingRow?,heatPlace: freezed == heatPlace ? _self.heatPlace : heatPlace // ignore: cast_nullable_to_non_nullable
 as int?,plannedStart: freezed == plannedStart ? _self.plannedStart : plannedStart // ignore: cast_nullable_to_non_nullable
-as DateTime?,unavailable: null == unavailable ? _self.unavailable : unavailable // ignore: cast_nullable_to_non_nullable
+as DateTime?,eventProvisional: null == eventProvisional ? _self.eventProvisional : eventProvisional // ignore: cast_nullable_to_non_nullable
+as bool,unavailable: null == unavailable ? _self.unavailable : unavailable // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -212,10 +216,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CompetitionEvent event,  ParticipantEntry entry,  LinkedSeries? series,  RankingRow? row,  int? heatPlace,  DateTime? plannedStart,  bool unavailable)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CompetitionEvent event,  ParticipantEntry entry,  LinkedSeries? series,  RankingRow? row,  int? heatPlace,  DateTime? plannedStart,  bool eventProvisional,  bool unavailable)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AthleteRace() when $default != null:
-return $default(_that.event,_that.entry,_that.series,_that.row,_that.heatPlace,_that.plannedStart,_that.unavailable);case _:
+return $default(_that.event,_that.entry,_that.series,_that.row,_that.heatPlace,_that.plannedStart,_that.eventProvisional,_that.unavailable);case _:
   return orElse();
 
 }
@@ -233,10 +237,10 @@ return $default(_that.event,_that.entry,_that.series,_that.row,_that.heatPlace,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CompetitionEvent event,  ParticipantEntry entry,  LinkedSeries? series,  RankingRow? row,  int? heatPlace,  DateTime? plannedStart,  bool unavailable)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CompetitionEvent event,  ParticipantEntry entry,  LinkedSeries? series,  RankingRow? row,  int? heatPlace,  DateTime? plannedStart,  bool eventProvisional,  bool unavailable)  $default,) {final _that = this;
 switch (_that) {
 case _AthleteRace():
-return $default(_that.event,_that.entry,_that.series,_that.row,_that.heatPlace,_that.plannedStart,_that.unavailable);case _:
+return $default(_that.event,_that.entry,_that.series,_that.row,_that.heatPlace,_that.plannedStart,_that.eventProvisional,_that.unavailable);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -253,10 +257,10 @@ return $default(_that.event,_that.entry,_that.series,_that.row,_that.heatPlace,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CompetitionEvent event,  ParticipantEntry entry,  LinkedSeries? series,  RankingRow? row,  int? heatPlace,  DateTime? plannedStart,  bool unavailable)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CompetitionEvent event,  ParticipantEntry entry,  LinkedSeries? series,  RankingRow? row,  int? heatPlace,  DateTime? plannedStart,  bool eventProvisional,  bool unavailable)?  $default,) {final _that = this;
 switch (_that) {
 case _AthleteRace() when $default != null:
-return $default(_that.event,_that.entry,_that.series,_that.row,_that.heatPlace,_that.plannedStart,_that.unavailable);case _:
+return $default(_that.event,_that.entry,_that.series,_that.row,_that.heatPlace,_that.plannedStart,_that.eventProvisional,_that.unavailable);case _:
   return null;
 
 }
@@ -268,7 +272,7 @@ return $default(_that.event,_that.entry,_that.series,_that.row,_that.heatPlace,_
 
 
 class _AthleteRace extends AthleteRace {
-  const _AthleteRace({required this.event, required this.entry, this.series, this.row, this.heatPlace, this.plannedStart, this.unavailable = false}): super._();
+  const _AthleteRace({required this.event, required this.entry, this.series, this.row, this.heatPlace, this.plannedStart, this.eventProvisional = true, this.unavailable = false}): super._();
   
 
 @override final  CompetitionEvent event;
@@ -284,6 +288,10 @@ class _AthleteRace extends AthleteRace {
 /// Le départ prévu de sa course, sinon celui de la première course du
 /// tour séries de l'épreuve.
 @override final  DateTime? plannedStart;
+/// Le classement de l'épreuve est provisoire (`EventRanking.provisional`),
+/// ce que le rang dans l'épreuve doit dire : sa série peut être validée
+/// quand les autres, ou les finales, ne le sont pas. Vrai à défaut.
+@override@JsonKey() final  bool eventProvisional;
 /// Le classement de l'épreuve n'a pu être lu : ni série ni résultat.
 @override@JsonKey() final  bool unavailable;
 
@@ -297,18 +305,18 @@ _$AthleteRaceCopyWith<_AthleteRace> get copyWith => __$AthleteRaceCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AthleteRace&&(identical(other.event, event) || other.event == event)&&(identical(other.entry, entry) || other.entry == entry)&&(identical(other.series, series) || other.series == series)&&(identical(other.row, row) || other.row == row)&&(identical(other.heatPlace, heatPlace) || other.heatPlace == heatPlace)&&(identical(other.plannedStart, plannedStart) || other.plannedStart == plannedStart)&&(identical(other.unavailable, unavailable) || other.unavailable == unavailable));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AthleteRace&&(identical(other.event, event) || other.event == event)&&(identical(other.entry, entry) || other.entry == entry)&&(identical(other.series, series) || other.series == series)&&(identical(other.row, row) || other.row == row)&&(identical(other.heatPlace, heatPlace) || other.heatPlace == heatPlace)&&(identical(other.plannedStart, plannedStart) || other.plannedStart == plannedStart)&&(identical(other.eventProvisional, eventProvisional) || other.eventProvisional == eventProvisional)&&(identical(other.unavailable, unavailable) || other.unavailable == unavailable));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,event,entry,series,row,heatPlace,plannedStart,unavailable);
+    return Object.hash(runtimeType,event,entry,series,row,heatPlace,plannedStart,eventProvisional,unavailable);
 }
 
 @override
 String toString() {
-    return 'AthleteRace(event: $event, entry: $entry, series: $series, row: $row, heatPlace: $heatPlace, plannedStart: $plannedStart, unavailable: $unavailable)';
+    return 'AthleteRace(event: $event, entry: $entry, series: $series, row: $row, heatPlace: $heatPlace, plannedStart: $plannedStart, eventProvisional: $eventProvisional, unavailable: $unavailable)';
 }
 
 
@@ -319,7 +327,7 @@ abstract mixin class _$AthleteRaceCopyWith<$Res> implements $AthleteRaceCopyWith
   factory _$AthleteRaceCopyWith(_AthleteRace value, $Res Function(_AthleteRace) _then) = __$AthleteRaceCopyWithImpl;
 @override @useResult
 $Res call({
- CompetitionEvent event, ParticipantEntry entry, LinkedSeries? series, RankingRow? row, int? heatPlace, DateTime? plannedStart, bool unavailable
+ CompetitionEvent event, ParticipantEntry entry, LinkedSeries? series, RankingRow? row, int? heatPlace, DateTime? plannedStart, bool eventProvisional, bool unavailable
 });
 
 
@@ -336,7 +344,7 @@ class __$AthleteRaceCopyWithImpl<$Res>
 
 /// Create a copy of AthleteRace
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? event = null,Object? entry = null,Object? series = freezed,Object? row = freezed,Object? heatPlace = freezed,Object? plannedStart = freezed,Object? unavailable = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? event = null,Object? entry = null,Object? series = freezed,Object? row = freezed,Object? heatPlace = freezed,Object? plannedStart = freezed,Object? eventProvisional = null,Object? unavailable = null,}) {
   return _then(_AthleteRace(
 event: null == event ? _self.event : event // ignore: cast_nullable_to_non_nullable
 as CompetitionEvent,entry: null == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
@@ -344,7 +352,8 @@ as ParticipantEntry,series: freezed == series ? _self.series : series // ignore:
 as LinkedSeries?,row: freezed == row ? _self.row : row // ignore: cast_nullable_to_non_nullable
 as RankingRow?,heatPlace: freezed == heatPlace ? _self.heatPlace : heatPlace // ignore: cast_nullable_to_non_nullable
 as int?,plannedStart: freezed == plannedStart ? _self.plannedStart : plannedStart // ignore: cast_nullable_to_non_nullable
-as DateTime?,unavailable: null == unavailable ? _self.unavailable : unavailable // ignore: cast_nullable_to_non_nullable
+as DateTime?,eventProvisional: null == eventProvisional ? _self.eventProvisional : eventProvisional // ignore: cast_nullable_to_non_nullable
+as bool,unavailable: null == unavailable ? _self.unavailable : unavailable // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

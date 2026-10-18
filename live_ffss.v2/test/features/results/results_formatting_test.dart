@@ -426,6 +426,7 @@ void main() {
         series: r.series,
         row: r,
         heatPlace: 1,
+        eventProvisional: false,
       );
       expect(
         athleteRaceDetail(race, l10n),
@@ -441,6 +442,25 @@ void main() {
       expect(
         athleteRaceDetail(race, lookupAppLocalizations(const Locale('en'))),
         'Série 4 · 1st in heat · 1st in the event',
+      );
+    });
+
+    test('série validée, épreuve provisoire : rang provisoire', () {
+      final r = row(
+        result(time: 6234),
+        rank: 1,
+        course: heat(provisional: false),
+      );
+      final race = AthleteRace(
+        event: e,
+        entry: entry,
+        series: r.series,
+        row: r,
+        heatPlace: 1,
+      );
+      expect(
+        athleteRaceDetail(race, l10n),
+        'Série 4 · 1re de la série · 1re de l\'épreuve (provisoire)',
       );
     });
 

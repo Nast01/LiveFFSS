@@ -16,6 +16,7 @@ import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/domain/progression.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
@@ -223,6 +224,52 @@ void main() {
       );
       expect(race.heatPlace, 3);
       expect(race.plannedStart, race.series!.heat.plannedStart);
+    });
+
+    test("définitive : l'épreuve le dit, pas seulement sa série", () async {
+      // Toutes les courses terminées et validées, sans finale au déroulement :
+      // l'épreuve est définitive.
+      final finished = _withStatus(fixtureProgramme, (_) => RunStatus.finished);
+      programme = finished.copyWith(
+        progressions: [
+          for (final progression in finished.progressions)
+            progression.copyWith(
+              stages: [
+                for (final stage in progression.stages)
+                  if (stage.level != StageLevel.finalStage) stage,
+              ],
+            ),
+        ],
+        meetings: [
+          for (final meeting in finished.meetings)
+            meeting.copyWith(
+              items: [
+                for (final item in meeting.items)
+                  item.copyWith(
+                    heats: [
+                      for (final heat in item.heats)
+                        heat.copyWith(resultsProvisional: false),
+                    ],
+                  ),
+              ],
+            ),
+        ],
+      );
+      final c = container();
+      addTearDown(c.dispose);
+
+      final race = (await card(c, 632572)).first;
+      final ranking = await c.read(
+        eventRankingProvider((
+          competitionId: competitionId,
+          eventId: 36073,
+        )).future,
+      );
+
+      expect(race.event.id, 36073);
+      expect(race.series!.provisional, isFalse);
+      expect(ranking.provisional, isFalse);
+      expect(race.eventProvisional, isFalse);
     });
 
     test('une épreuve sans résultat : à courir, après les courues', () async {
