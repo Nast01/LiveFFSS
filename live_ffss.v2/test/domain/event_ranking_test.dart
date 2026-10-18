@@ -518,6 +518,102 @@ void main() {
     });
   });
 
+  group('finales prévues, avant QFA/QFB : qualifiés provisoires au temps', () {
+    List<Qualification> qualifications(EventRanking ranking) => [
+      for (final row in ranking.rows) row.qualification,
+    ];
+
+    test('finale A seule : les 8 premiers attendent, les autres 9-16', () {
+      final ranking = rankEvent(
+        _event,
+        _sixteenHeats(),
+        finalStage: _finals(1),
+      );
+      expect(_table(ranking), [
+        for (var e = 1; e <= 8; e++) (e, e, 0),
+        for (var e = 9; e <= 16; e++) (e, e, pointsFor(e)),
+      ]);
+      expect(qualifications(ranking), [
+        for (var e = 1; e <= 8; e++) Qualification.finalA,
+        for (var e = 9; e <= 16; e++) Qualification.none,
+      ]);
+    });
+
+    test('finales A et B : 8 en A, 8 en B, séries à 0', () {
+      final ranking = rankEvent(_event, [
+        _s(EventRound.heats, 1, [
+          for (var e = 1; e <= 18; e++) _r(e, time: 6000 + e),
+        ]),
+      ], finalStage: _finals(2));
+      expect(ranking.rows.map((r) => r.points), everyElement(0));
+      expect(qualifications(ranking), [
+        for (var e = 1; e <= 8; e++) Qualification.finalA,
+        for (var e = 9; e <= 16; e++) Qualification.finalB,
+        Qualification.none,
+        Qualification.none,
+      ]);
+    });
+
+    test('ni FF, ni HT, ni DQ ne sont candidats', () {
+      final ranking = rankEvent(_event, [
+        _s(EventRound.heats, 1, [
+          _r(1, time: 3000, complement: 'FF'),
+          _r(2, time: 3100),
+          _r(3, time: 3050, complement: 'HT'),
+          _r(4, status: 1, time: 2900, complement: '12'),
+          _r(5, time: 3200),
+          _r(6, time: 3300),
+        ]),
+      ], finalStage: _finals(1, places: 2));
+      final byEntry = {for (final row in ranking.rows) row.result.entryId: row};
+      expect(byEntry[2]!.qualification, Qualification.finalA);
+      expect(byEntry[5]!.qualification, Qualification.finalA);
+      for (final entry in [1, 3, 4, 6]) {
+        expect(byEntry[entry]!.qualification, Qualification.none);
+      }
+      expect(byEntry[2]!.points, 0);
+      expect(byEntry[5]!.points, 0);
+      // Le FF marque comme les non-qualifiés, à son temps.
+      expect(byEntry[1]!.points, pointsFor(3));
+      expect(byEntry[6]!.points, pointsFor(4));
+      expect(byEntry[3]!.points, 0);
+      expect(byEntry[4]!.points, 0);
+    });
+
+    test('ex æquo à cheval sur la dernière place : ni badge ni points', () {
+      final ranking = rankEvent(_event, [
+        _s(EventRound.heats, 1, [
+          _r(1, time: 3000),
+          _r(2, time: 3100),
+          _r(3, time: 3100),
+          _r(4, time: 3200),
+        ]),
+      ], finalStage: _finals(1, places: 2));
+      expect(_table(ranking), [
+        (1, 1, 0),
+        (2, 2, 0),
+        (3, 2, 0),
+        (4, 4, pointsFor(3)),
+      ]);
+      expect(qualifications(ranking), [
+        Qualification.finalA,
+        Qualification.none,
+        Qualification.none,
+        Qualification.none,
+      ]);
+    });
+
+    test('QFA publié : le site décide, pas le temps', () {
+      final ranking = rankEvent(_event, [
+        _s(EventRound.heats, 1, [
+          _r(1, time: 3000),
+          _r(2, time: 3100, complement: 'QFA'),
+        ]),
+      ], finalStage: _finals(1, places: 1));
+      expect(_table(ranking), [(1, 1, pointsFor(2)), (2, 2, 0)]);
+    });
+  });
+
   test('un engagement deux fois dans les séries ne compte qu\'une fois', () {
     final ranking = rankEvent(_event, [
       _s(EventRound.heats, 1, [_r(1, time: 3000), _r(2, time: 3100)]),

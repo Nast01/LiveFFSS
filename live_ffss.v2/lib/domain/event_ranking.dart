@@ -77,6 +77,17 @@ EventRanking rankEvent(
   final finalB = _lines(series, EventRound.finalB, skip: inFinalA);
   final inFinalB = {for (final line in finalB) line.entryId};
 
+  // Ni QFA/QFB publié ni finaliste connu : les qualifiés se déduisent des
+  // temps des séries, comme V3 les tire (`Qualify`), pour les points et les
+  // badges d'une épreuve dont les finales sont prévues.
+  final published = heats.any(
+    (l) => l.result.complement == 'QFA' || l.result.complement == 'QFB',
+  );
+  final provisional =
+      finalsCount > 0 && !published && finalA.isEmpty && finalB.isEmpty
+      ? _qualify(heats, places, finalsCount)
+      : (byEntry: const <int, Qualification>{}, tied: const <int>{});
+
   // Un forfait pour la finale garde son temps de série, mais laisse sa place.
   Qualification qualificationOf(_Line line) => switch (line.result.complement) {
     'FF' => Qualification.none,
@@ -84,7 +95,7 @@ EventRanking rankEvent(
     'QFB' => Qualification.finalB,
     _ when inFinalA.contains(line.entryId) => Qualification.finalA,
     _ when inFinalB.contains(line.entryId) => Qualification.finalB,
-    _ => Qualification.none,
+    _ => provisional.byEntry[line.entryId] ?? Qualification.none,
   };
 
   bool run(List<_Line> lines) => lines.any((l) => _hasOutcome(l.result));
@@ -128,12 +139,15 @@ EventRanking rankEvent(
 
   final ranks = _ranks(others);
   // Finale A seule : les non-qualifiés marquent dès les séries les places
-  // qui suivent la finale, à leur temps ; les qualifiés attendent la finale.
+  // qui suivent la finale, à leur temps ; les qualifiés attendent la finale,
+  // comme les ex æquo sur la dernière place, que départagera un barrage.
   // Avec deux finales, les séries ne marquent rien, même avant les finales.
   final scorerRanks = finalsCount == 1
       ? _ranks([
           for (final line in others)
-            if (qualificationOf(line) == Qualification.none) line,
+            if (qualificationOf(line) == Qualification.none &&
+                !provisional.tied.contains(line.entryId))
+              line,
         ])
       : const <_Line, int>{};
   final offset = finalsStarted ? places * finalsCount : 0;
@@ -178,6 +192,52 @@ EventRanking rankEvent(
         series.any((s) => s.provisional) ||
         swumFinals < finalsCount,
   );
+}
+
+/// Les qualifiés des finales d'après les temps des séries, comme V3
+/// `FlatWaterRanking.Qualify` : les [places] premiers en finale A, les
+/// suivants en B, jusqu'à `places × finals`. Candidats : un temps classé, sans
+/// forfait pour la finale. Un groupe d'ex æquo à cheval sur une dernière
+/// place attend un barrage ([tied]) : ni qualifié ni marqueur. Les quotas
+/// d'étrangers et d'invités de V3 ne sont pas repris : l'API ne les publie
+/// pas.
+({Map<int, Qualification> byEntry, Set<int> tied}) _qualify(
+  List<_Line> lines,
+  int places,
+  int finals,
+) {
+  final byTime = <int, List<_Line>>{};
+  for (final line in lines) {
+    final time = line.time;
+    if (time == null || line.result.complement == 'FF') continue;
+    byTime.putIfAbsent(time, () => []).add(line);
+  }
+  final times = byTime.keys.toList()..sort();
+  final total = places * finals;
+  final byEntry = <int, Qualification>{};
+  final tied = <int>{};
+  var position = 0;
+  for (final time in times) {
+    if (position >= total) break;
+    final group = byTime[time]!;
+    final straddles = [
+      for (var f = 1; f <= finals; f++) f * places,
+    ].any((cut) => position < cut && cut < position + group.length);
+    if (straddles) {
+      tied.addAll(group.map((l) => l.entryId));
+      position += group.length;
+      continue;
+    }
+    for (final line in group) {
+      if (position < total) {
+        byEntry[line.entryId] = position < places
+            ? Qualification.finalA
+            : Qualification.finalB;
+      }
+      position++;
+    }
+  }
+  return (byEntry: byEntry, tied: tied);
 }
 
 /// Place de [result] dans sa série, parmi [heatResults] : mêmes classés et
