@@ -602,6 +602,40 @@ void main() {
       expect(captured[1], '{"name":"X"}');
     });
 
+    test('form: encoded in the body, never in the address', () async {
+      when(
+        () => httpMock.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => responseWith('{"token": "t"}', 200));
+
+      await client.post(
+        'requestToken',
+        form: {'login': 'jdupont', 'password': 'p&ss word'},
+      );
+
+      final captured = verify(
+        () => httpMock.post(
+          captureAny(),
+          headers: captureAny(named: 'headers'),
+          body: captureAny(named: 'body'),
+        ),
+      ).captured;
+      final uri = captured[0] as Uri;
+      expect(uri, Uri.parse('https://example.test/api/v1.0/requestToken'));
+      expect(uri.query, isEmpty);
+      expect(
+        (captured[1] as Map<String, String>)['Content-Type'],
+        'application/x-www-form-urlencoded; charset=UTF-8',
+      );
+      expect(Uri.splitQueryString(captured[2] as String), {
+        'login': 'jdupont',
+        'password': 'p&ss word',
+      });
+    });
+
     test('sends null body when none provided', () async {
       when(
         () => httpMock.post(
@@ -878,6 +912,45 @@ void main() {
       final body = await client.get('competition/1/epreuve');
 
       expect(body['success'], isTrue);
+    });
+  });
+
+  group('réponse hors enveloppe FFSS (portail captif)', () {
+    Matcher malformed(bool expected) => throwsA(
+      isA<ApiException>().having(
+        (e) => e.malformedResponse,
+        'malformedResponse',
+        expected,
+      ),
+    );
+
+    void answer(String body, int status) => when(
+      () => httpMock.get(any(), headers: any(named: 'headers')),
+    ).thenAnswer((_) async => responseWith(body, status));
+
+    test('une page HTML servie en 200 est une réponse mal formée', () async {
+      answer('<html><body>Connexion au Wi-Fi</body></html>', 200);
+      await expectLater(client.get('x'), malformed(true));
+    });
+
+    test('un JSON sans enveloppe est une réponse mal formée', () async {
+      answer('[1, 2]', 200);
+      await expectLater(client.get('x'), malformed(true));
+    });
+
+    test('une erreur HTTP sans corps JSON est mal formée', () async {
+      answer('<html>Bad Gateway</html>', 502);
+      await expectLater(client.get('x'), malformed(true));
+    });
+
+    test('un refus métier FFSS n\'est pas une réponse mal formée', () async {
+      answer('{"success": false, "message": "engagement inconnu"}', 200);
+      await expectLater(client.get('x'), malformed(false));
+    });
+
+    test('une erreur HTTP avec un message FFSS non plus', () async {
+      answer('{"message": "interdit"}', 403);
+      await expectLater(client.get('x'), malformed(false));
     });
   });
 }

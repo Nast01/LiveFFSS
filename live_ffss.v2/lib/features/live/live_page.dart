@@ -7,9 +7,11 @@ import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/live.dart';
+import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/live/live_formatting.dart';
 import 'package:live_ffss_v2/features/live/live_providers.dart';
 import 'package:live_ffss_v2/features/live/widgets/live_heat_card.dart';
+import 'package:live_ffss_v2/features/officiel/entry_view.dart';
 import 'package:live_ffss_v2/features/shell/choose_competition_prompt.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
 
@@ -134,12 +136,23 @@ class _LiveBody extends ConsumerWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
+    final canEnter = ref.watch(canEnterProvider(competitionId));
     Widget card(LiveEntry entry) => LiveHeatCard(
       entry: entry,
       position: heatPosition(value.meetings, entry),
       lanes: value.lanesOf(entry.heat),
       lanesRead: value.lanesReadFor(entry.heat),
       onOpen: () => context.go(Routes.liveItem(competitionId, entry.item.id)),
+      onEnter: canEnter && canEnterHeat(entry.heat)
+          ? () => context.go(
+              Routes.itemEntry(
+                Routes.live,
+                competitionId,
+                entry.item.id,
+                heatId: entry.heat.id,
+              ),
+            )
+          : null,
     );
 
     Widget section(String title) => Padding(

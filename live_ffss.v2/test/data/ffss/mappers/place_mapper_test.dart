@@ -23,6 +23,15 @@ void main() {
     expect(place.performance!.isOk, true);
   });
 
+  test('une place porte les ids du résultat et de l\'engagement', () {
+    final json = fixture('place_2816')['data'] as Map<String, dynamic>;
+
+    final place = PlaceDto.fromJson(json).toDomain()!;
+
+    expect(place.resultId, 572548);
+    expect(place.entryId, 566311);
+  });
+
   test('une place sans engagement est vide, sans performance', () {
     final place = PlaceDto.fromJson({
       'id': 1,

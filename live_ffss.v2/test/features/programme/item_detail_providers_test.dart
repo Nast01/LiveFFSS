@@ -2,21 +2,37 @@ import 'dart:async';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
+import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
+import 'package:live_ffss_v2/domain/manual_timing.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
+import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_providers.dart';
 import 'package:live_ffss_v2/features/programme/programme_providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockMeetingRepository extends Mock implements MeetingRepository {}
+
+class _MockResultRepository extends Mock implements ResultRepository {}
+
+/// Les droits d'un officiel, que les tests font arriver ou partir.
+final _canEnterFlag = NotifierProvider<_CanEnterFlag, bool>(_CanEnterFlag.new);
+
+class _CanEnterFlag extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool value) => state = value;
+}
 
 void main() {
   const key = (competitionId: 1453, itemId: 10);
@@ -40,6 +56,8 @@ void main() {
   );
 
   late _MockMeetingRepository repository;
+  late _MockResultRepository results;
+  var canEnter = false;
   late MeetingItem item;
   late Map<int, LaneAssignment?> lanes;
   late List<Set<int>> laneRequests;
@@ -85,15 +103,21 @@ void main() {
 
   // L'heure suit le temps simulé : la relecture des courses terminées en
   // dépend.
-  ProviderContainer container([FakeAsync? async]) => ProviderContainer(
+  ProviderContainer container([
+    FakeAsync? async,
+    List<Override> overrides = const [],
+  ]) => ProviderContainer(
     overrides: [
+      ...overrides,
       meetingRepositoryProvider.overrideWithValue(repository),
+      resultRepositoryProvider.overrideWithValue(results),
+      canEnterProvider.overrideWith((ref, _) => ref.watch(_canEnterFlag)),
       clockProvider.overrideWithValue(
         () => now.add(async?.elapsed ?? Duration.zero),
       ),
     ],
     retry: noRetry,
-  );
+  )..read(_canEnterFlag.notifier).set(canEnter);
 
   setUpAll(() {
     registerFallbackValue(DateTime(2000));
@@ -102,6 +126,9 @@ void main() {
 
   setUp(() {
     repository = _MockMeetingRepository();
+    results = _MockResultRepository();
+    canEnter = false;
+    when(() => results.getHeatChronos(any())).thenAnswer((_) async => {});
     item = itemWith(RunStatus.inProgress, RunStatus.waiting);
     lanes = {
       11: lane(11, 2, 'Alice'),
@@ -352,6 +379,35 @@ void main() {
       verify(() => repository.getMeetingItem(10, day: day)).called(2);
       expect(laneRequests, [
         {11, 12, 21, 22},
+      ]);
+
+      c.dispose();
+    });
+  });
+
+  test('refresh relit des rôles en échec, pas la minuterie', () {
+    fakeAsync((async) {
+      var roleReads = 0;
+      final c = container(async, [
+        competitionRolesProvider.overrideWith((ref, id) async {
+          if (++roleReads == 1) throw const NetworkException('hors ligne');
+          return ['officiel'];
+        }),
+      ]);
+      c.listen(meetingItemDetailProvider(key), (_, _) {});
+      c.listen(competitionRolesProvider(key.competitionId), (_, _) {});
+      async.flushMicrotasks();
+      expect(roleReads, 1);
+
+      async.elapse(itemDetailRefresh);
+      async.flushMicrotasks();
+      expect(roleReads, 1);
+
+      c.read(meetingItemDetailProvider(key).notifier).refresh();
+      async.elapse(Duration.zero);
+      expect(roleReads, 2);
+      expect(c.read(competitionRolesProvider(key.competitionId)).value, [
+        'officiel',
       ]);
 
       c.dispose();
@@ -661,5 +717,239 @@ void main() {
     expect(c.read(progressionExpandedProvider), isFalse);
     c.read(progressionExpandedProvider.notifier).toggle();
     expect(c.read(progressionExpandedProvider), isTrue);
+  });
+
+  group('temps manuel', () {
+    // Série 1 : Alice (engagement 501) sans temps, Bea (502) avec un temps
+    // publié. Les chronos des deux existent.
+    void setUpManual() {
+      lanes = {
+        11: const LaneAssignment(
+          id: 11,
+          lane: 2,
+          athletes: ['Alice'],
+          entryId: 501,
+        ),
+        12: const LaneAssignment(
+          id: 12,
+          lane: 1,
+          athletes: ['Bea'],
+          entryId: 502,
+          performance: Performance(time: '30"00', timeHundredths: 3000),
+        ),
+        21: lane(21, 1, 'Chloé'),
+        22: null,
+      };
+      when(() => results.getHeatChronos(101)).thenAnswer(
+        (_) async => {
+          501: [3100, 3200, null],
+          502: [2900, null, null],
+        },
+      );
+    }
+
+    test('un spectateur ne déclenche aucun appel aux chronos', () {
+      fakeAsync((async) {
+        setUpManual();
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 90));
+
+        verifyNever(() => results.getHeatChronos(any()));
+        final detail = c.read(meetingItemDetailProvider(key)).value!;
+        expect(detail.chronos, isEmpty);
+        expect(detail.manualTimesOf(item.heats[0]), isEmpty);
+
+        c.dispose();
+      });
+    });
+
+    test(
+      'un officiel voit le temps manuel des places sans temps seulement',
+      () {
+        fakeAsync((async) {
+          setUpManual();
+          canEnter = true;
+          final c = container(async);
+          c.listen(meetingItemDetailProvider(key), (_, _) {});
+          async.flushMicrotasks();
+
+          final times = c
+              .read(meetingItemDetailProvider(key))
+              .value!
+              .manualTimesOf(item.heats[0]);
+          expect(times.keys, [11]);
+          expect(times[11]!.hundredths, 3150);
+          expect(times[11]!.rule, ManualTimeRule.average);
+
+          c.dispose();
+        });
+      },
+    );
+
+    test('les chronos suivent la cadence des places des courses en cours', () {
+      fakeAsync((async) {
+        setUpManual();
+        item = itemWith(RunStatus.inProgress, RunStatus.finished);
+        canEnter = true;
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+        clearInteractions(results);
+
+        async.elapse(itemDetailRefresh);
+        async.flushMicrotasks();
+
+        verify(() => results.getHeatChronos(101)).called(1);
+        verifyNever(() => results.getHeatChronos(102));
+
+        c.dispose();
+      });
+    });
+
+    test('un échec des chronos ne fait pas échouer le détail', () {
+      fakeAsync((async) {
+        setUpManual();
+        canEnter = true;
+        when(
+          () => results.getHeatChronos(any()),
+        ).thenThrow(const NetworkException('hors ligne'));
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+
+        final state = c.read(meetingItemDetailProvider(key));
+        expect(state.hasError, isFalse);
+        expect(state.value!.manualTimesOf(item.heats[0]), isEmpty);
+        expect(state.value!.lanesOf(item.heats[0]), hasLength(2));
+
+        c.dispose();
+      });
+    });
+
+    test('droit perdu pendant le premier chargement : aucun temps manuel', () {
+      fakeAsync((async) {
+        setUpManual();
+        canEnter = true;
+        final pending = Completer<Map<int, List<int?>>>();
+        when(
+          () => results.getHeatChronos(any()),
+        ).thenAnswer((_) => pending.future);
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+
+        // Les places sont déjà affichées, les chronos pas encore revenus.
+        expect(c.read(meetingItemDetailProvider(key)).hasValue, isTrue);
+        c.read(_canEnterFlag.notifier).set(false);
+        pending.complete({
+          501: [3100, 3200, null],
+        });
+        async.flushMicrotasks();
+
+        final detail = c.read(meetingItemDetailProvider(key)).value!;
+        expect(detail.chronos, isEmpty);
+        expect(detail.manualTimesOf(item.heats[0]), isEmpty);
+
+        c.dispose();
+      });
+    });
+
+    test('une lecture en attente ne tourne pas après la fermeture', () {
+      fakeAsync((async) {
+        setUpManual();
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+
+        // Une relecture de 30 s en cours, les droits arrivent derrière elle.
+        final slow = Completer<MeetingItem?>();
+        when(
+          () => repository.getMeetingItem(any(), day: any(named: 'day')),
+        ).thenAnswer((_) => slow.future);
+        async.elapse(itemDetailRefresh);
+        c.read(_canEnterFlag.notifier).set(true);
+        async.elapse(Duration.zero);
+
+        c.dispose();
+        slow.complete(item);
+        async.flushMicrotasks();
+
+        verifyNever(() => results.getHeatChronos(any()));
+      });
+    });
+
+    test('droits arrivés après le chargement : chronos lus et montrés', () {
+      fakeAsync((async) {
+        setUpManual();
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+        verifyNever(() => results.getHeatChronos(any()));
+
+        c.read(_canEnterFlag.notifier).set(true);
+        // Riverpod relance le fournisseur dépendant par un Timer(Duration.zero).
+        async.elapse(Duration.zero);
+
+        final detail = c.read(meetingItemDetailProvider(key)).value!;
+        expect(detail.manualTimesOf(item.heats[0]).keys, [11]);
+
+        c.dispose();
+      });
+    });
+
+    test('droits perdus : chronos effacés aussitôt', () {
+      fakeAsync((async) {
+        setUpManual();
+        canEnter = true;
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+        expect(
+          c.read(meetingItemDetailProvider(key)).value!.chronos,
+          isNotEmpty,
+        );
+
+        c.read(_canEnterFlag.notifier).set(false);
+
+        expect(c.read(meetingItemDetailProvider(key)).value!.chronos, isEmpty);
+
+        c.dispose();
+      });
+    });
+
+    test('les séries se lisent en parallèle, 6 au plus à la fois', () {
+      fakeAsync((async) {
+        setUpManual();
+        canEnter = true;
+        item = MeetingItem(
+          id: 10,
+          name: '100 m bouée tube',
+          roundId: 100,
+          heats: [
+            for (var i = 1; i <= 8; i++) heat(i, RunStatus.waiting, [i * 10]),
+          ],
+        );
+        var inFlight = 0;
+        var peak = 0;
+        when(() => results.getHeatChronos(any())).thenAnswer((_) async {
+          inFlight++;
+          if (inFlight > peak) peak = inFlight;
+          await Future<void>.delayed(const Duration(seconds: 1));
+          inFlight--;
+          return {};
+        });
+        final c = container(async);
+        c.listen(meetingItemDetailProvider(key), (_, _) {});
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 5));
+
+        verify(() => results.getHeatChronos(any())).called(8);
+        expect(peak, maxConcurrentChronos);
+
+        c.dispose();
+      });
+    });
   });
 }

@@ -34,6 +34,12 @@ class ApiEndpoints {
   static const String meetingItem = 'competition/reunion/creneau/:id';
   static const String lane = 'competition/reunion/creneau/course/place/:id';
   static const String competition = 'competition/evenement/:id';
+  static const String result = 'competition/resultat/:id';
+  static const String resultSubmit = 'competition/resultat/submit';
+  static const String series = 'competition/serie/:id';
+  static const String requestToken = 'requestToken';
+  static const String me = 'me';
+  static const String competitionMe = 'competition/evenement/:id/me';
 
   static String replacePath(String path, Map<String, String> params) {
     var result = path;

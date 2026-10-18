@@ -32,3 +32,20 @@ Constats faits sur de vraies réponses de la recette (`https://site.ffss.io/api/
 - **`competition/reunion/creneau/:id/course` échoue** : `success: false`, message « filterByCreneau() only accepts arguments of type … Creneau or Collection ».
 - **Deux formes de déroulement.** Dans la liste `competition/:id/deroulement`, `Discipline` (objet) et `Genre` (`H`/`F`). Imbriqué dans une `partie` (`creneau/:id`), `discipline` et `genreLabel`. Même objet, clés différentes.
 - **L'objet `serie` d'une course de `reunion` est réduit** : `id`, `nom`, `niveau`, `fullLabel`, **sans `Numero` ni `epreuve`**. Les courses d'une finale non générée ont `serie: null`.
+
+## Connexion et résultats, vérifié le 2026-10-18 sur la recette (compte officiel de test)
+
+- **`GET /me?token=…`** → `{success, message, label: "NOM Prénom", type: "licencie", data: {club, nom, numero, prenom, role}}` ; `data.role` vaut `user` pour un compte licencié.
+- **`GET competition/evenement/:id/me?token=…`** → `{"data": {"roles": [...], ...}}`, avec un objet par rôle détenu : `licencie {id, nom, prenom}`, **`officiel {id, niveau, niveauLabel, principal}`** (ex. `niveau` « B », `niveauLabel` « B - Juge de virage/obstacles », `principal: false`), `referent_sportif [{id, label, sigle, nom}]`. Rôles observés : `public, licencie, officiel, referent_sportif` — **`referent_sportif` n'est pas dans la doc**. Sans jeton : `{"roles": ["public"]}`.
+- **`TempsLive1..3` sont servis par `competition/resultat/:id` et `competition/serie/:id`** (résultats), **pas** par `course/place/:id`. `resultat/:id` porte `Id, Temps, tempsLabel, TempsLive1..3, Rang, Statut, statutLabel, complement, complementLabel, points, isValid, isDisqualifie, engagement, serie, Athletes, isRecord…` — de quoi reconstruire tous les champs de `resultat/submit`.
+- **Écriture `POST competition/resultat/submit`, vérifiée le 2026-10-18 sur le résultat 572548 (série 94894, engagement 566311) :**
+  - **Les paramètres passent dans l'adresse** (query string, comme le jeton), sans corps : un corps JSON répond **HTTP 500** sans message, même avec tous les champs. C'est ce que faisait la v1.
+  - Réponse : `{"success":true,"message":"résultat enregistré","isRecord":false,"isCreation":false,"id":572548}`.
+  - **Un `statut` omis n'est pas conservé** : il retombe à **3 (« F/DQ »)** et `isValid` passe à `false`. `temps`, `rang`, `tempsLiveN` et `complement` omis sont conservés. Après relecture, **toujours renvoyer `statut`, `complement` et `tempsLive1..3`** ; **`temps` et `rang` ne sont jamais envoyés** (omis, ils sont gardés, alors que les renvoyer écraserait un temps publié par le juge entre la lecture et l'écriture).
+  - DQ : `statut` 1 + `complement` (le code, ex. « 12 ») → `statutLabel` « DQ », `isDisqualifie` vrai ; `disqualificationCode` reste `null`.
+  - **Un `tempsLiveN` envoyé vide devient `0`**, pas `null` : lire 0 comme « pas de chrono ».
+  - **`complement` ne s'efface pas** : vide ou omis, il garde sa valeur (« 12 » resté après retour au statut 0). Une DQ annulée laisse donc son code dans `complement` ; ne l'afficher que si le statut est DQ. À signaler au développeur de l'API.
+  - **Jeton invalide à l'écriture → HTTP 403** (vu avec un jeton littéralement faux).
+  - Côté PowerShell 5.1, `ConvertFrom-Json` échoue sur ces réponses (clés `id`/`Id` dans le même objet) : lire le texte brut.
+- **Non vérifié, connexion par formulaire** : `requestToken` est envoyé avec identifiant et mot de passe dans un corps de formulaire (`application/x-www-form-urlencoded`), non dans l'adresse, comme `FfssApiClient.RequestTokenAsync` de V3. À confirmer sur une vraie connexion ; la v1 les passait dans l'adresse.
+- **Non vérifié, lignes de `competition/serie/:id`** : `getHeatResults` et `getHeatChronos` lisent `data.resultats[]` et y attendent `Temps`, `Statut`, `complement`, `TempsLive1..3` et `engagement.id`, comme `resultat/:id`. Que les lignes de la série portent bien ces champs n'est pas confirmé sur la recette ; une ligne illisible est écartée seule, et un `Temps` présent mais illisible vaut « validé ».

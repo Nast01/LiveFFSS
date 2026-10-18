@@ -1,0 +1,102 @@
+import 'package:live_ffss_v2/data/ffss/dtos/resultat_dto.dart';
+import 'package:live_ffss_v2/domain/race_result.dart';
+
+/// Le `Temps` d'une ligne de série présent mais illisible : un temps du juge
+/// quand même, que l'écran de saisie ne doit pas laisser modifier. Ce
+/// résultat n'est jamais renvoyé au site (l'envoi relit le résultat).
+const int unreadableJudgeTime = 1;
+
+/// FFSS stocke un chrono vidé comme 0 : lu comme « pas de chrono ».
+int? chronoOrNull(int? value) => value != null && value > 0 ? value : null;
+
+/// Un entier exact, ou rien. [_invalid] distingue une valeur présente mais
+/// illisible (`8.5`, `"17577.0"`, `"abc"`) d'une valeur absente.
+const Object _invalid = Object();
+
+Object? _strictInt(Object? raw) {
+  if (raw == null) return null;
+  if (raw is int) return raw;
+  if (raw is String) return int.tryParse(raw.trim()) ?? _invalid;
+  return _invalid;
+}
+
+/// FFSS sert le complément en chaîne, ou en nombre quand c'est un code.
+String _complement(Object? raw) {
+  if (raw is String) return raw;
+  if (raw is num && raw == raw.truncate()) return raw.toInt().toString();
+  return '';
+}
+
+extension ResultatMapper on ResultatDto {
+  /// Les trois chronos, 0 lu comme vide.
+  List<int?> get chronos =>
+      [chrono1, chrono2, chrono3].map(chronoOrNull).toList();
+
+  /// Nulle sans id, série, engagement ni statut, ou si `Temps`, `Rang` ou
+  /// `points` est présent sans être un entier exact : cette lecture sert
+  /// l'envoi, qui renvoie ces champs au juge et ne doit jamais les dégrader.
+  /// Un statut deviné renverrait de même un faux statut. Les chronos seuls
+  /// (`chronos`, utilisés pour l'affichage d'une série) restent tolérants.
+  RaceResult? toDomain() {
+    final id = this.id;
+    final seriesId = series?.id;
+    final entryId = entry?.id;
+    final status = this.status;
+    if (id == null || seriesId == null || entryId == null || status == null) {
+      return null;
+    }
+    final time = _strictInt(this.time);
+    final rank = _strictInt(this.rank);
+    final points = _strictInt(this.points);
+    if (identical(time, _invalid) ||
+        identical(rank, _invalid) ||
+        identical(points, _invalid)) {
+      return null;
+    }
+    return RaceResult(
+      id: id,
+      seriesId: seriesId,
+      entryId: entryId,
+      time: time as int?,
+      chronos: chronos,
+      rank: rank as int?,
+      status: status,
+      complement: _complement(complement),
+      points: points as int?,
+    );
+  }
+
+  /// Le résultat tel que l'écran de saisie le montre, une ligne de
+  /// `serie/:id` : nul sans engagement. Plus tolérant que [toDomain], car il
+  /// ne repart pas au site (l'envoi relit le résultat) : un statut absent
+  /// vaut OK, un rang ou des points illisibles sont laissés vides, et la
+  /// série est celle qu'on a demandée quand la ligne ne la porte pas. Un
+  /// `Temps` illisible vaut [unreadableJudgeTime] : le juge a posé quelque
+  /// chose, la saisie passe en lecture seule.
+  RaceResult? toHeatResult(int seriesId) {
+    final entryId = entry?.id;
+    if (entryId == null) return null;
+    int? lenient(Object? raw) => switch (_strictInt(raw)) {
+      final int value => value,
+      _ => null,
+    };
+    return RaceResult(
+      id: id,
+      seriesId: series?.id ?? seriesId,
+      entryId: entryId,
+      time: _heatTime(time),
+      chronos: chronos,
+      rank: lenient(rank),
+      status: status ?? 0,
+      complement: _complement(complement),
+      points: lenient(points),
+    );
+  }
+}
+
+/// Un temps vide n'est pas un temps ; un temps illisible en est un.
+int? _heatTime(Object? raw) {
+  if (raw is String && raw.trim().isEmpty) return null;
+  final value = _strictInt(raw);
+  return identical(value, _invalid) ? unreadableJudgeTime : value as int?;
+}

@@ -343,7 +343,7 @@ $PlaceResultDtoCopyWith<$Res>? get result {
 /// @nodoc
 mixin _$PlaceEngagementDto {
 
-@JsonKey(name: 'clubLabel') String? get clubLabel;@JsonKey(name: 'isForfait') bool? get isForfeit;@JsonKey(name: 'athletes') List<PlaceAthleteDto> get athletes;@JsonKey(name: 'EpreuveCategorie', readValue: readMap) PlaceEpreuveCategorieDto? get epreuveCategorie;
+@JsonKey(name: 'id', readValue: readInt) int? get id;@JsonKey(name: 'clubLabel') String? get clubLabel;@JsonKey(name: 'isForfait') bool? get isForfeit;@JsonKey(name: 'athletes') List<PlaceAthleteDto> get athletes;@JsonKey(name: 'EpreuveCategorie', readValue: readMap) PlaceEpreuveCategorieDto? get epreuveCategorie;
 /// Create a copy of PlaceEngagementDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -357,20 +357,20 @@ $PlaceEngagementDtoCopyWith<PlaceEngagementDto> get copyWith => _$PlaceEngagemen
 @override
 bool operator ==(Object other) {
   final _this = this as PlaceEngagementDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlaceEngagementDto&&(identical(other.clubLabel, _this.clubLabel) || other.clubLabel == _this.clubLabel)&&(identical(other.isForfeit, _this.isForfeit) || other.isForfeit == _this.isForfeit)&&const DeepCollectionEquality().equals(other.athletes, _this.athletes)&&(identical(other.epreuveCategorie, _this.epreuveCategorie) || other.epreuveCategorie == _this.epreuveCategorie));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlaceEngagementDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.clubLabel, _this.clubLabel) || other.clubLabel == _this.clubLabel)&&(identical(other.isForfeit, _this.isForfeit) || other.isForfeit == _this.isForfeit)&&const DeepCollectionEquality().equals(other.athletes, _this.athletes)&&(identical(other.epreuveCategorie, _this.epreuveCategorie) || other.epreuveCategorie == _this.epreuveCategorie));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PlaceEngagementDto;
-  return Object.hash(runtimeType,_this.clubLabel,_this.isForfeit,const DeepCollectionEquality().hash(_this.athletes),_this.epreuveCategorie);
+  return Object.hash(runtimeType,_this.id,_this.clubLabel,_this.isForfeit,const DeepCollectionEquality().hash(_this.athletes),_this.epreuveCategorie);
 }
 
 @override
 String toString() {
   final _this = this as PlaceEngagementDto;
-  return 'PlaceEngagementDto(clubLabel: ${_this.clubLabel}, isForfeit: ${_this.isForfeit}, athletes: ${_this.athletes}, epreuveCategorie: ${_this.epreuveCategorie})';
+  return 'PlaceEngagementDto(id: ${_this.id}, clubLabel: ${_this.clubLabel}, isForfeit: ${_this.isForfeit}, athletes: ${_this.athletes}, epreuveCategorie: ${_this.epreuveCategorie})';
 }
 
 
@@ -381,7 +381,7 @@ abstract mixin class $PlaceEngagementDtoCopyWith<$Res>  {
   factory $PlaceEngagementDtoCopyWith(PlaceEngagementDto value, $Res Function(PlaceEngagementDto) _then) = _$PlaceEngagementDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'clubLabel') String? clubLabel,@JsonKey(name: 'isForfait') bool? isForfeit,@JsonKey(name: 'athletes') List<PlaceAthleteDto> athletes,@JsonKey(name: 'EpreuveCategorie', readValue: readMap) PlaceEpreuveCategorieDto? epreuveCategorie
+@JsonKey(name: 'id', readValue: readInt) int? id,@JsonKey(name: 'clubLabel') String? clubLabel,@JsonKey(name: 'isForfait') bool? isForfeit,@JsonKey(name: 'athletes') List<PlaceAthleteDto> athletes,@JsonKey(name: 'EpreuveCategorie', readValue: readMap) PlaceEpreuveCategorieDto? epreuveCategorie
 });
 
 
@@ -398,9 +398,10 @@ class _$PlaceEngagementDtoCopyWithImpl<$Res>
 
 /// Create a copy of PlaceEngagementDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? clubLabel = freezed,Object? isForfeit = freezed,Object? athletes = null,Object? epreuveCategorie = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? clubLabel = freezed,Object? isForfeit = freezed,Object? athletes = null,Object? epreuveCategorie = freezed,}) {
   return _then(PlaceEngagementDto(
-clubLabel: freezed == clubLabel ? _self.clubLabel : clubLabel // ignore: cast_nullable_to_non_nullable
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int?,clubLabel: freezed == clubLabel ? _self.clubLabel : clubLabel // ignore: cast_nullable_to_non_nullable
 as String?,isForfeit: freezed == isForfeit ? _self.isForfeit : isForfeit // ignore: cast_nullable_to_non_nullable
 as bool?,athletes: null == athletes ? _self.athletes : athletes // ignore: cast_nullable_to_non_nullable
 as List<PlaceAthleteDto>,epreuveCategorie: freezed == epreuveCategorie ? _self.epreuveCategorie : epreuveCategorie // ignore: cast_nullable_to_non_nullable
@@ -501,10 +502,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'clubLabel')  String? clubLabel, @JsonKey(name: 'isForfait')  bool? isForfeit, @JsonKey(name: 'athletes')  List<PlaceAthleteDto> athletes, @JsonKey(name: 'EpreuveCategorie', readValue: readMap)  PlaceEpreuveCategorieDto? epreuveCategorie)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'id', readValue: readInt)  int? id, @JsonKey(name: 'clubLabel')  String? clubLabel, @JsonKey(name: 'isForfait')  bool? isForfeit, @JsonKey(name: 'athletes')  List<PlaceAthleteDto> athletes, @JsonKey(name: 'EpreuveCategorie', readValue: readMap)  PlaceEpreuveCategorieDto? epreuveCategorie)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlaceEngagementDto() when $default != null:
-return $default(_that.clubLabel,_that.isForfeit,_that.athletes,_that.epreuveCategorie);case _:
+return $default(_that.id,_that.clubLabel,_that.isForfeit,_that.athletes,_that.epreuveCategorie);case _:
   return orElse();
 
 }
@@ -522,10 +523,10 @@ return $default(_that.clubLabel,_that.isForfeit,_that.athletes,_that.epreuveCate
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'clubLabel')  String? clubLabel, @JsonKey(name: 'isForfait')  bool? isForfeit, @JsonKey(name: 'athletes')  List<PlaceAthleteDto> athletes, @JsonKey(name: 'EpreuveCategorie', readValue: readMap)  PlaceEpreuveCategorieDto? epreuveCategorie)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'id', readValue: readInt)  int? id, @JsonKey(name: 'clubLabel')  String? clubLabel, @JsonKey(name: 'isForfait')  bool? isForfeit, @JsonKey(name: 'athletes')  List<PlaceAthleteDto> athletes, @JsonKey(name: 'EpreuveCategorie', readValue: readMap)  PlaceEpreuveCategorieDto? epreuveCategorie)  $default,) {final _that = this;
 switch (_that) {
 case _PlaceEngagementDto():
-return $default(_that.clubLabel,_that.isForfeit,_that.athletes,_that.epreuveCategorie);case _:
+return $default(_that.id,_that.clubLabel,_that.isForfeit,_that.athletes,_that.epreuveCategorie);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -542,10 +543,10 @@ return $default(_that.clubLabel,_that.isForfeit,_that.athletes,_that.epreuveCate
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'clubLabel')  String? clubLabel, @JsonKey(name: 'isForfait')  bool? isForfeit, @JsonKey(name: 'athletes')  List<PlaceAthleteDto> athletes, @JsonKey(name: 'EpreuveCategorie', readValue: readMap)  PlaceEpreuveCategorieDto? epreuveCategorie)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'id', readValue: readInt)  int? id, @JsonKey(name: 'clubLabel')  String? clubLabel, @JsonKey(name: 'isForfait')  bool? isForfeit, @JsonKey(name: 'athletes')  List<PlaceAthleteDto> athletes, @JsonKey(name: 'EpreuveCategorie', readValue: readMap)  PlaceEpreuveCategorieDto? epreuveCategorie)?  $default,) {final _that = this;
 switch (_that) {
 case _PlaceEngagementDto() when $default != null:
-return $default(_that.clubLabel,_that.isForfeit,_that.athletes,_that.epreuveCategorie);case _:
+return $default(_that.id,_that.clubLabel,_that.isForfeit,_that.athletes,_that.epreuveCategorie);case _:
   return null;
 
 }
@@ -557,9 +558,10 @@ return $default(_that.clubLabel,_that.isForfeit,_that.athletes,_that.epreuveCate
 @JsonSerializable()
 
 class _PlaceEngagementDto implements PlaceEngagementDto {
-  const _PlaceEngagementDto({@JsonKey(name: 'clubLabel') this.clubLabel, @JsonKey(name: 'isForfait') this.isForfeit, @JsonKey(name: 'athletes')  List<PlaceAthleteDto> athletes = const <PlaceAthleteDto>[], @JsonKey(name: 'EpreuveCategorie', readValue: readMap) this.epreuveCategorie}): _athletes = athletes;
+  const _PlaceEngagementDto({@JsonKey(name: 'id', readValue: readInt) this.id, @JsonKey(name: 'clubLabel') this.clubLabel, @JsonKey(name: 'isForfait') this.isForfeit, @JsonKey(name: 'athletes')  List<PlaceAthleteDto> athletes = const <PlaceAthleteDto>[], @JsonKey(name: 'EpreuveCategorie', readValue: readMap) this.epreuveCategorie}): _athletes = athletes;
   factory _PlaceEngagementDto.fromJson(Map<String, dynamic> json) => _$PlaceEngagementDtoFromJson(json);
 
+@override@JsonKey(name: 'id', readValue: readInt) final  int? id;
 @override@JsonKey(name: 'clubLabel') final  String? clubLabel;
 @override@JsonKey(name: 'isForfait') final  bool? isForfeit;
  final  List<PlaceAthleteDto> _athletes;
@@ -584,18 +586,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlaceEngagementDto&&(identical(other.clubLabel, clubLabel) || other.clubLabel == clubLabel)&&(identical(other.isForfeit, isForfeit) || other.isForfeit == isForfeit)&&const DeepCollectionEquality().equals(other.athletes, _athletes)&&(identical(other.epreuveCategorie, epreuveCategorie) || other.epreuveCategorie == epreuveCategorie));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlaceEngagementDto&&(identical(other.id, id) || other.id == id)&&(identical(other.clubLabel, clubLabel) || other.clubLabel == clubLabel)&&(identical(other.isForfeit, isForfeit) || other.isForfeit == isForfeit)&&const DeepCollectionEquality().equals(other.athletes, _athletes)&&(identical(other.epreuveCategorie, epreuveCategorie) || other.epreuveCategorie == epreuveCategorie));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,clubLabel,isForfeit,const DeepCollectionEquality().hash(_athletes),epreuveCategorie);
+    return Object.hash(runtimeType,id,clubLabel,isForfeit,const DeepCollectionEquality().hash(_athletes),epreuveCategorie);
 }
 
 @override
 String toString() {
-    return 'PlaceEngagementDto(clubLabel: $clubLabel, isForfeit: $isForfeit, athletes: $athletes, epreuveCategorie: $epreuveCategorie)';
+    return 'PlaceEngagementDto(id: $id, clubLabel: $clubLabel, isForfeit: $isForfeit, athletes: $athletes, epreuveCategorie: $epreuveCategorie)';
 }
 
 
@@ -606,7 +608,7 @@ abstract mixin class _$PlaceEngagementDtoCopyWith<$Res> implements $PlaceEngagem
   factory _$PlaceEngagementDtoCopyWith(_PlaceEngagementDto value, $Res Function(_PlaceEngagementDto) _then) = __$PlaceEngagementDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'clubLabel') String? clubLabel,@JsonKey(name: 'isForfait') bool? isForfeit,@JsonKey(name: 'athletes') List<PlaceAthleteDto> athletes,@JsonKey(name: 'EpreuveCategorie', readValue: readMap) PlaceEpreuveCategorieDto? epreuveCategorie
+@JsonKey(name: 'id', readValue: readInt) int? id,@JsonKey(name: 'clubLabel') String? clubLabel,@JsonKey(name: 'isForfait') bool? isForfeit,@JsonKey(name: 'athletes') List<PlaceAthleteDto> athletes,@JsonKey(name: 'EpreuveCategorie', readValue: readMap) PlaceEpreuveCategorieDto? epreuveCategorie
 });
 
 
@@ -623,9 +625,10 @@ class __$PlaceEngagementDtoCopyWithImpl<$Res>
 
 /// Create a copy of PlaceEngagementDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? clubLabel = freezed,Object? isForfeit = freezed,Object? athletes = null,Object? epreuveCategorie = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? clubLabel = freezed,Object? isForfeit = freezed,Object? athletes = null,Object? epreuveCategorie = freezed,}) {
   return _then(_PlaceEngagementDto(
-clubLabel: freezed == clubLabel ? _self.clubLabel : clubLabel // ignore: cast_nullable_to_non_nullable
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int?,clubLabel: freezed == clubLabel ? _self.clubLabel : clubLabel // ignore: cast_nullable_to_non_nullable
 as String?,isForfeit: freezed == isForfeit ? _self.isForfeit : isForfeit // ignore: cast_nullable_to_non_nullable
 as bool?,athletes: null == athletes ? _self._athletes : athletes // ignore: cast_nullable_to_non_nullable
 as List<PlaceAthleteDto>,epreuveCategorie: freezed == epreuveCategorie ? _self.epreuveCategorie : epreuveCategorie // ignore: cast_nullable_to_non_nullable
@@ -2077,7 +2080,7 @@ as bool?,
 /// @nodoc
 mixin _$PlaceResultDto {
 
-@JsonKey(name: 'tempsLabel') String? get time;@JsonKey(name: 'statutLabel') String? get statusLabel;@JsonKey(name: 'rangLabel') String? get rankLabel;@JsonKey(name: 'disqualificationCode') String? get disqualificationCode;@JsonKey(name: 'isDisqualifie') bool? get isDisqualified;@JsonKey(name: 'isRecord') bool? get isRecord;@JsonKey(name: 'isRecordDeFrance') bool? get isNationalRecord;
+@JsonKey(name: 'id', readValue: readInt) int? get id;@JsonKey(name: 'tempsLabel') String? get time;@JsonKey(name: 'statutLabel') String? get statusLabel;@JsonKey(name: 'rangLabel') String? get rankLabel;@JsonKey(name: 'disqualificationCode') String? get disqualificationCode;@JsonKey(name: 'isDisqualifie') bool? get isDisqualified;@JsonKey(name: 'isRecord') bool? get isRecord;@JsonKey(name: 'isRecordDeFrance') bool? get isNationalRecord;
 /// Create a copy of PlaceResultDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2091,20 +2094,20 @@ $PlaceResultDtoCopyWith<PlaceResultDto> get copyWith => _$PlaceResultDtoCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as PlaceResultDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlaceResultDto&&(identical(other.time, _this.time) || other.time == _this.time)&&(identical(other.statusLabel, _this.statusLabel) || other.statusLabel == _this.statusLabel)&&(identical(other.rankLabel, _this.rankLabel) || other.rankLabel == _this.rankLabel)&&(identical(other.disqualificationCode, _this.disqualificationCode) || other.disqualificationCode == _this.disqualificationCode)&&(identical(other.isDisqualified, _this.isDisqualified) || other.isDisqualified == _this.isDisqualified)&&(identical(other.isRecord, _this.isRecord) || other.isRecord == _this.isRecord)&&(identical(other.isNationalRecord, _this.isNationalRecord) || other.isNationalRecord == _this.isNationalRecord));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlaceResultDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.time, _this.time) || other.time == _this.time)&&(identical(other.statusLabel, _this.statusLabel) || other.statusLabel == _this.statusLabel)&&(identical(other.rankLabel, _this.rankLabel) || other.rankLabel == _this.rankLabel)&&(identical(other.disqualificationCode, _this.disqualificationCode) || other.disqualificationCode == _this.disqualificationCode)&&(identical(other.isDisqualified, _this.isDisqualified) || other.isDisqualified == _this.isDisqualified)&&(identical(other.isRecord, _this.isRecord) || other.isRecord == _this.isRecord)&&(identical(other.isNationalRecord, _this.isNationalRecord) || other.isNationalRecord == _this.isNationalRecord));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PlaceResultDto;
-  return Object.hash(runtimeType,_this.time,_this.statusLabel,_this.rankLabel,_this.disqualificationCode,_this.isDisqualified,_this.isRecord,_this.isNationalRecord);
+  return Object.hash(runtimeType,_this.id,_this.time,_this.statusLabel,_this.rankLabel,_this.disqualificationCode,_this.isDisqualified,_this.isRecord,_this.isNationalRecord);
 }
 
 @override
 String toString() {
   final _this = this as PlaceResultDto;
-  return 'PlaceResultDto(time: ${_this.time}, statusLabel: ${_this.statusLabel}, rankLabel: ${_this.rankLabel}, disqualificationCode: ${_this.disqualificationCode}, isDisqualified: ${_this.isDisqualified}, isRecord: ${_this.isRecord}, isNationalRecord: ${_this.isNationalRecord})';
+  return 'PlaceResultDto(id: ${_this.id}, time: ${_this.time}, statusLabel: ${_this.statusLabel}, rankLabel: ${_this.rankLabel}, disqualificationCode: ${_this.disqualificationCode}, isDisqualified: ${_this.isDisqualified}, isRecord: ${_this.isRecord}, isNationalRecord: ${_this.isNationalRecord})';
 }
 
 
@@ -2115,7 +2118,7 @@ abstract mixin class $PlaceResultDtoCopyWith<$Res>  {
   factory $PlaceResultDtoCopyWith(PlaceResultDto value, $Res Function(PlaceResultDto) _then) = _$PlaceResultDtoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'tempsLabel') String? time,@JsonKey(name: 'statutLabel') String? statusLabel,@JsonKey(name: 'rangLabel') String? rankLabel,@JsonKey(name: 'disqualificationCode') String? disqualificationCode,@JsonKey(name: 'isDisqualifie') bool? isDisqualified,@JsonKey(name: 'isRecord') bool? isRecord,@JsonKey(name: 'isRecordDeFrance') bool? isNationalRecord
+@JsonKey(name: 'id', readValue: readInt) int? id,@JsonKey(name: 'tempsLabel') String? time,@JsonKey(name: 'statutLabel') String? statusLabel,@JsonKey(name: 'rangLabel') String? rankLabel,@JsonKey(name: 'disqualificationCode') String? disqualificationCode,@JsonKey(name: 'isDisqualifie') bool? isDisqualified,@JsonKey(name: 'isRecord') bool? isRecord,@JsonKey(name: 'isRecordDeFrance') bool? isNationalRecord
 });
 
 
@@ -2132,9 +2135,10 @@ class _$PlaceResultDtoCopyWithImpl<$Res>
 
 /// Create a copy of PlaceResultDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? time = freezed,Object? statusLabel = freezed,Object? rankLabel = freezed,Object? disqualificationCode = freezed,Object? isDisqualified = freezed,Object? isRecord = freezed,Object? isNationalRecord = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? time = freezed,Object? statusLabel = freezed,Object? rankLabel = freezed,Object? disqualificationCode = freezed,Object? isDisqualified = freezed,Object? isRecord = freezed,Object? isNationalRecord = freezed,}) {
   return _then(PlaceResultDto(
-time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as String?,statusLabel: freezed == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
 as String?,rankLabel: freezed == rankLabel ? _self.rankLabel : rankLabel // ignore: cast_nullable_to_non_nullable
 as String?,disqualificationCode: freezed == disqualificationCode ? _self.disqualificationCode : disqualificationCode // ignore: cast_nullable_to_non_nullable
@@ -2226,10 +2230,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'tempsLabel')  String? time, @JsonKey(name: 'statutLabel')  String? statusLabel, @JsonKey(name: 'rangLabel')  String? rankLabel, @JsonKey(name: 'disqualificationCode')  String? disqualificationCode, @JsonKey(name: 'isDisqualifie')  bool? isDisqualified, @JsonKey(name: 'isRecord')  bool? isRecord, @JsonKey(name: 'isRecordDeFrance')  bool? isNationalRecord)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'id', readValue: readInt)  int? id, @JsonKey(name: 'tempsLabel')  String? time, @JsonKey(name: 'statutLabel')  String? statusLabel, @JsonKey(name: 'rangLabel')  String? rankLabel, @JsonKey(name: 'disqualificationCode')  String? disqualificationCode, @JsonKey(name: 'isDisqualifie')  bool? isDisqualified, @JsonKey(name: 'isRecord')  bool? isRecord, @JsonKey(name: 'isRecordDeFrance')  bool? isNationalRecord)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlaceResultDto() when $default != null:
-return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.disqualificationCode,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
+return $default(_that.id,_that.time,_that.statusLabel,_that.rankLabel,_that.disqualificationCode,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
   return orElse();
 
 }
@@ -2247,10 +2251,10 @@ return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.disqualificat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'tempsLabel')  String? time, @JsonKey(name: 'statutLabel')  String? statusLabel, @JsonKey(name: 'rangLabel')  String? rankLabel, @JsonKey(name: 'disqualificationCode')  String? disqualificationCode, @JsonKey(name: 'isDisqualifie')  bool? isDisqualified, @JsonKey(name: 'isRecord')  bool? isRecord, @JsonKey(name: 'isRecordDeFrance')  bool? isNationalRecord)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'id', readValue: readInt)  int? id, @JsonKey(name: 'tempsLabel')  String? time, @JsonKey(name: 'statutLabel')  String? statusLabel, @JsonKey(name: 'rangLabel')  String? rankLabel, @JsonKey(name: 'disqualificationCode')  String? disqualificationCode, @JsonKey(name: 'isDisqualifie')  bool? isDisqualified, @JsonKey(name: 'isRecord')  bool? isRecord, @JsonKey(name: 'isRecordDeFrance')  bool? isNationalRecord)  $default,) {final _that = this;
 switch (_that) {
 case _PlaceResultDto():
-return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.disqualificationCode,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
+return $default(_that.id,_that.time,_that.statusLabel,_that.rankLabel,_that.disqualificationCode,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2267,10 +2271,10 @@ return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.disqualificat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'tempsLabel')  String? time, @JsonKey(name: 'statutLabel')  String? statusLabel, @JsonKey(name: 'rangLabel')  String? rankLabel, @JsonKey(name: 'disqualificationCode')  String? disqualificationCode, @JsonKey(name: 'isDisqualifie')  bool? isDisqualified, @JsonKey(name: 'isRecord')  bool? isRecord, @JsonKey(name: 'isRecordDeFrance')  bool? isNationalRecord)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'id', readValue: readInt)  int? id, @JsonKey(name: 'tempsLabel')  String? time, @JsonKey(name: 'statutLabel')  String? statusLabel, @JsonKey(name: 'rangLabel')  String? rankLabel, @JsonKey(name: 'disqualificationCode')  String? disqualificationCode, @JsonKey(name: 'isDisqualifie')  bool? isDisqualified, @JsonKey(name: 'isRecord')  bool? isRecord, @JsonKey(name: 'isRecordDeFrance')  bool? isNationalRecord)?  $default,) {final _that = this;
 switch (_that) {
 case _PlaceResultDto() when $default != null:
-return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.disqualificationCode,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
+return $default(_that.id,_that.time,_that.statusLabel,_that.rankLabel,_that.disqualificationCode,_that.isDisqualified,_that.isRecord,_that.isNationalRecord);case _:
   return null;
 
 }
@@ -2282,9 +2286,10 @@ return $default(_that.time,_that.statusLabel,_that.rankLabel,_that.disqualificat
 @JsonSerializable()
 
 class _PlaceResultDto implements PlaceResultDto {
-  const _PlaceResultDto({@JsonKey(name: 'tempsLabel') this.time, @JsonKey(name: 'statutLabel') this.statusLabel, @JsonKey(name: 'rangLabel') this.rankLabel, @JsonKey(name: 'disqualificationCode') this.disqualificationCode, @JsonKey(name: 'isDisqualifie') this.isDisqualified, @JsonKey(name: 'isRecord') this.isRecord, @JsonKey(name: 'isRecordDeFrance') this.isNationalRecord});
+  const _PlaceResultDto({@JsonKey(name: 'id', readValue: readInt) this.id, @JsonKey(name: 'tempsLabel') this.time, @JsonKey(name: 'statutLabel') this.statusLabel, @JsonKey(name: 'rangLabel') this.rankLabel, @JsonKey(name: 'disqualificationCode') this.disqualificationCode, @JsonKey(name: 'isDisqualifie') this.isDisqualified, @JsonKey(name: 'isRecord') this.isRecord, @JsonKey(name: 'isRecordDeFrance') this.isNationalRecord});
   factory _PlaceResultDto.fromJson(Map<String, dynamic> json) => _$PlaceResultDtoFromJson(json);
 
+@override@JsonKey(name: 'id', readValue: readInt) final  int? id;
 @override@JsonKey(name: 'tempsLabel') final  String? time;
 @override@JsonKey(name: 'statutLabel') final  String? statusLabel;
 @override@JsonKey(name: 'rangLabel') final  String? rankLabel;
@@ -2306,18 +2311,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlaceResultDto&&(identical(other.time, time) || other.time == time)&&(identical(other.statusLabel, statusLabel) || other.statusLabel == statusLabel)&&(identical(other.rankLabel, rankLabel) || other.rankLabel == rankLabel)&&(identical(other.disqualificationCode, disqualificationCode) || other.disqualificationCode == disqualificationCode)&&(identical(other.isDisqualified, isDisqualified) || other.isDisqualified == isDisqualified)&&(identical(other.isRecord, isRecord) || other.isRecord == isRecord)&&(identical(other.isNationalRecord, isNationalRecord) || other.isNationalRecord == isNationalRecord));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlaceResultDto&&(identical(other.id, id) || other.id == id)&&(identical(other.time, time) || other.time == time)&&(identical(other.statusLabel, statusLabel) || other.statusLabel == statusLabel)&&(identical(other.rankLabel, rankLabel) || other.rankLabel == rankLabel)&&(identical(other.disqualificationCode, disqualificationCode) || other.disqualificationCode == disqualificationCode)&&(identical(other.isDisqualified, isDisqualified) || other.isDisqualified == isDisqualified)&&(identical(other.isRecord, isRecord) || other.isRecord == isRecord)&&(identical(other.isNationalRecord, isNationalRecord) || other.isNationalRecord == isNationalRecord));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,time,statusLabel,rankLabel,disqualificationCode,isDisqualified,isRecord,isNationalRecord);
+    return Object.hash(runtimeType,id,time,statusLabel,rankLabel,disqualificationCode,isDisqualified,isRecord,isNationalRecord);
 }
 
 @override
 String toString() {
-    return 'PlaceResultDto(time: $time, statusLabel: $statusLabel, rankLabel: $rankLabel, disqualificationCode: $disqualificationCode, isDisqualified: $isDisqualified, isRecord: $isRecord, isNationalRecord: $isNationalRecord)';
+    return 'PlaceResultDto(id: $id, time: $time, statusLabel: $statusLabel, rankLabel: $rankLabel, disqualificationCode: $disqualificationCode, isDisqualified: $isDisqualified, isRecord: $isRecord, isNationalRecord: $isNationalRecord)';
 }
 
 
@@ -2328,7 +2333,7 @@ abstract mixin class _$PlaceResultDtoCopyWith<$Res> implements $PlaceResultDtoCo
   factory _$PlaceResultDtoCopyWith(_PlaceResultDto value, $Res Function(_PlaceResultDto) _then) = __$PlaceResultDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'tempsLabel') String? time,@JsonKey(name: 'statutLabel') String? statusLabel,@JsonKey(name: 'rangLabel') String? rankLabel,@JsonKey(name: 'disqualificationCode') String? disqualificationCode,@JsonKey(name: 'isDisqualifie') bool? isDisqualified,@JsonKey(name: 'isRecord') bool? isRecord,@JsonKey(name: 'isRecordDeFrance') bool? isNationalRecord
+@JsonKey(name: 'id', readValue: readInt) int? id,@JsonKey(name: 'tempsLabel') String? time,@JsonKey(name: 'statutLabel') String? statusLabel,@JsonKey(name: 'rangLabel') String? rankLabel,@JsonKey(name: 'disqualificationCode') String? disqualificationCode,@JsonKey(name: 'isDisqualifie') bool? isDisqualified,@JsonKey(name: 'isRecord') bool? isRecord,@JsonKey(name: 'isRecordDeFrance') bool? isNationalRecord
 });
 
 
@@ -2345,9 +2350,10 @@ class __$PlaceResultDtoCopyWithImpl<$Res>
 
 /// Create a copy of PlaceResultDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? time = freezed,Object? statusLabel = freezed,Object? rankLabel = freezed,Object? disqualificationCode = freezed,Object? isDisqualified = freezed,Object? isRecord = freezed,Object? isNationalRecord = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? time = freezed,Object? statusLabel = freezed,Object? rankLabel = freezed,Object? disqualificationCode = freezed,Object? isDisqualified = freezed,Object? isRecord = freezed,Object? isNationalRecord = freezed,}) {
   return _then(_PlaceResultDto(
-time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as String?,statusLabel: freezed == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
 as String?,rankLabel: freezed == rankLabel ? _self.rankLabel : rankLabel // ignore: cast_nullable_to_non_nullable
 as String?,disqualificationCode: freezed == disqualificationCode ? _self.disqualificationCode : disqualificationCode // ignore: cast_nullable_to_non_nullable

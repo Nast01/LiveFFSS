@@ -2,11 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
+import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/home/competition_formatting.dart';
+import 'package:live_ffss_v2/features/officiel/entry_view.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_providers.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 import 'package:live_ffss_v2/features/programme/widgets/heat_card.dart';
@@ -19,10 +23,14 @@ class ItemDetailPage extends ConsumerStatefulWidget {
     super.key,
     required this.competitionId,
     required this.itemId,
+    required this.branch,
   });
 
   final int competitionId;
   final int itemId;
+
+  /// L'onglet qui a ouvert le créneau : la saisie s'ouvre sous lui.
+  final String branch;
 
   @override
   ConsumerState<ItemDetailPage> createState() => _ItemDetailPageState();
@@ -120,6 +128,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     ].join(' · ');
     final time = timeRangeLabel(item.startTime, item.endTime);
     final pending = itemStatus(item) == ItemStatus.seriesPending;
+    final canEnter = ref.watch(canEnterProvider(widget.competitionId));
 
     return RefreshIndicator(
       onRefresh: _refresh,
@@ -176,7 +185,21 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
             )
           else
             for (final heat in item.heats)
-              HeatCard(heat: heat, lanes: detail.lanesOf(heat)),
+              HeatCard(
+                heat: heat,
+                lanes: detail.lanesOf(heat),
+                manualTimes: detail.manualTimesOf(heat),
+                onEnter: canEnter && canEnterHeat(heat)
+                    ? () => context.go(
+                        Routes.itemEntry(
+                          widget.branch,
+                          widget.competitionId,
+                          widget.itemId,
+                          heatId: heat.id,
+                        ),
+                      )
+                    : null,
+              ),
         ],
       ),
     );

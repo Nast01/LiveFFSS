@@ -281,4 +281,51 @@ void main() {
     expect(position.position, 3);
     expect(position.total, 4);
   });
+
+  group('entrySequence', () {
+    test('tout un tour avant le suivant, même sur plusieurs créneaux', () {
+      final meetings = [
+        meeting([
+          item(1, [
+            heat(1, number: 1, seriesId: 1),
+            heat(2, number: 2, seriesId: 2),
+          ], roundId: 100),
+          item(2, [heat(5, number: 1, raceId: 2, seriesId: 5)], roundId: 200),
+          item(3, [
+            heat(4, number: 4, seriesId: 4),
+            heat(3, number: 3, seriesId: 3),
+          ], roundId: 100),
+        ]),
+      ];
+
+      expect(
+        [for (final e in entrySequence(meetings)) e.heat.id],
+        [1, 2, 3, 4, 5],
+      );
+    });
+
+    test('écarte les séries sans série FFSS, rien où écrire', () {
+      final meetings = [
+        meeting([
+          item(1, [heat(1, seriesId: 1), heat(2, number: 2)], roundId: 100),
+        ]),
+      ];
+
+      expect([for (final e in entrySequence(meetings)) e.heat.id], [1]);
+    });
+
+    test("à numéro égal, l'ordre du programme départage", () {
+      final meetings = [
+        meeting([
+          item(1, [
+            heat(7, seriesId: 7),
+            heat(3, seriesId: 3),
+            heat(9, seriesId: 9),
+          ], roundId: 100),
+        ]),
+      ];
+
+      expect([for (final e in entrySequence(meetings)) e.heat.id], [7, 3, 9]);
+    });
+  });
 }

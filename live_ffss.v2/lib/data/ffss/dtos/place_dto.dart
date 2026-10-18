@@ -22,6 +22,7 @@ abstract class PlaceDto with _$PlaceDto {
 @freezed
 abstract class PlaceEngagementDto with _$PlaceEngagementDto {
   const factory PlaceEngagementDto({
+    @JsonKey(name: 'id', readValue: readInt) int? id,
     @JsonKey(name: 'clubLabel') String? clubLabel,
     @JsonKey(name: 'isForfait') bool? isForfeit,
     @JsonKey(name: 'athletes')
@@ -89,6 +90,7 @@ abstract class PlaceDisciplineDto with _$PlaceDisciplineDto {
 @freezed
 abstract class PlaceResultDto with _$PlaceResultDto {
   const factory PlaceResultDto({
+    @JsonKey(name: 'id', readValue: readInt) int? id,
     @JsonKey(name: 'tempsLabel') String? time,
     @JsonKey(name: 'statutLabel') String? statusLabel,
     @JsonKey(name: 'rangLabel') String? rankLabel,

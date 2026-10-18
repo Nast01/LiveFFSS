@@ -3,16 +3,29 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
+import 'package:live_ffss_v2/domain/manual_timing.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 import 'package:live_ffss_v2/features/programme/widgets/lane_row.dart';
 import 'package:live_ffss_v2/features/programme/widgets/status_badge.dart';
 
 class HeatCard extends StatelessWidget {
-  const HeatCard({super.key, required this.heat, required this.lanes});
+  const HeatCard({
+    super.key,
+    required this.heat,
+    required this.lanes,
+    this.manualTimes = const {},
+    this.onEnter,
+  });
 
   final Heat heat;
   final List<LaneAssignment> lanes;
+
+  /// Par id de place ; vide pour un spectateur.
+  final Map<int, ManualTime> manualTimes;
+
+  /// « Saisir », pour un officiel de la compétition ; nul sinon.
+  final VoidCallback? onEnter;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +55,11 @@ class HeatCard extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
+                if (onEnter case final onEnter?)
+                  TextButton(
+                    onPressed: onEnter,
+                    child: Text(l10n.enterResults),
+                  ),
                 StatusBadge(status: heatStatus(heat)),
               ],
             ),
@@ -56,7 +74,11 @@ class HeatCard extends StatelessWidget {
             )
           else
             for (final lane in lanes)
-              LaneRow(lane: lane, place: places[lane.id]),
+              LaneRow(
+                lane: lane,
+                place: places[lane.id],
+                manualTime: manualTimes[lane.id],
+              ),
           const SizedBox(height: 4),
         ],
       ),

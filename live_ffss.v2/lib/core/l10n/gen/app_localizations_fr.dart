@@ -128,11 +128,57 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ouvrez une compétition depuis l\'accueil pour suivre son programme, son live et ses résultats.';
 
   @override
-  String get comingSoon => 'Bientôt';
+  String get loginTitle => 'Connexion';
 
   @override
-  String get mySpaceComingSoon =>
-      'La connexion et votre espace arrivent bientôt.';
+  String get loginField => 'Identifiant';
+
+  @override
+  String get passwordField => 'Mot de passe';
+
+  @override
+  String get showPassword => 'Afficher le mot de passe';
+
+  @override
+  String get hidePassword => 'Masquer le mot de passe';
+
+  @override
+  String get loginErrorRejected => 'Identifiant ou mot de passe refusé.';
+
+  @override
+  String get loginErrorUnreachable =>
+      'Serveur injoignable : vérifiez votre connexion et réessayez.';
+
+  @override
+  String get loginErrorOther => 'La connexion a échoué. Réessayez plus tard.';
+
+  @override
+  String get sessionExpired => 'Session expirée, reconnectez-vous';
+
+  @override
+  String accountType(String type) {
+    return 'Type de compte : $type';
+  }
+
+  @override
+  String get logOut => 'Se déconnecter';
+
+  @override
+  String get logOutConfirmTitle => 'Se déconnecter ?';
+
+  @override
+  String logOutConfirmBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count saisies attendent d\'être envoyées',
+      one: '1 saisie attend d\'être envoyée',
+    );
+    return '$_temp0. Elles resteront en file et partiront à votre prochaine connexion avec ce compte.';
+  }
+
+  @override
+  String get cancel => 'Annuler';
 
   @override
   String get languageTitle => 'Langue';
@@ -327,4 +373,176 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get enterResults => 'Saisir';
+
+  @override
+  String get officialBadge => 'OFFICIEL';
+
+  @override
+  String get entryTitle => 'Saisie';
+
+  @override
+  String get entryNotice =>
+      'Saisies non définitives — validation par le juge des résultats (FFSSCompetition)';
+
+  @override
+  String get entryLaneAll => 'Tous';
+
+  @override
+  String entryLane(int lane) {
+    return 'Couloir $lane';
+  }
+
+  @override
+  String entryChrono(int number) {
+    return 'Chrono $number';
+  }
+
+  @override
+  String entryManualTime(String time) {
+    return 'Temps manuel : $time';
+  }
+
+  @override
+  String get entryRuleSingle => '1 chrono';
+
+  @override
+  String get entryRuleAverage => 'moyenne de 2';
+
+  @override
+  String get entryRuleMedian => 'médiane de 3';
+
+  @override
+  String get entryNotFinal => 'non définitif';
+
+  @override
+  String get manualTimeNote => 'manuel, non définitif';
+
+  @override
+  String get entryNoChrono => 'Aucun chrono saisi';
+
+  @override
+  String get entryInvalidChrono => 'Secondes au plus 59';
+
+  @override
+  String get entryDisqualify => 'DQ…';
+
+  @override
+  String get entryDisqualifyCodeRequired => 'Saisissez le code de DQ';
+
+  @override
+  String get entryDisqualifyCode => 'Code de DQ';
+
+  @override
+  String get entryCancelDisqualification => 'Annuler la DQ';
+
+  @override
+  String entryForfeitConfirm(String name) {
+    return 'Déclarer forfait : $name ?';
+  }
+
+  @override
+  String get entryCancelForfeit => 'Annuler le forfait';
+
+  @override
+  String get entryChronos => 'Chronos';
+
+  @override
+  String get entryClear => 'Effacer';
+
+  @override
+  String get entryErase => 'Effacer le dernier chiffre';
+
+  @override
+  String get entrySave => 'Enregistrer';
+
+  @override
+  String get entrySaveAndNext => 'Enregistrer et passer à la série suivante';
+
+  @override
+  String get entryAllLanes => 'Tous les couloirs';
+
+  @override
+  String get entryPreviousHeat => 'Série précédente';
+
+  @override
+  String get entryNextHeat => 'Série suivante';
+
+  @override
+  String entryDisqualified(String code) {
+    return 'DQ $code';
+  }
+
+  @override
+  String get entrySent => 'Envoyé';
+
+  @override
+  String get entryPending => 'En attente d\'envoi';
+
+  @override
+  String entryRejected(String reason) {
+    return 'Refusé : $reason';
+  }
+
+  @override
+  String get entryRejectedValidated => 'validé par le juge des résultats';
+
+  @override
+  String get entryRejectedUnreadable => 'résultat illisible sur le site';
+
+  @override
+  String get entryRejectedEmptyPlace => 'plus personne dans ce couloir';
+
+  @override
+  String get entryRejectedPlaceChanged =>
+      'série recomposée : ce couloir a changé de nageur';
+
+  @override
+  String get entryRejectedServer => 'refus du site';
+
+  @override
+  String get entryDismiss => 'Ignorer';
+
+  @override
+  String get entryValidatedByJudge => 'Validé par le juge des résultats';
+
+  @override
+  String get entryUnsaved => 'Non enregistré';
+
+  @override
+  String entryEmptyLane(int lane) {
+    return 'Personne au couloir $lane dans cette série';
+  }
+
+  @override
+  String get entryNoHeat => 'Aucune série à saisir dans ce créneau';
+
+  @override
+  String get entryLastHeat =>
+      'Dernière série : il n\'y en a pas d\'autre après';
+
+  @override
+  String get entryNotPersisted =>
+      'Saisie en file, mais pas enregistrée sur le téléphone : ne fermez pas l\'application avant son envoi';
+
+  @override
+  String get entryNotConnected => 'Connectez-vous pour saisir';
+
+  @override
+  String get entryDenied => 'Saisie réservée aux officiels de la compétition';
+
+  @override
+  String get entryLoadError => 'Impossible de charger cette série.';
+
+  @override
+  String get entrySessionLost => 'Session expirée — reconnectez-vous';
+
+  @override
+  String get entryResuming => 'Vérification de vos droits de saisie…';
+
+  @override
+  String get entryUnverified =>
+      'Droits de saisie non vérifiés : le site n\'a pas répondu. Vérifiez votre connexion et réessayez.';
 }

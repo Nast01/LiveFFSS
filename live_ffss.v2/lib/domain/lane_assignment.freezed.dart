@@ -300,7 +300,8 @@ as bool,
 mixin _$LaneAssignment {
 
 /// Id FFSS de la place.
- int get id; int get lane; List<String> get athletes; String get club; String? get category; bool get forfeit; bool get isRelay; Performance? get performance;
+ int get id; int get lane; List<String> get athletes; String get club; String? get category; bool get forfeit; bool get isRelay; Performance? get performance;/// Ids FFSS du résultat et de l'engagement : de quoi écrire le résultat.
+ int? get resultId; int? get entryId;
 /// Create a copy of LaneAssignment
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -312,20 +313,20 @@ $LaneAssignmentCopyWith<LaneAssignment> get copyWith => _$LaneAssignmentCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as LaneAssignment;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LaneAssignment&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.lane, _this.lane) || other.lane == _this.lane)&&const DeepCollectionEquality().equals(other.athletes, _this.athletes)&&(identical(other.club, _this.club) || other.club == _this.club)&&(identical(other.category, _this.category) || other.category == _this.category)&&(identical(other.forfeit, _this.forfeit) || other.forfeit == _this.forfeit)&&(identical(other.isRelay, _this.isRelay) || other.isRelay == _this.isRelay)&&(identical(other.performance, _this.performance) || other.performance == _this.performance));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LaneAssignment&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.lane, _this.lane) || other.lane == _this.lane)&&const DeepCollectionEquality().equals(other.athletes, _this.athletes)&&(identical(other.club, _this.club) || other.club == _this.club)&&(identical(other.category, _this.category) || other.category == _this.category)&&(identical(other.forfeit, _this.forfeit) || other.forfeit == _this.forfeit)&&(identical(other.isRelay, _this.isRelay) || other.isRelay == _this.isRelay)&&(identical(other.performance, _this.performance) || other.performance == _this.performance)&&(identical(other.resultId, _this.resultId) || other.resultId == _this.resultId)&&(identical(other.entryId, _this.entryId) || other.entryId == _this.entryId));
 }
 
 
 @override
 int get hashCode {
   final _this = this as LaneAssignment;
-  return Object.hash(runtimeType,_this.id,_this.lane,const DeepCollectionEquality().hash(_this.athletes),_this.club,_this.category,_this.forfeit,_this.isRelay,_this.performance);
+  return Object.hash(runtimeType,_this.id,_this.lane,const DeepCollectionEquality().hash(_this.athletes),_this.club,_this.category,_this.forfeit,_this.isRelay,_this.performance,_this.resultId,_this.entryId);
 }
 
 @override
 String toString() {
   final _this = this as LaneAssignment;
-  return 'LaneAssignment(id: ${_this.id}, lane: ${_this.lane}, athletes: ${_this.athletes}, club: ${_this.club}, category: ${_this.category}, forfeit: ${_this.forfeit}, isRelay: ${_this.isRelay}, performance: ${_this.performance})';
+  return 'LaneAssignment(id: ${_this.id}, lane: ${_this.lane}, athletes: ${_this.athletes}, club: ${_this.club}, category: ${_this.category}, forfeit: ${_this.forfeit}, isRelay: ${_this.isRelay}, performance: ${_this.performance}, resultId: ${_this.resultId}, entryId: ${_this.entryId})';
 }
 
 
@@ -336,7 +337,7 @@ abstract mixin class $LaneAssignmentCopyWith<$Res>  {
   factory $LaneAssignmentCopyWith(LaneAssignment value, $Res Function(LaneAssignment) _then) = _$LaneAssignmentCopyWithImpl;
 @useResult
 $Res call({
- int id, int lane, List<String> athletes, String club, String? category, bool forfeit, bool isRelay, Performance? performance
+ int id, int lane, List<String> athletes, String club, String? category, bool forfeit, bool isRelay, Performance? performance, int? resultId, int? entryId
 });
 
 
@@ -353,7 +354,7 @@ class _$LaneAssignmentCopyWithImpl<$Res>
 
 /// Create a copy of LaneAssignment
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? lane = null,Object? athletes = null,Object? club = null,Object? category = freezed,Object? forfeit = null,Object? isRelay = null,Object? performance = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? lane = null,Object? athletes = null,Object? club = null,Object? category = freezed,Object? forfeit = null,Object? isRelay = null,Object? performance = freezed,Object? resultId = freezed,Object? entryId = freezed,}) {
   return _then(LaneAssignment(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,lane: null == lane ? _self.lane : lane // ignore: cast_nullable_to_non_nullable
@@ -363,7 +364,9 @@ as String,category: freezed == category ? _self.category : category // ignore: c
 as String?,forfeit: null == forfeit ? _self.forfeit : forfeit // ignore: cast_nullable_to_non_nullable
 as bool,isRelay: null == isRelay ? _self.isRelay : isRelay // ignore: cast_nullable_to_non_nullable
 as bool,performance: freezed == performance ? _self.performance : performance // ignore: cast_nullable_to_non_nullable
-as Performance?,
+as Performance?,resultId: freezed == resultId ? _self.resultId : resultId // ignore: cast_nullable_to_non_nullable
+as int?,entryId: freezed == entryId ? _self.entryId : entryId // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 /// Create a copy of LaneAssignment
@@ -460,10 +463,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool forfeit,  bool isRelay,  Performance? performance)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool forfeit,  bool isRelay,  Performance? performance,  int? resultId,  int? entryId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LaneAssignment() when $default != null:
-return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_that.forfeit,_that.isRelay,_that.performance);case _:
+return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_that.forfeit,_that.isRelay,_that.performance,_that.resultId,_that.entryId);case _:
   return orElse();
 
 }
@@ -481,10 +484,10 @@ return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool forfeit,  bool isRelay,  Performance? performance)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool forfeit,  bool isRelay,  Performance? performance,  int? resultId,  int? entryId)  $default,) {final _that = this;
 switch (_that) {
 case _LaneAssignment():
-return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_that.forfeit,_that.isRelay,_that.performance);case _:
+return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_that.forfeit,_that.isRelay,_that.performance,_that.resultId,_that.entryId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -501,10 +504,10 @@ return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool forfeit,  bool isRelay,  Performance? performance)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool forfeit,  bool isRelay,  Performance? performance,  int? resultId,  int? entryId)?  $default,) {final _that = this;
 switch (_that) {
 case _LaneAssignment() when $default != null:
-return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_that.forfeit,_that.isRelay,_that.performance);case _:
+return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_that.forfeit,_that.isRelay,_that.performance,_that.resultId,_that.entryId);case _:
   return null;
 
 }
@@ -516,7 +519,7 @@ return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_th
 
 
 class _LaneAssignment extends LaneAssignment {
-  const _LaneAssignment({required this.id, required this.lane,  List<String> athletes = const <String>[], this.club = '', this.category, this.forfeit = false, this.isRelay = false, this.performance}): _athletes = athletes,super._();
+  const _LaneAssignment({required this.id, required this.lane,  List<String> athletes = const <String>[], this.club = '', this.category, this.forfeit = false, this.isRelay = false, this.performance, this.resultId, this.entryId}): _athletes = athletes,super._();
   
 
 /// Id FFSS de la place.
@@ -534,6 +537,9 @@ class _LaneAssignment extends LaneAssignment {
 @override@JsonKey() final  bool forfeit;
 @override@JsonKey() final  bool isRelay;
 @override final  Performance? performance;
+/// Ids FFSS du résultat et de l'engagement : de quoi écrire le résultat.
+@override final  int? resultId;
+@override final  int? entryId;
 
 /// Create a copy of LaneAssignment
 /// with the given fields replaced by the non-null parameter values.
@@ -545,18 +551,18 @@ _$LaneAssignmentCopyWith<_LaneAssignment> get copyWith => __$LaneAssignmentCopyW
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LaneAssignment&&(identical(other.id, id) || other.id == id)&&(identical(other.lane, lane) || other.lane == lane)&&const DeepCollectionEquality().equals(other.athletes, _athletes)&&(identical(other.club, club) || other.club == club)&&(identical(other.category, category) || other.category == category)&&(identical(other.forfeit, forfeit) || other.forfeit == forfeit)&&(identical(other.isRelay, isRelay) || other.isRelay == isRelay)&&(identical(other.performance, performance) || other.performance == performance));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LaneAssignment&&(identical(other.id, id) || other.id == id)&&(identical(other.lane, lane) || other.lane == lane)&&const DeepCollectionEquality().equals(other.athletes, _athletes)&&(identical(other.club, club) || other.club == club)&&(identical(other.category, category) || other.category == category)&&(identical(other.forfeit, forfeit) || other.forfeit == forfeit)&&(identical(other.isRelay, isRelay) || other.isRelay == isRelay)&&(identical(other.performance, performance) || other.performance == performance)&&(identical(other.resultId, resultId) || other.resultId == resultId)&&(identical(other.entryId, entryId) || other.entryId == entryId));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,lane,const DeepCollectionEquality().hash(_athletes),club,category,forfeit,isRelay,performance);
+    return Object.hash(runtimeType,id,lane,const DeepCollectionEquality().hash(_athletes),club,category,forfeit,isRelay,performance,resultId,entryId);
 }
 
 @override
 String toString() {
-    return 'LaneAssignment(id: $id, lane: $lane, athletes: $athletes, club: $club, category: $category, forfeit: $forfeit, isRelay: $isRelay, performance: $performance)';
+    return 'LaneAssignment(id: $id, lane: $lane, athletes: $athletes, club: $club, category: $category, forfeit: $forfeit, isRelay: $isRelay, performance: $performance, resultId: $resultId, entryId: $entryId)';
 }
 
 
@@ -567,7 +573,7 @@ abstract mixin class _$LaneAssignmentCopyWith<$Res> implements $LaneAssignmentCo
   factory _$LaneAssignmentCopyWith(_LaneAssignment value, $Res Function(_LaneAssignment) _then) = __$LaneAssignmentCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int lane, List<String> athletes, String club, String? category, bool forfeit, bool isRelay, Performance? performance
+ int id, int lane, List<String> athletes, String club, String? category, bool forfeit, bool isRelay, Performance? performance, int? resultId, int? entryId
 });
 
 
@@ -584,7 +590,7 @@ class __$LaneAssignmentCopyWithImpl<$Res>
 
 /// Create a copy of LaneAssignment
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? lane = null,Object? athletes = null,Object? club = null,Object? category = freezed,Object? forfeit = null,Object? isRelay = null,Object? performance = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? lane = null,Object? athletes = null,Object? club = null,Object? category = freezed,Object? forfeit = null,Object? isRelay = null,Object? performance = freezed,Object? resultId = freezed,Object? entryId = freezed,}) {
   return _then(_LaneAssignment(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,lane: null == lane ? _self.lane : lane // ignore: cast_nullable_to_non_nullable
@@ -594,7 +600,9 @@ as String,category: freezed == category ? _self.category : category // ignore: c
 as String?,forfeit: null == forfeit ? _self.forfeit : forfeit // ignore: cast_nullable_to_non_nullable
 as bool,isRelay: null == isRelay ? _self.isRelay : isRelay // ignore: cast_nullable_to_non_nullable
 as bool,performance: freezed == performance ? _self.performance : performance // ignore: cast_nullable_to_non_nullable
-as Performance?,
+as Performance?,resultId: freezed == resultId ? _self.resultId : resultId // ignore: cast_nullable_to_non_nullable
+as int?,entryId: freezed == entryId ? _self.entryId : entryId // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

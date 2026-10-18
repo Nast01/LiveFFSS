@@ -31,8 +31,9 @@ class HttpClient {
   /// Fired when the session is over — a 401, or the 403 "Invalid token" FFSS
   /// actually uses (see [_decode]).
   /// The handler runs fire-and-forget; errors inside it are swallowed so the
-  /// `AuthException` always propagates to the caller. Wired in
-  /// `InitialBinding` to logout + navigate to the login screen.
+  /// `AuthException` always propagates to the caller. Wired by
+  /// `SessionNotifier` (`features/auth/session.dart`), which closes the
+  /// session and marks it expired.
   set onAuthFailure(Future<void> Function() handler) =>
       _onAuthFailure = handler;
 
@@ -46,21 +47,38 @@ class HttpClient {
     send: (uri, headers) => _inner.get(uri, headers: headers),
   );
 
+  /// [body] part en JSON ; [form] part en formulaire encodé, pour ce qui ne
+  /// doit jamais apparaître dans l'adresse (un mot de passe : l'adresse finit
+  /// dans les journaux du serveur et des relais). Les écritures FFSS, elles,
+  /// prennent leurs paramètres dans [query] : un corps JSON y répond HTTP 500.
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? query,
     Object? body,
-  }) => _send(
-    method: 'POST',
-    path: path,
-    query: query,
-    body: body,
-    send: (uri, headers) => _inner.post(
-      uri,
-      headers: headers,
-      body: body == null ? null : jsonEncode(body),
-    ),
-  );
+    Map<String, String>? form,
+  }) {
+    assert(body == null || form == null, 'body et form sont exclusifs');
+    return _send(
+      method: 'POST',
+      path: path,
+      query: query,
+      body: body,
+      contentType: form == null ? _jsonContentType : _formContentType,
+      send: (uri, headers) => _inner.post(
+        uri,
+        headers: headers,
+        body: form != null
+            ? Uri(queryParameters: form).query
+            : body == null
+            ? null
+            : jsonEncode(body),
+      ),
+    );
+  }
+
+  static const _jsonContentType = 'application/json; charset=UTF-8';
+  static const _formContentType =
+      'application/x-www-form-urlencoded; charset=UTF-8';
 
   /// Reads the token here rather than in [get] and [post] so a failing
   /// TokenStorage is caught by the same mapping as a failing request, and so
@@ -75,6 +93,7 @@ class HttpClient {
     send,
     Map<String, dynamic>? query,
     Object? body,
+    String contentType = _jsonContentType,
   }) async {
     try {
       final token = await _tokenStorage.getToken();
@@ -84,7 +103,7 @@ class HttpClient {
       // et l'écran appelant tournait en rond pour toujours.
       final response = await send(
         uri,
-        _buildHeaders(token),
+        _buildHeaders(token, contentType),
       ).timeout(_requestTimeout);
       return _decode(
         response,
@@ -145,11 +164,8 @@ class HttpClient {
   /// The Bearer header is kept beside the query parameter even though FFSS
   /// ignores it on `/me`: it costs nothing, and only that one endpoint has been
   /// checked. The query parameter is what actually authenticates.
-  Map<String, String> _buildHeaders(String? token) {
-    final headers = {
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Accept': 'application/json',
-    };
+  Map<String, String> _buildHeaders(String? token, String contentType) {
+    final headers = {'Content-Type': contentType, 'Accept': 'application/json'};
     if (token != null && token.isNotEmpty) {
       headers['Authorization'] = 'Bearer $token';
     }
@@ -190,9 +206,12 @@ class HttpClient {
 
     if (status >= 400) {
       throw ApiException(
-        _extractMessage(rawBody) ?? 'HTTP $status',
+        message ?? 'HTTP $status',
         statusCode: status,
         authenticated: authenticated,
+        // Une erreur sans corps JSON vient d'un proxy, d'un portail ou d'une
+        // panne, pas d'un refus formulé par FFSS.
+        malformedResponse: !_isJsonObject(rawBody),
       );
     }
 
@@ -200,10 +219,12 @@ class HttpClient {
     try {
       body = jsonDecode(rawBody);
     } on FormatException catch (e) {
+      // Le portail captif d'un Wi-Fi sert sa page de connexion en 200.
       throw ApiException(
         'Invalid JSON: ${e.message}',
         statusCode: status,
         authenticated: authenticated,
+        malformedResponse: true,
       );
     }
 
@@ -223,6 +244,7 @@ class HttpClient {
         'Unexpected response shape',
         statusCode: status,
         authenticated: authenticated,
+        malformedResponse: true,
       );
     }
 
@@ -253,6 +275,14 @@ class HttpClient {
     if (cb == null) return;
     // Fire-and-forget; swallow errors so the AuthException always propagates.
     cb().catchError((Object _) {});
+  }
+
+  static bool _isJsonObject(String rawBody) {
+    try {
+      return jsonDecode(rawBody) is Map<String, dynamic>;
+    } on FormatException {
+      return false;
+    }
   }
 
   String? _extractMessage(String rawBody) {

@@ -17,7 +17,9 @@ mixin _$MeetingItemDetail {
 
  Meeting get meeting; MeetingItem get item; Progression? get progression; Stage? get stage;/// Par id de place. Une valeur nulle est une place vide ; une clé absente,
 /// une place jamais lue.
- Map<int, LaneAssignment?> get lanes;
+ Map<int, LaneAssignment?> get lanes;/// TempsLive1..3 par id d'engagement. Vide pour un spectateur : le temps
+/// manuel n'est montré qu'aux officiels connectés.
+ Map<int, List<int?>> get chronos;
 /// Create a copy of MeetingItemDetail
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,20 +31,20 @@ $MeetingItemDetailCopyWith<MeetingItemDetail> get copyWith => _$MeetingItemDetai
 @override
 bool operator ==(Object other) {
   final _this = this as MeetingItemDetail;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MeetingItemDetail&&(identical(other.meeting, _this.meeting) || other.meeting == _this.meeting)&&(identical(other.item, _this.item) || other.item == _this.item)&&(identical(other.progression, _this.progression) || other.progression == _this.progression)&&(identical(other.stage, _this.stage) || other.stage == _this.stage)&&const DeepCollectionEquality().equals(other.lanes, _this.lanes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MeetingItemDetail&&(identical(other.meeting, _this.meeting) || other.meeting == _this.meeting)&&(identical(other.item, _this.item) || other.item == _this.item)&&(identical(other.progression, _this.progression) || other.progression == _this.progression)&&(identical(other.stage, _this.stage) || other.stage == _this.stage)&&const DeepCollectionEquality().equals(other.lanes, _this.lanes)&&const DeepCollectionEquality().equals(other.chronos, _this.chronos));
 }
 
 
 @override
 int get hashCode {
   final _this = this as MeetingItemDetail;
-  return Object.hash(runtimeType,_this.meeting,_this.item,_this.progression,_this.stage,const DeepCollectionEquality().hash(_this.lanes));
+  return Object.hash(runtimeType,_this.meeting,_this.item,_this.progression,_this.stage,const DeepCollectionEquality().hash(_this.lanes),const DeepCollectionEquality().hash(_this.chronos));
 }
 
 @override
 String toString() {
   final _this = this as MeetingItemDetail;
-  return 'MeetingItemDetail(meeting: ${_this.meeting}, item: ${_this.item}, progression: ${_this.progression}, stage: ${_this.stage}, lanes: ${_this.lanes})';
+  return 'MeetingItemDetail(meeting: ${_this.meeting}, item: ${_this.item}, progression: ${_this.progression}, stage: ${_this.stage}, lanes: ${_this.lanes}, chronos: ${_this.chronos})';
 }
 
 
@@ -53,7 +55,7 @@ abstract mixin class $MeetingItemDetailCopyWith<$Res>  {
   factory $MeetingItemDetailCopyWith(MeetingItemDetail value, $Res Function(MeetingItemDetail) _then) = _$MeetingItemDetailCopyWithImpl;
 @useResult
 $Res call({
- Meeting meeting, MeetingItem item, Progression? progression, Stage? stage, Map<int, LaneAssignment?> lanes
+ Meeting meeting, MeetingItem item, Progression? progression, Stage? stage, Map<int, LaneAssignment?> lanes, Map<int, List<int?>> chronos
 });
 
 
@@ -70,14 +72,15 @@ class _$MeetingItemDetailCopyWithImpl<$Res>
 
 /// Create a copy of MeetingItemDetail
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? meeting = null,Object? item = null,Object? progression = freezed,Object? stage = freezed,Object? lanes = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? meeting = null,Object? item = null,Object? progression = freezed,Object? stage = freezed,Object? lanes = null,Object? chronos = null,}) {
   return _then(MeetingItemDetail(
 meeting: null == meeting ? _self.meeting : meeting // ignore: cast_nullable_to_non_nullable
 as Meeting,item: null == item ? _self.item : item // ignore: cast_nullable_to_non_nullable
 as MeetingItem,progression: freezed == progression ? _self.progression : progression // ignore: cast_nullable_to_non_nullable
 as Progression?,stage: freezed == stage ? _self.stage : stage // ignore: cast_nullable_to_non_nullable
 as Stage?,lanes: null == lanes ? _self.lanes : lanes // ignore: cast_nullable_to_non_nullable
-as Map<int, LaneAssignment?>,
+as Map<int, LaneAssignment?>,chronos: null == chronos ? _self.chronos : chronos // ignore: cast_nullable_to_non_nullable
+as Map<int, List<int?>>,
   ));
 }
 /// Create a copy of MeetingItemDetail
@@ -204,10 +207,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Meeting meeting,  MeetingItem item,  Progression? progression,  Stage? stage,  Map<int, LaneAssignment?> lanes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Meeting meeting,  MeetingItem item,  Progression? progression,  Stage? stage,  Map<int, LaneAssignment?> lanes,  Map<int, List<int?>> chronos)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MeetingItemDetail() when $default != null:
-return $default(_that.meeting,_that.item,_that.progression,_that.stage,_that.lanes);case _:
+return $default(_that.meeting,_that.item,_that.progression,_that.stage,_that.lanes,_that.chronos);case _:
   return orElse();
 
 }
@@ -225,10 +228,10 @@ return $default(_that.meeting,_that.item,_that.progression,_that.stage,_that.lan
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Meeting meeting,  MeetingItem item,  Progression? progression,  Stage? stage,  Map<int, LaneAssignment?> lanes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Meeting meeting,  MeetingItem item,  Progression? progression,  Stage? stage,  Map<int, LaneAssignment?> lanes,  Map<int, List<int?>> chronos)  $default,) {final _that = this;
 switch (_that) {
 case _MeetingItemDetail():
-return $default(_that.meeting,_that.item,_that.progression,_that.stage,_that.lanes);case _:
+return $default(_that.meeting,_that.item,_that.progression,_that.stage,_that.lanes,_that.chronos);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -245,10 +248,10 @@ return $default(_that.meeting,_that.item,_that.progression,_that.stage,_that.lan
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Meeting meeting,  MeetingItem item,  Progression? progression,  Stage? stage,  Map<int, LaneAssignment?> lanes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Meeting meeting,  MeetingItem item,  Progression? progression,  Stage? stage,  Map<int, LaneAssignment?> lanes,  Map<int, List<int?>> chronos)?  $default,) {final _that = this;
 switch (_that) {
 case _MeetingItemDetail() when $default != null:
-return $default(_that.meeting,_that.item,_that.progression,_that.stage,_that.lanes);case _:
+return $default(_that.meeting,_that.item,_that.progression,_that.stage,_that.lanes,_that.chronos);case _:
   return null;
 
 }
@@ -260,7 +263,7 @@ return $default(_that.meeting,_that.item,_that.progression,_that.stage,_that.lan
 
 
 class _MeetingItemDetail extends MeetingItemDetail {
-  const _MeetingItemDetail({required this.meeting, required this.item, this.progression, this.stage,  Map<int, LaneAssignment?> lanes = const <int, LaneAssignment?>{}}): _lanes = lanes,super._();
+  const _MeetingItemDetail({required this.meeting, required this.item, this.progression, this.stage,  Map<int, LaneAssignment?> lanes = const <int, LaneAssignment?>{},  Map<int, List<int?>> chronos = const <int, List<int?>>{}}): _lanes = lanes,_chronos = chronos,super._();
   
 
 @override final  Meeting meeting;
@@ -278,6 +281,17 @@ class _MeetingItemDetail extends MeetingItemDetail {
   return EqualUnmodifiableMapView(_lanes);
 }
 
+/// TempsLive1..3 par id d'engagement. Vide pour un spectateur : le temps
+/// manuel n'est montré qu'aux officiels connectés.
+ final  Map<int, List<int?>> _chronos;
+/// TempsLive1..3 par id d'engagement. Vide pour un spectateur : le temps
+/// manuel n'est montré qu'aux officiels connectés.
+@override@JsonKey() Map<int, List<int?>> get chronos {
+  if (_chronos is EqualUnmodifiableMapView) return _chronos;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_chronos);
+}
+
 
 /// Create a copy of MeetingItemDetail
 /// with the given fields replaced by the non-null parameter values.
@@ -289,18 +303,18 @@ _$MeetingItemDetailCopyWith<_MeetingItemDetail> get copyWith => __$MeetingItemDe
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MeetingItemDetail&&(identical(other.meeting, meeting) || other.meeting == meeting)&&(identical(other.item, item) || other.item == item)&&(identical(other.progression, progression) || other.progression == progression)&&(identical(other.stage, stage) || other.stage == stage)&&const DeepCollectionEquality().equals(other.lanes, _lanes));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MeetingItemDetail&&(identical(other.meeting, meeting) || other.meeting == meeting)&&(identical(other.item, item) || other.item == item)&&(identical(other.progression, progression) || other.progression == progression)&&(identical(other.stage, stage) || other.stage == stage)&&const DeepCollectionEquality().equals(other.lanes, _lanes)&&const DeepCollectionEquality().equals(other.chronos, _chronos));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,meeting,item,progression,stage,const DeepCollectionEquality().hash(_lanes));
+    return Object.hash(runtimeType,meeting,item,progression,stage,const DeepCollectionEquality().hash(_lanes),const DeepCollectionEquality().hash(_chronos));
 }
 
 @override
 String toString() {
-    return 'MeetingItemDetail(meeting: $meeting, item: $item, progression: $progression, stage: $stage, lanes: $lanes)';
+    return 'MeetingItemDetail(meeting: $meeting, item: $item, progression: $progression, stage: $stage, lanes: $lanes, chronos: $chronos)';
 }
 
 
@@ -311,7 +325,7 @@ abstract mixin class _$MeetingItemDetailCopyWith<$Res> implements $MeetingItemDe
   factory _$MeetingItemDetailCopyWith(_MeetingItemDetail value, $Res Function(_MeetingItemDetail) _then) = __$MeetingItemDetailCopyWithImpl;
 @override @useResult
 $Res call({
- Meeting meeting, MeetingItem item, Progression? progression, Stage? stage, Map<int, LaneAssignment?> lanes
+ Meeting meeting, MeetingItem item, Progression? progression, Stage? stage, Map<int, LaneAssignment?> lanes, Map<int, List<int?>> chronos
 });
 
 
@@ -328,14 +342,15 @@ class __$MeetingItemDetailCopyWithImpl<$Res>
 
 /// Create a copy of MeetingItemDetail
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? meeting = null,Object? item = null,Object? progression = freezed,Object? stage = freezed,Object? lanes = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? meeting = null,Object? item = null,Object? progression = freezed,Object? stage = freezed,Object? lanes = null,Object? chronos = null,}) {
   return _then(_MeetingItemDetail(
 meeting: null == meeting ? _self.meeting : meeting // ignore: cast_nullable_to_non_nullable
 as Meeting,item: null == item ? _self.item : item // ignore: cast_nullable_to_non_nullable
 as MeetingItem,progression: freezed == progression ? _self.progression : progression // ignore: cast_nullable_to_non_nullable
 as Progression?,stage: freezed == stage ? _self.stage : stage // ignore: cast_nullable_to_non_nullable
 as Stage?,lanes: null == lanes ? _self._lanes : lanes // ignore: cast_nullable_to_non_nullable
-as Map<int, LaneAssignment?>,
+as Map<int, LaneAssignment?>,chronos: null == chronos ? _self._chronos : chronos // ignore: cast_nullable_to_non_nullable
+as Map<int, List<int?>>,
   ));
 }
 

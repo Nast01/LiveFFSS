@@ -24,8 +24,14 @@ mixin SerialRefresh<T> on AsyncNotifier<T> {
   @protected
   void beforeReloadFromScratch() {}
 
+  /// Au début d'un rafraîchissement manuel, jamais à un tour de minuterie :
+  /// relancer ce que seul un geste de l'utilisateur doit relancer.
+  @protected
+  void beforeManualRefresh() {}
+
   Future<void> refresh() async {
     final runRef = ref;
+    beforeManualRefresh();
     // En boucle : un autre `refresh` peut avoir pris la place entre-temps.
     for (var running = _inFlight; running != null; running = _inFlight) {
       await running;
@@ -49,9 +55,23 @@ mixin SerialRefresh<T> on AsyncNotifier<T> {
 
   /// Une lecture qui ne vient ni de la minuterie ni du rafraîchissement
   /// manuel (la suite d'un premier chargement) : eux l'attendent au lieu de
-  /// la chevaucher.
+  /// la chevaucher, et elle attend la relecture en cours.
   @protected
-  void runInSeries(Future<void> Function() reload) => _run(reload);
+  void runInSeries(Future<void> Function() reload) {
+    final runRef = ref;
+    // Derrière une relecture en cours, pas en même temps qu'elle.
+    final previous = _inFlight;
+    _run(() async {
+      if (previous != null) await previous.then<void>((_) {}, onError: (_) {});
+      // Page fermée pendant l'attente : `state` et `ref` ne servent plus.
+      if (!runRef.mounted) return;
+      try {
+        await reload();
+      } on AppException {
+        // Déjà traité par la lecture, personne n'attend celle-ci.
+      }
+    });
+  }
 
   Future<void> _run(Future<void> Function() reload) {
     late final Future<void> run;

@@ -44,6 +44,10 @@ abstract class LaneAssignment with _$LaneAssignment {
     @Default(false) bool forfeit,
     @Default(false) bool isRelay,
     Performance? performance,
+
+    /// Ids FFSS du résultat et de l'engagement : de quoi écrire le résultat.
+    int? resultId,
+    int? entryId,
   }) = _LaneAssignment;
 
   bool get isEmpty => athletes.isEmpty;

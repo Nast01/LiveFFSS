@@ -146,21 +146,48 @@ LiveEntry? nextScheduled(List<Meeting> meetings) {
   List<Meeting> meetings,
   LiveEntry entry,
 ) {
-  String groupOf(LiveEntry e) =>
-      '${e.heat.raceId}|'
-      '${e.item.roundId != null ? 'r${e.item.roundId}' : 'c${e.item.id}'}';
-
-  final early = DateTime(0);
-  final key = groupOf(entry);
-  final group =
-      [
-        for (final other in _entries(meetings))
-          if (groupOf(other) == key) other.heat,
-      ]..sort((a, b) {
-        final order = a.number.compareTo(b.number);
-        if (order != 0) return order;
-        return (a.plannedStart ?? early).compareTo(b.plannedStart ?? early);
-      });
+  final key = _roundOf(entry);
+  final group = [
+    for (final other in _entries(meetings))
+      if (_roundOf(other) == key) other.heat,
+  ]..sort(_byHeatNumber);
 
   return (position: group.indexOf(entry.heat) + 1, total: group.length);
+}
+
+String _roundOf(LiveEntry e) =>
+    '${e.heat.raceId}|'
+    '${e.item.roundId != null ? 'r${e.item.roundId}' : 'c${e.item.id}'}';
+
+int _byHeatNumber(Heat a, Heat b) {
+  final early = DateTime(0);
+  final order = a.number.compareTo(b.number);
+  if (order != 0) return order;
+  return (a.plannedStart ?? early).compareTo(b.plannedStart ?? early);
+}
+
+/// Les séries qu'un officiel peut saisir, dans l'ordre où ‹ › les parcourt :
+/// les tours dans l'ordre du programme, et toutes les séries d'un tour avant
+/// le suivant, même réparties sur plusieurs créneaux. Une série sans série
+/// FFSS (finale pas encore générée) n'a rien où écrire.
+List<LiveEntry> entrySequence(List<Meeting> meetings) {
+  final entries = _entries(meetings);
+  final order = {
+    for (var i = 0; i < entries.length; i++) entries[i].heat.id: i,
+  };
+  final rounds = <String, List<LiveEntry>>{};
+  for (final entry in entries) {
+    if (entry.heat.seriesId == null) continue;
+    rounds.putIfAbsent(_roundOf(entry), () => []).add(entry);
+  }
+  // `List.sort` n'est pas stable : l'ordre du programme départage, pour que
+  // ‹ puis › ramène toujours à la même série.
+  int compare(LiveEntry a, LiveEntry b) {
+    final byNumber = _byHeatNumber(a.heat, b.heat);
+    return byNumber != 0
+        ? byNumber
+        : order[a.heat.id]!.compareTo(order[b.heat.id]!);
+  }
+
+  return [for (final round in rounds.values) ...round..sort(compare)];
 }
