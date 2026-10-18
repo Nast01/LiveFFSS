@@ -53,7 +53,7 @@ final entryAccessProvider = Provider.autoDispose.family<EntryAccess, int>((
     // Une relecture garde le dernier droit établi : passer par l'attente
     // fermerait l'écran, et les chiffres tapés avec lui. Un refus, lui, n'est
     // pas établi pour la session qui vient de s'ouvrir.
-    return roles.hasValue && canEnterResults(roles.value!)
+    return roles.hasValue && canEnterResults(roles.value!.roles)
         ? EntryAccess.allowed
         : EntryAccess.checking;
   }
@@ -61,7 +61,7 @@ final entryAccessProvider = Provider.autoDispose.family<EntryAccess, int>((
   if (roles.hasError) {
     return connected ? EntryAccess.unverified : EntryAccess.denied;
   }
-  return canEnterResults(roles.value ?? const [])
+  return canEnterResults(roles.value?.roles ?? const [])
       ? EntryAccess.allowed
       : EntryAccess.denied;
 });

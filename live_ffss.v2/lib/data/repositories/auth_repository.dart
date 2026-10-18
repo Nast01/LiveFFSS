@@ -4,6 +4,7 @@ import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/domain/account.dart';
+import 'package:live_ffss_v2/domain/competition_roles.dart';
 
 abstract class AuthRepository {
   /// Le jeton d'un compte FFSS. Lève une [AppException] si les identifiants
@@ -15,7 +16,7 @@ abstract class AuthRepository {
   Future<Account> me();
 
   /// Les rôles du compte sur la compétition ; `public` sans session.
-  Future<List<String>> competitionRoles(int competitionId);
+  Future<CompetitionRoles> competitionRoles(int competitionId);
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -64,19 +65,58 @@ class AuthRepositoryImpl implements AuthRepository {
   /// Avec une session, les rôles sont dans `data` ; sans session, le site
   /// les sert sans enveloppe.
   @override
-  Future<List<String>> competitionRoles(int competitionId) async {
+  Future<CompetitionRoles> competitionRoles(int competitionId) async {
     final path = ApiEndpoints.replacePath(ApiEndpoints.competitionMe, {
       'id': competitionId.toString(),
     });
     final body = await _http.get(path);
     final data = body['data'];
-    final raw = data is Map<String, dynamic> ? data['roles'] : body['roles'];
+    final source = data is Map<String, dynamic> ? data : body;
+    final raw = source['roles'];
     final roles = [
       for (final role in raw is List ? raw : const <Object?>[])
         if (role is String) role,
     ];
-    return roles.isEmpty ? const ['public'] : roles;
+    return CompetitionRoles(
+      roles: roles.isEmpty ? const ['public'] : roles,
+      licenseeId: _readId(_asMap(source['licencie'])?['id']),
+      official: _readOfficial(_asMap(source['officiel'])),
+      refereeClubs: [
+        for (final club in _asList(source['referent_sportif']))
+          ?_readClub(_asMap(club)),
+      ],
+    );
   }
+}
+
+// Chaque objet se lit seul : un champ mal typé ne doit pas coûter les autres
+// rôles, dont dépend la saisie.
+Map<dynamic, dynamic>? _asMap(Object? raw) => raw is Map ? raw : null;
+
+List<Object?> _asList(Object? raw) => raw is List ? raw : const <Object?>[];
+
+int? _readId(Object? raw) =>
+    raw is String ? int.tryParse(raw) : (raw is int ? raw : null);
+
+OfficialRole? _readOfficial(Map<dynamic, dynamic>? json) {
+  if (json == null) return null;
+  final level = json['niveau'];
+  final label = json['niveauLabel'];
+  final principal = json['principal'];
+  if (level is! String || principal is! bool) return null;
+  return OfficialRole(
+    level: level,
+    levelLabel: label is String ? label : level,
+    principal: principal,
+  );
+}
+
+ClubRef? _readClub(Map<dynamic, dynamic>? json) {
+  if (json == null) return null;
+  final id = json['id'];
+  final label = json['label'];
+  if (id is! int || label is! String) return null;
+  return ClubRef(id: id, label: label);
 }
 
 final authRepositoryProvider = Provider<AuthRepository>(

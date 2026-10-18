@@ -3,7 +3,10 @@ import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/data/repositories/auth_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
+import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../../support/fixtures.dart';
 
 class _MockHttpClient extends Mock implements HttpClient {}
 
@@ -89,21 +92,66 @@ void main() {
   });
 
   group('competitionRoles', () {
-    test('lit les rôles dans data', () async {
+    test('lit les rôles détaillés (fixture de la recette)', () async {
+      when(
+        () => http.get('competition/evenement/1416/me'),
+      ).thenAnswer((_) async => fixture('evenement_me_1416'));
+
+      final roles = await repository.competitionRoles(1416);
+
+      expect(roles.roles, [
+        'public',
+        'licencie',
+        'officiel',
+        'referent_sportif',
+      ]);
+      expect(roles.licenseeId, 1326);
+      expect(roles.official?.level, 'B');
+      expect(roles.official?.levelLabel, 'B - Juge de virage/obstacles');
+      expect(roles.official?.principal, isFalse);
+      expect(roles.refereeClubs, [
+        const ClubRef(
+          id: 15,
+          label: "Les Dauphins du Frontonnais et de l'Union",
+        ),
+      ]);
+      expect(roles.isOfficial, isTrue);
+    });
+
+    test('admin : isAdmin', () async {
       when(() => http.get('competition/evenement/1416/me')).thenAnswer(
         (_) async => {
           'data': {
-            'roles': ['public', 'licencie', 'officiel'],
-            'officiel': {'niveau': 'B', 'principal': false},
+            'roles': ['public', 'admin'],
           },
         },
       );
 
-      expect(await repository.competitionRoles(1416), [
-        'public',
-        'licencie',
-        'officiel',
-      ]);
+      expect((await repository.competitionRoles(1416)).isAdmin, isTrue);
+    });
+
+    test('un objet officiel mal typé est ignoré seul', () async {
+      when(() => http.get('competition/evenement/1416/me')).thenAnswer(
+        (_) async => {
+          'data': {
+            'roles': ['public', 'officiel'],
+            'licencie': {'id': '1326'},
+            'officiel': {'niveau': 3, 'principal': 'oui'},
+            'referent_sportif': [
+              {'id': 15, 'label': 'Club'},
+              'texte',
+              {'id': 'x'},
+            ],
+          },
+        },
+      );
+
+      final roles = await repository.competitionRoles(1416);
+
+      expect(roles.roles, ['public', 'officiel']);
+      expect(roles.official, isNull);
+      expect(roles.licenseeId, 1326);
+      expect(roles.refereeClubs, [const ClubRef(id: 15, label: 'Club')]);
     });
 
     test('lit aussi les rôles servis sans enveloppe (sans session)', () async {
@@ -113,7 +161,7 @@ void main() {
         },
       );
 
-      expect(await repository.competitionRoles(1416), ['public']);
+      expect((await repository.competitionRoles(1416)).roles, ['public']);
     });
 
     test('sans rôle lisible : public', () async {
@@ -125,7 +173,7 @@ void main() {
         },
       );
 
-      expect(await repository.competitionRoles(1416), ['public']);
+      expect((await repository.competitionRoles(1416)).roles, ['public']);
     });
   });
 }

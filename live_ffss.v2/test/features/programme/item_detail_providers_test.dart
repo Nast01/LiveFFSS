@@ -8,6 +8,7 @@ import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/result_repository.dart';
+import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/manual_timing.dart';
@@ -391,7 +392,7 @@ void main() {
       final c = container(async, [
         competitionRolesProvider.overrideWith((ref, id) async {
           if (++roleReads == 1) throw const NetworkException('hors ligne');
-          return ['officiel'];
+          return const CompetitionRoles(roles: ['officiel']);
         }),
       ]);
       c.listen(meetingItemDetailProvider(key), (_, _) {});
@@ -406,7 +407,7 @@ void main() {
       c.read(meetingItemDetailProvider(key).notifier).refresh();
       async.elapse(Duration.zero);
       expect(roleReads, 2);
-      expect(c.read(competitionRolesProvider(key.competitionId)).value, [
+      expect(c.read(competitionRolesProvider(key.competitionId)).value?.roles, [
         'officiel',
       ]);
 
