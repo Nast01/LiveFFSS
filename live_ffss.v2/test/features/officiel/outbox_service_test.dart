@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +17,8 @@ import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_store.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:live_ffss_v2/core/storage/local_store.dart';
+
 import '../../support/in_memory_local_store.dart';
 
 class _MockMeetingRepository extends Mock implements MeetingRepository {}
@@ -23,12 +26,13 @@ class _MockMeetingRepository extends Mock implements MeetingRepository {}
 class _MockResultRepository extends Mock implements ResultRepository {}
 
 class _FakeSession extends SessionNotifier {
-  _FakeSession(this._initial);
+  _FakeSession(this._initial, [this._pending]);
 
   final Account? _initial;
+  final Future<Account?>? _pending;
 
   @override
-  Future<Account?> build() async => _initial;
+  Future<Account?> build() async => _pending ?? _initial;
 
   void set(Account? account) => state = AsyncData(account);
 }
@@ -50,6 +54,7 @@ void main() {
   late _MockResultRepository results;
   late InMemoryLocalStore local;
   late Map<int, int?> serverResultIds;
+  late DateTime now;
 
   setUpAll(() {
     registerFallbackValue(const RaceResult(seriesId: 0, entryId: 0));
@@ -61,6 +66,7 @@ void main() {
     results = _MockResultRepository();
     local = InMemoryLocalStore();
     serverResultIds = {};
+    now = DateTime(2026, 10, 18, 10);
     // La place dit si un résultat existe déjà sur le serveur.
     when(() => meetings.getLanes(any())).thenAnswer((invocation) async {
       final ids = invocation.positionalArguments.single as Iterable<int>;
@@ -70,14 +76,20 @@ void main() {
     });
   });
 
-  ProviderContainer container({Account? account = _jean}) {
+  ProviderContainer container({
+    Account? account = _jean,
+    Future<Account?>? pendingSession,
+    LocalStore? store,
+  }) {
     final c = ProviderContainer(
       overrides: [
         meetingRepositoryProvider.overrideWithValue(meetings),
         resultRepositoryProvider.overrideWithValue(results),
-        localStoreProvider.overrideWithValue(local),
-        sessionProvider.overrideWith(() => _FakeSession(account)),
-        clockProvider.overrideWithValue(() => DateTime(2026, 10, 18, 10)),
+        localStoreProvider.overrideWithValue(store ?? local),
+        sessionProvider.overrideWith(
+          () => _FakeSession(account, pendingSession),
+        ),
+        clockProvider.overrideWithValue(() => now),
       ],
       retry: noRetry,
     );
@@ -103,7 +115,8 @@ void main() {
       );
 
   List<OutboxOperation> stored() =>
-      OutboxStore.decode(local.values[OutboxStore.storageKey]);
+      (OutboxStore.decode(local.values[OutboxStore.storageKey]) as OutboxLoaded)
+          .operations;
 
   List<RaceResult> submitted() => verify(
     () => results.submit(captureAny()),
@@ -183,13 +196,13 @@ void main() {
       verifyNever(() => results.submit(any()));
       final op = c.read(outboxProvider).single;
       expect(op.state, OutboxState.rejected);
-      expect(op.reason, 'validé par le juge des résultats');
+      expect(op.rejection, OutboxRejection.validatedByJudge);
       expect(stored().single.state, OutboxState.rejected);
       c.dispose();
     });
   });
 
-  test('résultat illisible : refusé sans écriture', () {
+  test('résultat illisible : réessayé, refusé au 5e échec sans écriture', () {
     fakeAsync((async) {
       serverResultIds[11] = 42;
       when(() => results.getResult(42)).thenAnswer((_) async => null);
@@ -198,11 +211,18 @@ void main() {
 
       unawaited(add(c));
       async.flushMicrotasks();
+      expect(c.read(outboxProvider).single.state, OutboxState.pending);
 
+      // 5 s, 15 s, puis 60 s entre les essais.
+      async.elapse(const Duration(seconds: 5 + 15 + 60 + 59));
+      expect(c.read(outboxProvider).single.state, OutboxState.pending);
+      async.elapse(const Duration(seconds: 1));
+
+      verify(() => results.getResult(42)).called(maxFaults);
       verifyNever(() => results.submit(any()));
       final op = c.read(outboxProvider).single;
       expect(op.state, OutboxState.rejected);
-      expect(op.reason, 'résultat illisible');
+      expect(op.rejection, OutboxRejection.unreadableResult);
       c.dispose();
     });
   });
@@ -381,29 +401,73 @@ void main() {
 
       final queue = c.read(outboxProvider);
       expect(queue[0].state, OutboxState.rejected);
+      expect(queue[0].rejection, OutboxRejection.server);
       expect(queue[0].reason, 'engagement inconnu');
       expect(queue[1].state, OutboxState.sent);
       c.dispose();
     });
   });
 
-  test('panne du serveur (5xx) : nouvel essai, pas un refus', () {
-    fakeAsync((async) {
-      var calls = 0;
-      when(() => results.submit(any())).thenAnswer((_) async {
-        calls++;
-        if (calls == 1) throw const ApiException('HTTP 502', statusCode: 502);
-        return 99;
+  for (final status in [502, 408, 429]) {
+    test('HTTP $status : nouvel essai, pas un refus', () {
+      fakeAsync((async) {
+        var calls = 0;
+        when(() => results.submit(any())).thenAnswer((_) async {
+          calls++;
+          if (calls <= maxFaults + 1) {
+            throw ApiException('HTTP $status', statusCode: status);
+          }
+          return 99;
+        });
+        final c = container();
+        async.flushMicrotasks();
+
+        unawaited(add(c));
+        async.flushMicrotasks();
+        expect(c.read(outboxProvider).single.state, OutboxState.pending);
+
+        // Pas de plafond : une panne du serveur ne refuse pas la saisie.
+        async.elapse(const Duration(minutes: 10));
+        expect(c.read(outboxProvider).single.state, OutboxState.sent);
+        c.dispose();
       });
+    });
+  }
+
+  test('erreur inattendue : réessayée, refusée au 5e échec', () {
+    fakeAsync((async) {
+      when(
+        () => results.submit(any()),
+      ).thenThrow(const UnknownException('HandshakeException'));
       final c = container();
       async.flushMicrotasks();
 
       unawaited(add(c));
       async.flushMicrotasks();
-      expect(c.read(outboxProvider).single.state, OutboxState.pending);
+      async.elapse(const Duration(minutes: 10));
 
-      async.elapse(const Duration(seconds: 5));
-      expect(c.read(outboxProvider).single.state, OutboxState.sent);
+      verify(() => results.submit(any())).called(maxFaults);
+      final op = c.read(outboxProvider).single;
+      expect(op.state, OutboxState.rejected);
+      expect(op.rejection, OutboxRejection.server);
+      expect(op.reason, 'HandshakeException');
+      c.dispose();
+    });
+  });
+
+  test('coupure : jamais refusée, même longtemps', () {
+    fakeAsync((async) {
+      when(
+        () => results.submit(any()),
+      ).thenThrow(const NetworkException('hors ligne'));
+      final c = container();
+      async.flushMicrotasks();
+
+      unawaited(add(c));
+      async.flushMicrotasks();
+      async.elapse(const Duration(hours: 1));
+
+      expect(c.read(outboxProvider).single.state, OutboxState.pending);
       c.dispose();
     });
   });
@@ -512,4 +576,306 @@ void main() {
     expect(c.read(outboxProvider), isEmpty);
     c.dispose();
   });
+
+  test('session en cours de reprise : la saisie attend son compte', () {
+    fakeAsync((async) {
+      when(() => results.submit(any())).thenAnswer((_) async => 99);
+      final resumed = Completer<Account?>();
+      final c = container(pendingSession: resumed.future);
+      async.flushMicrotasks();
+
+      var done = false;
+      unawaited(add(c).then((_) => done = true));
+      async.flushMicrotasks();
+      expect(done, isFalse);
+
+      resumed.complete(_jean);
+      async.flushMicrotasks();
+      expect(done, isTrue);
+      expect(c.read(outboxProvider).single.account, 'DUPONT Jean');
+      c.dispose();
+    });
+  });
+
+  group('jamais sous un autre compte', () {
+    test('session changée pendant la relecture : rien n\'est écrit', () {
+      fakeAsync((async) {
+        serverResultIds[11] = 42;
+        final read = Completer<RaceResult?>();
+        var reads = 0;
+        when(() => results.getResult(42)).thenAnswer((_) {
+          reads++;
+          return reads == 1
+              ? read.future
+              : Future.value(const RaceResult(id: 42, seriesId: 5, entryId: 7));
+        });
+        when(() => results.submit(any())).thenAnswer((_) async => 42);
+        final c = container();
+        async.flushMicrotasks();
+
+        unawaited(add(c));
+        async.flushMicrotasks();
+        session(c).set(_paul);
+        async.flushMicrotasks();
+        read.complete(const RaceResult(id: 42, seriesId: 5, entryId: 7));
+        async.flushMicrotasks();
+
+        verifyNever(() => results.submit(any()));
+        expect(c.read(outboxProvider).single.state, OutboxState.pending);
+
+        session(c).set(_jean);
+        async.flushMicrotasks();
+        expect(c.read(outboxProvider).single.state, OutboxState.sent);
+        c.dispose();
+      });
+    });
+
+    test('session changée pendant la relecture de la place', () {
+      fakeAsync((async) {
+        final lanes = Completer<Map<int, LaneAssignment?>>();
+        when(() => meetings.getLanes(any())).thenAnswer((_) => lanes.future);
+        when(() => results.submit(any())).thenAnswer((_) async => 99);
+        final c = container();
+        async.flushMicrotasks();
+
+        unawaited(add(c));
+        async.flushMicrotasks();
+        session(c).set(null);
+        async.flushMicrotasks();
+        lanes.complete({11: _lane(11)});
+        async.flushMicrotasks();
+
+        verifyNever(() => results.submit(any()));
+        expect(c.read(outboxProvider).single.state, OutboxState.pending);
+        c.dispose();
+      });
+    });
+  });
+
+  group('rien de perdu', () {
+    const saved = OutboxOperation(
+      id: 'ancienne',
+      account: 'DUPONT Jean',
+      competitionId: 1416,
+      placeId: 12,
+      seriesId: 5,
+      entryId: 8,
+      change: ResultChange(chronos: [1]),
+    );
+
+    test('relecture en échec : la file enregistrée survit à une saisie', () {
+      fakeAsync((async) {
+        when(
+          () => results.submit(any()),
+        ).thenThrow(const NetworkException('hors ligne'));
+        final flaky = _FlakyStore(local)..readFailures = 1000;
+        local.values[OutboxStore.storageKey] = OutboxStore.encode([saved]);
+        final c = container(store: flaky);
+        async.flushMicrotasks();
+        expect(c.read(outboxPersistenceFailedProvider), isTrue);
+
+        Object? error;
+        unawaited(add(c).catchError((Object e) => error = e));
+        async.flushMicrotasks();
+        expect(error, isA<AppException>());
+        // Gardée en mémoire, mais rien n'a été écrit par-dessus.
+        expect(c.read(outboxProvider).single.placeId, 11);
+        expect(stored(), [saved]);
+        verifyNever(() => results.submit(any()));
+
+        // La relecture est réessayée, avec un délai croissant.
+        flaky.readFailures = 0;
+        async.elapse(const Duration(seconds: 60));
+        expect(stored().map((o) => o.id), ['ancienne', isNot('ancienne')]);
+        expect(c.read(outboxProvider).map((o) => o.placeId), [12, 11]);
+        expect(c.read(outboxPersistenceFailedProvider), isFalse);
+        c.dispose();
+      });
+    });
+
+    test('relecture en échec une fois : la saisie suivante la relance', () {
+      fakeAsync((async) {
+        when(
+          () => results.submit(any()),
+        ).thenThrow(const NetworkException('hors ligne'));
+        final flaky = _FlakyStore(local)..readFailures = 1;
+        local.values[OutboxStore.storageKey] = OutboxStore.encode([saved]);
+        final c = container(store: flaky);
+        async.flushMicrotasks();
+
+        unawaited(add(c));
+        async.flushMicrotasks();
+
+        expect(stored().map((o) => o.placeId), [12, 11]);
+        c.dispose();
+      });
+    });
+
+    test('valeur illisible : mise de côté avant d\'être remplacée', () {
+      fakeAsync((async) {
+        when(() => results.submit(any())).thenAnswer((_) async => 99);
+        local.values[OutboxStore.storageKey] = '{pas du json';
+        final c = container();
+        async.flushMicrotasks();
+
+        unawaited(add(c));
+        async.flushMicrotasks();
+
+        final backupKey =
+            '${OutboxStore.backupKeyPrefix}${now.millisecondsSinceEpoch}';
+        expect(local.values[backupKey], '{pas du json');
+        expect(stored().single.placeId, 11);
+        c.dispose();
+      });
+    });
+
+    test('ligne d\'une autre version : réécrite telle quelle', () {
+      fakeAsync((async) {
+        when(() => results.submit(any())).thenAnswer((_) async => 99);
+        const future = {'id': 'z', 'state': 'archived'};
+        local.values[OutboxStore.storageKey] = '[${jsonEncode(future)}]';
+        final c = container();
+        async.flushMicrotasks();
+
+        unawaited(add(c));
+        async.flushMicrotasks();
+
+        final raw = jsonDecode(local.values[OutboxStore.storageKey]!) as List;
+        expect(raw, hasLength(2));
+        expect(raw, contains(equals(future)));
+        c.dispose();
+      });
+    });
+
+    test('enregistrement en échec : la saisie le dit, reste et part', () {
+      fakeAsync((async) {
+        final sent = Completer<int>();
+        when(() => results.submit(any())).thenAnswer((_) => sent.future);
+        final flaky = _FlakyStore(local);
+        final c = container(store: flaky);
+        async.flushMicrotasks();
+
+        flaky.writeFailures = 1;
+        Object? error;
+        unawaited(add(c).catchError((Object e) => error = e));
+        async.flushMicrotasks();
+        expect(error, isA<AppException>());
+        expect(c.read(outboxPersistenceFailedProvider), isTrue);
+        expect(c.read(outboxProvider), hasLength(1));
+
+        sent.complete(99);
+        async.flushMicrotasks();
+        expect(stored().single.state, OutboxState.sent);
+        expect(c.read(outboxPersistenceFailedProvider), isFalse);
+        c.dispose();
+      });
+    });
+  });
+
+  group('ménage', () {
+    OutboxOperation settled(String id, OutboxState state, {DateTime? at}) =>
+        OutboxOperation(
+          id: id,
+          account: 'DUPONT Jean',
+          competitionId: 1416,
+          placeId: id.hashCode,
+          seriesId: 5,
+          entryId: 7,
+          change: const ResultChange(chronos: [1]),
+          state: state,
+          sentAt: at,
+          rejection: state == OutboxState.rejected
+              ? OutboxRejection.validatedByJudge
+              : null,
+        );
+
+    test('les envoyées de plus de 24 h sont oubliées, pas les refusées', () {
+      fakeAsync((async) {
+        local.values[OutboxStore.storageKey] = OutboxStore.encode([
+          settled(
+            'vieille',
+            OutboxState.sent,
+            at: now.subtract(const Duration(hours: 25)),
+          ),
+          settled(
+            'récente',
+            OutboxState.sent,
+            at: now.subtract(const Duration(hours: 1)),
+          ),
+          settled('refusée', OutboxState.rejected),
+        ]);
+        final c = container();
+        async.flushMicrotasks();
+
+        expect(c.read(outboxProvider).map((o) => o.id), ['récente', 'refusée']);
+        expect(stored().map((o) => o.id), ['récente', 'refusée']);
+
+        // Le ménage repasse après chaque envoi.
+        when(() => results.submit(any())).thenAnswer((_) async => 99);
+        now = now.add(const Duration(hours: 24));
+        unawaited(add(c));
+        async.flushMicrotasks();
+        expect(c.read(outboxProvider).map((o) => o.id), [
+          'refusée',
+          isNot('récente'),
+        ]);
+        c.dispose();
+      });
+    });
+
+    test('dismiss écarte une refusée, jamais une en attente', () {
+      fakeAsync((async) {
+        when(
+          () => results.submit(any()),
+        ).thenThrow(const NetworkException('hors ligne'));
+        local.values[OutboxStore.storageKey] = OutboxStore.encode([
+          settled('refusée', OutboxState.rejected),
+        ]);
+        final c = container();
+        async.flushMicrotasks();
+        unawaited(add(c));
+        async.flushMicrotasks();
+        final pendingId = c.read(outboxProvider).last.id;
+
+        unawaited(c.read(outboxProvider.notifier).dismiss('refusée'));
+        unawaited(c.read(outboxProvider.notifier).dismiss(pendingId));
+        async.flushMicrotasks();
+
+        expect(c.read(outboxProvider).map((o) => o.id), [pendingId]);
+        expect(stored().map((o) => o.id), [pendingId]);
+        c.dispose();
+      });
+    });
+  });
+}
+
+/// Un stockage qui échoue à la demande, comme le stockage sécurisé qui lève
+/// ses propres erreurs.
+class _FlakyStore implements LocalStore {
+  _FlakyStore(this._inner);
+
+  final LocalStore _inner;
+  int readFailures = 0;
+  int writeFailures = 0;
+
+  @override
+  Future<String?> read(String key) async {
+    if (readFailures > 0) {
+      readFailures--;
+      throw StateError('stockage indisponible');
+    }
+    return _inner.read(key);
+  }
+
+  @override
+  Future<void> write(String key, String value) async {
+    if (writeFailures > 0) {
+      writeFailures--;
+      throw StateError('stockage plein');
+    }
+    return _inner.write(key, value);
+  }
+
+  @override
+  Future<void> delete(String key) => _inner.delete(key);
 }

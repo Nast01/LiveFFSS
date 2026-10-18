@@ -28,8 +28,11 @@ abstract class OutboxOperationDto with _$OutboxOperationDto {
     String? mark,
     String? code,
     required String state,
+    String? rejection,
     String? reason,
     @Default(0) int attempts,
+    @Default(0) int faults,
+    String? sentAt,
   }) = _OutboxOperationDto;
 
   factory OutboxOperationDto.fromJson(Map<String, dynamic> json) =>
@@ -48,20 +51,35 @@ abstract class OutboxOperationDto with _$OutboxOperationDto {
         mark: op.change.mark?.name,
         code: op.change.code,
         state: op.state.name,
+        rejection: op.rejection?.name,
         reason: op.reason,
         attempts: op.attempts,
+        faults: op.faults,
+        sentAt: op.sentAt?.toIso8601String(),
       );
 }
 
 extension OutboxOperationDtoMapper on OutboxOperationDto {
-  /// Nul si un état ou un statut enregistré n'est plus connu.
+  /// Nul si un nom enregistré n'est plus connu (une version plus récente de
+  /// l'app l'a écrit, par exemple).
   OutboxOperation? toDomain() {
     final state = OutboxState.values.asNameMap()[this.state];
     final mark = this.mark;
     final resultMark = mark == null
         ? null
         : ResultMark.values.asNameMap()[mark];
-    if (state == null || (mark != null && resultMark == null)) return null;
+    final rejection = this.rejection;
+    final outboxRejection = rejection == null
+        ? null
+        : OutboxRejection.values.asNameMap()[rejection];
+    final sentAt = this.sentAt;
+    final sentTime = sentAt == null ? null : DateTime.tryParse(sentAt);
+    if (state == null ||
+        (mark != null && resultMark == null) ||
+        (rejection != null && outboxRejection == null) ||
+        (sentAt != null && sentTime == null)) {
+      return null;
+    }
     return OutboxOperation(
       id: id,
       account: account,
@@ -72,10 +90,36 @@ extension OutboxOperationDtoMapper on OutboxOperationDto {
       entryId: entryId,
       change: ResultChange(chronos: chronos, mark: resultMark, code: code),
       state: state,
+      rejection: outboxRejection,
       reason: reason,
       attempts: attempts,
+      faults: faults,
+      sentAt: sentTime,
     );
   }
+}
+
+/// Ce que [OutboxStore.load] a trouvé.
+sealed class OutboxContent {
+  const OutboxContent();
+}
+
+/// Les opérations relues, et les lignes que cette version ne sait pas lire :
+/// gardées telles quelles et réécrites à chaque enregistrement, elles ne sont
+/// jamais effacées.
+final class OutboxLoaded extends OutboxContent {
+  const OutboxLoaded(this.operations, [this.unknown = const []]);
+
+  final List<OutboxOperation> operations;
+  final List<Object?> unknown;
+}
+
+/// La valeur enregistrée n'est pas une liste lisible : [raw] doit être mis de
+/// côté avant d'être remplacé.
+final class OutboxUnreadable extends OutboxContent {
+  const OutboxUnreadable(this.raw);
+
+  final String raw;
 }
 
 /// La file d'envoi, gardée sur l'appareil ([LocalStore] la range sous la clé
@@ -84,14 +128,24 @@ class OutboxStore {
   OutboxStore(this._local);
 
   static const storageKey = 'outbox';
+  static const backupKeyPrefix = 'outbox_backup_';
 
   final LocalStore _local;
 
-  Future<List<OutboxOperation>> load() async =>
+  /// Lève une [AppException] si le stockage ne répond pas.
+  Future<OutboxContent> load() async =>
       decode(await _guard(() => _local.read(storageKey)));
 
-  Future<void> save(List<OutboxOperation> queue) =>
-      _guard(() => _local.write(storageKey, encode(queue)));
+  Future<void> save(
+    List<OutboxOperation> queue, {
+    List<Object?> unknown = const [],
+  }) => _guard(() => _local.write(storageKey, encode(queue, unknown: unknown)));
+
+  /// Met de côté une valeur illisible, sous une clé à part, avant qu'un
+  /// enregistrement ne la remplace : elle contient peut-être des saisies.
+  Future<void> backup(String raw, DateTime at) => _guard(
+    () => _local.write('$backupKeyPrefix${at.millisecondsSinceEpoch}', raw),
+  );
 
   /// Le stockage sécurisé lève ses propres erreurs (`PlatformException`…) :
   /// traduites en [AppException], la seule que les appelants attrapent.
@@ -105,25 +159,34 @@ class OutboxStore {
     }
   }
 
-  static String encode(List<OutboxOperation> queue) => jsonEncode([
+  static String encode(
+    List<OutboxOperation> queue, {
+    List<Object?> unknown = const [],
+  }) => jsonEncode([
     for (final op in queue) OutboxOperationDto.fromDomain(op).toJson(),
+    ...unknown,
   ]);
 
-  /// Une valeur illisible vaut une file vide, et une ligne illisible est
-  /// écartée seule : le reste de la file doit encore partir.
-  static List<OutboxOperation> decode(String? raw) {
-    if (raw == null) return [];
+  static OutboxContent decode(String? raw) {
+    if (raw == null) return const OutboxLoaded([]);
     final Object? rows;
     try {
       rows = jsonDecode(raw);
     } on FormatException {
-      return [];
+      return OutboxUnreadable(raw);
     }
-    if (rows is! List) return [];
-    return [
-      for (final row in rows)
-        if (row is Map<String, dynamic>) ?_decodeRow(row),
-    ];
+    if (rows is! List) return OutboxUnreadable(raw);
+    final operations = <OutboxOperation>[];
+    final unknown = <Object?>[];
+    for (final row in rows) {
+      final op = row is Map<String, dynamic> ? _decodeRow(row) : null;
+      if (op == null) {
+        unknown.add(row);
+      } else {
+        operations.add(op);
+      }
+    }
+    return OutboxLoaded(operations, unknown);
   }
 
   static OutboxOperation? _decodeRow(Map<String, dynamic> row) {

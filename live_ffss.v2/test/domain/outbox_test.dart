@@ -96,6 +96,27 @@ void main() {
     expect(isSameAccount('DUPONT Jean', 'MARTIN Paul'), isFalse);
   });
 
+  test('pruneSent oublie les envoyées de plus de 24 h, garde le reste', () {
+    final now = DateTime(2026, 10, 18, 10);
+    final queue = [
+      op(
+        'vieille',
+        state: OutboxState.sent,
+      ).copyWith(sentAt: now.subtract(const Duration(hours: 24))),
+      op(
+        'récente',
+        state: OutboxState.sent,
+      ).copyWith(sentAt: now.subtract(const Duration(hours: 23))),
+      op('refusée', state: OutboxState.rejected),
+      op('en attente'),
+    ];
+    expect(pruneSent(queue, now).map((o) => o.id), [
+      'récente',
+      'refusée',
+      'en attente',
+    ]);
+  });
+
   test('retryDelay croît puis plafonne à 60 s', () {
     expect(retryDelay(1), const Duration(seconds: 5));
     expect(retryDelay(2), const Duration(seconds: 15));

@@ -6,6 +6,25 @@ part 'outbox.freezed.dart';
 
 enum OutboxState { pending, sent, rejected }
 
+/// Pourquoi une opération a été refusée ; l'écran en fait un texte traduit.
+enum OutboxRejection {
+  /// Le résultat a un `temps` : le juge des résultats l'a validé.
+  validatedByJudge,
+
+  /// Le résultat existe mais n'a pas pu être relu, essai après essai.
+  unreadableResult,
+
+  /// La place n'a pas pu être relue, essai après essai.
+  unreadablePlace,
+
+  /// La place n'a plus de nageur.
+  emptyPlace,
+
+  /// Le site a refusé l'écriture, ou a échoué sans dire pourquoi ; son
+  /// message est dans [OutboxOperation.reason].
+  server,
+}
+
 /// Une saisie d'officiel en attente d'écriture sur le site FFSS. Elle ne garde
 /// que ce qu'elle change ([change]) : le résultat est relu au moment de
 /// l'envoi, pour ne pas écraser ce que le juge a posé entre-temps.
@@ -27,10 +46,21 @@ abstract class OutboxOperation with _$OutboxOperation {
     @Default(OutboxState.pending) OutboxState state,
 
     /// Pourquoi l'opération a été refusée.
+    OutboxRejection? rejection,
+
+    /// Le message du site qui accompagne un refus [OutboxRejection.server].
     String? reason,
 
     /// Les essais manqués d'affilée, qui règlent le délai du suivant.
     @Default(0) int attempts,
+
+    /// Parmi eux, ceux qu'une coupure n'explique pas : passé
+    /// [maxFaults], l'opération est refusée, pour qu'une seule ne bloque pas
+    /// toute la file du compte.
+    @Default(0) int faults,
+
+    /// Quand l'opération est partie, pour l'oublier un jour plus tard.
+    DateTime? sentAt,
   }) = _OutboxOperation;
 }
 
@@ -69,3 +99,22 @@ Duration retryDelay(int attempts) => switch (attempts) {
   2 => const Duration(seconds: 15),
   _ => const Duration(seconds: 60),
 };
+
+/// Les échecs autres qu'une coupure tolérés avant de refuser l'opération.
+const int maxFaults = 5;
+
+/// Combien de temps une opération envoyée reste visible.
+const Duration sentRetention = Duration(hours: 24);
+
+/// [queue] sans les opérations envoyées depuis plus de [sentRetention]. Les
+/// refusées restent jusqu'à ce que l'officiel les écarte.
+List<OutboxOperation> pruneSent(List<OutboxOperation> queue, DateTime now) => [
+  for (final op in queue)
+    if (op.state != OutboxState.sent || _sentSince(op, now) < sentRetention) op,
+];
+
+/// Une opération envoyée sans date (qui ne devrait pas exister) est oubliée.
+Duration _sentSince(OutboxOperation op, DateTime now) {
+  final sentAt = op.sentAt;
+  return sentAt == null ? sentRetention : now.difference(sentAt);
+}

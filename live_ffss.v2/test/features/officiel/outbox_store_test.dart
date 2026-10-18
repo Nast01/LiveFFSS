@@ -40,32 +40,72 @@ void main() {
     entryId: 8,
     change: ResultChange(mark: ResultMark.forfeit),
     state: OutboxState.rejected,
-    reason: 'validé par le juge des résultats',
+    rejection: OutboxRejection.server,
+    reason: 'engagement inconnu',
+    faults: 1,
+  );
+  final sent = OutboxOperation(
+    id: 'c',
+    account: 'DUPONT Jean',
+    competitionId: 1416,
+    placeId: 13,
+    resultId: 100,
+    seriesId: 5,
+    entryId: 9,
+    change: const ResultChange(chronos: [1]),
+    state: OutboxState.sent,
+    sentAt: DateTime.utc(2026, 10, 18, 9, 30),
   );
 
+  Future<List<OutboxOperation>> operations() async =>
+      (await store.load() as OutboxLoaded).operations;
+
   test('rien d\'enregistré : file vide', () async {
-    expect(await store.load(), isEmpty);
+    expect(await operations(), isEmpty);
   });
 
   test('ce qui est enregistré se relit à l\'identique', () async {
-    await store.save([pending, rejected]);
-    expect(await store.load(), [pending, rejected]);
+    await store.save([pending, rejected, sent]);
+    expect(await operations(), [pending, rejected, sent]);
   });
 
-  test('une valeur illisible vaut une file vide', () async {
+  test('une valeur illisible est signalée telle quelle', () async {
     local.values[OutboxStore.storageKey] = '{pas du json';
-    expect(await store.load(), isEmpty);
+    expect(
+      await store.load(),
+      isA<OutboxUnreadable>().having((u) => u.raw, 'raw', '{pas du json'),
+    );
+    local.values[OutboxStore.storageKey] = '{"a": 1}';
+    expect(await store.load(), isA<OutboxUnreadable>());
   });
 
-  test('une ligne mal typée est écartée seule', () async {
+  test('une copie de côté garde la valeur sous sa propre clé', () async {
+    final at = DateTime.utc(2026, 10, 18);
+    await store.backup('{pas du json', at);
+    expect(local.values, {
+      '${OutboxStore.backupKeyPrefix}${at.millisecondsSinceEpoch}':
+          '{pas du json',
+    });
+  });
+
+  test('une ligne illisible est gardée telle quelle et réécrite', () async {
     await store.save([pending]);
     final rows = jsonDecode(local.values[OutboxStore.storageKey]!) as List;
-    local.values[OutboxStore.storageKey] = jsonEncode([
+    final unknown = <Object?>[
       {'id': 3},
       'texte',
       {...(rows.single as Map<String, dynamic>), 'state': 'inconnu'},
-      ...rows,
-    ]);
-    expect(await store.load(), [pending]);
+      {...(rows.single as Map<String, dynamic>), 'rejection': 'inconnu'},
+    ];
+    local.values[OutboxStore.storageKey] = jsonEncode([...unknown, ...rows]);
+
+    final loaded = await store.load() as OutboxLoaded;
+    expect(loaded.operations, [pending]);
+    expect(loaded.unknown, unknown);
+
+    await store.save(loaded.operations, unknown: loaded.unknown);
+    final again = await store.load() as OutboxLoaded;
+    expect(again.operations, [pending]);
+    expect(again.unknown, unknown);
   });
 }

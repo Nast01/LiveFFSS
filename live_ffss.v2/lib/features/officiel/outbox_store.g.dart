@@ -21,8 +21,11 @@ _OutboxOperationDto _$OutboxOperationDtoFromJson(Map<String, dynamic> json) =>
       mark: json['mark'] as String?,
       code: json['code'] as String?,
       state: json['state'] as String,
+      rejection: json['rejection'] as String?,
       reason: json['reason'] as String?,
       attempts: (json['attempts'] as num?)?.toInt() ?? 0,
+      faults: (json['faults'] as num?)?.toInt() ?? 0,
+      sentAt: json['sentAt'] as String?,
     );
 
 Map<String, dynamic> _$OutboxOperationDtoToJson(_OutboxOperationDto instance) =>
@@ -38,6 +41,9 @@ Map<String, dynamic> _$OutboxOperationDtoToJson(_OutboxOperationDto instance) =>
       'mark': instance.mark,
       'code': instance.code,
       'state': instance.state,
+      'rejection': instance.rejection,
       'reason': instance.reason,
       'attempts': instance.attempts,
+      'faults': instance.faults,
+      'sentAt': instance.sentAt,
     };

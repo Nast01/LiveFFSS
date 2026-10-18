@@ -11,24 +11,26 @@ import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_store.dart';
 
-/// Motifs de refus que l'app pose elle-même (les autres viennent du site).
-const rejectedByJudge = 'validé par le juge des résultats';
-const rejectedUnreadable = 'résultat illisible';
-const rejectedEmptyPlace = 'place vide';
-
 enum _Outcome {
-  /// L'opération est réglée (envoyée ou refusée) : on passe à la suivante.
+  /// L'opération est réglée : on passe à la suivante si rien ne l'interdit.
   done,
 
-  /// Plus rien ne part avant un nouvel essai ou une reconnexion.
+  /// Plus rien ne part avant un nouvel essai, une reconnexion ou un
+  /// changement de session.
   stop,
 }
 
 /// La file d'envoi des saisies d'officiel : gardée sur l'appareil, envoyée
 /// dans l'ordre, une opération à la fois, avec la session du compte qui l'a
 /// saisie. Vit tant que l'app est ouverte (lue dès le lancement par l'app).
+///
+/// Une saisie n'est jamais perdue : tant que la file enregistrée n'a pas été
+/// relue, rien n'est enregistré par-dessus, et une valeur illisible est mise
+/// de côté avant d'être remplacée.
 class OutboxService extends Notifier<List<OutboxOperation>> {
   Timer? _retry;
+  Timer? _loadRetry;
+  int _loadAttempts = 0;
   bool _running = false;
   bool _rerun = false;
 
@@ -36,22 +38,33 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
   /// sinon chaque essai reprendrait le même refus.
   bool _blocked = false;
 
-  late Future<void> _loaded;
+  bool _loaded = false;
+  Future<bool>? _loading;
+
+  /// Les lignes enregistrées que cette version ne sait pas lire, réécrites
+  /// telles quelles.
+  List<Object?> _unknown = const [];
   Future<void> _saving = Future.value();
   int _sequence = 0;
 
   @override
   List<OutboxOperation> build() {
-    ref.onDispose(() => _retry?.cancel());
+    ref.onDispose(() {
+      _retry?.cancel();
+      _loadRetry?.cancel();
+    });
     // Écouter la session la construit dès le lancement, ce qui branche aussi
     // l'expiration du jeton sur le client HTTP.
     ref.listen(sessionProvider, (_, _) => _sessionChanged());
-    _loaded = _load();
+    scheduleMicrotask(_kick);
     return const [];
   }
 
-  /// Met en file une saisie du compte connecté. Lève une [AuthException] si
-  /// personne ne l'est : une saisie sans compte ne partirait jamais.
+  /// Met en file une saisie du compte connecté, et ne rend la main qu'une
+  /// fois la file enregistrée. Lève une [AuthException] si personne n'est
+  /// connecté, une autre [AppException] si l'enregistrement échoue : la
+  /// saisie reste alors en mémoire (elle partira quand même), et l'écran doit
+  /// prévenir.
   Future<void> add({
     required int competitionId,
     required int placeId,
@@ -60,10 +73,17 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
     int? resultId,
     required ResultChange change,
   }) async {
-    await _loaded;
+    // Une session en cours de reprise ou de connexion n'a pas encore dit à
+    // qui est la saisie.
+    final session = ref.read(sessionProvider);
+    final account = session.isLoading
+        ? await ref.read(sessionProvider.future)
+        : session.value;
     if (!ref.mounted) return;
-    final account = ref.read(sessionProvider).value;
     if (account == null) throw const AuthException('non connecté');
+    await _ensureLoaded();
+    if (!ref.mounted) return;
+
     final now = ref.read(clockProvider)();
     final op = OutboxOperation(
       id: '${now.microsecondsSinceEpoch}-${_sequence++}',
@@ -75,21 +95,73 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
       entryId: entryId,
       change: change,
     );
-    _set(enqueue(state, op));
+    state = enqueue(state, op);
     _kick();
+    await _persist();
   }
 
-  Future<void> _load() async {
-    final store = ref.read(outboxStoreProvider);
-    List<OutboxOperation> saved;
-    try {
-      saved = await store.load();
-    } on AppException {
-      saved = [];
-    }
+  /// Écarte de la file une opération réglée (refusée, le plus souvent). Une
+  /// opération en attente ne s'écarte pas.
+  Future<void> dismiss(String id) async {
+    await _ensureLoaded();
     if (!ref.mounted) return;
-    state = [...saved, ...state];
-    _kick();
+    state = [
+      for (final op in state)
+        if (op.id != id || op.state == OutboxState.pending) op,
+    ];
+    await _persist();
+  }
+
+  Future<bool> _ensureLoaded() {
+    if (_loaded) return Future.value(true);
+    return _loading ??= () async {
+      try {
+        return await _load();
+      } finally {
+        _loading = null;
+      }
+    }();
+  }
+
+  /// Les saisies faites avant la relecture (gardées en mémoire) sont fondues
+  /// dans la file relue, comme si elles venaient d'être saisies.
+  Future<bool> _load() async {
+    final store = ref.read(outboxStoreProvider);
+    final now = ref.read(clockProvider)();
+    try {
+      final content = await store.load();
+      if (!ref.mounted) return false;
+      final OutboxLoaded loaded;
+      switch (content) {
+        case OutboxLoaded():
+          loaded = content;
+        case OutboxUnreadable(:final raw):
+          await store.backup(raw, now);
+          if (!ref.mounted) return false;
+          loaded = const OutboxLoaded([]);
+      }
+      var queue = loaded.operations;
+      final known = {for (final op in queue) op.id};
+      for (final op in state) {
+        if (!known.contains(op.id)) queue = enqueue(queue, op);
+      }
+      _unknown = loaded.unknown;
+      _loaded = true;
+      _loadAttempts = 0;
+      _loadRetry?.cancel();
+      _loadRetry = null;
+      _set(pruneSent(queue, now));
+      return true;
+    } on AppException {
+      if (!ref.mounted) return false;
+      _setPersistenceFailed(true);
+      _loadRetry?.cancel();
+      _loadRetry = Timer(retryDelay(++_loadAttempts), () {
+        _loadRetry = null;
+        _kick();
+      });
+      return false;
+    }
   }
 
   void _sessionChanged() {
@@ -102,20 +174,39 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
 
   void _set(List<OutboxOperation> queue) {
     state = queue;
-    final store = ref.read(outboxStoreProvider);
-    // Enchaînées : deux écritures concurrentes pourraient arriver dans le
-    // désordre et laisser la plus ancienne enregistrée.
-    _saving = _saving
-        .then((_) => store.save(queue))
-        .onError<AppException>(
-          // La file reste en mémoire et sera réenregistrée au prochain changement.
-          (_, _) {},
-        );
+    // L'échec est signalé par le drapeau ; la file reste en mémoire et sera
+    // réenregistrée au prochain changement.
+    unawaited(_persist().onError<AppException>((_, _) {}));
   }
 
-  /// Un nouvel essai programmé garde la main : la file attend son délai.
+  /// Enregistre la file telle qu'elle est maintenant. Refuse tant que la file
+  /// enregistrée n'a pas été relue : l'écrire effacerait ce qu'elle contient.
+  Future<void> _persist() async {
+    if (!_loaded) {
+      _setPersistenceFailed(true);
+      throw const UnknownException("file d'envoi enregistrée non relue");
+    }
+    final store = ref.read(outboxStoreProvider);
+    final queue = state;
+    final unknown = _unknown;
+    // Enchaînées : deux écritures concurrentes pourraient arriver dans le
+    // désordre et laisser la plus ancienne enregistrée.
+    final write = _saving.then((_) => store.save(queue, unknown: unknown));
+    _saving = write.onError<AppException>((_, _) {});
+    try {
+      await write;
+    } on AppException {
+      if (ref.mounted) _setPersistenceFailed(true);
+      rethrow;
+    }
+    if (ref.mounted) _setPersistenceFailed(false);
+  }
+
+  void _setPersistenceFailed(bool failed) =>
+      ref.read(outboxPersistenceFailedProvider.notifier)._set(failed);
+
   void _kick() {
-    if (!ref.mounted || _retry != null) return;
+    if (!ref.mounted) return;
     if (_running) {
       _rerun = true;
       return;
@@ -128,42 +219,53 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
     try {
       do {
         _rerun = false;
-        while (!_blocked) {
+        // Rien ne part avant la relecture : un échec programme la suivante.
+        if (!await _ensureLoaded()) return;
+        // Un nouvel essai programmé garde la main : la file attend son délai.
+        while (ref.mounted && !_blocked && _retry == null) {
           final op = _next();
           if (op == null) break;
-          final outcome = await _send(op);
-          if (!ref.mounted || outcome == _Outcome.stop) return;
+          if (await _send(op) == _Outcome.stop) break;
         }
-      } while (_rerun);
+      } while (ref.mounted && _rerun);
     } finally {
       _running = false;
     }
   }
 
   OutboxOperation? _next() {
-    final account = ref.read(sessionProvider).value?.label;
-    if (account == null) return null;
     for (final op in state) {
-      if (op.state == OutboxState.pending &&
-          isSameAccount(op.account, account)) {
-        return op;
-      }
+      if (op.state == OutboxState.pending && _ownedBySession(op)) return op;
     }
     return null;
+  }
+
+  bool _ownedBySession(OutboxOperation op) {
+    final label = ref.read(sessionProvider).value?.label;
+    return label != null && isSameAccount(op.account, label);
   }
 
   Future<_Outcome> _send(OutboxOperation op) async {
     final meetings = ref.read(meetingRepositoryProvider);
     final results = ref.read(resultRepositoryProvider);
+    // Revérifié après chaque attente : la session peut avoir changé de
+    // compte, et une saisie ne part jamais sous un autre que le sien.
+    bool lost() => !ref.mounted || !_ownedBySession(op);
     try {
       // Relire la place trouve le résultat d'une création arrivée sur le
       // site malgré une réponse perdue : la renvoyer ferait un doublon.
       final lanes = await meetings.getLanes([op.placeId]);
-      if (!ref.mounted) return _Outcome.stop;
-      if (!lanes.containsKey(op.placeId)) return _retryLater(op);
+      if (lost()) return _Outcome.stop;
+      if (!lanes.containsKey(op.placeId)) {
+        return _fault(op, OutboxRejection.unreadablePlace);
+      }
       final lane = lanes[op.placeId];
       if (lane == null) {
-        return _settle(op, OutboxState.rejected, reason: rejectedEmptyPlace);
+        return _settle(
+          op,
+          OutboxState.rejected,
+          rejection: OutboxRejection.emptyPlace,
+        );
       }
 
       final resultId = lane.resultId ?? op.resultId;
@@ -174,16 +276,19 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
         // Relu juste avant l'écriture : l'envoi renvoie tous les champs, et
         // ne doit pas effacer ce que le juge a posé depuis la saisie.
         final read = await results.getResult(resultId);
-        if (!ref.mounted) return _Outcome.stop;
-        if (read == null) {
-          return _settle(op, OutboxState.rejected, reason: rejectedUnreadable);
-        }
+        if (lost()) return _Outcome.stop;
+        if (read == null) return _fault(op, OutboxRejection.unreadableResult);
         if (isValidatedByJudge(read)) {
-          return _settle(op, OutboxState.rejected, reason: rejectedByJudge);
+          return _settle(
+            op,
+            OutboxState.rejected,
+            rejection: OutboxRejection.validatedByJudge,
+          );
         }
         current = read;
       }
 
+      if (lost()) return _Outcome.stop;
       final id = await results.submit(applyChange(current, op.change));
       if (!ref.mounted) return _Outcome.stop;
       return _settle(op, OutboxState.sent, resultId: id);
@@ -191,18 +296,30 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
       if (!ref.mounted) return _Outcome.stop;
       switch (e) {
         case AuthException():
-          _blocked = true;
+          // La session a peut-être déjà changé : ce refus ne concerne alors
+          // plus la nouvelle.
+          if (_ownedBySession(op)) _blocked = true;
           return _Outcome.stop;
-        case NetworkException() || UnknownException():
+        case NetworkException():
           return _retryLater(op);
-        case ApiException(:final statusCode?) when statusCode >= 500:
-          // Une panne du serveur, pas un refus de la saisie.
+        case ApiException(:final statusCode?) when _isTransient(statusCode):
           return _retryLater(op);
+        case UnknownException():
+          return _fault(op, OutboxRejection.server, reason: e.message);
         case ApiException() || NotFoundException():
-          return _settle(op, OutboxState.rejected, reason: e.message);
+          return _settle(
+            op,
+            OutboxState.rejected,
+            rejection: OutboxRejection.server,
+            reason: e.message,
+          );
       }
     }
   }
+
+  /// Une panne ou un engorgement du serveur, pas un refus de la saisie.
+  static bool _isTransient(int statusCode) =>
+      statusCode >= 500 || statusCode == 408 || statusCode == 429;
 
   /// [sent] est l'opération telle qu'elle est partie : si une saisie s'y est
   /// fusionnée entre-temps, celle-ci n'est pas encore écrite et l'opération
@@ -210,28 +327,65 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
   _Outcome _settle(
     OutboxOperation sent,
     OutboxState outcome, {
+    OutboxRejection? rejection,
     String? reason,
     int? resultId,
   }) {
     final index = state.indexWhere((o) => o.id == sent.id);
     if (index < 0) return _Outcome.done;
+    final now = ref.read(clockProvider)();
     final current = state[index];
     final known = current.copyWith(
       resultId: resultId ?? current.resultId,
       attempts: 0,
+      faults: 0,
     );
     final settled = current.change != sent.change
         ? known
-        : known.copyWith(state: outcome, reason: reason);
-    _set([...state]..[index] = settled);
+        : known.copyWith(
+            state: outcome,
+            rejection: rejection,
+            reason: reason,
+            sentAt: outcome == OutboxState.sent ? now : null,
+          );
+    _set(pruneSent([...state]..[index] = settled, now));
     return _Outcome.done;
   }
 
-  _Outcome _retryLater(OutboxOperation sent) {
+  /// Un échec qu'une coupure n'explique pas : réessayé, puis refusé passé
+  /// [maxFaults], pour qu'une seule opération ne bloque pas la file du compte
+  /// pour toujours.
+  _Outcome _fault(
+    OutboxOperation sent,
+    OutboxRejection rejection, {
+    String? reason,
+  }) {
     final index = state.indexWhere((o) => o.id == sent.id);
     if (index < 0) return _Outcome.done;
-    final attempts = state[index].attempts + 1;
-    _set([...state]..[index] = state[index].copyWith(attempts: attempts));
+    final faults = state[index].faults + 1;
+    if (faults >= maxFaults) {
+      return _settle(
+        sent,
+        OutboxState.rejected,
+        rejection: rejection,
+        reason: reason,
+      );
+    }
+    return _retryLater(sent, faults: faults);
+  }
+
+  _Outcome _retryLater(OutboxOperation sent, {int? faults}) {
+    final index = state.indexWhere((o) => o.id == sent.id);
+    if (index < 0) return _Outcome.done;
+    final current = state[index];
+    final attempts = current.attempts + 1;
+    _set(
+      [...state]
+        ..[index] = current.copyWith(
+          attempts: attempts,
+          faults: faults ?? current.faults,
+        ),
+    );
     _retry = Timer(retryDelay(attempts), () {
       _retry = null;
       _kick();
@@ -243,3 +397,18 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
 final outboxProvider = NotifierProvider<OutboxService, List<OutboxOperation>>(
   OutboxService.new,
 );
+
+/// Vrai quand la file d'envoi n'a pas pu être enregistrée (ou relue) sur
+/// l'appareil : les saisies ne tiennent alors qu'en mémoire, et l'écran doit
+/// le dire. Revient à faux au premier enregistrement réussi.
+class OutboxPersistenceNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void _set(bool failed) => state = failed;
+}
+
+final outboxPersistenceFailedProvider =
+    NotifierProvider<OutboxPersistenceNotifier, bool>(
+      OutboxPersistenceNotifier.new,
+    );
