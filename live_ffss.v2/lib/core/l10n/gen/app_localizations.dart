@@ -967,6 +967,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Impossible de charger cette série.'**
   String get entryLoadError;
+
+  /// No description provided for @entryUnverified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Droits de saisie non vérifiés : le site n\'a pas répondu. Vérifiez votre connexion et réessayez.'**
+  String get entryUnverified;
 }
 
 class _AppLocalizationsDelegate

@@ -531,4 +531,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entryLoadError => 'Couldn\'t load this heat.';
+
+  @override
+  String get entryUnverified =>
+      'Entry rights not checked: the site didn\'t respond. Check your connection and try again.';
 }

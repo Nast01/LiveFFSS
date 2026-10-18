@@ -9,6 +9,7 @@ import 'package:live_ffss_v2/data/repositories/auth_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
+import 'package:live_ffss_v2/features/officiel/entry_providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../support/in_memory_local_store.dart';
@@ -116,11 +117,26 @@ void main() {
     final sub = container.listen(canEnterProvider(1416), (_, _) {});
     addTearDown(sub.close);
 
+    final access = container.listen(entryAccessProvider(1416), (_, _) {});
+    addTearDown(access.close);
+
     await expectLater(
       container.read(competitionRolesProvider(1416).future),
       throwsA(isA<NetworkException>()),
     );
     expect(container.read(canEnterProvider(1416)), isFalse);
+    // Pas un refus : les droits n'ont pas pu être vérifiés, l'écran propose
+    // de réessayer.
+    expect(container.read(entryAccessProvider(1416)), EntryAccess.unverified);
+
+    when(
+      () => auth.competitionRoles(1416),
+    ).thenAnswer((_) async => ['public', 'officiel']);
+    // « Réessayer ».
+    container.invalidate(competitionRolesProvider(1416));
+    expect(container.read(entryAccessProvider(1416)), EntryAccess.checking);
+    await container.read(competitionRolesProvider(1416).future);
+    expect(container.read(entryAccessProvider(1416)), EntryAccess.allowed);
   });
 
   test('un licencié sans rôle d\'officiel ne saisit pas', () async {

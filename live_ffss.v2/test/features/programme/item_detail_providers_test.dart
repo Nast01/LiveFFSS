@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
@@ -102,8 +103,12 @@ void main() {
 
   // L'heure suit le temps simulé : la relecture des courses terminées en
   // dépend.
-  ProviderContainer container([FakeAsync? async]) => ProviderContainer(
+  ProviderContainer container([
+    FakeAsync? async,
+    List<Override> overrides = const [],
+  ]) => ProviderContainer(
     overrides: [
+      ...overrides,
       meetingRepositoryProvider.overrideWithValue(repository),
       resultRepositoryProvider.overrideWithValue(results),
       canEnterProvider.overrideWith((ref, _) => ref.watch(_canEnterFlag)),
@@ -374,6 +379,35 @@ void main() {
       verify(() => repository.getMeetingItem(10, day: day)).called(2);
       expect(laneRequests, [
         {11, 12, 21, 22},
+      ]);
+
+      c.dispose();
+    });
+  });
+
+  test('refresh relit des rôles en échec, pas la minuterie', () {
+    fakeAsync((async) {
+      var roleReads = 0;
+      final c = container(async, [
+        competitionRolesProvider.overrideWith((ref, id) async {
+          if (++roleReads == 1) throw const NetworkException('hors ligne');
+          return ['officiel'];
+        }),
+      ]);
+      c.listen(meetingItemDetailProvider(key), (_, _) {});
+      c.listen(competitionRolesProvider(key.competitionId), (_, _) {});
+      async.flushMicrotasks();
+      expect(roleReads, 1);
+
+      async.elapse(itemDetailRefresh);
+      async.flushMicrotasks();
+      expect(roleReads, 1);
+
+      c.read(meetingItemDetailProvider(key).notifier).refresh();
+      async.elapse(Duration.zero);
+      expect(roleReads, 2);
+      expect(c.read(competitionRolesProvider(key.competitionId)).value, [
+        'officiel',
       ]);
 
       c.dispose();

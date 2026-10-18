@@ -8,6 +8,7 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/live/live_formatting.dart';
 import 'package:live_ffss_v2/features/officiel/entry_formatting.dart';
@@ -71,6 +72,7 @@ class EntryPage extends ConsumerWidget {
           child: CircularProgressIndicator(),
         ),
         EntryAccess.denied => const _Denied(),
+        EntryAccess.unverified => _Unverified(competitionId: competitionId),
         EntryAccess.allowed => _EntryBody(
           entryKey: (
             competitionId: competitionId,
@@ -112,6 +114,34 @@ class _Denied extends ConsumerWidget {
                 child: Text(l10n.signIn),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Unverified extends ConsumerWidget {
+  const _Unverified({required this.competitionId});
+
+  final int competitionId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l10n.entryUnverified, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () =>
+                  ref.invalidate(competitionRolesProvider(competitionId)),
+              child: Text(l10n.retry),
+            ),
           ],
         ),
       ),

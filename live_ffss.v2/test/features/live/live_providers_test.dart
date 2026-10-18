@@ -11,6 +11,7 @@ import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
+import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/live/live_providers.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -63,8 +64,17 @@ void main() {
   LaneAssignment lane(int id, int number, String athlete) =>
       LaneAssignment(id: id, lane: number, athletes: [athlete]);
 
+  late int roleReads;
+
+  // Les rôles échouent à la première lecture, puis donnent un officiel.
   ProviderContainer container() => ProviderContainer(
-    overrides: [meetingRepositoryProvider.overrideWithValue(repository)],
+    overrides: [
+      meetingRepositoryProvider.overrideWithValue(repository),
+      competitionRolesProvider.overrideWith((ref, id) async {
+        if (++roleReads == 1) throw const NetworkException('hors ligne');
+        return ['officiel'];
+      }),
+    ],
     retry: noRetry,
   );
 
@@ -89,6 +99,7 @@ void main() {
       31: lane(31, 1, 'Diane'),
     };
     laneRequests = [];
+    roleReads = 0;
     when(
       () => repository.getProgramme(any()),
     ).thenAnswer((_) async => programme());
@@ -100,6 +111,29 @@ void main() {
         for (final id in ids)
           if (lanes.containsKey(id)) id: lanes[id],
       };
+    });
+  });
+
+  test('le rafraîchissement manuel relit des rôles en échec, '
+      'pas la minuterie', () {
+    fakeAsync((async) {
+      final c = container();
+      listen(c);
+      c.listen(canEnterProvider(competitionId), (_, _) {});
+      async.flushMicrotasks();
+      expect(roleReads, 1);
+      expect(c.read(competitionRolesProvider(competitionId)).hasError, isTrue);
+
+      async.elapse(liveRefresh);
+      async.flushMicrotasks();
+      expect(roleReads, 1);
+
+      c.read(liveProvider(competitionId).notifier).refresh();
+      async.elapse(Duration.zero);
+      expect(roleReads, 2);
+      expect(c.read(canEnterProvider(competitionId)), isTrue);
+
+      c.dispose();
     });
   });
 

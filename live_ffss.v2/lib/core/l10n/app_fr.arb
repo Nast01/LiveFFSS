@@ -198,5 +198,6 @@
   "entryNotPersisted": "Saisie en file, mais pas enregistrée sur le téléphone : ne fermez pas l'application avant son envoi",
   "entryNotConnected": "Connectez-vous pour saisir",
   "entryDenied": "Saisie réservée aux officiels de la compétition",
-  "entryLoadError": "Impossible de charger cette série."
+  "entryLoadError": "Impossible de charger cette série.",
+  "entryUnverified": "Droits de saisie non vérifiés : le site n'a pas répondu. Vérifiez votre connexion et réessayez."
 }

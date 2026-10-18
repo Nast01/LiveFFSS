@@ -531,4 +531,8 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get entryLoadError => 'Impossible de charger cette série.';
+
+  @override
+  String get entryUnverified =>
+      'Droits de saisie non vérifiés : le site n\'a pas répondu. Vérifiez votre connexion et réessayez.';
 }

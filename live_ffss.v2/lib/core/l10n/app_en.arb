@@ -184,5 +184,6 @@
   "entryNotPersisted": "Entry queued but not saved on the phone: keep the app open until it is sent",
   "entryNotConnected": "Sign in to enter results",
   "entryDenied": "Entry is reserved for the competition's officials",
-  "entryLoadError": "Couldn't load this heat."
+  "entryLoadError": "Couldn't load this heat.",
+  "entryUnverified": "Entry rights not checked: the site didn't respond. Check your connection and try again."
 }

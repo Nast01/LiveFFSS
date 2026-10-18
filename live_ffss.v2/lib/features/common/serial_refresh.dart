@@ -24,8 +24,14 @@ mixin SerialRefresh<T> on AsyncNotifier<T> {
   @protected
   void beforeReloadFromScratch() {}
 
+  /// Au début d'un rafraîchissement manuel, jamais à un tour de minuterie :
+  /// relancer ce que seul un geste de l'utilisateur doit relancer.
+  @protected
+  void beforeManualRefresh() {}
+
   Future<void> refresh() async {
     final runRef = ref;
+    beforeManualRefresh();
     // En boucle : un autre `refresh` peut avoir pris la place entre-temps.
     for (var running = _inFlight; running != null; running = _inFlight) {
       await running;

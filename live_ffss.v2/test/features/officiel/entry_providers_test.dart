@@ -250,6 +250,53 @@ void main() {
       await c.read(competitionRolesProvider(_competition).future);
       expect(c.read(entryAccessProvider(_competition)), EntryAccess.denied);
     });
+
+    test('rôles illisibles sans session : refus, rien à vérifier', () async {
+      final c = container(
+        account: null,
+        overrides: [
+          competitionRolesProvider.overrideWith(
+            (ref, id) async => throw const NetworkException('hors ligne'),
+          ),
+        ],
+      );
+      c.listen(entryAccessProvider(_competition), (_, _) {});
+      await expectLater(
+        c.read(competitionRolesProvider(_competition).future),
+        throwsA(isA<NetworkException>()),
+      );
+      expect(c.read(entryAccessProvider(_competition)), EntryAccess.denied);
+    });
+
+    test('le rafraîchissement de la série relit des rôles en échec', () async {
+      var reads = 0;
+      final c = container(
+        overrides: [
+          competitionRolesProvider.overrideWith((ref, id) async {
+            if (++reads == 1) throw const NetworkException('hors ligne');
+            return ['officiel'];
+          }),
+        ],
+      );
+      c.listen(entryAccessProvider(_competition), (_, _) {});
+      c.listen(entryHeatProvider(heatKey), (_, _) {});
+      await c.read(entryHeatProvider(heatKey).future);
+      await expectLater(
+        c.read(competitionRolesProvider(_competition).future),
+        throwsA(isA<NetworkException>()),
+      );
+      expect(c.read(entryAccessProvider(_competition)), EntryAccess.unverified);
+
+      await c.read(entryHeatProvider(heatKey).notifier).refresh();
+      await c.read(competitionRolesProvider(_competition).future);
+
+      expect(reads, 2);
+      expect(c.read(entryAccessProvider(_competition)), EntryAccess.allowed);
+
+      // Des rôles lus ne sont pas relus.
+      await c.read(entryHeatProvider(heatKey).notifier).refresh();
+      expect(reads, 2);
+    });
   });
 
   group('filtre de couloir', () {

@@ -30,7 +30,15 @@ typedef EntryKey = ({int competitionId, int itemId, int? heatId});
 
 typedef EntryHeatKey = ({int competitionId, int heatId});
 
-enum EntryAccess { checking, allowed, denied }
+enum EntryAccess {
+  checking,
+  allowed,
+
+  /// Les rôles n'ont pas pu être lus pour la session en cours : ni permis ni
+  /// refusé, l'écran propose de réessayer.
+  unverified,
+  denied,
+}
 
 /// La saisie ne s'ouvre qu'aux rôles qui le permettent, établis pour la
 /// session en cours ; pendant leur première lecture, l'écran attend.
@@ -39,10 +47,14 @@ final entryAccessProvider = Provider.autoDispose.family<EntryAccess, int>((
   competitionId,
 ) {
   final roles = ref.watch(competitionRolesProvider(competitionId));
+  final connected = ref.watch(sessionProvider).value != null;
   // Une relecture garde le dernier droit établi : passer par l'attente
   // fermerait l'écran, et les chiffres tapés avec lui.
   if (roles.isLoading && !roles.hasValue) return EntryAccess.checking;
-  if (roles.hasError) return EntryAccess.denied;
+  // Sans session, il n'y avait rien à vérifier.
+  if (roles.hasError) {
+    return connected ? EntryAccess.unverified : EntryAccess.denied;
+  }
   return canEnterResults(roles.value ?? const [])
       ? EntryAccess.allowed
       : EntryAccess.denied;
@@ -175,6 +187,9 @@ class EntryHeatNotifier extends AsyncNotifier<EntryHeatData>
 
   @override
   Future<void> reloadIncremental() => _reload();
+
+  @override
+  void beforeManualRefresh() => retryFailedRoles(ref, key.competitionId);
 
   @override
   void beforeReloadFromScratch() {

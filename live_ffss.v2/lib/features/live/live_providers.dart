@@ -8,6 +8,7 @@ import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/live.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
+import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/common/serial_refresh.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_refresh.dart';
 
@@ -119,6 +120,9 @@ class LiveNotifier extends AsyncNotifier<LiveView>
       );
     }
   }
+
+  @override
+  void beforeManualRefresh() => retryFailedRoles(ref, competitionId);
 
   /// Relit le programme et toutes les places, validées comprises : le juge
   /// principal peut encore corriger une série validée.

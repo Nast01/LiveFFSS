@@ -208,6 +208,9 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail>
     return runRef.mounted ? chronos : const {};
   }
 
+  @override
+  void beforeManualRefresh() => retryFailedRoles(ref, key.competitionId);
+
   /// Relit le créneau et toutes ses places, quel que soit l'état des courses.
   @override
   Future<void> reloadAll() => _reload(everything: true);

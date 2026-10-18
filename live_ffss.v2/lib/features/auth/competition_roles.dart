@@ -26,3 +26,14 @@ final canEnterProvider = Provider.autoDispose.family<bool, int>((
   if (roles.isLoading || roles.hasError) return false;
   return canEnterResults(roles.value ?? const []);
 });
+
+/// Au rafraîchissement manuel, une lecture des rôles en échec (hors ligne au
+/// lancement, Wi-Fi de piscine) est relue : sans quoi elle ne le serait
+/// qu'au prochain changement de session. Rien n'est lu si personne ne les
+/// suit.
+void retryFailedRoles(Ref ref, int competitionId) {
+  final provider = competitionRolesProvider(competitionId);
+  if (ref.exists(provider) && ref.read(provider).hasError) {
+    ref.invalidate(provider);
+  }
+}
