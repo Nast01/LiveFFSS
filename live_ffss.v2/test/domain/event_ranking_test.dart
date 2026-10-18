@@ -352,6 +352,49 @@ void main() {
     expect(empty.totalSeries, 0);
   });
 
+  group('provisoire tant que les finales prévues ne sont pas nagées', () {
+    List<LinkedSeries> finals(Iterable<EventRound> rounds) => [
+      for (final round in rounds)
+        _s(round, 0, [
+          for (
+            var e = round == EventRound.finalA ? 1 : 9;
+            e < (round == EventRound.finalA ? 9 : 17);
+            e++
+          )
+            _r(e, time: 5000 + e),
+        ]),
+    ];
+
+    test('séries terminées et validées, finales non rattachées', () {
+      expect(
+        rankEvent(_event, _sixteenHeats(), finalStage: _finals(2)).provisional,
+        isTrue,
+      );
+      expect(
+        rankEvent(_event, _sixteenHeats(), finalStage: _finals(1)).provisional,
+        isTrue,
+      );
+    });
+
+    test('une finale nagée sur deux', () {
+      final ranking = rankEvent(_event, [
+        ..._sixteenHeats(),
+        ...finals([EventRound.finalA]),
+      ], finalStage: _finals(2));
+      expect(ranking.provisional, isTrue);
+    });
+
+    test('les finales rattachées et terminées', () {
+      final ranking = rankEvent(_event, [
+        ..._sixteenHeats(),
+        ...finals([EventRound.finalA, EventRound.finalB]),
+      ], finalStage: _finals(2));
+      expect(ranking.provisional, isFalse);
+      // Le total reste celui des séries rattachées.
+      expect(ranking.totalSeries, 4);
+    });
+  });
+
   group('heatPlace', () {
     final heat = [
       _r(1, time: 3000),

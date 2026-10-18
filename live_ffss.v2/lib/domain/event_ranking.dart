@@ -156,12 +156,27 @@ EventRanking rankEvent(
     );
   }
 
+  // Des séries toutes validées ne font pas un classement définitif tant
+  // qu'une finale prévue n'est pas nagée : ses rangs et ses points changent
+  // encore. Une finale compte quand elle est rattachée et toutes ses courses
+  // terminées.
+  final swumFinals = [EventRound.finalA, EventRound.finalB].where((round) {
+    final linked = [
+      for (final one in series)
+        if (one.round == round) one,
+    ];
+    return linked.isNotEmpty && linked.every((s) => s.finished);
+  }).length;
+
   return EventRanking(
     event: event,
     rows: rows,
     finishedSeries: series.where((s) => s.finished).length,
     totalSeries: series.length,
-    provisional: series.isEmpty || series.any((s) => s.provisional),
+    provisional:
+        series.isEmpty ||
+        series.any((s) => s.provisional) ||
+        swumFinals < finalsCount,
   );
 }
 
