@@ -7,7 +7,7 @@ part 'participant_dto.freezed.dart';
 part 'participant_dto.g.dart';
 
 /// Un participant de `competition/evenement/:id/participants`. Ni `categories`
-/// numéro de licence : seuls l'identité sportive, les liens vers le licencié
+/// ni numéro de licence : seuls l'identité sportive, les liens vers le licencié
 /// et le club, et les engagements sont lus.
 @freezed
 abstract class ParticipantDto with _$ParticipantDto {

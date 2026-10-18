@@ -30,25 +30,31 @@ abstract class CompetitionOfficial with _$CompetitionOfficial {
 List<({String? label, List<CompetitionOfficial> officials})> groupOfficials(
   List<CompetitionOfficial> officials,
 ) {
-  int byName(CompetitionOfficial a, CompetitionOfficial b) =>
-      foldForSearch(a.name).compareTo(foldForSearch(b.name));
+  // Le nom d'abord, l'id ensuite : deux homonymes gardent un ordre stable.
+  int byName(CompetitionOfficial a, CompetitionOfficial b) {
+    final byText = foldForSearch(a.name).compareTo(foldForSearch(b.name));
+    return byText != 0 ? byText : a.id.compareTo(b.id);
+  }
 
   final principals = officials.where((o) => o.principal).toList()..sort(byName);
   final byLevel = <String, List<CompetitionOfficial>>{};
   for (final official in officials) {
     if (official.principal) continue;
-    byLevel.putIfAbsent(official.level, () => []).add(official);
+    byLevel
+        .putIfAbsent(official.level.trim().toUpperCase(), () => [])
+        .add(official);
   }
-  // A, B, C avant tout autre code : un niveau inconnu ne passe pas devant.
+  // A, B, C avant tout autre code ; un niveau vide (non renseigné) en dernier.
   const known = ['A', 'B', 'C'];
+  int rank(String level) {
+    if (level.isEmpty) return 2;
+    return known.contains(level) ? 0 : 1;
+  }
+
   final levels = byLevel.keys.toList()
     ..sort((a, b) {
-      final ia = known.indexOf(a);
-      final ib = known.indexOf(b);
-      if (ia >= 0 && ib >= 0) return ia.compareTo(ib);
-      if (ia >= 0) return -1;
-      if (ib >= 0) return 1;
-      return a.compareTo(b);
+      final byRank = rank(a).compareTo(rank(b));
+      return byRank != 0 ? byRank : a.compareTo(b);
     });
   return [
     if (principals.isNotEmpty) (label: null, officials: principals),

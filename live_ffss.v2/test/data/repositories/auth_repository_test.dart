@@ -154,6 +154,46 @@ void main() {
       expect(roles.refereeClubs, [const ClubRef(id: 15, label: 'Club')]);
     });
 
+    test('id de club servi en chaîne, principal absent : gardés', () async {
+      when(() => http.get('competition/evenement/1416/me')).thenAnswer(
+        (_) async => {
+          'data': {
+            'roles': ['public', 'officiel'],
+            'officiel': {'niveau': 'B'},
+            'referent_sportif': [
+              {'id': '15', 'label': 'Club'},
+            ],
+          },
+        },
+      );
+
+      final roles = await repository.competitionRoles(1416);
+
+      expect(roles.official?.level, 'B');
+      expect(roles.official?.principal, isFalse);
+      expect(roles.refereeClubs, [const ClubRef(id: 15, label: 'Club')]);
+    });
+
+    test('licencie et officiel servis en [] (objet vide de PHP)', () async {
+      when(() => http.get('competition/evenement/1416/me')).thenAnswer(
+        (_) async => {
+          'data': {
+            'roles': ['public', 'licencie'],
+            'licencie': <Object?>[],
+            'officiel': <Object?>[],
+            'referent_sportif': <Object?>[],
+          },
+        },
+      );
+
+      final roles = await repository.competitionRoles(1416);
+
+      expect(roles.roles, ['public', 'licencie']);
+      expect(roles.licenseeId, isNull);
+      expect(roles.official, isNull);
+      expect(roles.refereeClubs, isEmpty);
+    });
+
     test('lit aussi les rôles servis sans enveloppe (sans session)', () async {
       when(() => http.get('competition/evenement/1416/me')).thenAnswer(
         (_) async => {

@@ -48,6 +48,35 @@ void main() {
     },
   );
 
+  test('code de niveau en minuscule : regroupé avec sa majuscule', () {
+    final groups = groupOfficials([
+      official(1, 'A Un', level: 'b'),
+      official(2, 'B Deux', level: 'B'),
+    ]);
+
+    expect(groups.map((g) => g.label), ['B']);
+    expect(groups.single.officials, hasLength(2));
+  });
+
+  test('niveau vide : dernier groupe, après les codes inconnus', () {
+    final groups = groupOfficials([
+      official(1, 'ABEL Eve', level: ''),
+      official(2, 'PETIT Luc', level: 'Z'),
+      official(3, 'DURAND Zoe', level: 'C'),
+    ]);
+
+    expect(groups.map((g) => g.label), ['C', 'Z', '']);
+  });
+
+  test('même nom : départagés par identifiant', () {
+    final groups = groupOfficials([
+      official(9, 'DUPONT Jean'),
+      official(3, 'DUPONT Jean'),
+    ]);
+
+    expect(groups.single.officials.map((o) => o.id), [3, 9]);
+  });
+
   test('aucun officiel : aucun groupe', () {
     expect(groupOfficials(const []), isEmpty);
   });
