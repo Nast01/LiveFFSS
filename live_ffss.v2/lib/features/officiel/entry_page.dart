@@ -21,27 +21,48 @@ import 'package:live_ffss_v2/features/programme/programme_providers.dart';
 import 'package:live_ffss_v2/features/programme/widgets/status_badge.dart';
 
 /// La saisie d'un officiel (maquette B), ouverte sur une série d'un créneau.
-class EntryPage extends ConsumerWidget {
+class EntryPage extends ConsumerStatefulWidget {
   const EntryPage({
     super.key,
     required this.competitionId,
     required this.itemId,
     this.heatId,
+    required this.branch,
   });
 
   final int competitionId;
   final int itemId;
+
+  /// La série de l'adresse, que la navigation ‹ › tient à jour.
   final int? heatId;
 
+  /// L'onglet qui porte l'écran, pour réécrire son adresse.
+  final String branch;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EntryPage> createState() => _EntryPageState();
+}
+
+class _EntryPageState extends ConsumerState<EntryPage> {
+  /// Les fournisseurs de l'écran en dépendent : changer l'adresse ne doit pas
+  /// les remplacer, ni perdre les chiffres tapés.
+  EntryKey? _key;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final access = ref.watch(entryAccessProvider(competitionId));
+    final competitionId = widget.competitionId;
+    final gate = ref.watch(entryGateProvider(competitionId));
+    final key = _key = entryScreenKey(gate, _key, (
+      competitionId: competitionId,
+      itemId: widget.itemId,
+      heatId: widget.heatId,
+    ));
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.entryTitle),
         actions: [
-          if (access == EntryAccess.allowed)
+          if (gate.access == EntryAccess.allowed && !gate.frozen)
             Padding(
               padding: const EdgeInsets.only(right: 16),
               child: Center(
@@ -67,20 +88,81 @@ class EntryPage extends ConsumerWidget {
             ),
         ],
       ),
-      body: switch (access) {
-        EntryAccess.checking => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        EntryAccess.denied => const _Denied(),
-        EntryAccess.unverified => _Unverified(competitionId: competitionId),
-        EntryAccess.allowed => _EntryBody(
-          entryKey: (
-            competitionId: competitionId,
-            itemId: itemId,
-            heatId: heatId,
+      body: key != null
+          ? Column(
+              children: [
+                if (gate.frozen)
+                  _FrozenBanner(gate: gate, competitionId: competitionId),
+                Expanded(
+                  child: _EntryBody(
+                    entryKey: key,
+                    branch: widget.branch,
+                    routeHeatId: widget.heatId,
+                    frozen: gate.frozen,
+                  ),
+                ),
+              ],
+            )
+          : switch (gate.access) {
+              EntryAccess.checking || EntryAccess.allowed => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              EntryAccess.denied => const _Denied(),
+              EntryAccess.unverified => _Unverified(
+                competitionId: competitionId,
+              ),
+            },
+    );
+  }
+}
+
+/// L'écran gelé : pourquoi, et comment reprendre.
+class _FrozenBanner extends ConsumerWidget {
+  const _FrozenBanner({required this.gate, required this.competitionId});
+
+  final EntryGate gate;
+  final int competitionId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final connected = ref.watch(sessionProvider).value != null;
+    final (text, action) = !connected
+        ? (
+            l10n.entrySessionLost,
+            FilledButton(
+              onPressed: () => context.go(Routes.mySpace),
+              child: Text(l10n.signIn),
+            ),
+          )
+        : gate.access == EntryAccess.unverified
+        ? (
+            l10n.entryUnverified,
+            FilledButton(
+              onPressed: () =>
+                  ref.invalidate(competitionRolesProvider(competitionId)),
+              child: Text(l10n.retry),
+            ),
+          )
+        : (l10n.entryResuming, null);
+    return Container(
+      width: double.infinity,
+      color: AppColors.red.withValues(alpha: 0.12),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.navy,
+              ),
+            ),
           ),
-        ),
-      },
+          if (action != null) ...[const SizedBox(width: 8), action],
+        ],
+      ),
     );
   }
 }
@@ -150,9 +232,17 @@ class _Unverified extends ConsumerWidget {
 }
 
 class _EntryBody extends ConsumerWidget {
-  const _EntryBody({required this.entryKey});
+  const _EntryBody({
+    required this.entryKey,
+    required this.branch,
+    required this.routeHeatId,
+    required this.frozen,
+  });
 
   final EntryKey entryKey;
+  final String branch;
+  final int? routeHeatId;
+  final bool frozen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -186,15 +276,32 @@ class _EntryBody extends ConsumerWidget {
         ),
       );
     }
-    return _HeatEntry(entryKey: entryKey, cursor: value);
+    return _HeatEntry(
+      entryKey: entryKey,
+      cursor: value,
+      branch: branch,
+      routeHeatId: routeHeatId,
+      frozen: frozen,
+    );
   }
 }
 
 class _HeatEntry extends ConsumerWidget {
-  const _HeatEntry({required this.entryKey, required this.cursor});
+  const _HeatEntry({
+    required this.entryKey,
+    required this.cursor,
+    required this.branch,
+    required this.routeHeatId,
+    required this.frozen,
+  });
 
   final EntryKey entryKey;
   final EntryCursor cursor;
+  final String branch;
+  final int? routeHeatId;
+
+  /// Session perdue : l'écran reste, mais rien ne s'y touche.
+  final bool frozen;
 
   EntryHeatKey get _heatKey =>
       (competitionId: entryKey.competitionId, heatId: cursor.entry.heat.id);
@@ -230,8 +337,8 @@ class _HeatEntry extends ConsumerWidget {
     final children = <Widget>[
       _Header(
         cursor: cursor,
-        onPrevious: editor.previousHeat,
-        onNext: editor.nextHeat,
+        onPrevious: () => _moved(context, ref, editor.previousHeat()),
+        onNext: () => _moved(context, ref, editor.nextHeat()),
       ),
       _Banner(
         text: l10n.entryNotice,
@@ -363,9 +470,38 @@ class _HeatEntry extends ConsumerWidget {
           top: 8,
           bottom: 16 + MediaQuery.of(context).viewPadding.bottom,
         ),
-        children: children,
+        children: [
+          IgnorePointer(
+            ignoring: frozen,
+            child: Opacity(
+              opacity: frozen ? 0.5 : 1,
+              child: Column(children: children),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  /// Après un passage à une autre série : l'adresse la désigne, pour que
+  /// l'écran s'y rouvre.
+  bool _moved(BuildContext context, WidgetRef ref, bool moved) {
+    if (!moved) return false;
+    final heatId = entryRouteHeat(
+      ref.read(entryNavigatorProvider(entryKey)).value,
+      routeHeatId,
+    );
+    if (heatId != null) {
+      context.go(
+        Routes.itemEntry(
+          branch,
+          entryKey.competitionId,
+          entryKey.itemId,
+          heatId: heatId,
+        ),
+      );
+    }
+    return true;
   }
 
   Future<void> _refresh(WidgetRef ref) async {
@@ -393,6 +529,7 @@ class _HeatEntry extends ConsumerWidget {
         .read(entryEditorProvider(entryKey).notifier)
         .saveAndNext(lane);
     if (!context.mounted) return;
+    _moved(context, ref, result.moved);
     final message = _outcomeMessage(result.outcome, l10n);
     if (message != null) {
       _snack(context, message);

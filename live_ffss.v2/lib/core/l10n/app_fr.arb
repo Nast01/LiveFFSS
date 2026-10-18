@@ -199,5 +199,7 @@
   "entryNotConnected": "Connectez-vous pour saisir",
   "entryDenied": "Saisie réservée aux officiels de la compétition",
   "entryLoadError": "Impossible de charger cette série.",
+  "entrySessionLost": "Session expirée — reconnectez-vous",
+  "entryResuming": "Vérification de vos droits de saisie…",
   "entryUnverified": "Droits de saisie non vérifiés : le site n'a pas répondu. Vérifiez votre connexion et réessayez."
 }

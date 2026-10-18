@@ -968,6 +968,18 @@ abstract class AppLocalizations {
   /// **'Impossible de charger cette série.'**
   String get entryLoadError;
 
+  /// No description provided for @entrySessionLost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Session expirée — reconnectez-vous'**
+  String get entrySessionLost;
+
+  /// No description provided for @entryResuming.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérification de vos droits de saisie…'**
+  String get entryResuming;
+
   /// No description provided for @entryUnverified.
   ///
   /// In fr, this message translates to:

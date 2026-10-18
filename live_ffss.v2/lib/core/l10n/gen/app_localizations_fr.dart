@@ -533,6 +533,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get entryLoadError => 'Impossible de charger cette série.';
 
   @override
+  String get entrySessionLost => 'Session expirée — reconnectez-vous';
+
+  @override
+  String get entryResuming => 'Vérification de vos droits de saisie…';
+
+  @override
   String get entryUnverified =>
       'Droits de saisie non vérifiés : le site n\'a pas répondu. Vérifiez votre connexion et réessayez.';
 }

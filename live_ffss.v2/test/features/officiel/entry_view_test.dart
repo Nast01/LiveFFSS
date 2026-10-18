@@ -322,6 +322,14 @@ void main() {
       expect(entryCursor(meetings, itemId: 10, heatId: 3)!.entry.heat.id, 1);
       expect(entryCursor(meetings, itemId: 20), isNull);
     });
+
+    test('l\'adresse suit la série atteinte, pour s\'y rouvrir', () {
+      final cursor = entryCursor(meetings, itemId: 10, heatId: 2);
+      expect(entryRouteHeat(cursor, 1), 2);
+      expect(entryRouteHeat(cursor, null), 2);
+      expect(entryRouteHeat(cursor, 2), isNull);
+      expect(entryRouteHeat(null, 1), isNull);
+    });
   });
 
   group('entryFocus', () {

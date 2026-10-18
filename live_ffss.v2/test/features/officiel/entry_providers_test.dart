@@ -45,6 +45,9 @@ class _FakeSession extends SessionNotifier {
 
   @override
   Future<Account?> build() async => _account;
+
+  /// Une expiration, une déconnexion ou une connexion.
+  void set(Account? account) => state = AsyncData(account);
 }
 
 typedef _Added = ({int placeId, int seriesId, int entryId, int? resultId});
@@ -169,10 +172,15 @@ void main() {
 
   ProviderContainer container({
     Account? account = const Account(label: 'DUPONT Jean'),
+    Override? roles,
     List<Override> overrides = const [],
   }) {
     final c = ProviderContainer(
       overrides: [
+        roles ??
+            competitionRolesProvider.overrideWith(
+              (ref, id) async => ['officiel'],
+            ),
         meetingRepositoryProvider.overrideWithValue(meetings),
         resultRepositoryProvider.overrideWithValue(results),
         localStoreProvider.overrideWithValue(local),
@@ -203,9 +211,7 @@ void main() {
     test('en attente des rôles, puis ouverte aux seuls officiels', () async {
       final roles = Completer<List<String>>();
       final c = container(
-        overrides: [
-          competitionRolesProvider.overrideWith((ref, id) => roles.future),
-        ],
+        roles: competitionRolesProvider.overrideWith((ref, id) => roles.future),
       );
       c.listen(entryAccessProvider(_competition), (_, _) {});
       expect(c.read(entryAccessProvider(_competition)), EntryAccess.checking);
@@ -219,12 +225,10 @@ void main() {
       var reads = 0;
       final second = Completer<List<String>>();
       final c = container(
-        overrides: [
-          competitionRolesProvider.overrideWith(
-            (ref, id) =>
-                ++reads == 1 ? Future.value(['officiel']) : second.future,
-          ),
-        ],
+        roles: competitionRolesProvider.overrideWith(
+          (ref, id) =>
+              ++reads == 1 ? Future.value(['officiel']) : second.future,
+        ),
       );
       c.listen(entryAccessProvider(_competition), (_, _) {});
       await c.read(competitionRolesProvider(_competition).future);
@@ -238,13 +242,31 @@ void main() {
       expect(c.read(entryAccessProvider(_competition)), EntryAccess.denied);
     });
 
+    test('une relecture après un refus attend, sans refuser', () async {
+      var reads = 0;
+      final second = Completer<List<String>>();
+      final c = container(
+        roles: competitionRolesProvider.overrideWith(
+          (ref, id) => ++reads == 1 ? Future.value(['public']) : second.future,
+        ),
+      );
+      c.listen(entryAccessProvider(_competition), (_, _) {});
+      await c.read(competitionRolesProvider(_competition).future);
+      expect(c.read(entryAccessProvider(_competition)), EntryAccess.denied);
+
+      c.invalidate(competitionRolesProvider(_competition));
+      expect(c.read(entryAccessProvider(_competition)), EntryAccess.checking);
+
+      second.complete(['officiel']);
+      await c.read(competitionRolesProvider(_competition).future);
+      expect(c.read(entryAccessProvider(_competition)), EntryAccess.allowed);
+    });
+
     test('un licencié n\'y entre pas', () async {
       final c = container(
-        overrides: [
-          competitionRolesProvider.overrideWith(
-            (ref, id) async => ['public', 'licencie'],
-          ),
-        ],
+        roles: competitionRolesProvider.overrideWith(
+          (ref, id) async => ['public', 'licencie'],
+        ),
       );
       c.listen(entryAccessProvider(_competition), (_, _) {});
       await c.read(competitionRolesProvider(_competition).future);
@@ -254,11 +276,9 @@ void main() {
     test('rôles illisibles sans session : refus, rien à vérifier', () async {
       final c = container(
         account: null,
-        overrides: [
-          competitionRolesProvider.overrideWith(
-            (ref, id) async => throw const NetworkException('hors ligne'),
-          ),
-        ],
+        roles: competitionRolesProvider.overrideWith(
+          (ref, id) async => throw const NetworkException('hors ligne'),
+        ),
       );
       c.listen(entryAccessProvider(_competition), (_, _) {});
       await expectLater(
@@ -271,12 +291,10 @@ void main() {
     test('le rafraîchissement de la série relit des rôles en échec', () async {
       var reads = 0;
       final c = container(
-        overrides: [
-          competitionRolesProvider.overrideWith((ref, id) async {
-            if (++reads == 1) throw const NetworkException('hors ligne');
-            return ['officiel'];
-          }),
-        ],
+        roles: competitionRolesProvider.overrideWith((ref, id) async {
+          if (++reads == 1) throw const NetworkException('hors ligne');
+          return ['officiel'];
+        }),
       );
       c.listen(entryAccessProvider(_competition), (_, _) {});
       c.listen(entryHeatProvider(heatKey), (_, _) {});
@@ -297,6 +315,176 @@ void main() {
       await c.read(entryHeatProvider(heatKey).notifier).refresh();
       expect(reads, 2);
     });
+  });
+
+  test('la clé de l\'écran tient tant qu\'il est montré, puis reprend '
+      'la série de l\'adresse', () {
+    const opened = (competitionId: _competition, itemId: 7, heatId: 1);
+    const route = (competitionId: _competition, itemId: 7, heatId: 3);
+    const allowed = (access: EntryAccess.allowed, frozen: false, owner: 'A');
+    const frozen = (access: EntryAccess.denied, frozen: true, owner: 'A');
+    const denied = (access: EntryAccess.denied, frozen: false, owner: null);
+    const checking = (access: EntryAccess.checking, frozen: false, owner: null);
+
+    expect(entryScreenKey(allowed, null, route), route);
+    expect(entryScreenKey(allowed, opened, route), opened);
+    expect(entryScreenKey(frozen, opened, route), opened);
+    expect(entryScreenKey(denied, opened, route), isNull);
+    expect(entryScreenKey(checking, opened, route), isNull);
+  });
+
+  group('session perdue pendant la saisie', () {
+    const jean = Account(label: 'DUPONT Jean');
+    const paul = Account(label: 'MARTIN Paul');
+
+    /// Les rôles de chaque compte, relus quand la session change.
+    Override rolesOf(Map<String, List<String>> byAccount) =>
+        competitionRolesProvider.overrideWith((ref, id) async {
+          final account = await ref.watch(sessionProvider.future);
+          if (account == null) return ['public'];
+          return byAccount[account.label] ?? ['public', 'licencie'];
+        });
+
+    _FakeSession session(ProviderContainer c) =>
+        c.read(sessionProvider.notifier) as _FakeSession;
+
+    Future<void> settle() async {
+      for (var i = 0; i < 5; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    }
+
+    Future<(ProviderContainer, EntryLane)> openWithDraft(
+      Map<String, List<String>> byAccount,
+    ) async {
+      final c = container(roles: rolesOf(byAccount));
+      c.listen(entryGateProvider(_competition), (_, _) {});
+      final lane = (await lanesOf(c)).first;
+      await settle();
+      expect(c.read(entryGateProvider(_competition)), (
+        access: EntryAccess.allowed,
+        frozen: false,
+        owner: 'DUPONT Jean',
+      ));
+      c.read(entryEditorProvider(key).notifier)
+        ..typeDigit(lane, '5')
+        ..typeDigit(lane, '0')
+        ..typeDigit(lane, '1')
+        ..typeDigit(lane, '2');
+      return (c, lane);
+    }
+
+    test('expirée : l\'écran reste, gelé, ses chiffres gardés ; le même '
+        'compte reconnecté reprend où il en était', () async {
+      final (c, lane) = await openWithDraft({
+        'DUPONT Jean': ['officiel'],
+      });
+      final editor = c.read(entryEditorProvider(key).notifier);
+      expect(editor.nextHeat(), isTrue);
+
+      session(c).set(null);
+      await settle();
+
+      expect(c.read(entryGateProvider(_competition)), (
+        access: EntryAccess.denied,
+        frozen: true,
+        owner: 'DUPONT Jean',
+      ));
+      editor.typeDigit(lane, '9');
+      expect(c.read(entryEditorProvider(key)).drafts[11], ['5012', '', '']);
+      expect(await editor.saveChronos(lane), EntrySaveOutcome.notConnected);
+      expect(await editor.forfeit(lane), EntrySaveOutcome.notConnected);
+      expect(outbox.added, isEmpty);
+
+      session(c).set(jean);
+      // Ses droits se relisent : l'écran reste gelé en attendant.
+      expect(c.read(entryGateProvider(_competition)).frozen, isTrue);
+      await settle();
+
+      expect(c.read(entryGateProvider(_competition)), (
+        access: EntryAccess.allowed,
+        frozen: false,
+        owner: 'DUPONT Jean',
+      ));
+      expect(c.read(entryEditorProvider(key)).drafts[11], ['5012', '', '']);
+      expect(c.read(entryNavigatorProvider(key)).value?.entry.heat.id, 2);
+      expect(await editor.saveChronos(lane), EntrySaveOutcome.saved);
+    });
+
+    test('un autre compte connecté : les chiffres du précédent sont '
+        'écartés', () async {
+      final (c, _) = await openWithDraft({
+        'DUPONT Jean': ['officiel'],
+        'MARTIN Paul': ['officiel'],
+      });
+
+      session(c).set(null);
+      await settle();
+      session(c).set(paul);
+      await settle();
+
+      expect(c.read(entryGateProvider(_competition)), (
+        access: EntryAccess.allowed,
+        frozen: false,
+        owner: 'MARTIN Paul',
+      ));
+      expect(c.read(entryEditorProvider(key)).drafts, isEmpty);
+    });
+
+    test('le même compte reconnecté sans droit : l\'écran se ferme', () async {
+      var rights = ['officiel'];
+      final c = container(
+        roles: competitionRolesProvider.overrideWith((ref, id) async {
+          final account = await ref.watch(sessionProvider.future);
+          return account == null ? ['public'] : rights;
+        }),
+      );
+      c.listen(entryGateProvider(_competition), (_, _) {});
+      await lanesOf(c);
+      await settle();
+
+      session(c).set(null);
+      await settle();
+      rights = ['public', 'licencie'];
+      session(c).set(jean);
+      await settle();
+
+      expect(c.read(entryGateProvider(_competition)), (
+        access: EntryAccess.denied,
+        frozen: false,
+        owner: null,
+      ));
+    });
+
+    test(
+      'des droits non vérifiés à la reconnexion : l\'écran reste gelé',
+      () async {
+        var fail = false;
+        final c = container(
+          roles: competitionRolesProvider.overrideWith((ref, id) async {
+            final account = await ref.watch(sessionProvider.future);
+            if (account == null) return ['public'];
+            if (fail) throw const NetworkException('hors ligne');
+            return ['officiel'];
+          }),
+        );
+        c.listen(entryGateProvider(_competition), (_, _) {});
+        await lanesOf(c);
+        await settle();
+
+        session(c).set(null);
+        await settle();
+        fail = true;
+        session(c).set(jean);
+        await settle();
+
+        expect(c.read(entryGateProvider(_competition)), (
+          access: EntryAccess.unverified,
+          frozen: true,
+          owner: 'DUPONT Jean',
+        ));
+      },
+    );
   });
 
   group('filtre de couloir', () {

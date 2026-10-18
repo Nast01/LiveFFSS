@@ -79,6 +79,7 @@ GoRoute _itemRoute({required String fallback}) => GoRoute(
           competitionId: key.competitionId,
           itemId: key.itemId,
           heatId: entryHeatId(state.uri.queryParameters),
+          branch: fallback,
         );
       },
     ),

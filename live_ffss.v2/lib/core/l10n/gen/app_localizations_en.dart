@@ -533,6 +533,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryLoadError => 'Couldn\'t load this heat.';
 
   @override
+  String get entrySessionLost => 'Session expired — sign in again';
+
+  @override
+  String get entryResuming => 'Checking your entry rights…';
+
+  @override
   String get entryUnverified =>
       'Entry rights not checked: the site didn\'t respond. Check your connection and try again.';
 }

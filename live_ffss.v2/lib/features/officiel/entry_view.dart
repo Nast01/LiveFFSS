@@ -244,6 +244,14 @@ EntryCursor? entryCursor(
   );
 }
 
+/// La série à mettre dans l'adresse de l'écran, si [cursor] n'est plus sur
+/// celle qu'elle désigne ([routeHeatId]) : rouvert, l'écran reprend là où
+/// l'officiel en était, pas sur la série d'où il est parti.
+int? entryRouteHeat(EntryCursor? cursor, int? routeHeatId) {
+  final heatId = cursor?.entry.heat.id;
+  return heatId == routeHeatId ? null : heatId;
+}
+
 enum EntryMode {
   /// « Tous » : la liste des couloirs.
   list,

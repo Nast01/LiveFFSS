@@ -6,6 +6,7 @@ import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/result_repository.dart';
+import 'package:live_ffss_v2/domain/account.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/manual_timing.dart';
@@ -48,9 +49,14 @@ final entryAccessProvider = Provider.autoDispose.family<EntryAccess, int>((
 ) {
   final roles = ref.watch(competitionRolesProvider(competitionId));
   final connected = ref.watch(sessionProvider).value != null;
-  // Une relecture garde le dernier droit établi : passer par l'attente
-  // fermerait l'écran, et les chiffres tapés avec lui.
-  if (roles.isLoading && !roles.hasValue) return EntryAccess.checking;
+  if (roles.isLoading) {
+    // Une relecture garde le dernier droit établi : passer par l'attente
+    // fermerait l'écran, et les chiffres tapés avec lui. Un refus, lui, n'est
+    // pas établi pour la session qui vient de s'ouvrir.
+    return roles.hasValue && canEnterResults(roles.value!)
+        ? EntryAccess.allowed
+        : EntryAccess.checking;
+  }
   // Sans session, il n'y avait rien à vérifier.
   if (roles.hasError) {
     return connected ? EntryAccess.unverified : EntryAccess.denied;
@@ -59,6 +65,74 @@ final entryAccessProvider = Provider.autoDispose.family<EntryAccess, int>((
       ? EntryAccess.allowed
       : EntryAccess.denied;
 });
+
+/// L'écran de saisie face à la session : [owner] est le compte sous lequel il
+/// a été ouvert ; [frozen], l'écran reste monté mais rien ne s'y saisit.
+typedef EntryGate = ({EntryAccess access, bool frozen, String? owner});
+
+/// Une session fermée pendant la saisie (expiration, déconnexion) gèle
+/// l'écran au lieu de le fermer : les chiffres tapés et la série atteinte
+/// attendent la reconnexion du même compte, pendant laquelle les droits se
+/// relisent. Un autre compte ne reprend rien de l'écran du précédent.
+EntryGate entryGate({
+  required EntryAccess access,
+  required String? account,
+  required String? owner,
+}) {
+  final String? kept =
+      account != null && owner != null && !isSameAccount(account, owner)
+      ? null
+      : owner;
+  if (account == null) {
+    // Les rôles de la session close peuvent encore se relire : sans
+    // session, rien n'est permis.
+    final shown = access == EntryAccess.allowed ? EntryAccess.checking : access;
+    return (access: shown, frozen: kept != null, owner: kept);
+  }
+  if (access == EntryAccess.allowed) {
+    return (access: access, frozen: false, owner: account);
+  }
+  // Même compte, droit refusé pour de bon : l'écran se ferme.
+  if (kept == null || access == EntryAccess.denied) {
+    return (access: access, frozen: false, owner: null);
+  }
+  return (access: access, frozen: true, owner: kept);
+}
+
+class EntryGateNotifier extends Notifier<EntryGate> {
+  EntryGateNotifier(this.competitionId);
+
+  final int competitionId;
+
+  // Dans un champ : chaque changement de session ou de droit reconstruit ce
+  // notifier, qui doit se souvenir du compte de l'écran.
+  String? _owner;
+
+  @override
+  EntryGate build() {
+    final gate = entryGate(
+      access: ref.watch(entryAccessProvider(competitionId)),
+      account: ref.watch(sessionProvider).value?.label,
+      owner: _owner,
+    );
+    _owner = gate.owner;
+    return gate;
+  }
+}
+
+final entryGateProvider = NotifierProvider.autoDispose
+    .family<EntryGateNotifier, EntryGate, int>(EntryGateNotifier.new);
+
+/// La clé des fournisseurs de l'écran ([current]) tient tant qu'il est
+/// montré, ses chiffres tapés en dépendent ; remonté, il repart de la série
+/// de l'adresse ([fromRoute]), que la navigation ‹ › tient à jour.
+EntryKey? entryScreenKey(
+  EntryGate gate,
+  EntryKey? current,
+  EntryKey fromRoute,
+) => gate.frozen || gate.access == EntryAccess.allowed
+    ? current ?? fromRoute
+    : null;
 
 /// Le couloir suivi (nul : « Tous »), gardé sur l'appareil par compétition :
 /// un officiel tient le même couloir toute la réunion, d'une série et d'un
@@ -338,8 +412,15 @@ class EntryEditor extends Notifier<EntryEditorState> {
 
   final EntryKey key;
 
+  /// Un autre compte connecté : rien de ce qu'a tapé le précédent ne reste.
   @override
-  EntryEditorState build() => const EntryEditorState();
+  EntryEditorState build() {
+    ref.watch(entryGateProvider(key.competitionId).select((g) => g.owner));
+    return const EntryEditorState();
+  }
+
+  /// Gelé : rien ne se tape ni ne s'enregistre jusqu'à la reconnexion.
+  bool get _frozen => ref.read(entryGateProvider(key.competitionId)).frozen;
 
   void openLane(int placeId) =>
       state = state.copyWith(openPlaceId: placeId, field: 0, replaceNext: true);
@@ -358,7 +439,7 @@ class EntryEditor extends Notifier<EntryEditorState> {
   void clearField(EntryLane lane) => _edit(lane, (_) => '');
 
   void _edit(EntryLane lane, String Function(String) change) {
-    if (!lane.editable) return;
+    if (!lane.editable || _frozen) return;
     final id = lane.lane.id;
     final digits = [...laneDigits(lane, state.drafts[id])];
     digits[state.field] = change(digits[state.field]);
@@ -371,6 +452,7 @@ class EntryEditor extends Notifier<EntryEditorState> {
   /// Met en file les chronos tapés pour [lane]. Ne rend la main qu'une fois
   /// la file enregistrée sur l'appareil, jamais après le réseau.
   Future<EntrySaveOutcome> saveChronos(EntryLane lane) async {
+    if (_frozen) return EntrySaveOutcome.notConnected;
     if (!lane.editable) return EntrySaveOutcome.readOnly;
     final id = lane.lane.id;
     final draft = state.drafts[id];
@@ -429,6 +511,7 @@ class EntryEditor extends Notifier<EntryEditorState> {
       _mark(lane, const ResultChange(mark: ResultMark.ok));
 
   Future<EntrySaveOutcome> _mark(EntryLane lane, ResultChange change) async {
+    if (_frozen) return EntrySaveOutcome.notConnected;
     if (!lane.editable) return EntrySaveOutcome.readOnly;
     return _enqueue(lane, change);
   }

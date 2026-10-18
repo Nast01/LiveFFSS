@@ -185,5 +185,7 @@
   "entryNotConnected": "Sign in to enter results",
   "entryDenied": "Entry is reserved for the competition's officials",
   "entryLoadError": "Couldn't load this heat.",
+  "entrySessionLost": "Session expired — sign in again",
+  "entryResuming": "Checking your entry rights…",
   "entryUnverified": "Entry rights not checked: the site didn't respond. Check your connection and try again."
 }
