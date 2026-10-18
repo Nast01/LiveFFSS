@@ -451,6 +451,285 @@ String toString() {
 
 
 /// @nodoc
+mixin _$MySpaceCards {
+
+ List<MySpaceCard> get cards;/// Le compte a un licencié, mais les participants n'ont pu être lus : on
+/// ne sait pas s'il est engagé. La page propose « Réessayer » pour cette
+/// carte seule.
+ bool get athleteUnknown;
+/// Create a copy of MySpaceCards
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$MySpaceCardsCopyWith<MySpaceCards> get copyWith => _$MySpaceCardsCopyWithImpl<MySpaceCards>(this as MySpaceCards, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as MySpaceCards;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MySpaceCards&&const DeepCollectionEquality().equals(other.cards, _this.cards)&&(identical(other.athleteUnknown, _this.athleteUnknown) || other.athleteUnknown == _this.athleteUnknown));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as MySpaceCards;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.cards),_this.athleteUnknown);
+}
+
+@override
+String toString() {
+  final _this = this as MySpaceCards;
+  return 'MySpaceCards(cards: ${_this.cards}, athleteUnknown: ${_this.athleteUnknown})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $MySpaceCardsCopyWith<$Res>  {
+  factory $MySpaceCardsCopyWith(MySpaceCards value, $Res Function(MySpaceCards) _then) = _$MySpaceCardsCopyWithImpl;
+@useResult
+$Res call({
+ List<MySpaceCard> cards, bool athleteUnknown
+});
+
+
+
+
+}
+/// @nodoc
+class _$MySpaceCardsCopyWithImpl<$Res>
+    implements $MySpaceCardsCopyWith<$Res> {
+  _$MySpaceCardsCopyWithImpl(this._self, this._then);
+
+  final MySpaceCards _self;
+  final $Res Function(MySpaceCards) _then;
+
+/// Create a copy of MySpaceCards
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? cards = null,Object? athleteUnknown = null,}) {
+  return _then(MySpaceCards(
+cards: null == cards ? _self.cards : cards // ignore: cast_nullable_to_non_nullable
+as List<MySpaceCard>,athleteUnknown: null == athleteUnknown ? _self.athleteUnknown : athleteUnknown // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [MySpaceCards].
+extension MySpaceCardsPatterns on MySpaceCards {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _MySpaceCards value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _MySpaceCards() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _MySpaceCards value)  $default,){
+final _that = this;
+switch (_that) {
+case _MySpaceCards():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _MySpaceCards value)?  $default,){
+final _that = this;
+switch (_that) {
+case _MySpaceCards() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<MySpaceCard> cards,  bool athleteUnknown)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _MySpaceCards() when $default != null:
+return $default(_that.cards,_that.athleteUnknown);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<MySpaceCard> cards,  bool athleteUnknown)  $default,) {final _that = this;
+switch (_that) {
+case _MySpaceCards():
+return $default(_that.cards,_that.athleteUnknown);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<MySpaceCard> cards,  bool athleteUnknown)?  $default,) {final _that = this;
+switch (_that) {
+case _MySpaceCards() when $default != null:
+return $default(_that.cards,_that.athleteUnknown);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _MySpaceCards implements MySpaceCards {
+  const _MySpaceCards({required  List<MySpaceCard> cards, this.athleteUnknown = false}): _cards = cards;
+  
+
+ final  List<MySpaceCard> _cards;
+@override List<MySpaceCard> get cards {
+  if (_cards is EqualUnmodifiableListView) return _cards;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_cards);
+}
+
+/// Le compte a un licencié, mais les participants n'ont pu être lus : on
+/// ne sait pas s'il est engagé. La page propose « Réessayer » pour cette
+/// carte seule.
+@override@JsonKey() final  bool athleteUnknown;
+
+/// Create a copy of MySpaceCards
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$MySpaceCardsCopyWith<_MySpaceCards> get copyWith => __$MySpaceCardsCopyWithImpl<_MySpaceCards>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MySpaceCards&&const DeepCollectionEquality().equals(other.cards, _cards)&&(identical(other.athleteUnknown, athleteUnknown) || other.athleteUnknown == athleteUnknown));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_cards),athleteUnknown);
+}
+
+@override
+String toString() {
+    return 'MySpaceCards(cards: $cards, athleteUnknown: $athleteUnknown)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$MySpaceCardsCopyWith<$Res> implements $MySpaceCardsCopyWith<$Res> {
+  factory _$MySpaceCardsCopyWith(_MySpaceCards value, $Res Function(_MySpaceCards) _then) = __$MySpaceCardsCopyWithImpl;
+@override @useResult
+$Res call({
+ List<MySpaceCard> cards, bool athleteUnknown
+});
+
+
+
+
+}
+/// @nodoc
+class __$MySpaceCardsCopyWithImpl<$Res>
+    implements _$MySpaceCardsCopyWith<$Res> {
+  __$MySpaceCardsCopyWithImpl(this._self, this._then);
+
+  final _MySpaceCards _self;
+  final $Res Function(_MySpaceCards) _then;
+
+/// Create a copy of MySpaceCards
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? cards = null,Object? athleteUnknown = null,}) {
+  return _then(_MySpaceCards(
+cards: null == cards ? _self._cards : cards // ignore: cast_nullable_to_non_nullable
+as List<MySpaceCard>,athleteUnknown: null == athleteUnknown ? _self.athleteUnknown : athleteUnknown // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$CompetitionInfo {
 
  CompetitionSummary get competition; int get athletes;/// Par libellé ; chacun ouvre l'espace de son club.

@@ -143,7 +143,13 @@ class LaunchRedirect {
   FutureOr<String?> call(String location) {
     if (_done) return null;
     _done = true;
-    return _startTab().then((tab) => startTabRedirect(location, tab));
+    return _startTab().then(
+      (tab) => startTabRedirect(location, tab),
+      // Toute erreur, pas seulement une `AppException` : une préférence
+      // illisible ne doit jamais empêcher l'application de s'ouvrir, et
+      // l'accueil est un repli sans risque.
+      onError: (Object _) => null,
+    );
   }
 }
 

@@ -15,7 +15,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$FollowedAthlete {
 
- int get participantId; String get name; String get club; List<int> get entryIds;
+ int get participantId; String get name; String get club; List<int> get entryIds;/// Ses épreuves : « Mes suivis » en tire sa prochaine course du seul
+/// programme, sans relire ses classements. Vide pour un suivi enregistré
+/// avant qu'on les garde.
+ List<int> get eventIds;
 /// Create a copy of FollowedAthlete
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +30,20 @@ $FollowedAthleteCopyWith<FollowedAthlete> get copyWith => _$FollowedAthleteCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as FollowedAthlete;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FollowedAthlete&&(identical(other.participantId, _this.participantId) || other.participantId == _this.participantId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.club, _this.club) || other.club == _this.club)&&const DeepCollectionEquality().equals(other.entryIds, _this.entryIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FollowedAthlete&&(identical(other.participantId, _this.participantId) || other.participantId == _this.participantId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.club, _this.club) || other.club == _this.club)&&const DeepCollectionEquality().equals(other.entryIds, _this.entryIds)&&const DeepCollectionEquality().equals(other.eventIds, _this.eventIds));
 }
 
 
 @override
 int get hashCode {
   final _this = this as FollowedAthlete;
-  return Object.hash(runtimeType,_this.participantId,_this.name,_this.club,const DeepCollectionEquality().hash(_this.entryIds));
+  return Object.hash(runtimeType,_this.participantId,_this.name,_this.club,const DeepCollectionEquality().hash(_this.entryIds),const DeepCollectionEquality().hash(_this.eventIds));
 }
 
 @override
 String toString() {
   final _this = this as FollowedAthlete;
-  return 'FollowedAthlete(participantId: ${_this.participantId}, name: ${_this.name}, club: ${_this.club}, entryIds: ${_this.entryIds})';
+  return 'FollowedAthlete(participantId: ${_this.participantId}, name: ${_this.name}, club: ${_this.club}, entryIds: ${_this.entryIds}, eventIds: ${_this.eventIds})';
 }
 
 
@@ -51,7 +54,7 @@ abstract mixin class $FollowedAthleteCopyWith<$Res>  {
   factory $FollowedAthleteCopyWith(FollowedAthlete value, $Res Function(FollowedAthlete) _then) = _$FollowedAthleteCopyWithImpl;
 @useResult
 $Res call({
- int participantId, String name, String club, List<int> entryIds
+ int participantId, String name, String club, List<int> entryIds, List<int> eventIds
 });
 
 
@@ -68,12 +71,13 @@ class _$FollowedAthleteCopyWithImpl<$Res>
 
 /// Create a copy of FollowedAthlete
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? participantId = null,Object? name = null,Object? club = null,Object? entryIds = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? participantId = null,Object? name = null,Object? club = null,Object? entryIds = null,Object? eventIds = null,}) {
   return _then(FollowedAthlete(
 participantId: null == participantId ? _self.participantId : participantId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,club: null == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
 as String,entryIds: null == entryIds ? _self.entryIds : entryIds // ignore: cast_nullable_to_non_nullable
+as List<int>,eventIds: null == eventIds ? _self.eventIds : eventIds // ignore: cast_nullable_to_non_nullable
 as List<int>,
   ));
 }
@@ -159,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int participantId,  String name,  String club,  List<int> entryIds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int participantId,  String name,  String club,  List<int> entryIds,  List<int> eventIds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FollowedAthlete() when $default != null:
-return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _:
+return $default(_that.participantId,_that.name,_that.club,_that.entryIds,_that.eventIds);case _:
   return orElse();
 
 }
@@ -180,10 +184,10 @@ return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int participantId,  String name,  String club,  List<int> entryIds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int participantId,  String name,  String club,  List<int> entryIds,  List<int> eventIds)  $default,) {final _that = this;
 switch (_that) {
 case _FollowedAthlete():
-return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _:
+return $default(_that.participantId,_that.name,_that.club,_that.entryIds,_that.eventIds);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +204,10 @@ return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int participantId,  String name,  String club,  List<int> entryIds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int participantId,  String name,  String club,  List<int> entryIds,  List<int> eventIds)?  $default,) {final _that = this;
 switch (_that) {
 case _FollowedAthlete() when $default != null:
-return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _:
+return $default(_that.participantId,_that.name,_that.club,_that.entryIds,_that.eventIds);case _:
   return null;
 
 }
@@ -215,7 +219,7 @@ return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _
 
 
 class _FollowedAthlete implements FollowedAthlete {
-  const _FollowedAthlete({required this.participantId, required this.name, this.club = '',  List<int> entryIds = const <int>[]}): _entryIds = entryIds;
+  const _FollowedAthlete({required this.participantId, required this.name, this.club = '',  List<int> entryIds = const <int>[],  List<int> eventIds = const <int>[]}): _entryIds = entryIds,_eventIds = eventIds;
   
 
 @override final  int participantId;
@@ -226,6 +230,19 @@ class _FollowedAthlete implements FollowedAthlete {
   if (_entryIds is EqualUnmodifiableListView) return _entryIds;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_entryIds);
+}
+
+/// Ses épreuves : « Mes suivis » en tire sa prochaine course du seul
+/// programme, sans relire ses classements. Vide pour un suivi enregistré
+/// avant qu'on les garde.
+ final  List<int> _eventIds;
+/// Ses épreuves : « Mes suivis » en tire sa prochaine course du seul
+/// programme, sans relire ses classements. Vide pour un suivi enregistré
+/// avant qu'on les garde.
+@override@JsonKey() List<int> get eventIds {
+  if (_eventIds is EqualUnmodifiableListView) return _eventIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_eventIds);
 }
 
 
@@ -239,18 +256,18 @@ _$FollowedAthleteCopyWith<_FollowedAthlete> get copyWith => __$FollowedAthleteCo
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FollowedAthlete&&(identical(other.participantId, participantId) || other.participantId == participantId)&&(identical(other.name, name) || other.name == name)&&(identical(other.club, club) || other.club == club)&&const DeepCollectionEquality().equals(other.entryIds, _entryIds));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FollowedAthlete&&(identical(other.participantId, participantId) || other.participantId == participantId)&&(identical(other.name, name) || other.name == name)&&(identical(other.club, club) || other.club == club)&&const DeepCollectionEquality().equals(other.entryIds, _entryIds)&&const DeepCollectionEquality().equals(other.eventIds, _eventIds));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,participantId,name,club,const DeepCollectionEquality().hash(_entryIds));
+    return Object.hash(runtimeType,participantId,name,club,const DeepCollectionEquality().hash(_entryIds),const DeepCollectionEquality().hash(_eventIds));
 }
 
 @override
 String toString() {
-    return 'FollowedAthlete(participantId: $participantId, name: $name, club: $club, entryIds: $entryIds)';
+    return 'FollowedAthlete(participantId: $participantId, name: $name, club: $club, entryIds: $entryIds, eventIds: $eventIds)';
 }
 
 
@@ -261,7 +278,7 @@ abstract mixin class _$FollowedAthleteCopyWith<$Res> implements $FollowedAthlete
   factory _$FollowedAthleteCopyWith(_FollowedAthlete value, $Res Function(_FollowedAthlete) _then) = __$FollowedAthleteCopyWithImpl;
 @override @useResult
 $Res call({
- int participantId, String name, String club, List<int> entryIds
+ int participantId, String name, String club, List<int> entryIds, List<int> eventIds
 });
 
 
@@ -278,12 +295,13 @@ class __$FollowedAthleteCopyWithImpl<$Res>
 
 /// Create a copy of FollowedAthlete
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? participantId = null,Object? name = null,Object? club = null,Object? entryIds = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? participantId = null,Object? name = null,Object? club = null,Object? entryIds = null,Object? eventIds = null,}) {
   return _then(_FollowedAthlete(
 participantId: null == participantId ? _self.participantId : participantId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,club: null == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
 as String,entryIds: null == entryIds ? _self._entryIds : entryIds // ignore: cast_nullable_to_non_nullable
+as List<int>,eventIds: null == eventIds ? _self._eventIds : eventIds // ignore: cast_nullable_to_non_nullable
 as List<int>,
   ));
 }

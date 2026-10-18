@@ -26,6 +26,9 @@ _FollowedAthleteDto _$FollowedAthleteDtoFromJson(Map<String, dynamic> json) =>
       entryIds: (json['entryIds'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
           .toList(),
+      eventIds: (json['eventIds'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
+          .toList(),
     );
 
 Map<String, dynamic> _$FollowedAthleteDtoToJson(_FollowedAthleteDto instance) =>
@@ -34,6 +37,7 @@ Map<String, dynamic> _$FollowedAthleteDtoToJson(_FollowedAthleteDto instance) =>
       'name': instance.name,
       'club': instance.club,
       'entryIds': instance.entryIds,
+      'eventIds': instance.eventIds,
     };
 
 _FollowedClubDto _$FollowedClubDtoFromJson(Map<String, dynamic> json) =>

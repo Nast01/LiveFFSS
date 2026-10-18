@@ -115,5 +115,7 @@ void main() {
     expect(athlete.name, 'Un ATHLETE');
     expect(athlete.club, 'Club A');
     expect(athlete.entryIds, [3, 5]);
+    // Les épreuves donnent sa prochaine course sans relire les classements.
+    expect(athlete.eventIds, [1, 2]);
   });
 }

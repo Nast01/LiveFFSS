@@ -147,6 +147,33 @@ void main() {
     expect(follows.clubs, isEmpty);
   });
 
+  test('les épreuves sont gardées et relues', () async {
+    final store = InMemoryLocalStore();
+    final first = _container(store);
+    await first.read(followsProvider(1416).future);
+    await first
+        .read(followsProvider(1416).notifier)
+        .toggleAthlete(_participant);
+
+    final second = _container(store);
+    final follows = await second.read(followsProvider(1416).future);
+
+    expect(follows.athletes.single.eventIds, [1]);
+  });
+
+  test('un suivi enregistré avant les épreuves se relit sans elles', () async {
+    final store = InMemoryLocalStore()
+      ..values['follows_1416'] =
+          '{"athletes":[{"participantId":4,"name":"A","club":"C",'
+          '"entryIds":[1]}],"clubs":[]}';
+    final container = _container(store);
+
+    final follows = await container.read(followsProvider(1416).future);
+
+    expect(follows.athletes.single.entryIds, [1]);
+    expect(follows.athletes.single.eventIds, isEmpty);
+  });
+
   test('une ligne illisible est écartée seule', () async {
     final store = InMemoryLocalStore()
       ..values['follows_1416'] =

@@ -300,5 +300,7 @@
   "@mySpaceOfficialLevel": {"placeholders": {"level": {"type": "String"}}},
   "mySpaceOfficialLevelUnknown": "Level not given",
   "mySpaceComingSoon": "Coming soon",
-  "startTabTitle": "Start tab"
+  "startTabTitle": "Start tab",
+  "mySpaceAthleteUnknown": "Couldn't check your entry",
+  "mySpaceFollowsError": "Couldn't read your follows"
 }

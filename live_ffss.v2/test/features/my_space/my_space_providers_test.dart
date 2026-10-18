@@ -1,23 +1,35 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/core/providers.dart';
+import 'package:live_ffss_v2/data/ffss/dtos/deroulement_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/epreuve_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/officiel_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/participant_dto.dart';
+import 'package:live_ffss_v2/data/ffss/dtos/reunion_dto.dart';
+import 'package:live_ffss_v2/data/ffss/mappers/deroulement_mapper.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/officiel_mapper.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/results_mapper.dart';
+import 'package:live_ffss_v2/data/ffss/mappers/reunion_mapper.dart';
 import 'package:live_ffss_v2/data/repositories/auth_repository.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/officials_repository.dart';
 import 'package:live_ffss_v2/data/repositories/results_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
 import 'package:live_ffss_v2/domain/competition_roles.dart';
+import 'package:live_ffss_v2/domain/follows.dart';
+import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/domain/officials.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/domain/run_status.dart';
+import 'package:live_ffss_v2/domain/series_link.dart';
+import 'package:live_ffss_v2/features/follows/follows_providers.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
+import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
@@ -42,6 +54,41 @@ class _MockOfficialsRepository extends Mock implements OfficialsRepository {}
 
 List<Map<String, dynamic>> _rows(String name) =>
     (fixture(name)['data'] as List<dynamic>).cast<Map<String, dynamic>>();
+
+Programme _fixtureProgramme() {
+  final progressions = [
+    for (final row in _rows('deroulement'))
+      ?DeroulementDto.fromJson(row).toDomain(),
+  ];
+  final meetings = [
+    for (final row in _rows('reunion')) ?ReunionDto.fromJson(row).toDomain(),
+  ];
+  return Programme(
+    meetings: withRaces(meetings, progressions),
+    progressions: progressions,
+  );
+}
+
+/// Le programme où chaque course prend le statut que [status] lui donne.
+Programme _withStatus(
+  Programme programme,
+  RunStatus Function(Heat heat) status,
+) => programme.copyWith(
+  meetings: [
+    for (final meeting in programme.meetings)
+      meeting.copyWith(
+        items: [
+          for (final item in meeting.items)
+            item.copyWith(
+              heats: [
+                for (final heat in item.heats)
+                  heat.copyWith(status: status(heat)),
+              ],
+            ),
+        ],
+      ),
+  ],
+);
 
 const _testAccount = Account(label: 'ATHLETE Compte', type: 'licencie');
 const _other = Account(label: 'MARTIN Paul', type: 'licencie');
@@ -123,7 +170,7 @@ void main() {
     () => auth.competitionRoles(competitionId),
   ).thenAnswer((_) => AuthRepositoryImpl(http).competitionRoles(competitionId));
 
-  Future<List<MySpaceCard>> cards() {
+  Future<MySpaceCards> spaces() {
     final sub = container.listen(
       mySpaceCardsProvider(competitionId),
       (_, _) {},
@@ -131,6 +178,8 @@ void main() {
     addTearDown(sub.close);
     return container.read(mySpaceCardsProvider(competitionId).future);
   }
+
+  Future<List<MySpaceCard>> cards() async => (await spaces()).cards;
 
   group('mySpaceCardsProvider', () {
     test('compte de test : Club 15 et Officiel, pas Athlète', () async {
@@ -195,27 +244,59 @@ void main() {
       expect(await cards(), hasLength(2));
     });
 
-    test('participants en échec : Réessayer les relit', () async {
-      await logIn(_other);
-      when(() => auth.competitionRoles(competitionId)).thenAnswer(
-        (_) async => CompetitionRoles(
-          roles: const ['public', 'licencie'],
-          licenseeId: engaged.licenseeId,
-        ),
-      );
-      when(
-        () => results.getParticipants(any()),
-      ).thenThrow(const NetworkException('hors ligne'));
+    test(
+      'participants en échec : Club et Officiel quand même, Athlète à relire',
+      () async {
+        await logIn(_testAccount);
+        rolesOfTestAccount();
+        when(
+          () => results.getParticipants(any()),
+        ).thenThrow(const NetworkException('hors ligne'));
 
-      await expectLater(cards(), throwsA(isA<NetworkException>()));
+        final partial = await spaces();
+        expect(partial.cards, [
+          const MySpaceCard.club(
+            ClubRef(id: 15, label: "Les Dauphins du Frontonnais et de l'Union"),
+          ),
+          isA<OfficialSpaceCard>(),
+        ]);
+        expect(partial.athleteUnknown, isTrue);
 
-      when(
-        () => results.getParticipants(any()),
-      ).thenAnswer((_) async => participants);
-      retryMySpaceCards(container, competitionId);
+        when(
+          () => results.getParticipants(any()),
+        ).thenAnswer((_) async => participants);
+        retryMySpaceCards(container, competitionId);
 
-      expect(await cards(), [MySpaceCard.athlete(engaged)]);
-    });
+        final read = await spaces();
+        expect(read.athleteUnknown, isFalse);
+        expect(read.cards, hasLength(2));
+      },
+    );
+
+    test(
+      'participants en échec, licencié engagé : Réessayer le retrouve',
+      () async {
+        await logIn(_other);
+        when(() => auth.competitionRoles(competitionId)).thenAnswer(
+          (_) async => CompetitionRoles(
+            roles: const ['public', 'licencie'],
+            licenseeId: engaged.licenseeId,
+          ),
+        );
+        when(
+          () => results.getParticipants(any()),
+        ).thenThrow(const NetworkException('hors ligne'));
+
+        expect((await spaces()).athleteUnknown, isTrue);
+
+        when(
+          () => results.getParticipants(any()),
+        ).thenAnswer((_) async => participants);
+        retryMySpaceCards(container, competitionId);
+
+        expect(await cards(), [MySpaceCard.athlete(engaged)]);
+      },
+    );
 
     test('changement de compte : cartes recalculées', () async {
       await logIn(_testAccount);
@@ -229,6 +310,32 @@ void main() {
         (_) async => const CompetitionRoles(roles: ['public', 'admin']),
       );
       await logIn(_other);
+      expect(await cards(), [const MySpaceCard.admin()]);
+    });
+
+    test("pendant la relecture d'un autre compte : en chargement, jamais "
+        "l'ancien", () async {
+      await logIn(_testAccount);
+      rolesOfTestAccount();
+      expect(await cards(), hasLength(2));
+
+      final pending = Completer<CompetitionRoles>();
+      when(
+        () => auth.competitionRoles(competitionId),
+      ).thenAnswer((_) => pending.future);
+      await logIn(_other);
+
+      final state = container.read(mySpaceCardsProvider(competitionId));
+      expect(
+        spacesView(
+          loading: state.isLoading,
+          failed: state.hasError,
+          cards: state.value,
+        ),
+        const SpacesLoading(),
+      );
+
+      pending.complete(const CompetitionRoles(roles: ['public', 'admin']));
       expect(await cards(), [const MySpaceCard.admin()]);
     });
   });
@@ -389,5 +496,108 @@ void main() {
         isEmpty,
       );
     });
+  });
+
+  group('prochaine course des athlètes suivis', () {
+    final programme = _fixtureProgramme();
+    final event36074 = events.firstWhere((e) => e.id == 36074);
+    final heats36073 = heatsRoundOf(
+      programme,
+      events.firstWhere((e) => e.id == 36073),
+    );
+    final heats36074 = heatsRoundOf(programme, event36074);
+    FollowedAthlete followed(List<int> eventIds) => FollowedAthlete(
+      participantId: 1,
+      name: 'Un ATHLETE',
+      eventIds: eventIds,
+    );
+
+    test('le tour séries en cours : sa première course non terminée', () {
+      expect(heats36073, isNotEmpty);
+      final waiting = _withStatus(programme, (_) => RunStatus.waiting);
+      final firstDone = _withStatus(
+        programme,
+        (heat) => heat.id == heats36073.first.id
+            ? RunStatus.finished
+            : RunStatus.waiting,
+      );
+
+      final next = followedNextRace(followed([36073]), events, waiting);
+      expect(next?.event.id, 36073);
+      expect(next?.start, heats36073.first.plannedStart);
+
+      if (heats36073.length > 1) {
+        expect(
+          followedNextRace(followed([36073]), events, firstDone)?.start,
+          heats36073[1].plannedStart,
+        );
+      }
+    });
+
+    test('ses épreuves sans tour séries écartées, terminées aussi', () {
+      // La fixture n'a qu'un tour séries (479, 480), partagé par 36073-36075 :
+      // 36087 n'en a pas au programme.
+      final waiting = _withStatus(programme, (_) => RunStatus.waiting);
+      expect(
+        heatsRoundOf(programme, events.firstWhere((e) => e.id == 36087)),
+        isEmpty,
+      );
+      final next = followedNextRace(followed([36087, 36074]), events, waiting);
+      expect(next?.event.id, 36074);
+      expect(next?.start, heats36074.first.plannedStart);
+
+      final allDone = _withStatus(programme, (_) => RunStatus.finished);
+      expect(
+        followedNextRace(followed([36073, 36074]), events, allDone),
+        isNull,
+      );
+    });
+
+    test('une épreuve inconnue ou sans tour séries : rien', () {
+      expect(followedNextRace(followed([999]), events, programme), isNull);
+      expect(followedNextRace(followed(const []), events, programme), isNull);
+    });
+
+    test(
+      'le fournisseur lit le programme et les épreuves, ni séries ni participants',
+      () async {
+        final store = InMemoryLocalStore()
+          ..values['follows_$competitionId'] =
+              '{"athletes":['
+              '{"participantId":1,"name":"Un","entryIds":[5],'
+              '"eventIds":[36073]},'
+              '{"participantId":2,"name":"Deux","club":"C","entryIds":[6]}'
+              '],"clubs":[]}';
+        final waiting = _withStatus(programme, (_) => RunStatus.waiting);
+        when(
+          () => meetings.getProgramme(any()),
+        ).thenAnswer((_) async => waiting);
+        container = ProviderContainer(
+          overrides: [
+            localStoreProvider.overrideWithValue(store),
+            resultsRepositoryProvider.overrideWithValue(results),
+            meetingRepositoryProvider.overrideWithValue(meetings),
+          ],
+          retry: noRetry,
+        );
+        addTearDown(container.dispose);
+        final sub = container.listen(
+          followedRacesProvider(competitionId),
+          (_, _) {},
+        );
+        addTearDown(sub.close);
+
+        final races = await container.read(
+          followedRacesProvider(competitionId).future,
+        );
+
+        expect(races[1]?.event.id, 36073);
+        // Suivi sans épreuves (enregistré avant) : pas de ligne, son club.
+        expect(races.containsKey(2), isFalse);
+        verifyNever(() => results.getEventSeries(any()));
+        verifyNever(() => results.getParticipants(any()));
+        expect(container.read(followsProvider(competitionId)).hasValue, isTrue);
+      },
+    );
   });
 }

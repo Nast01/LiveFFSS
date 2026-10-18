@@ -1,8 +1,10 @@
 import 'package:live_ffss_v2/domain/event_results.dart';
+import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
+import 'package:live_ffss_v2/domain/series_link.dart';
 
 /// Le participant du licencié connecté ; nul sans licencié ou sans engagement.
 Participant? participantOfLicensee(
@@ -84,4 +86,37 @@ DateTime? reminderAt(DateTime? start, Duration before, DateTime now) {
   if (start == null) return null;
   final at = start.subtract(before);
   return at.isAfter(now) ? at : null;
+}
+
+/// La prochaine course d'un athlète suivi : une épreuve et son départ prévu.
+typedef FollowedRace = ({CompetitionEvent event, DateTime? start});
+
+/// Tirée du programme seul, sans ses classements : la plus tôt de ses
+/// épreuves dont le tour séries n'est pas terminé, au départ prévu de sa
+/// première course non terminée (celles sans heure après). Sa propre série
+/// n'est pas connue sans les classements : l'heure est celle du tour. Nulle
+/// si aucune ne reste à courir.
+FollowedRace? followedNextRace(
+  FollowedAthlete athlete,
+  List<CompetitionEvent> events,
+  Programme programme,
+) {
+  final eventsById = {for (final event in events) event.id: event};
+  FollowedRace? next;
+  for (final eventId in athlete.eventIds) {
+    final event = eventsById[eventId];
+    if (event == null) continue;
+    final heat = heatsRoundOf(
+      programme,
+      event,
+    ).where((h) => h.status != RunStatus.finished).firstOrNull;
+    if (heat == null) continue;
+    final start = heat.plannedStart;
+    final best = next?.start;
+    if (next == null ||
+        (start != null && (best == null || start.isBefore(best)))) {
+      next = (event: event, start: start);
+    }
+  }
+  return next;
 }

@@ -4,15 +4,15 @@ import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
-import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/features/follows/follows_providers.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/widgets/my_space_rows.dart';
-import 'package:live_ffss_v2/features/results/athlete_providers.dart';
+import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
+import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
 
-/// Les athlètes et clubs suivis : la prochaine course de chaque athlète, une
-/// étoile pour retirer.
+/// Les athlètes et clubs suivis : la prochaine course de chaque athlète, tirée
+/// du programme seul (`followedRacesProvider`), une étoile pour retirer.
 class FollowsPage extends ConsumerStatefulWidget {
   const FollowsPage({super.key, required this.competitionId});
 
@@ -32,9 +32,22 @@ class _FollowsPageState extends ConsumerState<FollowsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final follows =
-        ref.watch(followsProvider(widget.competitionId)).value ??
-        const Follows();
+    final state = ref.watch(followsProvider(widget.competitionId));
+    final follows = state.value;
+    if (follows == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.mySpaceFollows)),
+        body: state.hasError
+            ? ResultsMessage(
+                text: l10n.mySpaceFollowsError,
+                onRetry: () =>
+                    ref.invalidate(followsProvider(widget.competitionId)),
+              )
+            : const Center(child: CircularProgressIndicator()),
+      );
+    }
+    // Un programme illisible laisse chaque athlète sur la ligne de son club.
+    final races = ref.watch(followedRacesProvider(widget.competitionId)).value;
     final notifier = ref.read(followsProvider(widget.competitionId).notifier);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.mySpaceFollows)),
@@ -50,11 +63,21 @@ class _FollowsPageState extends ConsumerState<FollowsPage> {
             MySpaceBox(
               children: [
                 for (final athlete in follows.athletes)
-                  _FollowedAthleteRow(
-                    competitionId: widget.competitionId,
-                    athlete: athlete,
-                    onUnfollow: () =>
-                        notifier.unfollowAthlete(athlete.participantId),
+                  MySpaceRow(
+                    icon: Icons.person_outline,
+                    title: athlete.name,
+                    subtitle: followedAthleteLine(athlete, races, l10n),
+                    onTap: () => context.push(
+                      Routes.mySpaceParticipant(
+                        widget.competitionId,
+                        athlete.participantId,
+                      ),
+                    ),
+                    trailing: _Star(
+                      tooltip: l10n.unfollowAthlete,
+                      onPressed: () =>
+                          notifier.unfollowAthlete(athlete.participantId),
+                    ),
                   ),
                 for (final club in follows.clubs)
                   MySpaceRow(
@@ -77,40 +100,6 @@ class _FollowsPageState extends ConsumerState<FollowsPage> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _FollowedAthleteRow extends ConsumerWidget {
-  const _FollowedAthleteRow({
-    required this.competitionId,
-    required this.athlete,
-    required this.onUnfollow,
-  });
-
-  final int competitionId;
-  final FollowedAthlete athlete;
-  final VoidCallback onUnfollow;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final races = ref
-        .watch(
-          athleteCardProvider((
-            competitionId: competitionId,
-            participantId: athlete.participantId,
-          )),
-        )
-        .value;
-    return MySpaceRow(
-      icon: Icons.person_outline,
-      title: athlete.name,
-      subtitle: followedAthleteLine(athlete, races, l10n),
-      onTap: () => context.push(
-        Routes.mySpaceParticipant(competitionId, athlete.participantId),
-      ),
-      trailing: _Star(tooltip: l10n.unfollowAthlete, onPressed: onUnfollow),
     );
   }
 }

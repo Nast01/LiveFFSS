@@ -13,6 +13,11 @@ abstract class FollowedAthlete with _$FollowedAthlete {
     required String name,
     @Default('') String club,
     @Default(<int>[]) List<int> entryIds,
+
+    /// Ses épreuves : « Mes suivis » en tire sa prochaine course du seul
+    /// programme, sans relire ses classements. Vide pour un suivi enregistré
+    /// avant qu'on les garde.
+    @Default(<int>[]) List<int> eventIds,
   }) = _FollowedAthlete;
 
   factory FollowedAthlete.fromParticipant(Participant participant) =>
@@ -24,6 +29,9 @@ abstract class FollowedAthlete with _$FollowedAthlete {
         ].where((part) => part.isNotEmpty).join(' '),
         club: participant.club,
         entryIds: [for (final entry in participant.entries) entry.entryId],
+        eventIds: {
+          for (final entry in participant.entries) entry.eventId,
+        }.toList(),
       );
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
+import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 
 /// L'onglet où l'application s'ouvre. Mon espace n'en est pas : on y va pour
@@ -61,3 +62,10 @@ class StartTabNotifier extends AsyncNotifier<StartTab> {
 final startTabProvider = AsyncNotifierProvider<StartTabNotifier, StartTab>(
   StartTabNotifier.new,
 );
+
+String startTabLabel(StartTab tab, AppLocalizations l10n) => switch (tab) {
+  StartTab.home => l10n.tabHome,
+  StartTab.programme => l10n.tabProgramme,
+  StartTab.live => l10n.tabLive,
+  StartTab.results => l10n.tabResults,
+};

@@ -4,13 +4,13 @@ import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/domain/account.dart';
 import 'package:live_ffss_v2/domain/competition_summary.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
+import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/domain/officials.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/features/home/competition_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
-import 'package:live_ffss_v2/features/settings/start_tab.dart';
 
 String mySpaceCardTitle(MySpaceCard card, AppLocalizations l10n) =>
     switch (card) {
@@ -87,19 +87,22 @@ String? athleteBadge(
   return startsInLabel(nextRace(races)?.plannedStart, now, l10n);
 }
 
-/// « Prochaine : 08:58 · 100m Bouée tube » ; son club tant que sa fiche se
-/// lit, ou si elle n'a pu l'être.
+/// « Prochaine : 08:58 · 100m Bouée tube » ([races] : voir
+/// `followedRacesProvider`) ; son club tant que le programme se lit, s'il n'a
+/// pu l'être, ou pour un suivi enregistré sans ses épreuves.
 String followedAthleteLine(
   FollowedAthlete athlete,
-  List<AthleteRace>? races,
+  Map<int, FollowedRace?>? races,
   AppLocalizations l10n,
 ) {
-  if (races == null) return athlete.club;
-  final next = nextRace(races);
+  if (races == null || !races.containsKey(athlete.participantId)) {
+    return athlete.club;
+  }
+  final next = races[athlete.participantId];
   if (next == null) return l10n.mySpaceNoNextRace;
   return l10n.mySpaceNextRace(
     [
-      timeLabel(next.plannedStart),
+      timeLabel(next.start),
       next.event.disciplineName,
     ].where((part) => part.isNotEmpty).join(' · '),
   );
@@ -132,6 +135,17 @@ String? officialBadge(
 ) {
   final count = rejectedEntries(queue, account, competitionId);
   return count == 0 ? null : l10n.mySpaceRejected(count);
+}
+
+/// Le sous-titre de « Mes suivis » : nul pour une lecture en échec (la page
+/// dit l'erreur, pas « aucun suivi »), vide pendant la première lecture.
+String? followsSummaryOf(
+  Follows? follows,
+  AppLocalizations l10n, {
+  required bool failed,
+}) {
+  if (follows != null) return followsSummary(follows, l10n);
+  return failed ? null : '';
 }
 
 /// « 3 athlètes · 1 club », sans le morceau vide.
@@ -185,9 +199,68 @@ String competitionCountsLine(CompetitionInfo info, AppLocalizations l10n) => [
 String clubAthletesLabel(int count, AppLocalizations l10n) =>
     l10n.mySpaceAthleteCount(count);
 
-String startTabLabel(StartTab tab, AppLocalizations l10n) => switch (tab) {
-  StartTab.home => l10n.tabHome,
-  StartTab.programme => l10n.tabProgramme,
-  StartTab.live => l10n.tabLive,
-  StartTab.results => l10n.tabResults,
-};
+/// Ce que montre la section des espaces du compte.
+sealed class SpacesView {
+  const SpacesView();
+}
+
+final class SpacesLoading extends SpacesView {
+  const SpacesLoading();
+
+  @override
+  bool operator ==(Object other) => other is SpacesLoading;
+
+  @override
+  int get hashCode => 0;
+}
+
+/// Les rôles n'ont pu être lus : « Réessayer ».
+final class SpacesFailed extends SpacesView {
+  const SpacesFailed();
+
+  @override
+  bool operator ==(Object other) => other is SpacesFailed;
+
+  @override
+  int get hashCode => 1;
+}
+
+/// Le compte n'a aucun espace sur la compétition.
+final class SpacesNone extends SpacesView {
+  const SpacesNone();
+
+  @override
+  bool operator ==(Object other) => other is SpacesNone;
+
+  @override
+  int get hashCode => 2;
+}
+
+final class SpacesShown extends SpacesView {
+  const SpacesShown(this.cards);
+
+  final MySpaceCards cards;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SpacesShown && other.cards == cards;
+
+  @override
+  int get hashCode => cards.hashCode;
+}
+
+/// Une relecture (changement de compte) ou un échec ne montre jamais les
+/// cartes précédentes : ce seraient celles d'un autre compte. Une carte
+/// Athlète inconnue (participants illisibles) se montre même seule, pour
+/// qu'on puisse la relire.
+SpacesView spacesView({
+  required bool loading,
+  required bool failed,
+  required MySpaceCards? cards,
+}) {
+  if (loading) return const SpacesLoading();
+  if (failed) return const SpacesFailed();
+  if (cards == null) return const SpacesLoading();
+  if (cards.cards.isEmpty && !cards.athleteUnknown) return const SpacesNone();
+  return SpacesShown(cards);
+}

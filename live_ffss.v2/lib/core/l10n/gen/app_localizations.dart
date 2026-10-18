@@ -1471,6 +1471,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Onglet d\'ouverture'**
   String get startTabTitle;
+
+  /// No description provided for @mySpaceAthleteUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de vérifier votre engagement'**
+  String get mySpaceAthleteUnknown;
+
+  /// No description provided for @mySpaceFollowsError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire vos suivis'**
+  String get mySpaceFollowsError;
 }
 
 class _AppLocalizationsDelegate

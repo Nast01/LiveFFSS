@@ -1,7 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
+import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/features/settings/start_tab.dart';
@@ -131,5 +134,23 @@ void main() {
 
       expect(await redirect(Routes.home), Routes.results);
     });
+  });
+
+  test(
+    "une lecture de la préférence en échec n'empêche pas le lancement",
+    () async {
+      final redirect = LaunchRedirect(() async => throw StateError('panne'));
+
+      expect(await redirect(Routes.home), isNull);
+      expect(redirect(Routes.home), isNull);
+    },
+  );
+
+  test("libellé de l'onglet d'ouverture", () {
+    final fr = lookupAppLocalizations(const Locale('fr'));
+    expect(startTabLabel(StartTab.home, fr), 'Accueil');
+    expect(startTabLabel(StartTab.programme, fr), 'Programme');
+    expect(startTabLabel(StartTab.live, fr), 'Live');
+    expect(startTabLabel(StartTab.results, fr), 'Résultats');
   });
 }

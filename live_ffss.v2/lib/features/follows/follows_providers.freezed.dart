@@ -305,7 +305,8 @@ as List<FollowedClubDto>?,
 /// @nodoc
 mixin _$FollowedAthleteDto {
 
- int? get participantId; String? get name; String? get club; List<int>? get entryIds;
+ int? get participantId; String? get name; String? get club; List<int>? get entryIds;/// Absente d'un suivi enregistré avant qu'on les garde.
+ List<int>? get eventIds;
 /// Create a copy of FollowedAthleteDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -319,20 +320,20 @@ $FollowedAthleteDtoCopyWith<FollowedAthleteDto> get copyWith => _$FollowedAthlet
 @override
 bool operator ==(Object other) {
   final _this = this as FollowedAthleteDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FollowedAthleteDto&&(identical(other.participantId, _this.participantId) || other.participantId == _this.participantId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.club, _this.club) || other.club == _this.club)&&const DeepCollectionEquality().equals(other.entryIds, _this.entryIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FollowedAthleteDto&&(identical(other.participantId, _this.participantId) || other.participantId == _this.participantId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.club, _this.club) || other.club == _this.club)&&const DeepCollectionEquality().equals(other.entryIds, _this.entryIds)&&const DeepCollectionEquality().equals(other.eventIds, _this.eventIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as FollowedAthleteDto;
-  return Object.hash(runtimeType,_this.participantId,_this.name,_this.club,const DeepCollectionEquality().hash(_this.entryIds));
+  return Object.hash(runtimeType,_this.participantId,_this.name,_this.club,const DeepCollectionEquality().hash(_this.entryIds),const DeepCollectionEquality().hash(_this.eventIds));
 }
 
 @override
 String toString() {
   final _this = this as FollowedAthleteDto;
-  return 'FollowedAthleteDto(participantId: ${_this.participantId}, name: ${_this.name}, club: ${_this.club}, entryIds: ${_this.entryIds})';
+  return 'FollowedAthleteDto(participantId: ${_this.participantId}, name: ${_this.name}, club: ${_this.club}, entryIds: ${_this.entryIds}, eventIds: ${_this.eventIds})';
 }
 
 
@@ -343,7 +344,7 @@ abstract mixin class $FollowedAthleteDtoCopyWith<$Res>  {
   factory $FollowedAthleteDtoCopyWith(FollowedAthleteDto value, $Res Function(FollowedAthleteDto) _then) = _$FollowedAthleteDtoCopyWithImpl;
 @useResult
 $Res call({
- int? participantId, String? name, String? club, List<int>? entryIds
+ int? participantId, String? name, String? club, List<int>? entryIds, List<int>? eventIds
 });
 
 
@@ -360,12 +361,13 @@ class _$FollowedAthleteDtoCopyWithImpl<$Res>
 
 /// Create a copy of FollowedAthleteDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? participantId = freezed,Object? name = freezed,Object? club = freezed,Object? entryIds = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? participantId = freezed,Object? name = freezed,Object? club = freezed,Object? entryIds = freezed,Object? eventIds = freezed,}) {
   return _then(FollowedAthleteDto(
 participantId: freezed == participantId ? _self.participantId : participantId // ignore: cast_nullable_to_non_nullable
 as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,club: freezed == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
 as String?,entryIds: freezed == entryIds ? _self.entryIds : entryIds // ignore: cast_nullable_to_non_nullable
+as List<int>?,eventIds: freezed == eventIds ? _self.eventIds : eventIds // ignore: cast_nullable_to_non_nullable
 as List<int>?,
   ));
 }
@@ -451,10 +453,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? participantId,  String? name,  String? club,  List<int>? entryIds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? participantId,  String? name,  String? club,  List<int>? entryIds,  List<int>? eventIds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FollowedAthleteDto() when $default != null:
-return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _:
+return $default(_that.participantId,_that.name,_that.club,_that.entryIds,_that.eventIds);case _:
   return orElse();
 
 }
@@ -472,10 +474,10 @@ return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? participantId,  String? name,  String? club,  List<int>? entryIds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? participantId,  String? name,  String? club,  List<int>? entryIds,  List<int>? eventIds)  $default,) {final _that = this;
 switch (_that) {
 case _FollowedAthleteDto():
-return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _:
+return $default(_that.participantId,_that.name,_that.club,_that.entryIds,_that.eventIds);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -492,10 +494,10 @@ return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? participantId,  String? name,  String? club,  List<int>? entryIds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? participantId,  String? name,  String? club,  List<int>? entryIds,  List<int>? eventIds)?  $default,) {final _that = this;
 switch (_that) {
 case _FollowedAthleteDto() when $default != null:
-return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _:
+return $default(_that.participantId,_that.name,_that.club,_that.entryIds,_that.eventIds);case _:
   return null;
 
 }
@@ -507,7 +509,7 @@ return $default(_that.participantId,_that.name,_that.club,_that.entryIds);case _
 @JsonSerializable()
 
 class _FollowedAthleteDto implements FollowedAthleteDto {
-  const _FollowedAthleteDto({this.participantId, this.name, this.club,  List<int>? entryIds}): _entryIds = entryIds;
+  const _FollowedAthleteDto({this.participantId, this.name, this.club,  List<int>? entryIds,  List<int>? eventIds}): _entryIds = entryIds,_eventIds = eventIds;
   factory _FollowedAthleteDto.fromJson(Map<String, dynamic> json) => _$FollowedAthleteDtoFromJson(json);
 
 @override final  int? participantId;
@@ -518,6 +520,17 @@ class _FollowedAthleteDto implements FollowedAthleteDto {
   final value = _entryIds;
   if (value == null) return null;
   if (_entryIds is EqualUnmodifiableListView) return _entryIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+/// Absente d'un suivi enregistré avant qu'on les garde.
+ final  List<int>? _eventIds;
+/// Absente d'un suivi enregistré avant qu'on les garde.
+@override List<int>? get eventIds {
+  final value = _eventIds;
+  if (value == null) return null;
+  if (_eventIds is EqualUnmodifiableListView) return _eventIds;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(value);
 }
@@ -536,18 +549,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FollowedAthleteDto&&(identical(other.participantId, participantId) || other.participantId == participantId)&&(identical(other.name, name) || other.name == name)&&(identical(other.club, club) || other.club == club)&&const DeepCollectionEquality().equals(other.entryIds, _entryIds));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FollowedAthleteDto&&(identical(other.participantId, participantId) || other.participantId == participantId)&&(identical(other.name, name) || other.name == name)&&(identical(other.club, club) || other.club == club)&&const DeepCollectionEquality().equals(other.entryIds, _entryIds)&&const DeepCollectionEquality().equals(other.eventIds, _eventIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,participantId,name,club,const DeepCollectionEquality().hash(_entryIds));
+    return Object.hash(runtimeType,participantId,name,club,const DeepCollectionEquality().hash(_entryIds),const DeepCollectionEquality().hash(_eventIds));
 }
 
 @override
 String toString() {
-    return 'FollowedAthleteDto(participantId: $participantId, name: $name, club: $club, entryIds: $entryIds)';
+    return 'FollowedAthleteDto(participantId: $participantId, name: $name, club: $club, entryIds: $entryIds, eventIds: $eventIds)';
 }
 
 
@@ -558,7 +571,7 @@ abstract mixin class _$FollowedAthleteDtoCopyWith<$Res> implements $FollowedAthl
   factory _$FollowedAthleteDtoCopyWith(_FollowedAthleteDto value, $Res Function(_FollowedAthleteDto) _then) = __$FollowedAthleteDtoCopyWithImpl;
 @override @useResult
 $Res call({
- int? participantId, String? name, String? club, List<int>? entryIds
+ int? participantId, String? name, String? club, List<int>? entryIds, List<int>? eventIds
 });
 
 
@@ -575,12 +588,13 @@ class __$FollowedAthleteDtoCopyWithImpl<$Res>
 
 /// Create a copy of FollowedAthleteDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? participantId = freezed,Object? name = freezed,Object? club = freezed,Object? entryIds = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? participantId = freezed,Object? name = freezed,Object? club = freezed,Object? entryIds = freezed,Object? eventIds = freezed,}) {
   return _then(_FollowedAthleteDto(
 participantId: freezed == participantId ? _self.participantId : participantId // ignore: cast_nullable_to_non_nullable
 as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,club: freezed == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
 as String?,entryIds: freezed == entryIds ? _self._entryIds : entryIds // ignore: cast_nullable_to_non_nullable
+as List<int>?,eventIds: freezed == eventIds ? _self._eventIds : eventIds // ignore: cast_nullable_to_non_nullable
 as List<int>?,
   ));
 }

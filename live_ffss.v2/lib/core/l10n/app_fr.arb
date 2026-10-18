@@ -310,5 +310,7 @@
   "@mySpaceOfficialLevel": {"placeholders": {"level": {"type": "String"}}},
   "mySpaceOfficialLevelUnknown": "Niveau non renseigné",
   "mySpaceComingSoon": "À venir",
-  "startTabTitle": "Onglet d'ouverture"
+  "startTabTitle": "Onglet d'ouverture",
+  "mySpaceAthleteUnknown": "Impossible de vérifier votre engagement",
+  "mySpaceFollowsError": "Impossible de lire vos suivis"
 }

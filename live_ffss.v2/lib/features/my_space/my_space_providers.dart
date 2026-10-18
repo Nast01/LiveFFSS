@@ -10,6 +10,7 @@ import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/domain/officials.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
+import 'package:live_ffss_v2/features/follows/follows_providers.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:live_ffss_v2/features/shell/active_competition.dart';
@@ -45,23 +46,47 @@ List<MySpaceCard> mySpaceCards(
   ];
 }
 
+/// Les cartes du compte, et si la carte Athlète manque faute d'avoir pu lire
+/// les participants.
+@freezed
+abstract class MySpaceCards with _$MySpaceCards {
+  const factory MySpaceCards({
+    required List<MySpaceCard> cards,
+
+    /// Le compte a un licencié, mais les participants n'ont pu être lus : on
+    /// ne sait pas s'il est engagé. La page propose « Réessayer » pour cette
+    /// carte seule.
+    @Default(false) bool athleteUnknown,
+  }) = _MySpaceCards;
+}
+
 /// Les espaces du compte sur la compétition. Suit les rôles, donc la session :
 /// un changement de compte recalcule les cartes.
 final mySpaceCardsProvider = FutureProvider.autoDispose
-    .family<List<MySpaceCard>, int>((ref, competitionId) async {
+    .family<MySpaceCards, int>((ref, competitionId) async {
       final roles = await ref.watch(
         competitionRolesProvider(competitionId).future,
       );
-      if (!ref.mounted) return const [];
+      if (!ref.mounted) return const MySpaceCards(cards: []);
       // Sans licencié, pas de carte Athlète : les participants (3,6 Mo) ne
       // sont pas lus pour rien.
-      if (roles.licenseeId == null) return mySpaceCards(roles, const []);
+      if (roles.licenseeId == null) {
+        return MySpaceCards(cards: mySpaceCards(roles, const []));
+      }
       ref.read(participantsKeeperProvider(competitionId).notifier).keep();
-      final participants = await ref.watch(
-        participantsProvider(competitionId).future,
-      );
-      if (!ref.mounted) return const [];
-      return mySpaceCards(roles, participants);
+      try {
+        final participants = await ref.watch(
+          participantsProvider(competitionId).future,
+        );
+        return MySpaceCards(cards: mySpaceCards(roles, participants));
+      } on AppException {
+        // Les participants ne décident que de la carte Athlète : les autres
+        // restent ouvertes.
+        return MySpaceCards(
+          cards: mySpaceCards(roles, const []),
+          athleteUnknown: true,
+        );
+      }
     });
 
 /// « Réessayer » des cartes : les lectures en amont gardent leur erreur tant
@@ -152,3 +177,28 @@ final officialsProvider = FutureProvider.autoDispose
         await ref.read(officialsRepositoryProvider).getOfficials(competitionId),
       ),
     );
+
+/// La prochaine course de chaque athlète suivi, par id de participant, tirée
+/// du programme et des épreuves que lisent déjà les résultats : ni les
+/// classements ni les participants ne sont relus. Un suivi sans épreuves
+/// (enregistré avant qu'on les garde) n'y est pas.
+final followedRacesProvider = FutureProvider.autoDispose
+    .family<Map<int, FollowedRace?>, int>((ref, competitionId) async {
+      // Lues ensemble ; celles qu'on n'attend pas encore ne doivent pas
+      // remonter leur échec comme non traité.
+      final followsRead = ref.watch(followsProvider(competitionId).future);
+      final eventsRead = ref.watch(eventsProvider(competitionId).future)
+        ..ignore();
+      final programmeRead = ref.watch(
+        resultsProgrammeProvider(competitionId).future,
+      )..ignore();
+      // `ref` ne sert plus après les attentes : rien à vérifier.
+      final follows = await followsRead;
+      final events = await eventsRead;
+      final programme = await programmeRead;
+      return {
+        for (final athlete in follows.athletes)
+          if (athlete.eventIds.isNotEmpty)
+            athlete.participantId: followedNextRace(athlete, events, programme),
+      };
+    });

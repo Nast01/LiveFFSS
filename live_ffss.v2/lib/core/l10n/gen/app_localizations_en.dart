@@ -868,4 +868,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startTabTitle => 'Start tab';
+
+  @override
+  String get mySpaceAthleteUnknown => 'Couldn\'t check your entry';
+
+  @override
+  String get mySpaceFollowsError => 'Couldn\'t read your follows';
 }

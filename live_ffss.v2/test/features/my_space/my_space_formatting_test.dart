@@ -18,7 +18,6 @@ import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
-import 'package:live_ffss_v2/features/settings/start_tab.dart';
 
 import '../../support/competitions.dart';
 
@@ -214,22 +213,25 @@ void main() {
         name: 'Un ATHLETE',
         club: 'Club A',
       );
+      final event = _event(1, '100m Bouée tube');
       expect(
-        followedAthleteLine(athlete, [
-          _toRun(1, '100m Bouée tube', DateTime(2026, 3, 27, 8, 58)),
-        ], fr),
+        followedAthleteLine(athlete, {
+          7: (event: event, start: DateTime(2026, 3, 27, 8, 58)),
+        }, fr),
         'Prochaine : 08:58 · 100m Bouée tube',
       );
       expect(
-        followedAthleteLine(athlete, [_toRun(1, '100m Bouée tube', null)], fr),
+        followedAthleteLine(athlete, {7: (event: event, start: null)}, fr),
         'Prochaine : 100m Bouée tube',
       );
       expect(
-        followedAthleteLine(athlete, const [], fr),
+        followedAthleteLine(athlete, const {7: null}, fr),
         'Aucune course à venir',
       );
-      // Fiche en lecture ou illisible : son club.
+      // Programme en lecture ou illisible : son club.
       expect(followedAthleteLine(athlete, null, fr), 'Club A');
+      // Suivi enregistré sans ses épreuves : son club aussi.
+      expect(followedAthleteLine(athlete, const {}, fr), 'Club A');
     });
   });
 
@@ -342,10 +344,88 @@ void main() {
     });
   });
 
-  test("libellé de l'onglet d'ouverture", () {
-    expect(startTabLabel(StartTab.home, fr), 'Accueil');
-    expect(startTabLabel(StartTab.programme, fr), 'Programme');
-    expect(startTabLabel(StartTab.live, fr), 'Live');
-    expect(startTabLabel(StartTab.results, fr), 'Résultats');
+  group('section des espaces', () {
+    const club = MySpaceCard.club(ClubRef(id: 15, label: 'Les Dauphins'));
+    const cards = MySpaceCards(cards: [club]);
+
+    test('les cartes lues', () {
+      expect(
+        spacesView(loading: false, failed: false, cards: cards),
+        const SpacesShown(cards),
+      );
+    });
+
+    test('aucun espace', () {
+      expect(
+        spacesView(
+          loading: false,
+          failed: false,
+          cards: const MySpaceCards(cards: []),
+        ),
+        const SpacesNone(),
+      );
+    });
+
+    test('un premier chargement', () {
+      expect(
+        spacesView(loading: true, failed: false, cards: null),
+        const SpacesLoading(),
+      );
+    });
+
+    test("une relecture (changement de compte) : jamais l'ancien compte", () {
+      expect(
+        spacesView(loading: true, failed: false, cards: cards),
+        const SpacesLoading(),
+      );
+    });
+
+    test("un échec, même avec d'anciennes cartes", () {
+      expect(
+        spacesView(loading: false, failed: true, cards: null),
+        const SpacesFailed(),
+      );
+      expect(
+        spacesView(loading: false, failed: true, cards: cards),
+        const SpacesFailed(),
+      );
+    });
+
+    test(
+      "participants illisibles : les autres cartes, et l'athlète à relire",
+      () {
+        const partial = MySpaceCards(cards: [club], athleteUnknown: true);
+        expect(
+          spacesView(loading: false, failed: false, cards: partial),
+          const SpacesShown(partial),
+        );
+        // Rien d'autre que l'athlète inconnu : on le dit quand même.
+        const alone = MySpaceCards(cards: [], athleteUnknown: true);
+        expect(
+          spacesView(loading: false, failed: false, cards: alone),
+          const SpacesShown(alone),
+        );
+      },
+    );
+  });
+
+  group('résumé des suivis', () {
+    test('une lecture en échec ne dit pas « aucun suivi »', () {
+      expect(followsSummaryOf(null, failed: true, fr), isNull);
+      expect(followsSummaryOf(null, failed: false, fr), '');
+      expect(
+        followsSummaryOf(const Follows(), failed: false, fr),
+        'Aucun suivi',
+      );
+      // Une valeur déjà lue reste montrée.
+      expect(
+        followsSummaryOf(
+          const Follows(clubs: [FollowedClub(id: 1, label: 'C')]),
+          failed: true,
+          fr,
+        ),
+        '1 club',
+      );
+    });
   });
 }

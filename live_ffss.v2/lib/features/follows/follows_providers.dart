@@ -30,6 +30,7 @@ abstract class FollowsDto with _$FollowsDto {
           name: a.name,
           club: a.club,
           entryIds: a.entryIds,
+          eventIds: a.eventIds,
         ),
     ],
     clubs: [
@@ -45,6 +46,9 @@ abstract class FollowedAthleteDto with _$FollowedAthleteDto {
     String? name,
     String? club,
     List<int>? entryIds,
+
+    /// Absente d'un suivi enregistré avant qu'on les garde.
+    List<int>? eventIds,
   }) = _FollowedAthleteDto;
 
   factory FollowedAthleteDto.fromJson(Map<String, dynamic> json) =>
@@ -71,6 +75,7 @@ extension FollowedAthleteDtoMapper on FollowedAthleteDto {
       name: name,
       club: club ?? '',
       entryIds: entryIds ?? const [],
+      eventIds: eventIds ?? const [],
     );
   }
 }

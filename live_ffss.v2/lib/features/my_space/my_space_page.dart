@@ -6,7 +6,6 @@ import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/account.dart';
-import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/features/auth/auth_formatting.dart';
 import 'package:live_ffss_v2/features/auth/login_page.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
@@ -101,50 +100,56 @@ class _Spaces extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final cards = ref.watch(mySpaceCardsProvider(competitionId));
-    // Pendant une relecture (changement de compte), les cartes du compte
-    // précédent ne restent pas affichées.
-    if (cards.isLoading) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-    final value = cards.value;
-    if (value == null) {
-      return MySpaceBox(
-        children: [
-          ResultsMessage(
-            text: l10n.mySpaceRolesError,
-            onRetry: () => retryMySpaceCards(
-              ProviderScope.containerOf(context, listen: false),
-              competitionId,
-            ),
-          ),
-        ],
-      );
-    }
-    if (value.isEmpty) {
-      return MySpaceBox(children: [MySpaceRow(title: l10n.mySpaceNoSpace)]);
-    }
-    return MySpaceBox(
-      children: [
-        for (final card in value)
-          switch (card) {
-            AthleteSpaceCard(:final participant) => _AthleteRow(
-              competitionId: competitionId,
-              card: card,
-              participantId: participant.id,
-            ),
-            OfficialSpaceCard() => _OfficialRow(
-              competitionId: competitionId,
-              card: card,
-              account: account,
-            ),
-            _ => _CardRow(competitionId: competitionId, card: card),
-          },
-      ],
+    final state = ref.watch(mySpaceCardsProvider(competitionId));
+    void retry() => retryMySpaceCards(
+      ProviderScope.containerOf(context, listen: false),
+      competitionId,
     );
+    switch (spacesView(
+      loading: state.isLoading,
+      failed: state.hasError,
+      cards: state.value,
+    )) {
+      case SpacesLoading():
+        return const Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      case SpacesFailed():
+        return MySpaceBox(
+          children: [
+            ResultsMessage(text: l10n.mySpaceRolesError, onRetry: retry),
+          ],
+        );
+      case SpacesNone():
+        return MySpaceBox(children: [MySpaceRow(title: l10n.mySpaceNoSpace)]);
+      case SpacesShown(:final cards):
+        return MySpaceBox(
+          children: [
+            if (cards.athleteUnknown)
+              MySpaceRow(
+                icon: Icons.pool,
+                title: l10n.mySpaceAthlete,
+                subtitle: l10n.mySpaceAthleteUnknown,
+                trailing: TextButton(onPressed: retry, child: Text(l10n.retry)),
+              ),
+            for (final card in cards.cards)
+              switch (card) {
+                AthleteSpaceCard(:final participant) => _AthleteRow(
+                  competitionId: competitionId,
+                  card: card,
+                  participantId: participant.id,
+                ),
+                OfficialSpaceCard() => _OfficialRow(
+                  competitionId: competitionId,
+                  card: card,
+                  account: account,
+                ),
+                _ => _CardRow(competitionId: competitionId, card: card),
+              },
+          ],
+        );
+    }
   }
 }
 
@@ -250,14 +255,25 @@ class _Everyone extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final follows =
-        ref.watch(followsProvider(competitionId)).value ?? const Follows();
+    final follows = ref.watch(followsProvider(competitionId));
+    final summary = followsSummaryOf(
+      follows.value,
+      l10n,
+      failed: follows.hasError,
+    );
     return MySpaceBox(
       children: [
         MySpaceRow(
           icon: Icons.star_outline,
           title: l10n.mySpaceFollows,
-          subtitle: followsSummary(follows, l10n),
+          subtitle: summary ?? l10n.mySpaceFollowsError,
+          trailing: summary == null
+              ? TextButton(
+                  onPressed: () =>
+                      ref.invalidate(followsProvider(competitionId)),
+                  child: Text(l10n.retry),
+                )
+              : null,
           onTap: () => context.go(Routes.mySpaceFollows(competitionId)),
         ),
         MySpaceRow(

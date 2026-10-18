@@ -877,4 +877,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get startTabTitle => 'Onglet d\'ouverture';
+
+  @override
+  String get mySpaceAthleteUnknown => 'Impossible de vérifier votre engagement';
+
+  @override
+  String get mySpaceFollowsError => 'Impossible de lire vos suivis';
 }
