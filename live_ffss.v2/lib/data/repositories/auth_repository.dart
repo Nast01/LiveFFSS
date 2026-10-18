@@ -23,14 +23,14 @@ class AuthRepositoryImpl implements AuthRepository {
 
   final HttpClient _http;
 
-  /// Les identifiants passent dans l'adresse, comme toutes les écritures
-  /// FFSS : `HttpClient.post` n'envoie un corps qu'en JSON, que les écritures
-  /// FFSS refusent (HTTP 500 sur `resultat/submit`).
+  /// Les identifiants passent dans le corps d'un formulaire, jamais dans
+  /// l'adresse, qui finit dans les journaux du serveur et des relais (comme
+  /// `FfssApiClient.RequestTokenAsync` de V3).
   @override
   Future<String> requestToken(String login, String password) async {
     final body = await _http.post(
       ApiEndpoints.requestToken,
-      query: {'login': login.trim(), 'password': password},
+      form: {'login': login.trim(), 'password': password},
     );
     final token = body['token'];
     if (token is! String || token.isEmpty) {

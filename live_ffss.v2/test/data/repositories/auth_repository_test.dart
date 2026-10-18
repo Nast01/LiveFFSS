@@ -17,24 +17,36 @@ void main() {
   });
 
   group('requestToken', () {
-    test('envoie les identifiants dans l\'adresse et rend le jeton', () async {
-      when(() => http.post(any(), query: any(named: 'query'))).thenAnswer(
-        (_) async => {'token': 'abc', 'expiration': '2026-10-19 10:00:00'},
-      );
+    test(
+      'envoie les identifiants dans le formulaire, pas dans l\'adresse',
+      () async {
+        when(
+          () => http.post(
+            any(),
+            query: any(named: 'query'),
+            form: any(named: 'form'),
+          ),
+        ).thenAnswer(
+          (_) async => {'token': 'abc', 'expiration': '2026-10-19 10:00:00'},
+        );
 
-      expect(await repository.requestToken(' jdupont ', 'secret'), 'abc');
+        expect(await repository.requestToken(' jdupont ', 'secret'), 'abc');
 
-      verify(
-        () => http.post(
-          'requestToken',
-          query: {'login': 'jdupont', 'password': 'secret'},
-        ),
-      ).called(1);
-    });
+        final captured = verify(
+          () => http.post(
+            'requestToken',
+            query: captureAny(named: 'query'),
+            form: captureAny(named: 'form'),
+          ),
+        ).captured;
+        expect(captured[0], isNull);
+        expect(captured[1], {'login': 'jdupont', 'password': 'secret'});
+      },
+    );
 
     test('une réponse sans jeton est un refus', () async {
       when(
-        () => http.post(any(), query: any(named: 'query')),
+        () => http.post(any(), form: any(named: 'form')),
       ).thenAnswer((_) async => {'success': true, 'message': 'ok'});
 
       expect(

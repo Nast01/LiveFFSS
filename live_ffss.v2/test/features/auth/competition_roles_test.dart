@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/auth_repository.dart';
@@ -71,6 +74,53 @@ void main() {
       'officiel',
     ]);
     expect(container.read(canEnterProvider(1416)), isTrue);
+  });
+
+  test('pas de saisie tant que les rôles se lisent', () async {
+    await logIn();
+    final pending = Completer<List<String>>();
+    when(() => auth.competitionRoles(1416)).thenAnswer((_) => pending.future);
+    final sub = container.listen(canEnterProvider(1416), (_, _) {});
+    addTearDown(sub.close);
+
+    expect(container.read(canEnterProvider(1416)), isFalse);
+
+    pending.complete(['public', 'officiel']);
+    await container.read(competitionRolesProvider(1416).future);
+    expect(container.read(canEnterProvider(1416)), isTrue);
+  });
+
+  test('une relecture ne garde pas le droit précédent', () async {
+    await logIn();
+    when(
+      () => auth.competitionRoles(1416),
+    ).thenAnswer((_) async => ['public', 'officiel']);
+    final sub = container.listen(canEnterProvider(1416), (_, _) {});
+    addTearDown(sub.close);
+    await container.read(competitionRolesProvider(1416).future);
+    expect(container.read(canEnterProvider(1416)), isTrue);
+
+    final pending = Completer<List<String>>();
+    when(() => auth.competitionRoles(1416)).thenAnswer((_) => pending.future);
+    container.invalidate(competitionRolesProvider(1416));
+
+    expect(container.read(canEnterProvider(1416)), isFalse);
+    pending.complete(['public']);
+  });
+
+  test('pas de saisie si la lecture des rôles échoue', () async {
+    await logIn();
+    when(
+      () => auth.competitionRoles(1416),
+    ).thenThrow(const NetworkException('hors ligne'));
+    final sub = container.listen(canEnterProvider(1416), (_, _) {});
+    addTearDown(sub.close);
+
+    await expectLater(
+      container.read(competitionRolesProvider(1416).future),
+      throwsA(isA<NetworkException>()),
+    );
+    expect(container.read(canEnterProvider(1416)), isFalse);
   });
 
   test('un licencié sans rôle d\'officiel ne saisit pas', () async {

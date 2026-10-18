@@ -15,10 +15,14 @@ final competitionRolesProvider = FutureProvider.autoDispose
       return auth.competitionRoles(competitionId);
     });
 
-/// Faux tant que les rôles ne sont pas lus, ou si leur lecture échoue : la
-/// saisie ne s'ouvre que sur un droit établi.
-final canEnterProvider = Provider.autoDispose.family<bool, int>(
-  (ref, competitionId) => canEnterResults(
-    ref.watch(competitionRolesProvider(competitionId)).value ?? const [],
-  ),
-);
+/// Faux pendant une lecture des rôles, ou si elle échoue : la saisie ne
+/// s'ouvre que sur un droit établi pour la session en cours, pas sur celui de
+/// la précédente.
+final canEnterProvider = Provider.autoDispose.family<bool, int>((
+  ref,
+  competitionId,
+) {
+  final roles = ref.watch(competitionRolesProvider(competitionId));
+  if (roles.isLoading || roles.hasError) return false;
+  return canEnterResults(roles.value ?? const []);
+});

@@ -602,6 +602,40 @@ void main() {
       expect(captured[1], '{"name":"X"}');
     });
 
+    test('form: encoded in the body, never in the address', () async {
+      when(
+        () => httpMock.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => responseWith('{"token": "t"}', 200));
+
+      await client.post(
+        'requestToken',
+        form: {'login': 'jdupont', 'password': 'p&ss word'},
+      );
+
+      final captured = verify(
+        () => httpMock.post(
+          captureAny(),
+          headers: captureAny(named: 'headers'),
+          body: captureAny(named: 'body'),
+        ),
+      ).captured;
+      final uri = captured[0] as Uri;
+      expect(uri, Uri.parse('https://example.test/api/v1.0/requestToken'));
+      expect(uri.query, isEmpty);
+      expect(
+        (captured[1] as Map<String, String>)['Content-Type'],
+        'application/x-www-form-urlencoded; charset=UTF-8',
+      );
+      expect(Uri.splitQueryString(captured[2] as String), {
+        'login': 'jdupont',
+        'password': 'p&ss word',
+      });
+    });
+
     test('sends null body when none provided', () async {
       when(
         () => httpMock.post(
