@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
+import 'package:live_ffss_v2/domain/progression.dart';
 
 part 'event_results.freezed.dart';
 
@@ -88,4 +89,20 @@ abstract class Participant with _$Participant {
     @Default(false) bool isGuest,
     @Default(<ParticipantEntry>[]) List<ParticipantEntry> entries,
   }) = _Participant;
+}
+
+/// Le déroulement de [event] : même discipline, même genre, et la catégorie de
+/// l'épreuve parmi les siennes. Nul sinon.
+Progression? progressionOfEvent(
+  List<Progression> progressions,
+  CompetitionEvent event,
+) {
+  for (final progression in progressions) {
+    if (progression.disciplineId == event.disciplineId &&
+        progression.gender == event.gender &&
+        progression.categories.contains(event.categoryName)) {
+      return progression;
+    }
+  }
+  return null;
 }

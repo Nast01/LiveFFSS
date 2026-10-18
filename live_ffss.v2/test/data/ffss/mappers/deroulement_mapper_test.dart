@@ -15,6 +15,8 @@ void main() {
     final progression = DeroulementDto.fromJson(json).toDomain()!;
 
     expect(progression.id, 501);
+    expect(progression.disciplineId, 24);
+    expect(progression.categories, ['Cadet', 'Junior', 'Seniors et Masters']);
     expect(progression.disciplineName, '200m Obstacles');
     expect(progression.gender, Gender.female);
     expect(progression.stages, hasLength(4));

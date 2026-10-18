@@ -19,10 +19,14 @@ abstract class DeroulementDto with _$DeroulementDto {
   const factory DeroulementDto({
     @JsonKey(name: 'Id', readValue: _readId) int? id,
     @JsonKey(name: 'label') String? label,
+    @JsonKey(name: 'IdDiscipline', readValue: readInt) int? disciplineId,
     @JsonKey(name: 'Genre') String? gender,
     @JsonKey(name: 'genreLabel') String? genderLabel,
     @JsonKey(name: 'Discipline', readValue: _readDiscipline)
     DeroulementDisciplineDto? discipline,
+    @JsonKey(name: 'categories')
+    @Default(<DeroulementCategorieDto>[])
+    List<DeroulementCategorieDto> categories,
     @JsonKey(name: 'parties') @Default(<PartieDto>[]) List<PartieDto> parties,
   }) = _DeroulementDto;
 
@@ -37,6 +41,15 @@ abstract class DeroulementDisciplineDto with _$DeroulementDisciplineDto {
 
   factory DeroulementDisciplineDto.fromJson(Map<String, dynamic> json) =>
       _$DeroulementDisciplineDtoFromJson(json);
+}
+
+@freezed
+abstract class DeroulementCategorieDto with _$DeroulementCategorieDto {
+  const factory DeroulementCategorieDto({@JsonKey(name: 'Nom') String? name}) =
+      _DeroulementCategorieDto;
+
+  factory DeroulementCategorieDto.fromJson(Map<String, dynamic> json) =>
+      _$DeroulementCategorieDtoFromJson(json);
 }
 
 @freezed

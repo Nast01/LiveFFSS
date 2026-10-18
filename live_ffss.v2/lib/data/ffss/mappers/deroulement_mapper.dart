@@ -23,7 +23,12 @@ extension DeroulementMapper on DeroulementDto {
       id: id,
       name: label?.trim() ?? '',
       disciplineName: discipline?.name?.trim() ?? '',
+      disciplineId: disciplineId,
       gender: parseGender(gender) ?? _parseGenderLabel(genderLabel),
+      categories: [
+        for (final category in categories)
+          if (category.name?.trim() case final name? when name.isNotEmpty) name,
+      ],
       stages: stages,
     );
   }
