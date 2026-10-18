@@ -96,6 +96,14 @@ abstract class Participant with _$Participant {
   }) = _Participant;
 }
 
+/// Le résultat a été nagé : un temps, un statut autre qu'OK (DQ, forfait…)
+/// ou un complément (`HT`, `FF`…). Une série publiée avant d'être courue
+/// porte ses engagés sans rien de cela : pour la fiche d'un athlète, c'est une
+/// course à courir. Plus large que le `_hasOutcome` du classement, qui ne
+/// retient que ce qui décide qu'une finale est commencée (temps, DQ, forfait).
+bool hasRun(EventResult result) =>
+    result.time != null || result.status != 0 || result.complement.isNotEmpty;
+
 /// Le déroulement de [event] : même discipline, même genre, et la catégorie de
 /// l'épreuve parmi les siennes. Nul sinon.
 Progression? progressionOfEvent(

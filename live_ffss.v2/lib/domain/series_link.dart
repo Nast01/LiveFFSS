@@ -117,6 +117,20 @@ List<LinkedSeries> linkSeries(
   return [for (final index in byHeat.keys.toList()..sort()) byHeat[index]!];
 }
 
+/// Les courses du tour séries de [event], dans l'ordre du programme ; vide si
+/// aucun déroulement ne le couvre.
+List<Heat> heatsRoundOf(Programme programme, CompetitionEvent event) {
+  final progression = progressionOfEvent(programme.progressions, event);
+  if (progression == null) return const [];
+  return [
+    for (final meeting in programme.meetings)
+      for (final item in meeting.items)
+        if (item.roundId case final roundId?
+            when progression.stageById(roundId)?.level == StageLevel.heats)
+          ...item.heats,
+  ];
+}
+
 /// La finale de [event] prévue au déroulement, nulle sans finale : elle donne
 /// le nombre de finales et leurs places, qui fixent les points (V3
 /// `RacePoints`), même avant que la moindre finale ne soit publiée.

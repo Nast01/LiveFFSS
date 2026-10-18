@@ -94,6 +94,8 @@ void main() {
   late _MockMeetingRepository meetings;
   late Programme programme;
   late Map<int, LaneAssignment?> lanes;
+  // Places qui échouent à leur première lecture seulement.
+  late Set<int> flaky;
 
   ProviderContainer container() => ProviderContainer(
     overrides: [
@@ -111,6 +113,7 @@ void main() {
     meetings = _MockMeetingRepository();
     programme = fixtureProgramme;
     lanes = {};
+    flaky = {};
     when(() => meetings.getProgramme(any())).thenAnswer((_) async => programme);
     when(() => results.getEvents(any())).thenAnswer((_) async => events);
     when(() => results.getEventSeries(any())).thenAnswer(
@@ -124,7 +127,7 @@ void main() {
       final ids = invocation.positionalArguments.first as Iterable<int>;
       return {
         for (final id in ids)
-          if (lanes.containsKey(id)) id: lanes[id],
+          if (!flaky.remove(id) && lanes.containsKey(id)) id: lanes[id],
       };
     });
   });
@@ -166,15 +169,19 @@ void main() {
       expect(race.entry.entryId, 566082);
       expect(race.row, isNotNull);
       expect(race.row!.result.entryId, 566082);
-      expect(race.row!.rank, isNotNull);
+      // Série 2 (course 480) : 15917, 16136, puis 16195. Seules les séries 1
+      // et 2 sont au programme des fixtures : le rang de l'épreuve se fait
+      // sur elles, et 16195 y est aussi troisième.
+      expect(race.row!.result.time, 16195);
+      expect(race.row!.rank, 3);
       expect(race.series, isNotNull);
+      expect(race.series!.heat.id, 480);
       expect(race.series!.round, EventRound.heats);
       expect(
         race.series!.series.results.map((r) => r.entryId),
         contains(566082),
       );
-      expect(race.heatPlace, isNotNull);
-      expect(race.heatPlace, greaterThanOrEqualTo(1));
+      expect(race.heatPlace, 3);
       expect(race.plannedStart, race.series!.heat.plannedStart);
     });
 
@@ -210,6 +217,91 @@ void main() {
       expect(toRun.series, isNull);
       expect(toRun.heatPlace, isNull);
       expect(toRun.plannedStart, heats[479]!.plannedStart);
+    });
+
+    test(
+      "publiée sans temps ni statut : à courir, à l'heure de sa course",
+      () async {
+        // Un engagement de 36074 qui a couru, et 566082 dont la série est
+        // publiée mais pas encore courue.
+        final run36074 = series[36074]!
+            .firstWhere((s) => s.start != null && s.number == 2)
+            .results
+            .first;
+        final unrun = {
+          ...series,
+          36073: [
+            for (final one in series[36073]!)
+              one.copyWith(
+                results: [
+                  for (final r in one.results)
+                    r.entryId == 566082 ? r.copyWith(time: null) : r,
+                ],
+              ),
+          ],
+        };
+        when(() => results.getEventSeries(any())).thenAnswer(
+          (invocation) async =>
+              unrun[invocation.positionalArguments.first as int] ?? const [],
+        );
+        final n020 = participants.firstWhere((p) => p.id == 632572);
+        when(() => results.getParticipants(any())).thenAnswer(
+          (_) async => [
+            n020.copyWith(
+              entries: [
+                const ParticipantEntry(
+                  entryId: 566082,
+                  eventId: 36073,
+                  categoryName: 'Cadet',
+                ),
+                ParticipantEntry(
+                  entryId: run36074.entryId,
+                  eventId: 36074,
+                  categoryName: 'Junior',
+                ),
+              ],
+            ),
+          ],
+        );
+        final c = container();
+        addTearDown(c.dispose);
+
+        final races = await card(c, 632572);
+
+        expect(races.map((r) => r.event.id), [36074, 36073]);
+        expect(races.first.toRun, isFalse);
+        final toRun = races.last;
+        expect(toRun.toRun, isTrue);
+        expect(toRun.row, isNull);
+        expect(toRun.heatPlace, isNull);
+        // Sa série est connue : l'heure est celle de sa course, pas du tour.
+        expect(toRun.series, isNotNull);
+        expect(toRun.plannedStart, toRun.series!.heat.plannedStart);
+      },
+    );
+
+    test('une épreuve illisible : indisponible, le reste listé', () async {
+      when(() => results.getEventSeries(any())).thenAnswer((invocation) async {
+        final id = invocation.positionalArguments.first as int;
+        if (id == 36073) throw const NetworkException('hors ligne');
+        return series[id] ?? const [];
+      });
+      final c = container();
+      addTearDown(c.dispose);
+
+      final races = await card(c, 632572);
+
+      expect(races, hasLength(6));
+      final failed = races.firstWhere((r) => r.event.id == 36073);
+      expect(failed.unavailable, isTrue);
+      expect(failed.row, isNull);
+      expect(failed.series, isNull);
+      expect(failed.heatPlace, isNull);
+      expect(failed.plannedStart, heats[479]!.plannedStart);
+      // Avec les « à courir », dans l'ordre du programme : sa course est la
+      // seule au programme.
+      expect(races.first, failed);
+      expect(races.skip(1).map((r) => r.unavailable), everyElement(isFalse));
     });
 
     test('un relais sans série rattachée : à courir, sans heure', () async {
@@ -316,7 +408,7 @@ void main() {
 
       expect(found?.heat.id, 480);
       expect(found?.lane, 8);
-      verifyNever(() => meetings.getLanes(heats[479]!.placeIds));
+      verify(() => meetings.getLanes(any())).called(1);
     });
 
     test('toutes terminées : nul, sans aucune lecture', () async {
@@ -330,11 +422,46 @@ void main() {
     test('une place illisible sans l\'athlète ailleurs : échec', () async {
       programme = _withStatus(fixtureProgramme, (_) => RunStatus.waiting);
       allPlacesEmpty();
-      lanes.remove(heats[480]!.placeIds.first);
+      final unread = heats[480]!.placeIds.first;
+      lanes.remove(unread);
       final c = container();
       addTearDown(c.dispose);
 
       await expectLater(find(c), throwsA(isA<NetworkException>()));
+      // Relue une fois avant d'abandonner.
+      verify(() => meetings.getLanes([unread])).called(1);
+    });
+
+    test("une place illisible, l'athlète dans une course suivante", () async {
+      programme = _withStatus(fixtureProgramme, (_) => RunStatus.waiting);
+      allPlacesEmpty();
+      lanes.remove(heats[479]!.placeIds.first);
+      final second = heats[480]!;
+      lanes[second.placeIds[1]] = lane(second.placeIds[1], 2, entry: entryId);
+      final c = container();
+      addTearDown(c.dispose);
+
+      final found = await find(c);
+
+      expect(found?.heat.id, 480);
+      expect(found?.lane, 2);
+    });
+
+    test('une place illisible relue avec succès : trouvé', () async {
+      programme = _withStatus(fixtureProgramme, (_) => RunStatus.waiting);
+      allPlacesEmpty();
+      final first = heats[479]!;
+      final placeId = first.placeIds[4];
+      lanes[placeId] = lane(placeId, 5, entry: entryId);
+      flaky = {placeId};
+      final c = container();
+      addTearDown(c.dispose);
+
+      final found = await find(c);
+
+      expect(found?.heat.id, 479);
+      expect(found?.lane, 5);
+      verify(() => meetings.getLanes([placeId])).called(1);
     });
   });
 }

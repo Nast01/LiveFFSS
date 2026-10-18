@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:live_ffss_v2/domain/athlete_search.dart';
+import 'package:live_ffss_v2/domain/text_fold.dart';
 import 'package:live_ffss_v2/domain/event_ranking.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
 

@@ -210,3 +210,17 @@ ItemStatus stageStatus(List<MeetingItem> items) {
   }
   return ItemStatus.upcoming;
 }
+
+/// Rang de chaque course dans le programme (réunions, créneaux, courses) :
+/// l'ordre « du programme » d'une fiche d'athlète.
+Map<int, int> programmeOrder(Programme programme) {
+  final order = <int, int>{};
+  for (final meeting in programme.meetings) {
+    for (final item in meeting.items) {
+      for (final heat in item.heats) {
+        order.putIfAbsent(heat.id, () => order.length);
+      }
+    }
+  }
+  return order;
+}

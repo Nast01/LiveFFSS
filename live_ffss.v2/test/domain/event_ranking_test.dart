@@ -151,13 +151,21 @@ void main() {
 
   group('sans finale', () {
     test('au temps, toutes séries ; ex æquo 1, 2, 2, 4', () {
-      final ranking = rankEvent(_event, [
+      final linked = [
         _s(EventRound.heats, 1, [_r(1, time: 3000), _r(3, time: 3100)]),
         _s(EventRound.heats, 2, [_r(2, time: 3100), _r(4, time: 3200)]),
-      ]);
+      ];
+      final ranking = rankEvent(_event, linked);
       // Ex æquo : la série 1 d'abord.
       expect(_table(ranking), [(1, 1, 20), (3, 2, 18), (2, 2, 18), (4, 4, 14)]);
       expect(ranking.rows.map((r) => r.seriesNumber), [1, 1, 2, 2]);
+      // Chaque ligne porte la série rattachée d'où vient son résultat.
+      expect(ranking.rows.map((r) => r.series), [
+        linked[0],
+        linked[0],
+        linked[1],
+        linked[1],
+      ]);
     });
 
     test('ex æquo d\'une même série : par id de résultat', () {

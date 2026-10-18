@@ -2,10 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/domain/event_ranking.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/gender.dart';
+import 'package:live_ffss_v2/domain/heat.dart';
+import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/domain/standings.dart';
 
 var _id = 1;
+
+const _series = LinkedSeries(
+  series: EventSeries(id: 1, eventId: 1, number: 1, name: 'Série 1'),
+  heat: Heat(id: 1, name: 'Série 1', number: 1, status: RunStatus.finished),
+  round: EventRound.heats,
+);
 
 CompetitionEvent _event({
   int id = 1,
@@ -50,8 +58,7 @@ RankingRow _row({
     rank: rank,
     points: points,
     qualification: Qualification.none,
-    seriesNumber: 1,
-    round: EventRound.heats,
+    series: _series,
   );
 }
 

@@ -23,6 +23,8 @@ enum Qualification { none, finalA, finalB }
 /// Un résultat dans le classement d'une épreuve.
 @freezed
 abstract class RankingRow with _$RankingRow {
+  const RankingRow._();
+
   const factory RankingRow({
     required EventResult result,
 
@@ -30,9 +32,14 @@ abstract class RankingRow with _$RankingRow {
     int? rank,
     required int points,
     required Qualification qualification,
-    required int seriesNumber,
-    required EventRound round,
+
+    /// La série rattachée d'où vient [result] : sa course, son tour.
+    required LinkedSeries series,
   }) = _RankingRow;
+
+  int get seriesNumber => series.series.number;
+
+  EventRound get round => series.round;
 }
 
 @freezed
@@ -43,10 +50,6 @@ abstract class EventRanking with _$EventRanking {
     required int finishedSeries,
     required int totalSeries,
     required bool provisional,
-
-    /// Les séries rattachées classées, dans l'ordre du programme : la fiche
-    /// d'un athlète y retrouve la série et la course de chaque ligne.
-    @Default(<LinkedSeries>[]) List<LinkedSeries> series,
   }) = _EventRanking;
 }
 
@@ -159,7 +162,6 @@ EventRanking rankEvent(
     finishedSeries: series.where((s) => s.finished).length,
     totalSeries: series.length,
     provisional: series.isEmpty || series.any((s) => s.provisional),
-    series: series,
   );
 }
 
@@ -204,8 +206,7 @@ final class _Line {
         rank: rank,
         points: points,
         qualification: qualification,
-        seriesNumber: series.series.number,
-        round: series.round,
+        series: series,
       );
 }
 

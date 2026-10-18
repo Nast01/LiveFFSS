@@ -58,4 +58,29 @@ void main() {
     expect(event(1, Gender.male, 'Open').isRelay, isFalse);
     expect(event(1, Gender.male, 'Open').copyWith(teamSize: 4).isRelay, isTrue);
   });
+
+  group('hasRun', () {
+    EventResult result({int status = 0, int? time, String complement = ''}) =>
+        EventResult(
+          id: 1,
+          entryId: 1,
+          eventId: 1,
+          categoryName: 'Cadet',
+          status: status,
+          time: time,
+          complement: complement,
+        );
+
+    test('publiée sans rien : pas encore courue', () {
+      expect(hasRun(result()), isFalse);
+    });
+
+    test('un temps, un statut ou un complément : courue', () {
+      expect(hasRun(result(time: 16330)), isTrue);
+      expect(hasRun(result(status: 1)), isTrue);
+      expect(hasRun(result(status: 2)), isTrue);
+      expect(hasRun(result(status: 5)), isTrue);
+      expect(hasRun(result(complement: 'HT')), isTrue);
+    });
+  });
 }
