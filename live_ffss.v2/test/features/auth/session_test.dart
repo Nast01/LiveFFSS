@@ -22,6 +22,11 @@ class _MockAuthRepository extends Mock implements AuthRepository {}
 class _MockHttpClient extends Mock implements HttpClient {}
 
 const _jean = Account(label: 'DUPONT Jean', type: 'licencie');
+const _admin = Account(
+  label: 'ORGANISME TEST',
+  type: 'organisme',
+  role: 'admin',
+);
 
 void main() {
   late _MockAuthRepository auth;
@@ -141,6 +146,59 @@ void main() {
         const Account(label: 'DUPONT Jean'),
       );
       expect(tokens.token, 'abc');
+    });
+  });
+
+  group('rôle du compte', () {
+    test('reprise vérifiée : le rôle est enregistré', () async {
+      storeSession('abc', 'ORGANISME TEST');
+      when(() => auth.me()).thenAnswer((_) async => _admin);
+
+      expect(await container.read(sessionProvider.future), _admin);
+      expect(store.values[SessionNotifier.roleKey], 'admin');
+    });
+
+    test('hors ligne : le rôle enregistré est gardé', () async {
+      storeSession('abc', 'ORGANISME TEST');
+      store.values[SessionNotifier.roleKey] = 'admin';
+      when(() => auth.me()).thenThrow(const NetworkException('hors ligne'));
+
+      final account = await container.read(sessionProvider.future);
+
+      expect(account, const Account(label: 'ORGANISME TEST', role: 'admin'));
+      expect(account!.isAdmin, isTrue);
+    });
+
+    test('connexion : le rôle est enregistré', () async {
+      await container.read(sessionProvider.future);
+      when(
+        () => auth.requestToken(any(), any()),
+      ).thenAnswer((_) async => 'neuf');
+      when(() => auth.me()).thenAnswer((_) async => _admin);
+
+      await container.read(sessionProvider.notifier).login('admin', 'secret');
+
+      expect(store.values[SessionNotifier.roleKey], 'admin');
+    });
+
+    test('compte sans rôle : un ancien rôle est effacé', () async {
+      storeSession('abc', 'DUPONT Jean');
+      store.values[SessionNotifier.roleKey] = 'admin';
+      when(() => auth.me()).thenAnswer((_) async => _jean);
+
+      await container.read(sessionProvider.future);
+
+      expect(store.values[SessionNotifier.roleKey], isNull);
+    });
+
+    test('déconnexion : le rôle est effacé', () async {
+      storeSession('abc', 'ORGANISME TEST');
+      when(() => auth.me()).thenAnswer((_) async => _admin);
+      await container.read(sessionProvider.future);
+
+      await container.read(sessionProvider.notifier).logout();
+
+      expect(store.values[SessionNotifier.roleKey], isNull);
     });
   });
 

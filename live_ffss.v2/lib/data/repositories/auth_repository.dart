@@ -53,7 +53,15 @@ class AuthRepositoryImpl implements AuthRepository {
         (type is String && _isAnonymous(type))) {
       throw const AuthException('compte anonyme');
     }
-    return Account(label: label.trim(), type: type is String ? type : null);
+    // `data` peut manquer ou arriver en `[]` (objet vide de PHP) : le rôle
+    // est alors inconnu, ce qui ne fait pas échouer la connexion.
+    final data = body['data'];
+    final role = data is Map ? data['role'] : null;
+    return Account(
+      label: label.trim(),
+      type: type is String ? type : null,
+      role: role is String && role.isNotEmpty ? role : null,
+    );
   }
 
   /// Le site répond « Utilisateur Anonyme » à un jeton qu'il ne reconnaît

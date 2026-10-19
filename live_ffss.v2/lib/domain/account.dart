@@ -13,7 +13,17 @@ abstract class Account with _$Account {
 
     /// Le type de compte (`licencie`, `organisme`…).
     String? type,
+
+    /// Le rôle global du compte (`data.role` de `/me` : `user`, `admin`…),
+    /// indépendant de toute compétition.
+    String? role,
   }) = _Account;
+
+  const Account._();
+
+  /// Montre les outils de l'espace admin ; les actions restent soumises aux
+  /// rôles de la compétition, que le site vérifie de toute façon.
+  bool get isAdmin => role == 'admin';
 }
 
 /// Même personne : même nom affiché, à la casse et aux espaces près. Le site

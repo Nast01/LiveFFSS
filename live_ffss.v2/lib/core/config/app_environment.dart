@@ -40,11 +40,14 @@ enum AppEnvironment {
   /// Clés qui n'appartiennent à aucun environnement : elles survivent à une
   /// bascule comme à un effacement scopé. `language`, `start_tab` et
   /// `reminder_lead` sont des préférences d'interface, elles ne viennent pas
-  /// du serveur.
+  /// du serveur. `admin_seen` dit qu'un admin s'est connecté sur ce
+  /// téléphone : le choix du serveur doit rester visible sur les deux, pour
+  /// pouvoir revenir à l'autre.
   static const Set<String> globalKeys = {
     'language',
     'start_tab',
     'reminder_lead',
+    'admin_seen',
     environmentKey,
   };
 

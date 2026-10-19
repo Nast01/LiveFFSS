@@ -16,6 +16,10 @@ class SessionNotifier extends AsyncNotifier<Account?> {
   /// compte (comme dans V3).
   static const accountKey = 'session_account';
 
+  /// Le rôle global du compte (`/me`), enregistré à côté de son nom : lancée
+  /// sans réseau, l'app montre encore l'espace admin à un admin.
+  static const roleKey = 'session_role';
+
   /// Change à chaque déconnexion ou expiration : une reprise ou une connexion
   /// commencée avant n'ouvre plus la session en se terminant.
   int _generation = 0;
@@ -39,6 +43,8 @@ class SessionNotifier extends AsyncNotifier<Account?> {
     if (!_isCurrent(generation) || token == null || token.isEmpty) return null;
     final stored = await _guard(() => store.read(accountKey));
     if (!_isCurrent(generation)) return null;
+    final storedRole = await _guard(() => store.read(roleKey));
+    if (!_isCurrent(generation)) return null;
 
     final Account account;
     try {
@@ -47,7 +53,7 @@ class SessionNotifier extends AsyncNotifier<Account?> {
       // Hors ligne, la session enregistrée est supposée bonne : la première
       // écriture la vérifiera (un 403 « Invalid token » la ferme).
       if (!_isCurrent(generation)) return null;
-      if (stored != null) return Account(label: stored);
+      if (stored != null) return Account(label: stored, role: storedRole);
       // Sans nom enregistré, rien ne dirait plus tard à qui est ce jeton.
       await _forget(tokens, store);
       return null;
@@ -62,7 +68,7 @@ class SessionNotifier extends AsyncNotifier<Account?> {
       await _forget(tokens, store);
       return null;
     }
-    await _guard(() => store.write(accountKey, account.label));
+    await _remember(store, account);
     return account;
   }
 
@@ -100,7 +106,7 @@ class SessionNotifier extends AsyncNotifier<Account?> {
     }
     if (!_isCurrent(generation)) return;
 
-    await _guard(() => store.write(accountKey, account.label));
+    await _remember(store, account);
     if (!_isCurrent(generation)) return;
 
     ref.read(sessionExpiredProvider.notifier)._set(false);
@@ -132,9 +138,18 @@ class SessionNotifier extends AsyncNotifier<Account?> {
     await _guard(tokens.clearToken);
   }
 
+  static Future<void> _remember(LocalStore store, Account account) async {
+    await _guard(() => store.write(accountKey, account.label));
+    final role = account.role;
+    await _guard(
+      () => role == null ? store.delete(roleKey) : store.write(roleKey, role),
+    );
+  }
+
   static Future<void> _forget(TokenStorage tokens, LocalStore store) async {
     await _guard(tokens.clearToken);
     await _guard(() => store.delete(accountKey));
+    await _guard(() => store.delete(roleKey));
   }
 
   /// Le stockage sécurisé lève ses propres erreurs (`PlatformException`…) :
