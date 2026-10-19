@@ -56,14 +56,13 @@ extension MySpaceCardPatterns on MySpaceCard {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( AthleteSpaceCard value)?  athlete,TResult Function( ClubSpaceCard value)?  club,TResult Function( OfficialSpaceCard value)?  official,TResult Function( AdminSpaceCard value)?  admin,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( AthleteSpaceCard value)?  athlete,TResult Function( ClubSpaceCard value)?  club,TResult Function( OfficialSpaceCard value)?  official,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case AthleteSpaceCard() when athlete != null:
 return athlete(_that);case ClubSpaceCard() when club != null:
 return club(_that);case OfficialSpaceCard() when official != null:
-return official(_that);case AdminSpaceCard() when admin != null:
-return admin(_that);case _:
+return official(_that);case _:
   return orElse();
 
 }
@@ -81,14 +80,13 @@ return admin(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( AthleteSpaceCard value)  athlete,required TResult Function( ClubSpaceCard value)  club,required TResult Function( OfficialSpaceCard value)  official,required TResult Function( AdminSpaceCard value)  admin,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( AthleteSpaceCard value)  athlete,required TResult Function( ClubSpaceCard value)  club,required TResult Function( OfficialSpaceCard value)  official,}){
 final _that = this;
 switch (_that) {
 case AthleteSpaceCard():
 return athlete(_that);case ClubSpaceCard():
 return club(_that);case OfficialSpaceCard():
-return official(_that);case AdminSpaceCard():
-return admin(_that);}
+return official(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -102,14 +100,13 @@ return admin(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( AthleteSpaceCard value)?  athlete,TResult? Function( ClubSpaceCard value)?  club,TResult? Function( OfficialSpaceCard value)?  official,TResult? Function( AdminSpaceCard value)?  admin,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( AthleteSpaceCard value)?  athlete,TResult? Function( ClubSpaceCard value)?  club,TResult? Function( OfficialSpaceCard value)?  official,}){
 final _that = this;
 switch (_that) {
 case AthleteSpaceCard() when athlete != null:
 return athlete(_that);case ClubSpaceCard() when club != null:
 return club(_that);case OfficialSpaceCard() when official != null:
-return official(_that);case AdminSpaceCard() when admin != null:
-return admin(_that);case _:
+return official(_that);case _:
   return null;
 
 }
@@ -126,13 +123,12 @@ return admin(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Participant participant)?  athlete,TResult Function( ClubRef club)?  club,TResult Function( OfficialRole? role)?  official,TResult Function()?  admin,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Participant participant)?  athlete,TResult Function( ClubRef club)?  club,TResult Function( OfficialRole? role)?  official,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case AthleteSpaceCard() when athlete != null:
 return athlete(_that.participant);case ClubSpaceCard() when club != null:
 return club(_that.club);case OfficialSpaceCard() when official != null:
-return official(_that.role);case AdminSpaceCard() when admin != null:
-return admin();case _:
+return official(_that.role);case _:
   return orElse();
 
 }
@@ -150,13 +146,12 @@ return admin();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Participant participant)  athlete,required TResult Function( ClubRef club)  club,required TResult Function( OfficialRole? role)  official,required TResult Function()  admin,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Participant participant)  athlete,required TResult Function( ClubRef club)  club,required TResult Function( OfficialRole? role)  official,}) {final _that = this;
 switch (_that) {
 case AthleteSpaceCard():
 return athlete(_that.participant);case ClubSpaceCard():
 return club(_that.club);case OfficialSpaceCard():
-return official(_that.role);case AdminSpaceCard():
-return admin();}
+return official(_that.role);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -170,13 +165,12 @@ return admin();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Participant participant)?  athlete,TResult? Function( ClubRef club)?  club,TResult? Function( OfficialRole? role)?  official,TResult? Function()?  admin,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Participant participant)?  athlete,TResult? Function( ClubRef club)?  club,TResult? Function( OfficialRole? role)?  official,}) {final _that = this;
 switch (_that) {
 case AthleteSpaceCard() when athlete != null:
 return athlete(_that.participant);case ClubSpaceCard() when club != null:
 return club(_that.club);case OfficialSpaceCard() when official != null:
-return official(_that.role);case AdminSpaceCard() when admin != null:
-return admin();case _:
+return official(_that.role);case _:
   return null;
 
 }
@@ -417,38 +411,6 @@ $OfficialRoleCopyWith<$Res>? get role {
   });
 }
 }
-
-/// @nodoc
-
-
-class AdminSpaceCard implements MySpaceCard {
-  const AdminSpaceCard();
-  
-
-
-
-
-
-
-@override
-bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminSpaceCard);
-}
-
-
-@override
-int get hashCode => runtimeType.hashCode;
-
-@override
-String toString() {
-    return 'MySpaceCard.admin()';
-}
-
-
-}
-
-
-
 
 /// @nodoc
 mixin _$MySpaceCards {

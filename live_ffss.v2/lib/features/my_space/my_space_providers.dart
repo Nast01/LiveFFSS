@@ -31,11 +31,12 @@ sealed class MySpaceCard with _$MySpaceCard {
   /// [role] nul : le site donne le rôle `officiel` sans son détail ; la
   /// saisie reste ouverte, la carte aussi.
   const factory MySpaceCard.official(OfficialRole? role) = OfficialSpaceCard;
-  const factory MySpaceCard.admin() = AdminSpaceCard;
 }
 
 /// Une carte par rôle détenu : Athlète seulement si le licencié est engagé
-/// (il n'aurait ni planning ni résultat), une carte par club référent.
+/// (il n'aurait ni planning ni résultat), une carte par club référent. La
+/// carte Admin n'en est pas : elle vient aussi du rôle du compte, sans
+/// compétition (`adminAccessProvider`).
 List<MySpaceCard> mySpaceCards(
   CompetitionRoles roles,
   List<Participant> participants,
@@ -46,7 +47,6 @@ List<MySpaceCard> mySpaceCards(
     for (final club in roles.refereeClubs) MySpaceCard.club(club),
     if (roles.isOfficial || roles.official != null)
       MySpaceCard.official(roles.official),
-    if (roles.isAdmin) const MySpaceCard.admin(),
   ];
 }
 

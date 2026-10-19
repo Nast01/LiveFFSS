@@ -770,7 +770,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mySpaceAdmin => 'Admin';
 
   @override
-  String get mySpaceAdminSubtitle => 'L\'espace de n\'importe quel club';
+  String mySpaceAdminSubtitle(String server) {
+    return 'Serveur : $server';
+  }
 
   @override
   String get mySpacePrincipalJudge => 'Juge principal';
@@ -1225,4 +1227,50 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get networkLogNoStatus => 'sans réponse';
+
+  @override
+  String get adminTitle => 'Espace admin';
+
+  @override
+  String get adminServerHint => 'À changer dans les Préférences de Mon espace';
+
+  @override
+  String get adminCompetition => 'Compétition active';
+
+  @override
+  String get adminDecisions => 'Forfaits et DQ de tous les clubs';
+
+  @override
+  String get adminOpenSpace => 'Ouvrir un espace';
+
+  @override
+  String get adminClubsSubtitle => 'L\'espace de n\'importe quel club';
+
+  @override
+  String get adminDiagnostic => 'Diagnostic';
+
+  @override
+  String get adminDataCheck => 'Contrôle des données';
+
+  @override
+  String get adminMaintenance => 'Maintenance';
+
+  @override
+  String get adminComingSoon => 'Bientôt disponible';
+
+  @override
+  String get adminOnly => 'Réservé aux admins.';
+
+  @override
+  String get adminAllClubs => 'Tous les clubs';
+
+  @override
+  String get adminAllEvents => 'Toutes les épreuves';
+
+  @override
+  String get adminFilteredEmpty =>
+      'Aucune DQ ni aucun forfait publié pour ce filtre.';
+
+  @override
+  String get adminClubForfeits => 'Forfaits déclarés du club';
 }

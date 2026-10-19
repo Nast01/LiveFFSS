@@ -381,7 +381,7 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
           return _retryLater(op);
         case ApiException(:final statusCode?) when _isTransient(statusCode):
           return _retryLater(op);
-        case UnknownException() || StorageException():
+        case UnknownException() || StorageException() || AdminOnlyException():
           return _fault(op, OutboxRejection.server, reason: e.message);
         case ApiException() || NotFoundException():
           return _settle(

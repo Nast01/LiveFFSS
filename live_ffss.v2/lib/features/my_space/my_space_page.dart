@@ -72,6 +72,25 @@ class MySpacePage extends ConsumerWidget {
             )
           else
             const LoginForm(),
+          // Sans compétition pour l'admin du compte : le serveur et le
+          // diagnostic ne dépendent d'aucune.
+          if (ref.watch(adminAccessProvider(competition?.id)).value ??
+              false) ...[
+            MySpaceHeader(l10n.mySpaceAdmin),
+            MySpaceBox(
+              children: [
+                MySpaceRow(
+                  icon: Icons.admin_panel_settings_outlined,
+                  title: l10n.adminTitle,
+                  subtitle: adminCardSubtitle(
+                    ref.watch(appConfigProvider).environment,
+                    l10n,
+                  ),
+                  onTap: () => context.go(Routes.admin),
+                ),
+              ],
+            ),
+          ],
           if (competition == null)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
@@ -190,7 +209,6 @@ class _CardRow extends StatelessWidget {
         AthleteSpaceCard() => Icons.pool,
         ClubSpaceCard() => Icons.groups_outlined,
         OfficialSpaceCard() => Icons.timer_outlined,
-        AdminSpaceCard() => Icons.admin_panel_settings_outlined,
       },
       title: mySpaceCardTitle(card, l10n),
       subtitle: mySpaceCardSubtitle(card, l10n),

@@ -235,4 +235,59 @@ void main() {
       expect(clubRedirect({'competitionId': '1416'}), Routes.mySpace);
     });
   });
+  group("routes de l'espace admin", () {
+    test('sous Mon espace', () {
+      expect(Routes.admin, '/espace/admin');
+      expect(Routes.adminNetworkLog, '/espace/admin/journal');
+      expect(
+        Routes.adminDecisions(1416),
+        '/espace/admin/competition/1416/dq-forfaits',
+      );
+      expect(Routes.adminClubs(1416), '/espace/admin/competition/1416/clubs');
+      expect(
+        Routes.mySpaceClub(1416, 15, forfeits: true),
+        '/espace/competition/1416/club/15?onglet=forfaits',
+      );
+    });
+
+    test('le routeur sert ces pages sous la branche Mon espace', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      for (final (location, page) in [
+        (Routes.admin, 'admin'),
+        (Routes.adminNetworkLog, 'journal'),
+        (Routes.adminDecisions(1416), 'competition/:competitionId/dq-forfaits'),
+        (Routes.adminClubs(1416), 'competition/:competitionId/clubs'),
+        (
+          Routes.mySpaceClub(1416, 15, forfeits: true),
+          'competition/:competitionId/club/:clubId',
+        ),
+      ]) {
+        final match = router.configuration.findMatch(Uri.parse(location));
+        expect(match.isError, isFalse, reason: location);
+        expect(match.matches.first.route, isA<StatefulShellRoute>());
+        expect(match.last.route.path, page, reason: location);
+      }
+      for (final location in [
+        '/espace/admin/competition/x/dq-forfaits',
+        '/espace/admin/competition/x/clubs',
+      ]) {
+        final match = router.configuration.findMatch(Uri.parse(location));
+        expect(match.last.route.redirect, isNotNull, reason: location);
+      }
+    });
+
+    test("un lien admin illisible retombe sur l'espace admin", () {
+      expect(adminRedirect({'competitionId': '1416'}), isNull);
+      expect(adminRedirect({'competitionId': 'x'}), Routes.admin);
+      expect(adminRedirect({}), Routes.admin);
+    });
+
+    test("l'espace d'un club s'ouvre sur ses forfaits à la demande", () {
+      expect(clubOpensOnForfeits({'onglet': 'forfaits'}), isTrue);
+      expect(clubOpensOnForfeits({}), isFalse);
+      expect(clubOpensOnForfeits({'onglet': 'planning'}), isFalse);
+    });
+  });
 }

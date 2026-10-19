@@ -3,6 +3,11 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:live_ffss_v2/features/admin/admin_clubs_page.dart';
+import 'package:live_ffss_v2/features/admin/admin_decisions_page.dart';
+import 'package:live_ffss_v2/features/admin/admin_page.dart';
+import 'package:live_ffss_v2/features/admin/network_log_page.dart';
+import 'package:live_ffss_v2/features/admin/widgets/admin_gate.dart';
 import 'package:live_ffss_v2/features/home/all_competitions_page.dart';
 import 'package:live_ffss_v2/features/home/home_page.dart';
 import 'package:live_ffss_v2/features/live/live_page.dart';
@@ -68,8 +73,17 @@ abstract final class Routes {
       '${_mySpaceOf(competitionId)}/suivis';
   static String mySpaceAthlete(int competitionId) =>
       '${_mySpaceOf(competitionId)}/athlete';
-  static String mySpaceClub(int competitionId, int clubId) =>
-      '${_mySpaceOf(competitionId)}/club/$clubId';
+
+  /// [forfeits] : ouvert sur l'onglet Forfaits (depuis l'espace admin).
+  static String mySpaceClub(
+    int competitionId,
+    int clubId, {
+    bool forfeits = false,
+  }) =>
+      '${_mySpaceOf(competitionId)}/club/$clubId'
+      '${forfeits ? '?$_clubTab=$_clubTabForfeits' : ''}';
+  static const _clubTab = 'onglet';
+  static const _clubTabForfeits = 'forfaits';
   static String mySpaceOfficial(int competitionId) =>
       '${_mySpaceOf(competitionId)}/officiel';
 
@@ -82,6 +96,15 @@ abstract final class Routes {
   /// La fiche d'un athlète (lot 5) ouverte depuis Mon espace.
   static String mySpaceParticipant(int competitionId, int participantId) =>
       '${_mySpaceOf(competitionId)}/fiche/$participantId';
+
+  /// L'espace admin et ses pages, dans la branche de Mon espace : le retour
+  /// y ramène.
+  static const admin = '$mySpace/admin';
+  static const adminNetworkLog = '$admin/journal';
+  static String adminDecisions(int competitionId) =>
+      '$admin/competition/$competitionId/dq-forfaits';
+  static String adminClubs(int competitionId) =>
+      '$admin/competition/$competitionId/clubs';
 }
 
 int? _competitionIdOf(Map<String, String> pathParameters) =>
@@ -123,6 +146,15 @@ String? mySpaceRedirect(Map<String, String> pathParameters) =>
 
 String? clubRedirect(Map<String, String> pathParameters) =>
     clubKey(pathParameters) == null ? Routes.mySpace : null;
+
+/// L'espace d'un club ouvert sur ses forfaits ([Routes.mySpaceClub]).
+bool clubOpensOnForfeits(Map<String, String> queryParameters) =>
+    queryParameters[Routes._clubTab] == Routes._clubTabForfeits;
+
+/// Un lien de l'espace admin mal formé retombe sur l'espace admin ; nul pour
+/// un lien lisible.
+String? adminRedirect(Map<String, String> pathParameters) =>
+    _competitionIdOf(pathParameters) == null ? Routes.admin : null;
 
 String startTabLocation(StartTab tab) => switch (tab) {
   StartTab.home => Routes.home,
@@ -311,6 +343,15 @@ GoRoute _mySpaceRoute(String path, Widget Function(int competitionId) page) =>
           page(_competitionIdOf(state.pathParameters)!),
     );
 
+/// Une page de l'espace admin sur une compétition.
+GoRoute _adminRoute(String path, Widget Function(int competitionId) page) =>
+    GoRoute(
+      path: 'competition/:competitionId/$path',
+      redirect: (context, state) => adminRedirect(state.pathParameters),
+      builder: (context, state) =>
+          page(_competitionIdOf(state.pathParameters)!),
+    );
+
 final _mySpaceRoutes = [
   _mySpaceRoute('infos', (id) => CompetitionInfoPage(competitionId: id)),
   _mySpaceRoute('officiels', (id) => OfficialsPage(competitionId: id)),
@@ -333,8 +374,24 @@ final _mySpaceRoutes = [
     redirect: (context, state) => clubRedirect(state.pathParameters),
     builder: (context, state) {
       final key = clubKey(state.pathParameters)!;
-      return ClubPage(competitionId: key.competitionId, clubId: key.clubId);
+      return ClubPage(
+        competitionId: key.competitionId,
+        clubId: key.clubId,
+        openOnForfeits: clubOpensOnForfeits(state.uri.queryParameters),
+      );
     },
+  ),
+  GoRoute(
+    path: 'admin',
+    builder: (context, state) => const AdminPage(),
+    routes: [
+      GoRoute(
+        path: 'journal',
+        builder: (context, state) => const AdminGate(child: NetworkLogPage()),
+      ),
+      _adminRoute('dq-forfaits', (id) => AdminDecisionsPage(competitionId: id)),
+      _adminRoute('clubs', (id) => AdminClubsPage(competitionId: id)),
+    ],
   ),
   GoRoute(
     path: 'competition/:competitionId/fiche/:participantId',

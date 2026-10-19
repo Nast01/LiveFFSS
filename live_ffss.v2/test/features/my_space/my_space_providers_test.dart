@@ -218,13 +218,14 @@ void main() {
       expect(await cards(), [MySpaceCard.athlete(engaged)]);
     });
 
-    test("admin : carte Admin, sans lire les participants", () async {
+    test("admin de la compétition : pas de carte d'espace (la carte Admin "
+        "vient de adminAccessProvider), sans lire les participants", () async {
       await logIn(_other);
       when(() => auth.competitionRoles(competitionId)).thenAnswer(
         (_) async => const CompetitionRoles(roles: ['public', 'admin']),
       );
 
-      expect(await cards(), [const MySpaceCard.admin()]);
+      expect(await cards(), isEmpty);
       verifyNever(() => results.getParticipants(any()));
     });
 
@@ -383,10 +384,10 @@ void main() {
       expect(await cards(), isEmpty);
 
       when(() => auth.competitionRoles(competitionId)).thenAnswer(
-        (_) async => const CompetitionRoles(roles: ['public', 'admin']),
+        (_) async => const CompetitionRoles(roles: ['public', 'officiel']),
       );
       await logIn(_other);
-      expect(await cards(), [const MySpaceCard.admin()]);
+      expect(await cards(), [const MySpaceCard.official(null)]);
     });
 
     test("pendant la relecture d'un autre compte : en chargement, jamais "
@@ -411,13 +412,13 @@ void main() {
         const SpacesLoading(),
       );
 
-      pending.complete(const CompetitionRoles(roles: ['public', 'admin']));
-      expect(await cards(), [const MySpaceCard.admin()]);
+      pending.complete(const CompetitionRoles(roles: ['public', 'officiel']));
+      expect(await cards(), [const MySpaceCard.official(null)]);
     });
   });
 
   group('mySpaceCards', () {
-    test("l'ordre : athlète, clubs, officiel, admin", () {
+    test("l'ordre : athlète, clubs, officiel ; pas de carte admin", () {
       final roles = CompetitionRoles(
         roles: const ['public', 'licencie', 'officiel', 'admin'],
         licenseeId: engaged.licenseeId,
@@ -439,7 +440,6 @@ void main() {
         const MySpaceCard.official(
           OfficialRole(level: 'A', levelLabel: 'A', principal: true),
         ),
-        const MySpaceCard.admin(),
       ]);
     });
 

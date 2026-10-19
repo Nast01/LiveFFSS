@@ -31,10 +31,14 @@ class ClubPage extends ConsumerStatefulWidget {
     super.key,
     required this.competitionId,
     required this.clubId,
+    this.openOnForfeits = false,
   });
 
   final int competitionId;
   final int clubId;
+
+  /// L'espace admin ouvre un club sur ses forfaits déclarés.
+  final bool openOnForfeits;
 
   @override
   ConsumerState<ClubPage> createState() => _ClubPageState();
@@ -44,7 +48,7 @@ class _ClubPageState extends ConsumerState<ClubPage> {
   // Le bouton passe par l'indicateur du geste : même rond de chargement, et
   // un appui pendant un rafraîchissement n'en lance pas un second.
   final _refreshKey = GlobalKey<RefreshIndicatorState>();
-  var _tab = _ClubTab.planning;
+  late var _tab = widget.openOnForfeits ? _ClubTab.forfeits : _ClubTab.planning;
 
   // « Calculer » touché : les classements des clubs (une lecture par
   // épreuve) ne partent qu'à la demande, ou s'ils sont déjà calculés.

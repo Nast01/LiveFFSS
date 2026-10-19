@@ -768,7 +768,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mySpaceAdmin => 'Admin';
 
   @override
-  String get mySpaceAdminSubtitle => 'Any club\'s space';
+  String mySpaceAdminSubtitle(String server) {
+    return 'Server: $server';
+  }
 
   @override
   String get mySpacePrincipalJudge => 'Chief judge';
@@ -1217,4 +1219,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get networkLogNoStatus => 'no response';
+
+  @override
+  String get adminTitle => 'Admin space';
+
+  @override
+  String get adminServerHint => 'Change it in My space preferences';
+
+  @override
+  String get adminCompetition => 'Active competition';
+
+  @override
+  String get adminDecisions => 'Forfeits and DQs of all clubs';
+
+  @override
+  String get adminOpenSpace => 'Open a space';
+
+  @override
+  String get adminClubsSubtitle => 'Any club\'s space';
+
+  @override
+  String get adminDiagnostic => 'Diagnostics';
+
+  @override
+  String get adminDataCheck => 'Data check';
+
+  @override
+  String get adminMaintenance => 'Maintenance';
+
+  @override
+  String get adminComingSoon => 'Coming soon';
+
+  @override
+  String get adminOnly => 'Admins only.';
+
+  @override
+  String get adminAllClubs => 'All clubs';
+
+  @override
+  String get adminAllEvents => 'All events';
+
+  @override
+  String get adminFilteredEmpty =>
+      'No published DQ or forfeit for this filter.';
+
+  @override
+  String get adminClubForfeits => 'Club\'s declared forfeits';
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/domain/account.dart';
@@ -26,13 +27,13 @@ import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
+import 'package:live_ffss_v2/features/settings/server_switch.dart';
 
 String mySpaceCardTitle(MySpaceCard card, AppLocalizations l10n) =>
     switch (card) {
       AthleteSpaceCard() => l10n.mySpaceAthlete,
       ClubSpaceCard(:final club) => l10n.mySpaceClub(club.label),
       OfficialSpaceCard() => l10n.mySpaceOfficial,
-      AdminSpaceCard() => l10n.mySpaceAdmin,
     };
 
 /// Pour l'officiel, sa fonction (« B - Juge de virage/obstacles ») : c'est
@@ -46,17 +47,18 @@ String mySpaceCardSubtitle(MySpaceCard card, AppLocalizations l10n) =>
       OfficialSpaceCard(:final role?) when role.levelLabel.isNotEmpty =>
         role.levelLabel,
       OfficialSpaceCard() => l10n.mySpaceOfficialSubtitle,
-      AdminSpaceCard() => l10n.mySpaceAdminSubtitle,
     };
 
-/// L'admin ouvre l'espace de n'importe quel club : il le choisit dans la liste
-/// des clubs des infos de la compétition.
 String mySpaceCardRoute(MySpaceCard card, int competitionId) => switch (card) {
   AthleteSpaceCard() => Routes.mySpaceAthlete(competitionId),
   ClubSpaceCard(:final club) => Routes.mySpaceClub(competitionId, club.id),
   OfficialSpaceCard() => Routes.mySpaceOfficial(competitionId),
-  AdminSpaceCard() => Routes.mySpaceInfos(competitionId),
 };
+
+/// « Serveur : Recette » : l'admin voit d'un coup d'œil sur quel serveur
+/// ses outils agissent.
+String adminCardSubtitle(AppEnvironment environment, AppLocalizations l10n) =>
+    l10n.mySpaceAdminSubtitle(serverLabel(environment, l10n));
 
 /// La prochaine course à courir : la plus tôt prévue, celles sans heure après.
 /// Une course passée son heure sans résultat reste la prochaine : le

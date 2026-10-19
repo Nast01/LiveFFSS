@@ -1,6 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/network/network_log.dart';
+import 'package:live_ffss_v2/domain/event_ranking.dart';
+import 'package:live_ffss_v2/domain/event_results.dart';
+import 'package:live_ffss_v2/domain/gender.dart';
+import 'package:live_ffss_v2/domain/heat.dart';
+import 'package:live_ffss_v2/domain/run_status.dart';
+import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/features/admin/admin_formatting.dart';
+import 'package:live_ffss_v2/features/my_space/official_space_providers.dart';
 
 NetworkLogEntry _entry(String path, {String? error}) => NetworkLogEntry(
   at: DateTime(2026, 10, 19),
@@ -9,6 +16,40 @@ NetworkLogEntry _entry(String path, {String? error}) => NetworkLogEntry(
   duration: Duration.zero,
   server: 'Développement',
   error: error,
+);
+
+CompetitionEvent _event(int id) => CompetitionEvent(
+  id: id,
+  disciplineId: id,
+  disciplineName: 'Épreuve $id',
+  gender: Gender.female,
+  categoryId: 1,
+  categoryName: 'Cadet',
+  teamSize: 1,
+);
+
+RankingRow _row(int entryId, String club, {int status = 1}) => RankingRow(
+  result: EventResult(
+    id: entryId,
+    entryId: entryId,
+    eventId: 0,
+    categoryName: 'Cadet',
+    status: status,
+    club: club,
+  ),
+  points: 0,
+  qualification: Qualification.none,
+  series: const LinkedSeries(
+    series: EventSeries(id: 1, eventId: 0, number: 1, name: 'Série 1'),
+    heat: Heat(id: 1, name: 'Série 1', number: 1, status: RunStatus.finished),
+    round: EventRound.heats,
+  ),
+);
+
+OfficialDecisions _decisions(List<EventDecisions> events) => (
+  events: events,
+  unreadEvents: 0,
+  entries: const <int, ({CompetitionEvent event, EventResult result})>{},
 );
 
 void main() {
@@ -39,5 +80,53 @@ void main() {
       '/b',
       '/d',
     ]);
+  });
+  group('forfaits et DQ de tous les clubs', () {
+    final e1 = _event(1);
+    final e2 = _event(2);
+    final decisions = _decisions([
+      (event: e1, rows: [_row(11, 'TOULON'), _row(12, ' ANTIBES ')]),
+      (event: e2, rows: [_row(21, 'TOULON', status: 2), _row(22, '')]),
+    ]);
+
+    test('les clubs à filtrer : uniques, triés, sans libellé vide', () {
+      expect(decisionClubs(decisions), ['ANTIBES', 'TOULON']);
+    });
+
+    test('les épreuves à filtrer : celles qui ont une décision, dans '
+        'leur ordre', () {
+      expect(decisionEvents(decisions), [e1, e2]);
+    });
+
+    test('sans filtre : tout', () {
+      expect(filterDecisions(decisions.events), decisions.events);
+    });
+
+    test('par club : ses lignes, et les épreuves sans elles retirées', () {
+      final antibes = filterDecisions(decisions.events, club: 'ANTIBES');
+      expect(antibes.map((e) => e.event), [e1]);
+      expect(antibes.single.rows.map((r) => r.result.entryId), [12]);
+
+      final toulon = filterDecisions(decisions.events, club: 'TOULON');
+      expect(toulon.map((e) => e.rows.single.result.entryId), [11, 21]);
+    });
+
+    test('par épreuve, et les deux ensemble', () {
+      expect(filterDecisions(decisions.events, eventId: 2).single.event, e2);
+      expect(
+        filterDecisions(decisions.events, club: 'ANTIBES', eventId: 2),
+        isEmpty,
+      );
+    });
+
+    test("l'id d'un club par son libellé, nul s'il n'est pas engagé", () {
+      const clubs = [
+        (id: 16, label: 'ANTIBES', athletes: 1),
+        (id: 15, label: 'TOULON ', athletes: 2),
+      ];
+      expect(clubIdOf(clubs, 'TOULON'), 15);
+      expect(clubIdOf(clubs, ' ANTIBES'), 16);
+      expect(clubIdOf(clubs, 'NICE'), isNull);
+    });
   });
 }

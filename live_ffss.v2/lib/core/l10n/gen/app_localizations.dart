@@ -1337,8 +1337,8 @@ abstract class AppLocalizations {
   /// No description provided for @mySpaceAdminSubtitle.
   ///
   /// In fr, this message translates to:
-  /// **'L\'espace de n\'importe quel club'**
-  String get mySpaceAdminSubtitle;
+  /// **'Serveur : {server}'**
+  String mySpaceAdminSubtitle(String server);
 
   /// No description provided for @mySpacePrincipalJudge.
   ///
@@ -1993,6 +1993,96 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'sans réponse'**
   String get networkLogNoStatus;
+
+  /// No description provided for @adminTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Espace admin'**
+  String get adminTitle;
+
+  /// No description provided for @adminServerHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'À changer dans les Préférences de Mon espace'**
+  String get adminServerHint;
+
+  /// No description provided for @adminCompetition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compétition active'**
+  String get adminCompetition;
+
+  /// No description provided for @adminDecisions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfaits et DQ de tous les clubs'**
+  String get adminDecisions;
+
+  /// No description provided for @adminOpenSpace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir un espace'**
+  String get adminOpenSpace;
+
+  /// No description provided for @adminClubsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'espace de n\'importe quel club'**
+  String get adminClubsSubtitle;
+
+  /// No description provided for @adminDiagnostic.
+  ///
+  /// In fr, this message translates to:
+  /// **'Diagnostic'**
+  String get adminDiagnostic;
+
+  /// No description provided for @adminDataCheck.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contrôle des données'**
+  String get adminDataCheck;
+
+  /// No description provided for @adminMaintenance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maintenance'**
+  String get adminMaintenance;
+
+  /// No description provided for @adminComingSoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bientôt disponible'**
+  String get adminComingSoon;
+
+  /// No description provided for @adminOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservé aux admins.'**
+  String get adminOnly;
+
+  /// No description provided for @adminAllClubs.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les clubs'**
+  String get adminAllClubs;
+
+  /// No description provided for @adminAllEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les épreuves'**
+  String get adminAllEvents;
+
+  /// No description provided for @adminFilteredEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune DQ ni aucun forfait publié pour ce filtre.'**
+  String get adminFilteredEmpty;
+
+  /// No description provided for @adminClubForfeits.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfaits déclarés du club'**
+  String get adminClubForfeits;
 }
 
 class _AppLocalizationsDelegate

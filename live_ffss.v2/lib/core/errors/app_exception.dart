@@ -71,3 +71,10 @@ class StorageException extends AppException {
 class NotFoundException extends AppException {
   const NotFoundException(super.message);
 }
+
+/// Un outil de l'espace admin demandé par un compte qui n'est pas admin : le
+/// fournisseur refuse, un bouton masqué ne suffit pas (un lien direct, un
+/// changement de compte pendant la lecture).
+class AdminOnlyException extends AppException {
+  const AdminOnlyException([super.message = 'admin only']);
+}
