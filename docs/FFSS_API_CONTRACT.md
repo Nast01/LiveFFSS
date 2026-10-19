@@ -76,3 +76,8 @@ Constats faits sur de vraies réponses de la recette (`https://site.ffss.io/api/
 - **`place/:id/remplacant/submit` et `/delete`** → **404**, identique à celui d'une route inexistante : le remplacement d'un relayeur n'est pas faisable avant la course par cette voie.
 - **`resultat/:id/remplacant/submit`** refuse un résultat individuel (« Les remplacements ne sont autorisés que pour les relais »), et exige un résultat, qui n'existe qu'après publication.
 - **`resultat/:id/remplacant/available`** rend des licenciés avec e-mail, date de naissance et numéro de licence : **données personnelles**. L'app ne doit montrer que nom et club, et ne rien copier dans les fixtures.
+
+## Compte admin, vérifié le 2026-10-19 sur la recette
+
+- **`GET /me?token=…` d'un compte admin** → `type: "organisme"` (et non `licencie`), `data: {role: "admin", numAffiliation}` ; pas de `club`, `nom` ni `prenom`. L'app reconnaît l'admin à `data.role == "admin"`.
+- **`GET competition/evenement/1416/me?token=…`** : les rôles de compétition observés sont `admin`, `hote` et `organisme_participant`, avec un objet `organisme` en plus des objets de rôle habituels.
