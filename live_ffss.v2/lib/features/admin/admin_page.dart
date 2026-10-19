@@ -116,12 +116,16 @@ class _AdminContent extends ConsumerWidget {
                 title: l10n.networkLogTitle,
                 onTap: () => context.go(Routes.adminNetworkLog),
               ),
-              // Rempli par la maintenance (lot 8, tâche 6).
-              MySpaceRow(
-                icon: Icons.build_outlined,
-                title: l10n.adminMaintenance,
-                subtitle: l10n.adminComingSoon,
-              ),
+              // Sur la compétition active : sans elle, l'invite à en choisir
+              // une est déjà montrée plus haut.
+              if (competition != null)
+                MySpaceRow(
+                  icon: Icons.build_outlined,
+                  title: l10n.adminMaintenance,
+                  subtitle: l10n.adminMaintenanceSubtitle,
+                  onTap: () =>
+                      context.go(Routes.adminMaintenance(competition.id)),
+                ),
             ],
           ),
         ],

@@ -74,7 +74,9 @@ class KnownHeatsNotifier extends AsyncNotifier<KnownHeats> {
 
   final _writes = _Writes();
 
-  String get storageKey => 'known_heats_$competitionId';
+  String get storageKey => storageKeyOf(competitionId);
+
+  static String storageKeyOf(int competitionId) => 'known_heats_$competitionId';
 
   @override
   Future<KnownHeats> build() async {
@@ -192,7 +194,10 @@ class SelfAthleteNotifier extends AsyncNotifier<FollowedAthlete?> {
 
   final _writes = _Writes();
 
-  String get storageKey => 'reminder_self_$competitionId';
+  String get storageKey => storageKeyOf(competitionId);
+
+  static String storageKeyOf(int competitionId) =>
+      'reminder_self_$competitionId';
 
   @override
   Future<FollowedAthlete?> build() async {

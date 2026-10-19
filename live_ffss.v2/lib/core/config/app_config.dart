@@ -1,5 +1,10 @@
 import 'package:live_ffss_v2/core/config/app_environment.dart';
 
+/// La version du `pubspec.yaml`, pour le rapport de diagnostic : sans
+/// dépendance de plus pour la lire à l'exécution. Un test vérifie qu'elle
+/// suit le pubspec.
+const String appVersion = '2.0.0+1';
+
 class AppConfig {
   const AppConfig({
     required this.baseUrl,

@@ -1256,9 +1256,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminMaintenance => 'Maintenance';
 
   @override
-  String get adminComingSoon => 'Bientôt disponible';
-
-  @override
   String get adminOnly => 'Réservé aux admins.';
 
   @override
@@ -1389,4 +1386,81 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get adminMaintenanceSubtitle =>
+      'Données locales, relecture, rappels, rapport';
+
+  @override
+  String get maintenanceClearTitle => 'Effacer les données locales';
+
+  @override
+  String get maintenanceClearSubtitle =>
+      'Suivis, séries connues, athlète du compte, couloir suivi';
+
+  @override
+  String get maintenanceClearBody =>
+      'Les suivis, les séries connues, l\'athlète du compte et le couloir suivi de cette compétition seront effacés de ce téléphone. Les saisies non envoyées et la session sont gardées.';
+
+  @override
+  String get maintenanceClearConfirm => 'Effacer';
+
+  @override
+  String get maintenanceCleared => 'Données locales effacées.';
+
+  @override
+  String get maintenanceClearFailed =>
+      'Certaines données n\'ont pas pu être effacées.';
+
+  @override
+  String get maintenanceReloadTitle => 'Forcer une relecture complète';
+
+  @override
+  String get maintenanceReloadBody =>
+      'L\'app relit tout depuis le serveur et repart de l\'onglet d\'ouverture. Rien de ce qui est enregistré n\'est effacé.';
+
+  @override
+  String get maintenanceReloadConfirm => 'Relire';
+
+  @override
+  String get maintenanceReminders => 'Rappels';
+
+  @override
+  String get maintenanceTestNotification => 'Envoyer une notification de test';
+
+  @override
+  String get maintenanceTestTitle => 'Notification de test';
+
+  @override
+  String get maintenanceTestBody =>
+      'Les rappels de course s\'afficheront ainsi.';
+
+  @override
+  String get maintenanceTestSent => 'Notification envoyée.';
+
+  @override
+  String get maintenanceTestUnsupported => 'Rappels sur Android seulement.';
+
+  @override
+  String get maintenanceTestFailed =>
+      'La notification n\'a pas pu être envoyée.';
+
+  @override
+  String get maintenancePlannedNone => 'Aucun rappel planifié.';
+
+  @override
+  String get maintenancePlannedError => 'Impossible de lire les rappels.';
+
+  @override
+  String get maintenanceReportTitle => 'Copier le rapport de diagnostic';
+
+  @override
+  String get maintenanceReportSubtitle =>
+      'Version, serveur, compétition, file d\'envoi, dernières erreurs ; ni jeton ni nom';
+
+  @override
+  String get maintenanceReportCopied => 'Rapport copié dans le presse-papiers.';
+
+  @override
+  String get maintenanceReportFailed => 'Impossible de préparer le rapport.';
 }

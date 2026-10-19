@@ -98,7 +98,9 @@ class FollowsNotifier extends AsyncNotifier<Follows> {
 
   final int competitionId;
 
-  String get storageKey => 'follows_$competitionId';
+  String get storageKey => storageKeyOf(competitionId);
+
+  static String storageKeyOf(int competitionId) => 'follows_$competitionId';
 
   @override
   Future<Follows> build() async {

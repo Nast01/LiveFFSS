@@ -75,6 +75,9 @@ class _FakeScheduler implements ReminderScheduler {
 
   @override
   Future<void> cancelAll() async => cancels++;
+
+  @override
+  Future<void> show(Reminder reminder) async {}
 }
 
 class _FailingStore extends InMemoryLocalStore {

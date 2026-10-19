@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:live_ffss_v2/core/config/app_config.dart';
+import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/network/network_log.dart';
 import 'package:live_ffss_v2/domain/event_ranking.dart';
@@ -9,8 +14,11 @@ import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
+import 'package:live_ffss_v2/domain/outbox.dart';
+import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/features/admin/admin_formatting.dart';
 import 'package:live_ffss_v2/features/admin/data_check_providers.dart';
+import 'package:live_ffss_v2/features/admin/maintenance_providers.dart';
 import 'package:live_ffss_v2/features/my_space/official_space_providers.dart';
 
 NetworkLogEntry _entry(String path, {String? error}) => NetworkLogEntry(
@@ -220,5 +228,136 @@ void main() {
         expect(titles.every((t) => t.isNotEmpty), isTrue);
       }
     });
+  });
+
+  group('rapport de diagnostic', () {
+    final now = DateTime(2026, 10, 19, 14, 30, 5);
+    OutboxOperation op(OutboxState state) => OutboxOperation(
+      id: '$state',
+      account: 'ATHLETE Deux',
+      competitionId: 1416,
+      placeId: 1,
+      seriesId: 2,
+      entryId: 3,
+      change: const ResultChange(mark: ResultMark.forfeit),
+      state: state,
+    );
+    NetworkLogEntry failed(int i, {String path = '/api/v1.0/course/place/1'}) =>
+        NetworkLogEntry(
+          at: DateTime(2026, 10, 19, 14, 0, i),
+          method: 'GET',
+          path: path,
+          status: i.isEven ? 500 : null,
+          duration: Duration.zero,
+          error: i.isEven ? 'ApiException' : 'NetworkException',
+          server: 'Développement',
+        );
+
+    String report({
+      List<OutboxOperation> queue = const [],
+      List<NetworkLogEntry> log = const [],
+      bool accountAdmin = true,
+      String? name = 'Championnat',
+    }) => diagnosticReport(
+      version: '2.0.0+1',
+      environment: AppEnvironment.development,
+      competitionId: 1416,
+      competitionName: name,
+      accountAdmin: accountAdmin,
+      queue: queue,
+      log: log,
+      now: now,
+    );
+
+    test('l\'en-tête : date, version, serveur, compétition, rôle, file', () {
+      final text = report(
+        queue: [
+          op(OutboxState.pending),
+          op(OutboxState.pending),
+          op(OutboxState.sent),
+          op(OutboxState.rejected),
+        ],
+      );
+      expect(text, contains('2026-10-19 14:30:05'));
+      expect(text, contains('2.0.0+1'));
+      expect(text, contains('Développement (https://site.ffss.io)'));
+      expect(text, contains('1416 · Championnat'));
+      expect(text, contains('admin du compte'));
+      expect(text, contains('2 en attente, 1 envoyée(s), 1 refusée(s)'));
+      expect(text, isNot(contains('ATHLETE')));
+      expect(
+        report(accountAdmin: false, name: null),
+        allOf(contains('admin de la compétition'), contains('1416\n')),
+      );
+    });
+
+    test('les 20 dernières erreurs seulement, sans chaîne de requête', () {
+      final log = [
+        for (var i = 30; i >= 1; i--) failed(i),
+        NetworkLogEntry(
+          at: now,
+          method: 'GET',
+          path: '/api/v1.0/competition/1416/reunion',
+          status: 200,
+          duration: Duration.zero,
+          server: 'Développement',
+        ),
+        failed(0, path: '/api/v1.0/licencie/recherche?q=DUPONT'),
+      ];
+      final lines = report(log: log).split('\n');
+      final errors = [
+        for (final line in lines)
+          if (line.startsWith('14:00:')) line,
+      ];
+      expect(errors, hasLength(20));
+      expect(
+        errors.first,
+        '14:00:30 GET /api/v1.0/course/place/1 500 '
+        'ApiException [Développement]',
+      );
+      expect(
+        errors[1],
+        '14:00:29 GET /api/v1.0/course/place/1 - '
+        'NetworkException [Développement]',
+      );
+      expect(lines.join('\n'), isNot(contains('reunion')));
+      expect(
+        report(log: [failed(0, path: '/api/v1.0/licencie/recherche?q=DUPONT')]),
+        allOf(
+          contains('/api/v1.0/licencie/recherche '),
+          isNot(contains('DUPONT')),
+        ),
+      );
+    });
+
+    test('la version est celle du pubspec', () {
+      final pubspec = File('pubspec.yaml').readAsLinesSync();
+      final line = pubspec.firstWhere((l) => l.startsWith('version:'));
+      expect(appVersion, line.substring('version:'.length).trim());
+    });
+  });
+
+  test('le message de la notification de test', () {
+    final fr = lookupAppLocalizations(const Locale('fr'));
+    expect(
+      testNotificationMessage(TestNotificationOutcome.sent, fr),
+      'Notification envoyée.',
+    );
+    expect(
+      testNotificationMessage(TestNotificationOutcome.notPermitted, fr),
+      fr.reminderPermissionMissing,
+    );
+    expect({
+      for (final outcome in TestNotificationOutcome.values)
+        testNotificationMessage(outcome, fr),
+    }, hasLength(TestNotificationOutcome.values.length));
+  });
+
+  test("l'heure d'un rappel planifié, avec son jour", () async {
+    await initializeDateFormatting('fr');
+    expect(
+      plannedReminderWhen(DateTime(2026, 3, 27, 8, 15), 'fr'),
+      '27 mars 08:15',
+    );
   });
 }

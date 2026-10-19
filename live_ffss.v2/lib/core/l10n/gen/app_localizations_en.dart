@@ -1248,9 +1248,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminMaintenance => 'Maintenance';
 
   @override
-  String get adminComingSoon => 'Coming soon';
-
-  @override
   String get adminOnly => 'Admins only.';
 
   @override
@@ -1381,4 +1378,78 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get adminMaintenanceSubtitle =>
+      'Local data, reload, reminders, report';
+
+  @override
+  String get maintenanceClearTitle => 'Clear local data';
+
+  @override
+  String get maintenanceClearSubtitle =>
+      'Follows, known heats, account\'s athlete, followed lane';
+
+  @override
+  String get maintenanceClearBody =>
+      'This competition\'s follows, known heats, account\'s athlete and followed lane will be deleted from this phone. Unsent entries and the session are kept.';
+
+  @override
+  String get maintenanceClearConfirm => 'Clear';
+
+  @override
+  String get maintenanceCleared => 'Local data cleared.';
+
+  @override
+  String get maintenanceClearFailed => 'Some data could not be cleared.';
+
+  @override
+  String get maintenanceReloadTitle => 'Force a full reload';
+
+  @override
+  String get maintenanceReloadBody =>
+      'The app reads everything again from the server and restarts from its start tab. Nothing saved is deleted.';
+
+  @override
+  String get maintenanceReloadConfirm => 'Reload';
+
+  @override
+  String get maintenanceReminders => 'Reminders';
+
+  @override
+  String get maintenanceTestNotification => 'Send a test notification';
+
+  @override
+  String get maintenanceTestTitle => 'Test notification';
+
+  @override
+  String get maintenanceTestBody => 'Race reminders will look like this.';
+
+  @override
+  String get maintenanceTestSent => 'Notification sent.';
+
+  @override
+  String get maintenanceTestUnsupported => 'Reminders on Android only.';
+
+  @override
+  String get maintenanceTestFailed => 'The notification could not be sent.';
+
+  @override
+  String get maintenancePlannedNone => 'No reminder scheduled.';
+
+  @override
+  String get maintenancePlannedError => 'Could not read the reminders.';
+
+  @override
+  String get maintenanceReportTitle => 'Copy the diagnostic report';
+
+  @override
+  String get maintenanceReportSubtitle =>
+      'Version, server, competition, outbox, latest errors; no token or name';
+
+  @override
+  String get maintenanceReportCopied => 'Report copied to the clipboard.';
+
+  @override
+  String get maintenanceReportFailed => 'Could not prepare the report.';
 }

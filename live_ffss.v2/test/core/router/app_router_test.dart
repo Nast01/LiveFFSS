@@ -249,6 +249,10 @@ void main() {
         '/espace/admin/competition/1416/controle',
       );
       expect(
+        Routes.adminMaintenance(1416),
+        '/espace/admin/competition/1416/maintenance',
+      );
+      expect(
         Routes.mySpaceClub(1416, 15, forfeits: true),
         '/espace/competition/1416/club/15?onglet=forfaits',
       );
@@ -265,6 +269,10 @@ void main() {
         (Routes.adminClubs(1416), 'competition/:competitionId/clubs'),
         (Routes.adminDataCheck(1416), 'competition/:competitionId/controle'),
         (
+          Routes.adminMaintenance(1416),
+          'competition/:competitionId/maintenance',
+        ),
+        (
           Routes.mySpaceClub(1416, 15, forfeits: true),
           'competition/:competitionId/club/:clubId',
         ),
@@ -278,6 +286,7 @@ void main() {
         '/espace/admin/competition/x/dq-forfaits',
         '/espace/admin/competition/x/clubs',
         '/espace/admin/competition/x/controle',
+        '/espace/admin/competition/x/maintenance',
       ]) {
         final match = router.configuration.findMatch(Uri.parse(location));
         expect(match.last.route.redirect, isNotNull, reason: location);

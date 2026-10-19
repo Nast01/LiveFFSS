@@ -2048,12 +2048,6 @@ abstract class AppLocalizations {
   /// **'Maintenance'**
   String get adminMaintenance;
 
-  /// No description provided for @adminComingSoon.
-  ///
-  /// In fr, this message translates to:
-  /// **'Bientôt disponible'**
-  String get adminComingSoon;
-
   /// No description provided for @adminOnly.
   ///
   /// In fr, this message translates to:
@@ -2257,6 +2251,144 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, one{1 place} other{{count} places}}'**
   String dataCheckPlacesCount(int count);
+
+  /// No description provided for @adminMaintenanceSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données locales, relecture, rappels, rapport'**
+  String get adminMaintenanceSubtitle;
+
+  /// No description provided for @maintenanceClearTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer les données locales'**
+  String get maintenanceClearTitle;
+
+  /// No description provided for @maintenanceClearSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivis, séries connues, athlète du compte, couloir suivi'**
+  String get maintenanceClearSubtitle;
+
+  /// No description provided for @maintenanceClearBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les suivis, les séries connues, l\'athlète du compte et le couloir suivi de cette compétition seront effacés de ce téléphone. Les saisies non envoyées et la session sont gardées.'**
+  String get maintenanceClearBody;
+
+  /// No description provided for @maintenanceClearConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer'**
+  String get maintenanceClearConfirm;
+
+  /// No description provided for @maintenanceCleared.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données locales effacées.'**
+  String get maintenanceCleared;
+
+  /// No description provided for @maintenanceClearFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Certaines données n\'ont pas pu être effacées.'**
+  String get maintenanceClearFailed;
+
+  /// No description provided for @maintenanceReloadTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forcer une relecture complète'**
+  String get maintenanceReloadTitle;
+
+  /// No description provided for @maintenanceReloadBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'app relit tout depuis le serveur et repart de l\'onglet d\'ouverture. Rien de ce qui est enregistré n\'est effacé.'**
+  String get maintenanceReloadBody;
+
+  /// No description provided for @maintenanceReloadConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Relire'**
+  String get maintenanceReloadConfirm;
+
+  /// No description provided for @maintenanceReminders.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels'**
+  String get maintenanceReminders;
+
+  /// No description provided for @maintenanceTestNotification.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer une notification de test'**
+  String get maintenanceTestNotification;
+
+  /// No description provided for @maintenanceTestTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notification de test'**
+  String get maintenanceTestTitle;
+
+  /// No description provided for @maintenanceTestBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les rappels de course s\'afficheront ainsi.'**
+  String get maintenanceTestBody;
+
+  /// No description provided for @maintenanceTestSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notification envoyée.'**
+  String get maintenanceTestSent;
+
+  /// No description provided for @maintenanceTestUnsupported.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels sur Android seulement.'**
+  String get maintenanceTestUnsupported;
+
+  /// No description provided for @maintenanceTestFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'La notification n\'a pas pu être envoyée.'**
+  String get maintenanceTestFailed;
+
+  /// No description provided for @maintenancePlannedNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun rappel planifié.'**
+  String get maintenancePlannedNone;
+
+  /// No description provided for @maintenancePlannedError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire les rappels.'**
+  String get maintenancePlannedError;
+
+  /// No description provided for @maintenanceReportTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier le rapport de diagnostic'**
+  String get maintenanceReportTitle;
+
+  /// No description provided for @maintenanceReportSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Version, serveur, compétition, file d\'envoi, dernières erreurs ; ni jeton ni nom'**
+  String get maintenanceReportSubtitle;
+
+  /// No description provided for @maintenanceReportCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rapport copié dans le presse-papiers.'**
+  String get maintenanceReportCopied;
+
+  /// No description provided for @maintenanceReportFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de préparer le rapport.'**
+  String get maintenanceReportFailed;
 }
 
 class _AppLocalizationsDelegate
