@@ -43,7 +43,7 @@ Map<int, ManualTime> manualTimesOfLanes(
         performance?.timeHundredths != null ||
         (performance?.time?.trim().isNotEmpty ?? false);
     final hasStatus =
-        lane.forfeit ||
+        lane.forfeit == true ||
         (performance != null &&
             (performance.isDisqualified || !performance.isOk));
     final entryChronos = chronos[lane.entryId];

@@ -21,6 +21,7 @@ import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
+import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
@@ -44,6 +45,8 @@ class _FakeSession extends SessionNotifier {
 
   @override
   Future<Account?> build() async => _account;
+
+  void switchTo(Account? account) => state = AsyncData(account);
 }
 
 List<Map<String, dynamic>> _rows(String name) =>
@@ -103,7 +106,7 @@ LaneAssignment _lane(
   int placeId,
   int lane,
   int entryId, {
-  bool forfeit = false,
+  bool? forfeit = false,
 }) => LaneAssignment(
   id: placeId,
   lane: lane,
@@ -317,6 +320,18 @@ void main() {
       expect(list.every((f) => f.heat?.id == 479), isTrue);
     });
 
+    test(
+      "place sans isForfait : état inconnu, jamais « pas forfait »",
+      () async {
+        lanes[2817] = _lane(2817, 2, 101, forfeit: null);
+
+        final un = of(await read(container()), 101);
+
+        expect(un.heat?.id, 479);
+        expect(un.forfeit, isNull);
+      },
+    );
+
     test('place illisible : état inconnu, jamais « pas forfait »', () async {
       failing = {2823};
 
@@ -407,7 +422,7 @@ void main() {
       final cinq = of(await read(c), 500);
 
       expect(cinq.deadline, isNull);
-      expect(cinq.locked, isTrue);
+      expect(forfeitLocked(cinq.deadline, now), isTrue);
       expect(
         await notifier(c).setForfeit(500, forfeit: true),
         ForfeitOutcome.locked,
@@ -420,7 +435,8 @@ void main() {
 
       final list = await read(container());
 
-      expect(list.every((f) => f.locked && f.deadline == null), isTrue);
+      expect(list.every((f) => f.deadline == null), isTrue);
+      expect(list.every((f) => forfeitLocked(f.deadline, now)), isTrue);
     });
 
     test("compétition côtière : rien n'est lu", () async {
@@ -683,6 +699,79 @@ void main() {
       expect(outcome, ForfeitOutcome.failed);
       verifyNoSend();
       expect(of(current(c), 101).forfeit, isFalse);
+    });
+
+    test("un rafraîchissement pendant l'envoi garde l'état envoyé", () async {
+      final c = container();
+      await read(c);
+      final sent = Completer<void>();
+      holdSends(sent);
+
+      final first = notifier(c).setForfeit(101, forfeit: true);
+      await pumpEventQueue();
+      // Le site n'a pas encore reçu l'envoi : la place relue dit l'inverse.
+      await notifier(c).refresh();
+
+      expect(of(current(c), 101).forfeit, isTrue);
+      sent.complete();
+      await first;
+    });
+
+    test("place illisible après l'envoi : la note « envoyé à », pas l'état "
+        "d'avant", () async {
+      final c = container();
+      await read(c);
+      failing = {2817};
+      now = DateTime(2026, 3, 27, 7, 12);
+
+      expect(
+        await notifier(c).setForfeit(101, forfeit: true),
+        ForfeitOutcome.done,
+      );
+
+      final un = of(current(c), 101);
+      expect(un.forfeit, isNull);
+      expect(un.lastSent, (forfeit: true, at: DateTime(2026, 3, 27, 7, 12)));
+    });
+
+    test(
+      "un envoi pendant un rafraîchissement ne le termine pas d'avance",
+      () async {
+        final c = container();
+        await read(c);
+        final sent = Completer<void>();
+        holdSends(sent);
+        final first = notifier(c).setForfeit(101, forfeit: true);
+        await pumpEventQueue();
+
+        var refreshed = false;
+        final refresh = notifier(c).refresh().then((_) => refreshed = true);
+        sent.complete();
+        await first;
+
+        expect(refreshed, isFalse);
+        expect(c.read(clubForfeitsProvider(key)).isLoading, isTrue);
+        await refresh;
+        expect(of(current(c), 101).sending, ForfeitSending.idle);
+      },
+    );
+
+    test('changement de compte : les envois du compte précédent sont '
+        'oubliés', () async {
+      lanes[2817] = null;
+      final c = container();
+      await read(c);
+      await notifier(c).setForfeit(101, forfeit: true);
+      expect(of(current(c), 101).lastSent, isNotNull);
+
+      (c.read(sessionProvider.notifier) as _FakeSession).switchTo(
+        const Account(label: 'AUTRE Compte'),
+      );
+      await pumpEventQueue();
+
+      expect(of(current(c), 101).lastSent, isNull);
+      await notifier(c).refresh();
+      expect(of(current(c), 101).lastSent, isNull);
     });
 
     test("échéance passée l'écran ouvert : refusé sans appel", () async {

@@ -352,7 +352,7 @@
   "@mySpaceForfeitLocked": {"placeholders": {"minutes": {"type": "int"}}},
   "mySpaceForfeitNotAllowed": "Seul le référent du club ou un admin peut déclarer un forfait",
   "mySpaceForfeitFailed": "Forfait non enregistré (réseau, droits ou session expirée) : réessayez",
-  "mySpaceForfeitNoEntry": "Aucun engagement à venir",
+  "mySpaceForfeitNoEntry": "Aucun engagement",
   "mySpaceNoForfeit": "Aucun forfait dans les résultats publiés",
   "mySpaceClubError": "Impossible de charger l'espace du club.",
   "mySpaceClubNoAthlete": "Aucun athlète de ce club n'est engagé.",

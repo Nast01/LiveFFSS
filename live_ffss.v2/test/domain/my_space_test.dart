@@ -364,8 +364,11 @@ void main() {
       expect(forfeitLocked(deadline, DateTime(2026, 10, 19, 11)), true);
     });
 
-    test('sans échéance : ouvert', () {
-      expect(forfeitLocked(null, DateTime(2026, 10, 19, 11)), false);
-    });
+    test(
+      'sans échéance : verrouillé, rien ne dit que la course est à venir',
+      () {
+        expect(forfeitLocked(null, DateTime(2026, 10, 19, 11)), true);
+      },
+    );
   });
 }

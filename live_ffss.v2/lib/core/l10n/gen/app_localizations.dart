@@ -1673,7 +1673,7 @@ abstract class AppLocalizations {
   /// No description provided for @mySpaceForfeitNoEntry.
   ///
   /// In fr, this message translates to:
-  /// **'Aucun engagement à venir'**
+  /// **'Aucun engagement'**
   String get mySpaceForfeitNoEntry;
 
   /// No description provided for @mySpaceNoForfeit.

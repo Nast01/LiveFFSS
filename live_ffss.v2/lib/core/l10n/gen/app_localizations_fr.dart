@@ -1017,7 +1017,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Forfait non enregistré (réseau, droits ou session expirée) : réessayez';
 
   @override
-  String get mySpaceForfeitNoEntry => 'Aucun engagement à venir';
+  String get mySpaceForfeitNoEntry => 'Aucun engagement';
 
   @override
   String get mySpaceNoForfeit => 'Aucun forfait dans les résultats publiés';

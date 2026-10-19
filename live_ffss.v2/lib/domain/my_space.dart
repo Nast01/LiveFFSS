@@ -73,10 +73,10 @@ const forfeitLead = Duration(minutes: 10);
 DateTime? forfeitDeadline(DateTime? heatStart) =>
     heatStart?.subtract(forfeitLead);
 
-/// Pile à l'échéance, c'est déjà trop tard. Sans échéance connue, rien ne
-/// verrouille : le forfait vaut pour l'engagement, et le site reste juge.
+/// Pile à l'échéance, c'est déjà trop tard. Sans échéance connue (aucun
+/// départ prévu), verrouillé : rien ne dit que la course n'est pas passée.
 bool forfeitLocked(DateTime? deadline, DateTime now) =>
-    deadline != null && !now.isBefore(deadline);
+    deadline == null || !now.isBefore(deadline);
 
 /// Les clubs de la compétition, par `clubId` : un participant sans `clubId`
 /// n'a pas de club à qui le rattacher. Le libellé est celui du premier

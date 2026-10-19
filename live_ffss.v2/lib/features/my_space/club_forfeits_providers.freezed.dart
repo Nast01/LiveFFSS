@@ -19,8 +19,9 @@ mixin _$ClubForfeit {
  List<String> get athletes;/// Sa course et son couloir, nuls tant qu'aucune place lue ne le porte.
  Heat? get heat; int? get lane;/// Nul sans place qui le porte : seule la place dit le forfait.
  bool? get forfeit;/// Une place du tour n'a pu être lue : elle pouvait le porter.
- bool get placesUnread; DateTime? get deadline;/// Plus rien à déclarer, quelle que soit l'heure : sa course est
-/// courue, ou aucune échéance n'est connue.
+ bool get placesUnread; DateTime? get deadline;/// Plus rien à déclarer, quelle que soit l'heure : sa course n'attend
+/// plus (chambre d'appel, en cours ou courue). Sans échéance, c'est
+/// [forfeitLocked] qui verrouille.
  bool get locked; ForfeitSent? get lastSent; ForfeitSending get sending;
 /// Create a copy of ClubForfeit
 /// with the given fields replaced by the non-null parameter values.
@@ -271,8 +272,9 @@ class _ClubForfeit implements ClubForfeit {
 /// Une place du tour n'a pu être lue : elle pouvait le porter.
 @override@JsonKey() final  bool placesUnread;
 @override final  DateTime? deadline;
-/// Plus rien à déclarer, quelle que soit l'heure : sa course est
-/// courue, ou aucune échéance n'est connue.
+/// Plus rien à déclarer, quelle que soit l'heure : sa course n'attend
+/// plus (chambre d'appel, en cours ou courue). Sans échéance, c'est
+/// [forfeitLocked] qui verrouille.
 @override@JsonKey() final  bool locked;
 @override final  ForfeitSent? lastSent;
 @override@JsonKey() final  ForfeitSending sending;

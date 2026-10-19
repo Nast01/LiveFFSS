@@ -857,10 +857,19 @@ void main() {
         forfeitSwitch(placed, canManage: true, now: at),
         ForfeitSwitch.locked,
       );
-      // Course courue, ou sans échéance : verrouillé à toute heure.
+      // Course partie ou courue : verrouillé à toute heure.
       expect(
         forfeitSwitch(
           placed.copyWith(locked: true),
+          canManage: true,
+          now: before,
+        ),
+        ForfeitSwitch.locked,
+      );
+      // Sans échéance aussi : rien ne dit que la course est à venir.
+      expect(
+        forfeitSwitch(
+          placed.copyWith(deadline: null),
           canManage: true,
           now: before,
         ),
@@ -904,7 +913,8 @@ void main() {
         forfeitOutcomeMessage(ForfeitOutcome.unconfirmed, fr),
         fr.mySpaceForfeitUnconfirmed,
       );
-      expect(en.mySpaceForfeitNoEntry, 'No upcoming entries');
+      expect(fr.mySpaceForfeitNoEntry, 'Aucun engagement');
+      expect(en.mySpaceForfeitNoEntry, 'No entries');
     });
   });
 }

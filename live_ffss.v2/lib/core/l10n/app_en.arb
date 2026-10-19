@@ -342,7 +342,7 @@
   "@mySpaceForfeitLocked": {"placeholders": {"minutes": {"type": "int"}}},
   "mySpaceForfeitNotAllowed": "Only the club's referee or an admin can declare a withdrawal",
   "mySpaceForfeitFailed": "Withdrawal not saved (network, rights or expired session): try again",
-  "mySpaceForfeitNoEntry": "No upcoming entries",
+  "mySpaceForfeitNoEntry": "No entries",
   "mySpaceNoForfeit": "No withdrawal in the published results",
   "mySpaceClubError": "Couldn't load the club space.",
   "mySpaceClubNoAthlete": "No athlete from this club is entered.",

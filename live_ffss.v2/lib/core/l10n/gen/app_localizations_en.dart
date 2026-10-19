@@ -1008,7 +1008,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Withdrawal not saved (network, rights or expired session): try again';
 
   @override
-  String get mySpaceForfeitNoEntry => 'No upcoming entries';
+  String get mySpaceForfeitNoEntry => 'No entries';
 
   @override
   String get mySpaceNoForfeit => 'No withdrawal in the published results';
