@@ -687,6 +687,88 @@ void main() {
       expect(of(current(c), 101).sending, ForfeitSending.idle);
     });
 
+    test(
+      "créneau rendu vide à l'envoi : échec, pas verrou, sans appel",
+      () async {
+        final c = container();
+        await read(c);
+        slots = waiting.copyWith(meetings: []);
+
+        final outcome = await notifier(c).setForfeit(101, forfeit: true);
+
+        expect(outcome, ForfeitOutcome.failed);
+        verifyNoSend();
+        expect(of(current(c), 101).locked, isFalse);
+      },
+    );
+
+    test("droits perdus pendant la relecture du créneau : refusé, sans "
+        'appel', () async {
+      final c = container();
+      await read(c);
+      when(
+        () => meetings.getMeetingItem(any(), day: any(named: 'day')),
+      ).thenAnswer((_) async {
+        (c.read(sessionProvider.notifier) as _FakeSession).switchTo(null);
+        return waiting.meetings
+            .expand((m) => m.items)
+            .firstWhere((item) => item.id == 177);
+      });
+
+      final outcome = await notifier(c).setForfeit(101, forfeit: true);
+
+      expect(outcome, ForfeitOutcome.notAllowed);
+      verifyNoSend();
+    });
+
+    test(
+      "état inconnu : l'envoi revérifie la course qui donne l'échéance",
+      () async {
+        lanes[2817] = null;
+        final c = container();
+        await read(c);
+        // 479 (8 h 00) donne l'échéance de 101, pas 480 (8 h 04).
+        slots = _mapHeats(
+          waiting,
+          (h) => h.id == 480 ? h.copyWith(status: RunStatus.inProgress) : h,
+        );
+        expect(
+          await notifier(c).setForfeit(101, forfeit: true),
+          ForfeitOutcome.done,
+        );
+
+        slots = with479((h) => h.copyWith(status: RunStatus.inProgress));
+        expect(
+          await notifier(c).setForfeit(101, forfeit: false),
+          ForfeitOutcome.locked,
+        );
+        verify(
+          () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
+        ).called(1);
+      },
+    );
+
+    test("une relecture commencée avant la confirmation ne remet pas "
+        "l'ancienne valeur", () async {
+      final c = container();
+      await read(c);
+      reads.clear();
+
+      final refresh = notifier(c).refresh();
+      await pumpEventQueue();
+      // La relecture a demandé 2817 avant l'envoi : elle lira « pas forfait ».
+      expect(reads, contains(2817));
+      lanes[2817] = _lane(2817, 2, 101, forfeit: true);
+
+      expect(
+        await notifier(c).setForfeit(101, forfeit: true),
+        ForfeitOutcome.done,
+      );
+      await refresh;
+
+      expect(of(current(c), 101).forfeit, isTrue);
+    });
+
     test("créneau illisible à l'envoi : échec, sans appel", () async {
       final c = container();
       await read(c);

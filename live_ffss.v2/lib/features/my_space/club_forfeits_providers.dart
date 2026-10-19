@@ -135,6 +135,12 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
   /// ne le dit pas).
   final _read = <int, bool?>{};
 
+  /// Le numéro de la dernière écriture de [setForfeit] dans [_read], par
+  /// engagement : une lecture commencée avant n'y remet pas sa valeur, plus
+  /// vieille.
+  final _written = <int, int>{};
+  var _writes = 0;
+
   /// Les envois en vol, et l'état à montrer pendant ce temps : nul tant que
   /// rien n'est encore parti, ou quand l'état lu est inconnu.
   final _inFlight = <int, bool?>{};
@@ -153,6 +159,7 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
   @override
   Future<List<ClubForfeit>> build() async {
     final generation = ++_generation;
+    final startedAt = _writes;
     bool current() => ref.mounted && generation == _generation;
     final competitionId = key.competitionId;
     // Gardés en vie pour [setForfeit], sans tout relire à chaque relecture
@@ -270,12 +277,17 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
           for (final MapEntry(:key, :value) in found.entries)
             key: value.placeId,
         });
+      final confirmed = {
+        for (final MapEntry(:key, :value) in _written.entries)
+          if (value > startedAt) key: _read[key],
+      };
       _read
         ..clear()
         ..addAll({
           for (final MapEntry(:key, :value) in found.entries)
             key: value.lane.forfeit,
-        });
+        })
+        ..addAll(confirmed);
       final slotOfHeat = {
         for (final meeting in programme.meetings)
           for (final item in meeting.items)
@@ -397,6 +409,8 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
         return ForfeitOutcome.failed;
       }
       if (!ref.mounted) return ForfeitOutcome.failed;
+      // Les droits ont pu changer pendant la lecture du créneau.
+      if (!_allowed()) return ForfeitOutcome.notAllowed;
       if (!waiting) {
         _show(locked: entryId);
         return ForfeitOutcome.locked;
@@ -421,6 +435,7 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
         if (!ref.mounted) return ForfeitOutcome.done;
         if (lanes[placeId] case final lane? when lane.entryId == entryId) {
           _read[entryId] = lane.forfeit;
+          _written[entryId] = ++_writes;
           return lane.forfeit == null || lane.forfeit == forfeit
               ? ForfeitOutcome.done
               : ForfeitOutcome.unconfirmed;
@@ -431,6 +446,7 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
       // Rien de relu ne le confirme : la note « envoyé à » plutôt que l'état
       // d'avant l'envoi.
       _read.remove(entryId);
+      _written[entryId] = ++_writes;
       return ForfeitOutcome.done;
     } finally {
       _inFlight.remove(entryId);
@@ -440,12 +456,15 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
 
   /// La course de l'engagement est-elle toujours en attente ? Relue sur son
   /// créneau, une seule lecture légère. Lève [AppException] si le créneau ne
-  /// se lit pas ; une course absente du créneau relu ne laisse rien partir.
+  /// se lit pas ou revient vide (échec, pas verrou : rien ne dit que la
+  /// course est partie) ; une course absente du créneau relu ne laisse rien
+  /// partir.
   Future<bool> _stillWaiting(MeetingRepository meetings, int entryId) async {
     final slot = _slots[entryId];
     if (slot == null) return false;
     final item = await meetings.getMeetingItem(slot.itemId, day: slot.day);
-    final heat = item?.heats.where((h) => h.id == slot.heatId).firstOrNull;
+    if (item == null) throw const ApiException('créneau illisible');
+    final heat = item.heats.where((h) => h.id == slot.heatId).firstOrNull;
     return heat?.status == RunStatus.waiting;
   }
 
