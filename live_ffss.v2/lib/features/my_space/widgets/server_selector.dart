@@ -7,6 +7,7 @@ import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
+import 'package:live_ffss_v2/features/common/remount_progress.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
 import 'package:live_ffss_v2/features/settings/server_switch.dart';
 
@@ -55,7 +56,7 @@ class ServerSelector extends ConsumerWidget {
     if (confirmed != true || !context.mounted) return;
     // Cette page disparaît avec le conteneur qu'elle quitte.
     final container = ProviderScope.containerOf(context, listen: false);
-    await switchServer(container, target);
+    await remountWithProgress(context, () => switchServer(container, target));
   }
 
   @override

@@ -9,8 +9,10 @@ import 'package:live_ffss_v2/core/providers.dart';
 /// neuf et jette l'ancien : session, file d'envoi, caches et routeur
 /// repartent de zéro, sans rien garder de l'autre serveur (pas même une
 /// valeur précédente pendant leur premier chargement). Un travail en cours
-/// dans l'ancien voit `ref.mounted` faux ; une requête déjà partie finit sur
-/// son serveur, avec son jeton, et son résultat est écarté.
+/// dans l'ancien voit `ref.mounted` faux ; une lecture déjà partie finit sur
+/// son serveur, avec son jeton, et son résultat est écarté. Une saisie en
+/// cours d'envoi, elle, est attendue avant le remontage
+/// (`settleBeforeRemount`) : le nouveau conteneur la renverrait.
 class AppContainerHost extends ChangeNotifier {
   AppContainerHost({
     required AppEnvironment environment,

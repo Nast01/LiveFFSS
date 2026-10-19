@@ -1203,6 +1203,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get serverSwitchConfirm => 'Switch server';
 
   @override
+  String get remountWaiting =>
+      'An entry is being sent: the app is waiting for its response…';
+
+  @override
+  String get remountBusy =>
+      'The entry being sent did not respond: nothing changed. Try again in a moment.';
+
+  @override
   String get networkLogTitle => 'Network log';
 
   @override

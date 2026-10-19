@@ -411,6 +411,8 @@
   "serverSwitchUnsent": "{count, plural, one{1 saisie n'a pas été envoyée : elle reste sur le téléphone et partira au retour sur ce serveur.} other{{count} saisies n'ont pas été envoyées : elles restent sur le téléphone et partiront au retour sur ce serveur.}}",
   "@serverSwitchUnsent": {"placeholders": {"count": {"type": "int"}}},
   "serverSwitchConfirm": "Changer de serveur",
+  "remountWaiting": "Une saisie est en cours d'envoi : l'app attend sa réponse…",
+  "remountBusy": "La saisie en cours d'envoi n'a pas répondu : rien n'a changé. Réessayez dans un instant.",
   "networkLogTitle": "Journal réseau",
   "networkLogErrorsOnly": "Erreurs seulement",
   "networkLogClear": "Effacer",

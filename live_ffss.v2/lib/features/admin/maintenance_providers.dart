@@ -13,6 +13,7 @@ import 'package:live_ffss_v2/features/officiel/entry_providers.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
 import 'package:live_ffss_v2/features/reminders/reminders_providers.dart';
 import 'package:live_ffss_v2/features/settings/reminder_lead.dart';
+import 'package:live_ffss_v2/features/settings/server_switch.dart';
 import 'package:live_ffss_v2/features/shell/space_competition.dart';
 
 /// Les données que l'appareil garde pour la compétition [competitionId] :
@@ -71,12 +72,20 @@ Future<bool> clearCompetitionData(
 /// Relit tout : l'app repart d'un conteneur neuf sur le même serveur, comme
 /// après un changement de serveur. Plus sûr qu'une liste de fournisseurs à
 /// invalider, qu'un oubli laisserait sur une valeur périmée ; la page ouverte
-/// revient à l'onglet d'ouverture. Rien de stocké n'est touché.
-Future<void> forceReload(ProviderContainer container, int competitionId) async {
+/// revient à l'onglet d'ouverture. Rien de stocké n'est touché. Faux, rien
+/// n'a changé : une saisie en cours d'envoi n'a pas répondu dans [timeout]
+/// ([settleBeforeRemount]).
+Future<bool> forceReload(
+  ProviderContainer container,
+  int competitionId, {
+  Duration timeout = remountTimeout,
+}) async {
   await _requireAdmin(container, competitionId);
+  if (!await settleBeforeRemount(container, timeout: timeout)) return false;
   container.read(serverRestartProvider)(
     container.read(appConfigProvider).environment,
   );
+  return true;
 }
 
 /// L'id de la notification de test : jamais celui d'un rappel, pris modulo

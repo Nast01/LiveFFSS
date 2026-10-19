@@ -1211,6 +1211,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get serverSwitchConfirm => 'Changer de serveur';
 
   @override
+  String get remountWaiting =>
+      'Une saisie est en cours d\'envoi : l\'app attend sa réponse…';
+
+  @override
+  String get remountBusy =>
+      'La saisie en cours d\'envoi n\'a pas répondu : rien n\'a changé. Réessayez dans un instant.';
+
+  @override
   String get networkLogTitle => 'Journal réseau';
 
   @override

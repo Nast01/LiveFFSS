@@ -401,6 +401,8 @@
   "serverSwitchUnsent": "{count, plural, one{1 entry has not been sent: it stays on this phone and will be sent when you come back to this server.} other{{count} entries have not been sent: they stay on this phone and will be sent when you come back to this server.}}",
   "@serverSwitchUnsent": {"placeholders": {"count": {"type": "int"}}},
   "serverSwitchConfirm": "Switch server",
+  "remountWaiting": "An entry is being sent: the app is waiting for its response…",
+  "remountBusy": "The entry being sent did not respond: nothing changed. Try again in a moment.",
   "networkLogTitle": "Network log",
   "networkLogErrorsOnly": "Errors only",
   "networkLogClear": "Clear",

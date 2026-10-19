@@ -18,8 +18,10 @@ import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
 import 'package:live_ffss_v2/domain/competition_summary.dart';
+import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
+import 'package:live_ffss_v2/features/admin/maintenance_providers.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/home/home_providers.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
@@ -355,6 +357,125 @@ void main() {
         expect(secure.values['dev_outbox'], contains('DUPONT Jean'));
       },
     );
+
+    group('une saisie en cours d\'envoi', () {
+      late Completer<int> submitted;
+
+      setUp(() {
+        secure.values['dev_outbox'] = OutboxStore.encode([
+          _op('ORGANISME TEST', OutboxState.pending),
+        ]);
+        when(() => recetteMeetings.getLanes(any())).thenAnswer(
+          (_) async => {11: const LaneAssignment(id: 11, lane: 1, entryId: 7)},
+        );
+        submitted = Completer<int>();
+        when(
+          () => recetteResults.submit(any()),
+        ).thenAnswer((_) => submitted.future);
+      });
+
+      /// La création part, sa réponse n'est pas revenue.
+      Future<ProviderContainer> sending() async {
+        final old = host.container;
+        old.listen(outboxProvider, (_, _) {});
+        await old.read(sessionProvider.future);
+        await pumpEventQueue();
+        verify(() => recetteResults.submit(any())).called(1);
+        return old;
+      }
+
+      List<OutboxOperation> stored(String key) =>
+          switch (OutboxStore.decode(secure.values[key])) {
+            OutboxLoaded(:final operations) => operations,
+            OutboxUnreadable() => const [],
+          };
+
+      Future<void> backOnRecette() async {
+        await switchServer(host.container, AppEnvironment.development);
+        host.container.listen(outboxProvider, (_, _) {});
+        await host.container.read(sessionProvider.future);
+        await pumpEventQueue();
+      }
+
+      test('changer de serveur attend sa réponse, et elle ne repart pas au '
+          'retour', () async {
+        final old = await sending();
+        var switched = false;
+        final switching = switchServer(
+          old,
+          AppEnvironment.production,
+        ).whenComplete(() => switched = true);
+        await pumpEventQueue();
+
+        expect(switched, isFalse);
+        expect(identical(host.container, old), isTrue);
+        expect(cancelledOn, isEmpty);
+
+        submitted.complete(99);
+        expect(await switching, isTrue);
+
+        expect(identical(host.container, old), isFalse);
+        expect(stored('dev_outbox').single.state, OutboxState.sent);
+        await backOnRecette();
+        verifyNever(() => recetteResults.submit(any()));
+      });
+
+      test('forcer le rechargement attend aussi sa réponse', () async {
+        final old = await sending();
+        var reloaded = false;
+        final reloading = forceReload(
+          old,
+          1416,
+        ).whenComplete(() => reloaded = true);
+        await pumpEventQueue();
+
+        expect(reloaded, isFalse);
+        expect(identical(host.container, old), isTrue);
+
+        submitted.complete(99);
+        expect(await reloading, isTrue);
+
+        expect(identical(host.container, old), isFalse);
+        host.container.listen(outboxProvider, (_, _) {});
+        await host.container.read(sessionProvider.future);
+        await pumpEventQueue();
+        verifyNever(() => recetteResults.submit(any()));
+        expect(stored('dev_outbox').single.state, OutboxState.sent);
+      });
+
+      test('délai dépassé : rien ne change, rien ne part deux fois', () async {
+        final old = await sending();
+
+        expect(
+          await switchServer(
+            old,
+            AppEnvironment.production,
+            timeout: const Duration(milliseconds: 20),
+          ),
+          isFalse,
+        );
+        expect(
+          await forceReload(
+            old,
+            1416,
+            timeout: const Duration(milliseconds: 20),
+          ),
+          isFalse,
+        );
+
+        expect(identical(host.container, old), isTrue);
+        expect(cancelledOn, isEmpty);
+        expect(
+          secure.values.containsKey(AppEnvironment.environmentKey),
+          isFalse,
+        );
+        submitted.complete(99);
+        await pumpEventQueue();
+        verifyNever(() => recetteResults.submit(any()));
+        expect(old.read(outboxProvider).single.state, OutboxState.sent);
+        expect(stored('dev_outbox').single.state, OutboxState.sent);
+      });
+    });
 
     test('les rappels sont annulés avant de changer de serveur', () async {
       await switchServer(host.container, AppEnvironment.production);

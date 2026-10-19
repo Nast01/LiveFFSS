@@ -1958,6 +1958,18 @@ abstract class AppLocalizations {
   /// **'Changer de serveur'**
   String get serverSwitchConfirm;
 
+  /// No description provided for @remountWaiting.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une saisie est en cours d\'envoi : l\'app attend sa réponse…'**
+  String get remountWaiting;
+
+  /// No description provided for @remountBusy.
+  ///
+  /// In fr, this message translates to:
+  /// **'La saisie en cours d\'envoi n\'a pas répondu : rien n\'a changé. Réessayez dans un instant.'**
+  String get remountBusy;
+
   /// No description provided for @networkLogTitle.
   ///
   /// In fr, this message translates to:

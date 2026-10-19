@@ -7,6 +7,7 @@ import 'package:live_ffss_v2/core/notifications/reminder_scheduler.dart';
 import 'package:live_ffss_v2/features/admin/admin_formatting.dart';
 import 'package:live_ffss_v2/features/admin/maintenance_providers.dart';
 import 'package:live_ffss_v2/features/admin/widgets/admin_gate.dart';
+import 'package:live_ffss_v2/features/common/remount_progress.dart';
 import 'package:live_ffss_v2/features/my_space/widgets/my_space_rows.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
 
@@ -100,9 +101,14 @@ class _MaintenanceState extends ConsumerState<_Maintenance> {
     )) {
       return;
     }
+    if (!mounted) return;
     // La page disparaît avec le conteneur qu'elle quitte.
+    final container = _container;
     try {
-      await forceReload(_container, widget.competitionId);
+      await remountWithProgress(
+        context,
+        () => forceReload(container, widget.competitionId),
+      );
     } on AdminOnlyException {
       _tell(l10n.adminOnly);
     }
