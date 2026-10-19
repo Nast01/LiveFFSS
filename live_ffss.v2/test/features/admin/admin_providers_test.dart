@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
+import 'package:live_ffss_v2/core/network/network_log.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/results_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
@@ -60,6 +61,8 @@ void main() {
   late int rolesReads;
   late bool rolesFail;
   late int decisionsReads;
+  late Set<Discipline> disciplines;
+  late NetworkLogStore log;
 
   setUp(() {
     results = _MockResultsRepository();
@@ -67,6 +70,8 @@ void main() {
     rolesReads = 0;
     rolesFail = false;
     decisionsReads = 0;
+    disciplines = const {Discipline.flatWater};
+    log = NetworkLogStore();
     when(() => results.getParticipants(any())).thenAnswer(
       (_) async => const [
         Participant(
@@ -113,6 +118,10 @@ void main() {
           decisionsReads++;
           return _decisions;
         }),
+        spaceCompetitionProvider.overrideWith(
+          (ref, id) async => _summary(disciplines),
+        ),
+        networkLogStoreProvider.overrideWithValue(log),
         ...overrides,
       ],
       retry: noRetry,
@@ -273,6 +282,90 @@ void main() {
       retryAdminClubs(c, _competition);
 
       expect(await c.read(adminClubsProvider(_competition).future), isEmpty);
+    });
+
+    test('admin de la compétition seulement : les clubs', () async {
+      competitionRoles = const ['public', 'admin'];
+      final c = container(_licensee);
+
+      expect(
+        await read(c, adminClubsProvider(_competition).future),
+        hasLength(2),
+      );
+    });
+
+    test('déconnexion : refusé aussitôt', () async {
+      final c = container(_admin);
+      final sub = c.listen(adminClubsProvider(_competition), (_, _) {});
+      addTearDown(sub.close);
+      await c.read(adminClubsProvider(_competition).future);
+
+      session.set(null);
+
+      await expectLater(
+        c.read(adminClubsProvider(_competition).future),
+        throwsA(isA<AdminOnlyException>()),
+      );
+    });
+
+    test('compétition côtière : rien de lu, liste vide', () async {
+      disciplines = const {Discipline.coastal};
+      final c = container(_admin);
+
+      expect(await read(c, adminClubsProvider(_competition).future), isEmpty);
+      verifyNever(() => results.getParticipants(any()));
+    });
+  });
+
+  group('adminNetworkLogProvider', () {
+    NetworkLogEntry entry(String path) => NetworkLogEntry(
+      at: DateTime(2026, 10, 19),
+      method: 'GET',
+      path: path,
+      duration: Duration.zero,
+      server: 'Recette',
+    );
+
+    test('admin : le journal, suivi', () async {
+      log.add(entry('/a'));
+      final c = container(_admin);
+      final sub = c.listen(adminNetworkLogProvider(_competition), (_, _) {});
+      addTearDown(sub.close);
+
+      expect(
+        (await c.read(
+          adminNetworkLogProvider(_competition).future,
+        )).map((e) => e.path),
+        ['/a'],
+      );
+      log.add(entry('/b'));
+      expect(
+        (await c.read(
+          adminNetworkLogProvider(_competition).future,
+        )).map((e) => e.path),
+        ['/b', '/a'],
+      );
+    });
+
+    test('compte non admin, ou déconnexion : refusé', () async {
+      log.add(entry('/a'));
+      await expectLater(
+        read(
+          container(_licensee),
+          adminNetworkLogProvider(_competition).future,
+        ),
+        throwsA(isA<AdminOnlyException>()),
+      );
+
+      final c = container(_admin);
+      final sub = c.listen(adminNetworkLogProvider(null), (_, _) {});
+      addTearDown(sub.close);
+      await c.read(adminNetworkLogProvider(null).future);
+      session.set(null);
+      await expectLater(
+        c.read(adminNetworkLogProvider(null).future),
+        throwsA(isA<AdminOnlyException>()),
+      );
     });
   });
 }

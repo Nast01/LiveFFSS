@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
+import 'package:live_ffss_v2/core/storage/write_queue.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
@@ -145,6 +146,11 @@ class EntryLaneFilterNotifier extends AsyncNotifier<int?> {
   static String storageKey(int competitionId) =>
       'entry_lane_filter_$competitionId';
 
+  final _writes = WriteQueue();
+
+  /// Se termine quand les écritures déjà demandées sont finies.
+  Future<void> get writesDone => _writes.idle;
+
   /// Une valeur illisible vaut « Tous ».
   @override
   Future<int?> build() async => int.tryParse(
@@ -155,12 +161,14 @@ class EntryLaneFilterNotifier extends AsyncNotifier<int?> {
     state = AsyncData(lane);
     final store = ref.read(localStoreProvider);
     final key = storageKey(competitionId);
-    try {
-      await (lane == null ? store.delete(key) : store.write(key, '$lane'));
-    } on AppException {
-      // Le choix vaut pour cette fois ; il sera seulement oublié au
-      // prochain lancement.
-    }
+    await _writes.run(() async {
+      try {
+        await (lane == null ? store.delete(key) : store.write(key, '$lane'));
+      } on AppException {
+        // Le choix vaut pour cette fois ; il sera seulement oublié au
+        // prochain lancement.
+      }
+    });
   }
 }
 

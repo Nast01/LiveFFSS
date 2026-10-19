@@ -47,6 +47,11 @@ class HttpClient {
   set onAuthFailure(Future<void> Function() handler) =>
       _onAuthFailure = handler;
 
+  /// Ferme le client de la plateforme et ses connexions gardées ouvertes :
+  /// sans quoi chaque changement de serveur en laisserait un derrière lui.
+  /// Une requête encore en vol échoue alors en `NetworkException`.
+  void close() => _inner.close();
+
   Future<Map<String, dynamic>> get(
     String path, {
     Map<String, dynamic>? query,

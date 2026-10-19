@@ -1267,6 +1267,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminOnly => 'Réservé aux admins.';
 
   @override
+  String get adminRolesError =>
+      'Impossible de lire vos droits sur cette compétition.';
+
+  @override
   String get adminAllClubs => 'Tous les clubs';
 
   @override

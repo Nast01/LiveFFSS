@@ -383,6 +383,23 @@ void main() {
       );
     });
 
+    test("aucun espace, pour un admin : rien, la carte Admin au-dessus "
+        'suffit', () {
+      expect(
+        spacesView(
+          loading: false,
+          failed: false,
+          cards: const MySpaceCards(cards: []),
+          admin: true,
+        ),
+        const SpacesHidden(),
+      );
+      expect(
+        spacesView(loading: false, failed: false, cards: cards, admin: true),
+        const SpacesShown(cards),
+      );
+    });
+
     test('un premier chargement', () {
       expect(
         spacesView(loading: true, failed: false, cards: null),

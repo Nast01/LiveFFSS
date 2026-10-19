@@ -2066,6 +2066,12 @@ abstract class AppLocalizations {
   /// **'Réservé aux admins.'**
   String get adminOnly;
 
+  /// No description provided for @adminRolesError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire vos droits sur cette compétition.'**
+  String get adminRolesError;
+
   /// No description provided for @adminAllClubs.
   ///
   /// In fr, this message translates to:

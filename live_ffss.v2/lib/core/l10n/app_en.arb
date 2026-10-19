@@ -419,6 +419,7 @@
   "adminDataCheck": "Data check",
   "adminMaintenance": "Maintenance",
   "adminOnly": "Admins only.",
+  "adminRolesError": "Could not read your rights on this competition.",
   "adminAllClubs": "All clubs",
   "adminAllEvents": "All events",
   "adminFilteredEmpty": "No published DQ or forfeit for this filter.",

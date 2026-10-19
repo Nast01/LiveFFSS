@@ -411,6 +411,8 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
           return _retryLater(op);
         case ApiException(:final statusCode?) when _isTransient(statusCode):
           return _retryLater(op);
+        // `AdminOnlyException` ne vient d'aucune requête de l'envoi : nommée
+        // pour que le `switch` reste exhaustif, traitée comme une panne.
         case UnknownException() || StorageException() || AdminOnlyException():
           return _fault(op, OutboxRejection.server, reason: e.message);
         case ApiException() || NotFoundException():

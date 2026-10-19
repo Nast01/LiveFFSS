@@ -15,12 +15,24 @@ import 'package:live_ffss_v2/features/settings/reminder_lead.dart';
 const remountTimeout = Duration(seconds: 20);
 
 /// Ce qui doit être réglé dans [container] avant de le remplacer par un
-/// conteneur neuf : faux si une saisie en vol n'a pas répondu dans
-/// [timeout], et l'app ne doit pas être remontée.
+/// conteneur neuf : la saisie en vol, puis les rappels en cours de
+/// planification. Faux si la saisie n'a pas répondu dans [timeout], et
+/// l'app ne doit pas être remontée.
 Future<bool> settleBeforeRemount(
   ProviderContainer container, {
   required Duration timeout,
-}) => container.read(outboxProvider.notifier).holdForRemount(timeout: timeout);
+}) async {
+  final outbox = container.read(outboxProvider.notifier);
+  if (!await outbox.holdForRemount(timeout: timeout)) return false;
+  // Après la file : refusé, l'app continue et doit encore planifier. Un
+  // appel à la plateforme resté pendu ne bloque pas le remontage pour
+  // autant.
+  await container
+      .read(reminderPlanningProvider)
+      .close()
+      .timeout(timeout, onTimeout: () {});
+  return true;
+}
 
 /// Passe l'app sur [target]. Rien n'est effacé : chaque serveur garde sous
 /// son préfixe jeton, compte, compétition active, suivis et file d'envoi.
@@ -38,6 +50,8 @@ Future<bool> switchServer(
   // Les rappels viennent des suivis et du programme de ce serveur : ils
   // seraient faux sur l'autre. La nouvelle app replanifie les siens.
   try {
+    // Directement au planificateur : `settleBeforeRemount` a fermé le
+    // passage des rappels de ce conteneur.
     await container.read(reminderSchedulerProvider).cancelAll();
   } on AppException {
     // Un rappel resté planifié ne doit pas empêcher de changer de serveur.

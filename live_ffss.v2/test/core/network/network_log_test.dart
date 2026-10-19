@@ -24,7 +24,7 @@ NetworkLogEntry _entry(int i) => NetworkLogEntry(
   method: 'GET',
   path: '/api/v1.0/n$i',
   duration: Duration.zero,
-  server: 'Développement',
+  server: 'Recette',
 );
 
 void main() {
@@ -65,7 +65,7 @@ void main() {
       expect(e.bytes, '{"success": true, "data": []}'.length);
       expect(e.error, isNull);
       expect(e.at, now);
-      expect(e.server, 'Développement');
+      expect(e.server, 'Recette');
     });
 
     test("un refus du serveur garde le statut et le type d'erreur", () async {

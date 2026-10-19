@@ -10,6 +10,7 @@ import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/widgets/my_space_rows.dart';
 import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
+import 'package:live_ffss_v2/features/shell/space_competition.dart';
 
 /// Les clubs engagés : chacun ouvre son espace, ou directement ses forfaits
 /// déclarés.
@@ -47,8 +48,11 @@ class _AdminClubsState extends ConsumerState<_AdminClubs> {
     final id = widget.competitionId;
     final state = ref.watch(adminClubsProvider(id));
     final clubs = state.value;
+    final gate = resultsGate(ref.watch(spaceCompetitionProvider(id)));
     final Widget body;
-    if (clubs != null) {
+    if (gate == ResultsGate.coastal) {
+      body = ResultsMessage(text: l10n.coastalComingSoon);
+    } else if (clubs != null) {
       body = ListView(
         padding: EdgeInsets.fromLTRB(
           16,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,6 +19,7 @@ import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/follows/follows_providers.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
+import 'package:live_ffss_v2/features/officiel/outbox_store.dart';
 import 'package:live_ffss_v2/features/reminders/reminders_providers.dart';
 import 'package:live_ffss_v2/features/settings/reminder_lead.dart';
 import 'package:live_ffss_v2/features/shell/space_competition.dart';
@@ -31,6 +34,27 @@ class _FakeSession extends SessionNotifier {
 
   @override
   Future<Account?> build() async => _account;
+}
+
+/// Un stockage dont les écritures attendent [gate], et dont la file d'envoi
+/// est illisible si [outboxFails].
+class _Store extends InMemoryLocalStore {
+  Completer<void>? gate;
+  bool outboxFails = false;
+
+  @override
+  Future<String?> read(String key) async {
+    if (outboxFails && key == OutboxStore.storageKey) {
+      throw const StorageException('illisible');
+    }
+    return super.read(key);
+  }
+
+  @override
+  Future<void> write(String key, String value) async {
+    await gate?.future;
+    return super.write(key, value);
+  }
 }
 
 class _FakeOutbox extends OutboxService {
@@ -62,8 +86,11 @@ class _FakeScheduler implements ReminderScheduler {
   @override
   Future<bool> requestPermission() async => permitted;
 
+  final List<List<Reminder>> replaced = [];
+
   @override
-  Future<void> replaceAll(List<Reminder> reminders) async {}
+  Future<void> replaceAll(List<Reminder> reminders) async =>
+      replaced.add(reminders);
 
   @override
   Future<void> cancelAll() async {}
@@ -88,7 +115,8 @@ OutboxOperation _op(String id, OutboxState state) => OutboxOperation(
   id: id,
   account: 'ATHLETE Deux',
   competitionId: _competition,
-  placeId: 1,
+  // Une place par saisie : deux en attente sur la même se fondraient.
+  placeId: id.codeUnitAt(0),
   seriesId: 2,
   entryId: 3,
   change: const ResultChange(mark: ResultMark.forfeit),
@@ -96,14 +124,14 @@ OutboxOperation _op(String id, OutboxState state) => OutboxOperation(
 );
 
 void main() {
-  late InMemoryLocalStore store;
+  late _Store store;
   late _FakeScheduler scheduler;
   late NetworkLogStore log;
   late InMemoryTokenStorage tokens;
   late List<AppEnvironment> restarts;
 
   setUp(() {
-    store = InMemoryLocalStore();
+    store = _Store();
     scheduler = _FakeScheduler();
     log = NetworkLogStore();
     tokens = InMemoryTokenStorage()..token = 'jeton-secret-123';
@@ -202,6 +230,31 @@ void main() {
 
       await clearCompetitionData(c, _competition);
 
+      expect(
+        (await read(c, followsProvider(_competition).future)).clubs,
+        isEmpty,
+      );
+    });
+
+    test('une écriture des suivis en cours est attendue : elle ne revient '
+        'pas après l\'effacement', () async {
+      seed();
+      final c = container();
+      await read(c, followsProvider(_competition).future);
+      store.gate = Completer<void>();
+      final toggled = c
+          .read(followsProvider(_competition).notifier)
+          .toggleClub(16, 'ANTIBES');
+      await pumpEventQueue();
+
+      final clearing = clearCompetitionData(c, _competition);
+      await pumpEventQueue();
+      store.gate!.complete();
+      store.gate = null;
+      await toggled;
+      expect(await clearing, isTrue);
+
+      expect(store.values.containsKey('follows_1416'), isFalse);
       expect(
         (await read(c, followsProvider(_competition).future)).clubs,
         isEmpty,
@@ -312,11 +365,25 @@ void main() {
           ).overrideWith(() => _FakeReminders(_competition, reminders)),
         ],
       );
+      // Les rappels de la compétition des onglets, que l'app écoute.
+      c.listen(remindersProvider(_competition), (_, _) {});
 
       expect(
         await read(c, plannedRemindersProvider(_competition).future),
         reminders,
       );
+    });
+
+    test('aucun rappel en cours pour la compétition : rien, et rien de '
+        'planifié pour autant', () async {
+      final c = container();
+
+      expect(
+        await read(c, plannedRemindersProvider(_competition).future),
+        isEmpty,
+      );
+      expect(c.exists(remindersProvider(_competition)), isFalse);
+      expect(scheduler.replaced, isEmpty);
     });
 
     test('compte non admin : refusé', () async {
@@ -341,7 +408,7 @@ void main() {
             status: 500,
             duration: const Duration(milliseconds: 80),
             error: 'ApiException',
-            server: 'Développement',
+            server: 'Recette',
           ),
         )
         ..add(
@@ -351,7 +418,7 @@ void main() {
             path: '/api/v1.0/competition/evenement',
             status: 200,
             duration: const Duration(milliseconds: 80),
-            server: 'Développement',
+            server: 'Recette',
           ),
         );
       final c = container(
@@ -369,7 +436,7 @@ void main() {
 
       expect(report, contains('1416'));
       expect(report, contains('Championnat de France'));
-      expect(report, contains('Développement'));
+      expect(report, contains('Serveur : Recette'));
       expect(report, contains('/api/v1.0/competition/1416/reunion'));
       expect(report, isNot(contains('/competition/evenement')));
       expect(report, contains('2 en attente'));
@@ -381,6 +448,35 @@ void main() {
       ]) {
         expect(report, isNot(contains(secret)), reason: secret);
       }
+    });
+
+    test("la file d'envoi relue de l'appareil, pas seulement celle en "
+        'mémoire', () async {
+      store.values[OutboxStore.storageKey] = OutboxStore.encode([
+        _op('a', OutboxState.pending),
+        _op('b', OutboxState.rejected),
+      ]);
+      final c = container();
+
+      final report = await read(
+        c,
+        diagnosticReportProvider(_competition).future,
+      );
+
+      expect(report, contains('1 en attente'));
+      expect(report, contains('1 refusée(s)'));
+    });
+
+    test("file d'envoi illisible : celle en mémoire", () async {
+      store.outboxFails = true;
+      final c = container(queue: [_op('a', OutboxState.pending)]);
+
+      final report = await read(
+        c,
+        diagnosticReportProvider(_competition).future,
+      );
+
+      expect(report, contains('1 en attente'));
     });
 
     test('compte non admin : refusé', () async {

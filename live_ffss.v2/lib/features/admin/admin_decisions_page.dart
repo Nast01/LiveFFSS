@@ -11,6 +11,7 @@ import 'package:live_ffss_v2/features/admin/widgets/admin_gate.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/official_space_providers.dart';
 import 'package:live_ffss_v2/features/my_space/widgets/my_space_rows.dart';
+import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
 import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
@@ -98,9 +99,11 @@ class _AdminDecisionsState extends ConsumerState<_AdminDecisions> {
   Widget _content(OfficialDecisions value, AppLocalizations l10n) {
     final clubs = decisionClubs(value);
     final events = decisionEvents(value);
-    // Un filtre qui ne correspond plus à rien (relu depuis) est oublié.
-    final club = clubs.contains(_club) ? _club : null;
-    final eventId = events.any((e) => e.id == _eventId) ? _eventId : null;
+    final (:club, :eventId) = keptDecisionFilter(
+      value,
+      club: _club,
+      eventId: _eventId,
+    );
     final shown = filterDecisions(value.events, club: club, eventId: eventId);
     return RefreshIndicator(
       key: _refreshKey,
@@ -152,7 +155,11 @@ class _AdminDecisionsState extends ConsumerState<_AdminDecisions> {
               onChanged: (id) => setState(() => _eventId = id),
             ),
             if (club != null)
-              _ClubForfeitsRow(competitionId: widget.competitionId, club: club),
+              _ClubForfeitsRow(
+                competitionId: widget.competitionId,
+                club: club,
+                events: value.events,
+              ),
             if (shown.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 48),
@@ -181,15 +188,33 @@ class _AdminDecisionsState extends ConsumerState<_AdminDecisions> {
 /// à l'onglet Forfaits, plutôt qu'en double ici. Son id vient des clubs
 /// engagés, lus seulement quand un club est choisi.
 class _ClubForfeitsRow extends ConsumerWidget {
-  const _ClubForfeitsRow({required this.competitionId, required this.club});
+  const _ClubForfeitsRow({
+    required this.competitionId,
+    required this.club,
+    required this.events,
+  });
 
   final int competitionId;
   final String club;
 
+  /// Les DQ et forfaits lus : leurs engagés donnent l'id du club.
+  final List<EventDecisions> events;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final clubs = ref.watch(adminClubsProvider(competitionId)).value;
-    final clubId = clubs == null ? null : clubIdOf(clubs, club);
+    // Lus et gardés par les clubs, qui les ont déjà demandés.
+    final participants = clubs == null
+        ? null
+        : ref.watch(participantsProvider(competitionId)).value;
+    final clubId = clubs == null
+        ? null
+        : clubIdOf(
+            clubs,
+            club,
+            events: events,
+            participants: participants ?? const [],
+          );
     if (clubId == null) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(top: 8),

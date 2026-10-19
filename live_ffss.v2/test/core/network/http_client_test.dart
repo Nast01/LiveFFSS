@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:live_ffss_v2/core/config/app_config.dart';
@@ -8,6 +9,7 @@ import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/core/network/token_storage.dart';
+import 'package:live_ffss_v2/core/providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockHttp extends Mock implements http.Client {}
@@ -23,6 +25,8 @@ void main() {
   setUpAll(() {
     registerFallbackValue(_FakeUri());
   });
+
+  _closing();
 
   late _MockHttp httpMock;
   late _MockTokenStorage tokens;
@@ -951,6 +955,40 @@ void main() {
     test('une erreur HTTP avec un message FFSS non plus', () async {
       answer('{"message": "interdit"}', 403);
       await expectLater(client.get('x'), malformed(false));
+    });
+  });
+}
+
+void _closing() {
+  group('fermeture', () {
+    test('close ferme le client de la plateforme', () {
+      final inner = _MockHttp();
+      HttpClient(
+        config: const AppConfig(
+          baseUrl: 'https://example.test',
+          apiVersion: 'v',
+        ),
+        tokenStorage: _MockTokenStorage(),
+        inner: inner,
+      ).close();
+
+      verify(inner.close).called(1);
+    });
+
+    test('un conteneur jeté (changement de serveur) ferme son client', () {
+      final inner = _MockHttp();
+      final c = ProviderContainer(
+        overrides: [
+          platformHttpClientProvider.overrideWithValue(inner),
+          tokenStorageProvider.overrideWithValue(_MockTokenStorage()),
+        ],
+      );
+      c.read(httpClientProvider);
+      verifyNever(inner.close);
+
+      c.dispose();
+
+      verify(inner.close).called(1);
     });
   });
 }

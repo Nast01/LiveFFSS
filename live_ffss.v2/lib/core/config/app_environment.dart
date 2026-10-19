@@ -10,7 +10,8 @@ enum AppEnvironment {
     baseUrl: 'https://site.ffss.io',
     apiVersion: 'api/v1.0',
     storagePrefix: 'dev_',
-    label: 'Développement',
+    // Le nom que l'app montre (`serverLabel`), jusque dans le journal.
+    label: 'Recette',
   );
 
   const AppEnvironment({

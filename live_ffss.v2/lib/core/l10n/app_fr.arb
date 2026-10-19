@@ -429,6 +429,7 @@
   "adminDataCheck": "Contrôle des données",
   "adminMaintenance": "Maintenance",
   "adminOnly": "Réservé aux admins.",
+  "adminRolesError": "Impossible de lire vos droits sur cette compétition.",
   "adminAllClubs": "Tous les clubs",
   "adminAllEvents": "Toutes les épreuves",
   "adminFilteredEmpty": "Aucune DQ ni aucun forfait publié pour ce filtre.",

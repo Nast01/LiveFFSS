@@ -6,6 +6,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/core/storage/local_store.dart';
+import 'package:live_ffss_v2/core/storage/write_queue.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/results_mapper.dart';
 import 'package:live_ffss_v2/domain/account.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
@@ -23,21 +24,6 @@ part 'reminder_records.g.dart';
 //
 // Chaque modification attend la fin de `build` : posée avant, elle serait
 // écrasée par la valeur que `build` avait lue plus tôt.
-
-/// Les écritures d'un enregistrement, une à la fois et dans l'ordre : deux
-/// écritures en vol pourraient finir dans le désordre et laisser la plus
-/// vieille sur l'appareil.
-class _Writes {
-  Future<void> _last = Future.value();
-
-  Future<void> run(Future<void> Function() write) {
-    final done = _last.then((_) => write());
-    // Une écriture en échec ne bloque pas les suivantes ; son appelant reçoit
-    // l'échec par [done].
-    _last = done.then((_) {}, onError: (Object _) {});
-    return done;
-  }
-}
 
 @freezed
 abstract class KnownHeatDto with _$KnownHeatDto {
@@ -72,7 +58,10 @@ class KnownHeatsNotifier extends AsyncNotifier<KnownHeats> {
 
   final int competitionId;
 
-  final _writes = _Writes();
+  final _writes = WriteQueue();
+
+  /// Se termine quand les écritures déjà demandées sont finies.
+  Future<void> get writesDone => _writes.idle;
 
   String get storageKey => storageKeyOf(competitionId);
 
@@ -192,7 +181,10 @@ class SelfAthleteNotifier extends AsyncNotifier<FollowedAthlete?> {
 
   final int competitionId;
 
-  final _writes = _Writes();
+  final _writes = WriteQueue();
+
+  /// Se termine quand les écritures déjà demandées sont finies.
+  Future<void> get writesDone => _writes.idle;
 
   String get storageKey => storageKeyOf(competitionId);
 

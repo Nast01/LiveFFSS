@@ -4,7 +4,8 @@ import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/network_log.dart';
 import 'package:live_ffss_v2/core/notifications/reminder_scheduler.dart';
 import 'package:live_ffss_v2/core/providers.dart';
-import 'package:live_ffss_v2/features/admin/admin_formatting.dart';
+import 'package:live_ffss_v2/domain/outbox.dart';
+import 'package:live_ffss_v2/features/admin/diagnostic_report.dart';
 import 'package:live_ffss_v2/features/auth/admin.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/follows/follows_providers.dart';
@@ -52,6 +53,19 @@ Future<bool> clearCompetitionData(
   int competitionId,
 ) async {
   await _requireAdmin(container, competitionId);
+  // Une écriture déjà partie, finie après l'effacement, remettrait sa clé.
+  await Future.wait([
+    if (container.exists(followsProvider(competitionId)))
+      container.read(followsProvider(competitionId).notifier).writesDone,
+    if (container.exists(knownHeatsProvider(competitionId)))
+      container.read(knownHeatsProvider(competitionId).notifier).writesDone,
+    if (container.exists(selfAthleteProvider(competitionId)))
+      container.read(selfAthleteProvider(competitionId).notifier).writesDone,
+    if (container.exists(entryLaneFilterProvider(competitionId)))
+      container
+          .read(entryLaneFilterProvider(competitionId).notifier)
+          .writesDone,
+  ]);
   final store = container.read(localStoreProvider);
   var cleared = true;
   for (final key in competitionLocalKeys(competitionId)) {
@@ -127,12 +141,23 @@ Future<TestNotificationOutcome> sendTestNotification(
 }
 
 /// Les rappels planifiés pour la compétition, tels que les rappels les ont
-/// donnés au planificateur.
+/// donnés au planificateur. Lus seulement s'ils existent déjà (ceux de la
+/// compétition des onglets, sur Android), et sans être suivis : créer ou
+/// garder en vie les rappels d'une autre compétition les planifierait à la
+/// place des siens. Vide sinon : le planificateur n'a que ceux de la
+/// compétition des onglets.
 final plannedRemindersProvider = FutureProvider.autoDispose
     .family<List<Reminder>, int>((ref, competitionId) async {
       await requireAdmin(ref, competitionId);
       if (!ref.mounted) return const [];
-      return ref.watch(remindersProvider(competitionId).future);
+      final reminders = remindersProvider(competitionId);
+      if (!ref.exists(reminders)) return const [];
+      final subscription = ref.listen(reminders.future, (_, _) {});
+      try {
+        return await subscription.read();
+      } finally {
+        subscription.close();
+      }
     });
 
 /// Le rapport de diagnostic de la compétition ([diagnosticReport]).
@@ -150,6 +175,16 @@ final diagnosticReportProvider = FutureProvider.autoDispose.family<String, int>(
       name = null;
     }
     if (!ref.mounted) return '';
+    // Suivie pour tenir le rapport à jour ; comptée sur la file relue de
+    // l'appareil, sans quoi les saisies d'avant le lancement manqueraient.
+    ref.watch(outboxProvider);
+    List<OutboxOperation> queue;
+    try {
+      queue = await ref.read(outboxProvider.notifier).loadedQueue();
+    } on AppException {
+      queue = ref.read(outboxProvider);
+    }
+    if (!ref.mounted) return '';
     final account = ref.watch(sessionProvider).value;
     return diagnosticReport(
       version: appVersion,
@@ -157,7 +192,7 @@ final diagnosticReportProvider = FutureProvider.autoDispose.family<String, int>(
       competitionId: competitionId,
       competitionName: name,
       accountAdmin: account?.isAdmin ?? false,
-      queue: ref.watch(outboxProvider),
+      queue: queue,
       log: ref.watch(networkLogProvider),
       now: ref.watch(clockProvider)(),
     );

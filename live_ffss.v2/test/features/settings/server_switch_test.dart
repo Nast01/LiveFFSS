@@ -338,25 +338,43 @@ void main() {
       expect(secure.values['dev_token'], isNot('jeton-neuf'));
     });
 
-    test(
-      "la file d'un serveur ne part jamais avec la session de l'autre",
-      () async {
-        host.container.listen(outboxProvider, (_, _) {});
-        await host.container.read(sessionProvider.future);
-        await pumpEventQueue();
-        expect(host.container.read(outboxProvider), hasLength(1));
+    test("la file d'un serveur ne part jamais avec la session de l'autre, "
+        'même sous le même nom de compte', () async {
+      // Chaque file porte une saisie du compte de l'autre serveur : relue
+      // par erreur, elle partirait avec sa session.
+      secure.values['outbox'] = OutboxStore.encode([
+        _op('ORGANISME TEST', OutboxState.pending),
+      ]);
+      const lane = LaneAssignment(id: 11, lane: 1, entryId: 7);
+      when(
+        () => recetteMeetings.getLanes(any()),
+      ).thenAnswer((_) async => {11: lane});
+      when(
+        () => productionMeetings.getLanes(any()),
+      ).thenAnswer((_) async => {11: lane});
+      when(() => recetteResults.submit(any())).thenAnswer((_) async => 1);
+      when(() => productionResults.submit(any())).thenAnswer((_) async => 1);
 
-        await switchServer(host.container, AppEnvironment.production);
-        host.container.listen(outboxProvider, (_, _) {});
-        await host.container.read(sessionProvider.future);
-        await pumpEventQueue();
+      final old = host.container;
+      old.listen(outboxProvider, (_, _) {});
+      expect(await old.read(sessionProvider.future), _recette);
+      await pumpEventQueue();
+      expect(old.read(outboxProvider).single.account, 'DUPONT Jean');
 
-        verifyNever(() => productionMeetings.getLanes(any()));
-        verifyNever(() => productionResults.submit(any()));
-        verifyNever(() => recetteResults.submit(any()));
-        expect(secure.values['dev_outbox'], contains('DUPONT Jean'));
-      },
-    );
+      await switchServer(old, AppEnvironment.production);
+      final fresh = host.container;
+      fresh.listen(outboxProvider, (_, _) {});
+      expect(await fresh.read(sessionProvider.future), _production);
+      await pumpEventQueue();
+      expect(fresh.read(outboxProvider).single.account, 'ORGANISME TEST');
+
+      verifyNever(() => recetteMeetings.getLanes(any()));
+      verifyNever(() => productionMeetings.getLanes(any()));
+      verifyNever(() => recetteResults.submit(any()));
+      verifyNever(() => productionResults.submit(any()));
+      expect(secure.values['dev_outbox'], contains('DUPONT Jean'));
+      expect(secure.values['outbox'], contains('ORGANISME TEST'));
+    });
 
     group('une saisie en cours d\'envoi', () {
       late Completer<int> submitted;

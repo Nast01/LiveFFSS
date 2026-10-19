@@ -1259,6 +1259,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminOnly => 'Admins only.';
 
   @override
+  String get adminRolesError =>
+      'Could not read your rights on this competition.';
+
+  @override
   String get adminAllClubs => 'All clubs';
 
   @override

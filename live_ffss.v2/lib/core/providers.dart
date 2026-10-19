@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:live_ffss_v2/core/config/app_config.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
@@ -60,14 +61,23 @@ final tokenStorageProvider = Provider<TokenStorage>(
   ),
 );
 
-final httpClientProvider = Provider<HttpClient>(
-  (ref) => HttpClient(
+/// Le client HTTP de la plateforme, remplaçable dans les tests.
+final platformHttpClientProvider = Provider<http.Client>(
+  (ref) => http.Client(),
+);
+
+/// Fermé avec son conteneur : un changement de serveur jette le conteneur.
+final httpClientProvider = Provider<HttpClient>((ref) {
+  final client = HttpClient(
     config: ref.watch(appConfigProvider),
     tokenStorage: ref.watch(tokenStorageProvider),
+    inner: ref.watch(platformHttpClientProvider),
     onRequest: ref.watch(networkLogStoreProvider).add,
     clock: ref.watch(clockProvider),
-  ),
-);
+  );
+  ref.onDispose(client.close);
+  return client;
+});
 
 final localStoreProvider = Provider<LocalStore>(
   (ref) => SecureLocalStore(

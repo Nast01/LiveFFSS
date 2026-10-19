@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:fake_async/fake_async.dart';
@@ -59,6 +60,12 @@ class _FakeScheduler implements ReminderScheduler {
   int cancels = 0;
   final List<List<Reminder>> replaced = [];
 
+  /// Ce que le planificateur a fait, dans l'ordre.
+  final List<String> calls = [];
+
+  /// Retient `replaceAll` tant qu'il n'est pas complété.
+  Completer<void>? replaceGate;
+
   @override
   Future<bool> isPermitted() async => permitted;
 
@@ -70,11 +77,18 @@ class _FakeScheduler implements ReminderScheduler {
   }
 
   @override
-  Future<void> replaceAll(List<Reminder> reminders) async =>
-      replaced.add(reminders);
+  Future<void> replaceAll(List<Reminder> reminders) async {
+    calls.add('replaceAll');
+    await replaceGate?.future;
+    replaced.add(reminders);
+    calls.add('replaced');
+  }
 
   @override
-  Future<void> cancelAll() async => cancels++;
+  Future<void> cancelAll() async {
+    cancels++;
+    calls.add('cancelAll');
+  }
 
   @override
   Future<void> show(Reminder reminder) async {}
@@ -923,6 +937,33 @@ void main() {
 
       // Même compétition, mêmes suivis : la nouvelle app les replanifie.
       expect(scheduler.replaced, hasLength(2));
+    });
+
+    test("changement de serveur : une planification de l'ancienne app encore "
+        "en cours finit avant l'annulation, et aucune ne part après", () async {
+      final host = AppContainerHost(
+        environment: AppEnvironment.development,
+        overrides: overrides(
+          extra: [globalStoreProvider.overrideWithValue(GlobalStore(store))],
+        ),
+      );
+      addTearDown(host.dispose);
+      scheduler.replaceGate = Completer<void>();
+      host.container.listen(remindersProvider(1416), (_, _) {});
+      await pumpEventQueue();
+      // Une ou plusieurs, selon les relectures du lancement : toutes en vol.
+      expect(scheduler.calls.toSet(), {'replaceAll'});
+
+      final switching = switchServer(host.container, AppEnvironment.production);
+      await pumpEventQueue();
+      scheduler.replaceGate!.complete();
+      scheduler.replaceGate = null;
+      expect(await switching, isTrue);
+      await pumpEventQueue();
+
+      final cancelled = scheduler.calls.indexOf('cancelAll');
+      expect(cancelled, greaterThan(scheduler.calls.lastIndexOf('replaced')));
+      expect(scheduler.calls.sublist(cancelled), ['cancelAll']);
     });
   });
 }

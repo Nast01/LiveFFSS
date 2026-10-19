@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/network/network_log.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/features/admin/admin_formatting.dart';
+import 'package:live_ffss_v2/features/admin/admin_providers.dart';
+import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
+import 'package:live_ffss_v2/features/shell/current_competition.dart';
 
 /// Les dernières requêtes FFSS de cette session de l'app, pour comprendre
 /// une lenteur ou un échec sans brancher d'outil.
@@ -21,8 +25,12 @@ class _NetworkLogPageState extends ConsumerState<NetworkLogPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final log = ref.watch(
+      adminNetworkLogProvider(ref.watch(currentCompetitionProvider)?.id),
+    );
+    final refused = log.error is AdminOnlyException;
     final entries = visibleEntries(
-      ref.watch(networkLogProvider),
+      refused ? const [] : log.value ?? const [],
       errorsOnly: _errorsOnly,
     );
 
@@ -33,37 +41,42 @@ class _NetworkLogPageState extends ConsumerState<NetworkLogPage> {
           IconButton(
             tooltip: l10n.networkLogClear,
             icon: const Icon(Icons.delete_outline),
-            onPressed: ref.read(networkLogProvider.notifier).clear,
+            onPressed: log.hasValue && !refused
+                ? ref.read(networkLogProvider.notifier).clear
+                : null,
           ),
         ],
       ),
-      body: Column(
-        children: [
-          SwitchListTile(
-            title: Text(l10n.networkLogErrorsOnly),
-            value: _errorsOnly,
-            onChanged: (value) => setState(() => _errorsOnly = value),
-          ),
-          Expanded(
-            child: entries.isEmpty
-                ? Center(
-                    child: Text(
-                      _errorsOnly
-                          ? l10n.networkLogEmptyErrors
-                          : l10n.networkLogEmpty,
-                    ),
-                  )
-                : ListView.separated(
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewPadding.bottom,
-                    ),
-                    itemCount: entries.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1),
-                    itemBuilder: (context, i) => _EntryTile(entry: entries[i]),
-                  ),
-          ),
-        ],
-      ),
+      body: refused
+          ? ResultsMessage(text: l10n.adminOnly)
+          : Column(
+              children: [
+                SwitchListTile(
+                  title: Text(l10n.networkLogErrorsOnly),
+                  value: _errorsOnly,
+                  onChanged: (value) => setState(() => _errorsOnly = value),
+                ),
+                Expanded(
+                  child: entries.isEmpty
+                      ? Center(
+                          child: Text(
+                            _errorsOnly
+                                ? l10n.networkLogEmptyErrors
+                                : l10n.networkLogEmpty,
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).viewPadding.bottom,
+                          ),
+                          itemCount: entries.length,
+                          separatorBuilder: (_, _) => const Divider(height: 1),
+                          itemBuilder: (context, i) =>
+                              _EntryTile(entry: entries[i]),
+                        ),
+                ),
+              ],
+            ),
     );
   }
 }

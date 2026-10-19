@@ -18,6 +18,7 @@ import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/features/admin/admin_formatting.dart';
 import 'package:live_ffss_v2/features/admin/data_check_providers.dart';
+import 'package:live_ffss_v2/features/admin/diagnostic_report.dart';
 import 'package:live_ffss_v2/features/admin/maintenance_providers.dart';
 import 'package:live_ffss_v2/features/my_space/official_space_providers.dart';
 
@@ -26,7 +27,7 @@ NetworkLogEntry _entry(String path, {String? error}) => NetworkLogEntry(
   method: 'GET',
   path: path,
   duration: Duration.zero,
-  server: 'Développement',
+  server: 'Recette',
   error: error,
 );
 
@@ -139,6 +140,75 @@ void main() {
       expect(clubIdOf(clubs, 'TOULON'), 15);
       expect(clubIdOf(clubs, ' ANTIBES'), 16);
       expect(clubIdOf(clubs, 'NICE'), isNull);
+    });
+
+    test("l'id d'un club par ses engagés quand on les connaît : deux clubs "
+        'du même nom ne se confondent pas', () {
+      const clubs = [
+        (id: 15, label: 'TOULON', athletes: 1),
+        (id: 17, label: 'TOULON', athletes: 1),
+      ];
+      const participants = [
+        Participant(
+          id: 1,
+          firstName: 'Un',
+          lastName: 'ATHLETE',
+          club: 'TOULON',
+          clubId: 17,
+          entries: [
+            ParticipantEntry(entryId: 11, eventId: 1, categoryName: 'Cadet'),
+          ],
+        ),
+      ];
+      expect(
+        clubIdOf(
+          clubs,
+          'TOULON',
+          events: decisions.events,
+          participants: participants,
+        ),
+        17,
+      );
+      // Sans les engagés, le libellé seul ne départage pas : aucun.
+      expect(clubIdOf(clubs, 'TOULON'), isNull);
+    });
+
+    test('un filtre qui ne correspond plus à rien est oublié', () {
+      expect(keptDecisionFilter(decisions, club: 'TOULON', eventId: 2), (
+        club: 'TOULON',
+        eventId: 2,
+      ));
+      expect(keptDecisionFilter(decisions, club: 'NICE', eventId: 9), (
+        club: null,
+        eventId: null,
+      ));
+      expect(keptDecisionFilter(decisions), (club: null, eventId: null));
+    });
+  });
+
+  group('AdminGate', () {
+    test('ouverte au droit établi, réessayable si les rôles ont échoué', () {
+      expect(
+        adminGateView(access: true, loading: false, rolesFailed: false),
+        AdminGateView.open,
+      );
+      expect(
+        adminGateView(access: null, loading: true, rolesFailed: false),
+        AdminGateView.loading,
+      );
+      expect(
+        adminGateView(access: false, loading: false, rolesFailed: true),
+        AdminGateView.rolesFailed,
+      );
+      expect(
+        adminGateView(access: false, loading: false, rolesFailed: false),
+        AdminGateView.refused,
+      );
+      // Un droit établi ne disparaît pas pendant une relecture.
+      expect(
+        adminGateView(access: true, loading: true, rolesFailed: false),
+        AdminGateView.open,
+      );
     });
   });
 
@@ -270,7 +340,7 @@ void main() {
           status: i.isEven ? 500 : null,
           duration: Duration.zero,
           error: i.isEven ? 'ApiException' : 'NetworkException',
-          server: 'Développement',
+          server: 'Recette',
         );
 
     String report({
@@ -300,7 +370,9 @@ void main() {
       );
       expect(text, contains('2026-10-19 14:30:05'));
       expect(text, contains('2.0.0+1'));
-      expect(text, contains('Développement (https://site.ffss.io)'));
+      // Le nom que montre l'app, pas celui du code.
+      expect(text, contains('Serveur : Recette (https://site.ffss.io)'));
+      expect(text, isNot(contains('Développement')));
       expect(text, contains('1416 · Championnat'));
       expect(text, contains('admin du compte'));
       expect(text, contains('2 en attente, 1 envoyée(s), 1 refusée(s)'));
@@ -320,7 +392,7 @@ void main() {
           path: '/api/v1.0/competition/1416/reunion',
           status: 200,
           duration: Duration.zero,
-          server: 'Développement',
+          server: 'Recette',
         ),
         failed(0, path: '/api/v1.0/licencie/recherche?q=DUPONT'),
       ];
@@ -333,12 +405,12 @@ void main() {
       expect(
         errors.first,
         '14:00:30 GET /api/v1.0/course/place/1 500 '
-        'ApiException [Développement]',
+        'ApiException [Recette]',
       );
       expect(
         errors[1],
         '14:00:29 GET /api/v1.0/course/place/1 - '
-        'NetworkException [Développement]',
+        'NetworkException [Recette]',
       );
       expect(lines.join('\n'), isNot(contains('reunion')));
       expect(
