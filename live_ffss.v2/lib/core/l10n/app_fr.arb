@@ -409,5 +409,11 @@
   "serverSwitchBody": "L'app repart de l'onglet d'ouverture sur ce serveur, avec le compte qui y est enregistré s'il y en a un. Rien n'est effacé : comptes, suivis et préférences de chaque serveur restent sur le téléphone.",
   "serverSwitchUnsent": "{count, plural, one{1 saisie n'a pas été envoyée : elle reste sur le téléphone et partira au retour sur ce serveur.} other{{count} saisies n'ont pas été envoyées : elles restent sur le téléphone et partiront au retour sur ce serveur.}}",
   "@serverSwitchUnsent": {"placeholders": {"count": {"type": "int"}}},
-  "serverSwitchConfirm": "Changer de serveur"
+  "serverSwitchConfirm": "Changer de serveur",
+  "networkLogTitle": "Journal réseau",
+  "networkLogErrorsOnly": "Erreurs seulement",
+  "networkLogClear": "Effacer",
+  "networkLogEmpty": "Aucune requête enregistrée",
+  "networkLogEmptyErrors": "Aucune requête en erreur",
+  "networkLogNoStatus": "sans réponse"
 }

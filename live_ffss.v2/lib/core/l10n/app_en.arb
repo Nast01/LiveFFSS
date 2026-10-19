@@ -399,5 +399,11 @@
   "serverSwitchBody": "The app restarts from its start tab on this server, with the account saved for it if there is one. Nothing is deleted: each server's accounts, follows and preferences stay on this phone.",
   "serverSwitchUnsent": "{count, plural, one{1 entry has not been sent: it stays on this phone and will be sent when you come back to this server.} other{{count} entries have not been sent: they stay on this phone and will be sent when you come back to this server.}}",
   "@serverSwitchUnsent": {"placeholders": {"count": {"type": "int"}}},
-  "serverSwitchConfirm": "Switch server"
+  "serverSwitchConfirm": "Switch server",
+  "networkLogTitle": "Network log",
+  "networkLogErrorsOnly": "Errors only",
+  "networkLogClear": "Clear",
+  "networkLogEmpty": "No requests recorded",
+  "networkLogEmptyErrors": "No failed requests",
+  "networkLogNoStatus": "no response"
 }

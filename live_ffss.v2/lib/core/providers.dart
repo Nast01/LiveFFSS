@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:live_ffss_v2/core/config/app_config.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
+import 'package:live_ffss_v2/core/network/network_log.dart';
 import 'package:live_ffss_v2/core/network/token_storage.dart';
 import 'package:live_ffss_v2/core/storage/local_store.dart';
 
@@ -63,6 +64,8 @@ final httpClientProvider = Provider<HttpClient>(
   (ref) => HttpClient(
     config: ref.watch(appConfigProvider),
     tokenStorage: ref.watch(tokenStorageProvider),
+    onRequest: ref.watch(networkLogStoreProvider).add,
+    clock: ref.watch(clockProvider),
   ),
 );
 

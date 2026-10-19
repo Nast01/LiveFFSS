@@ -1199,4 +1199,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get serverSwitchConfirm => 'Switch server';
+
+  @override
+  String get networkLogTitle => 'Network log';
+
+  @override
+  String get networkLogErrorsOnly => 'Errors only';
+
+  @override
+  String get networkLogClear => 'Clear';
+
+  @override
+  String get networkLogEmpty => 'No requests recorded';
+
+  @override
+  String get networkLogEmptyErrors => 'No failed requests';
+
+  @override
+  String get networkLogNoStatus => 'no response';
 }

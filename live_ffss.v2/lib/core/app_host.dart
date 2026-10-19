@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
+import 'package:live_ffss_v2/core/network/network_log.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 
 /// Le conteneur de l'app, un par serveur. Changer de serveur en crée un
@@ -24,6 +25,10 @@ class AppContainerHost extends ChangeNotifier {
   final void Function(ProviderContainer old) _disposeOld;
   late ProviderContainer _container;
 
+  /// Le journal réseau couvre toute la vie de l'app, changements de serveur
+  /// compris : il vit ici, hors des conteneurs.
+  final NetworkLogStore networkLog = NetworkLogStore();
+
   ProviderContainer get container => _container;
 
   static void _disposeNow(ProviderContainer old) => old.dispose();
@@ -31,6 +36,7 @@ class AppContainerHost extends ChangeNotifier {
   ProviderContainer _create(AppEnvironment environment) => ProviderContainer(
     overrides: [
       ..._overrides,
+      networkLogStoreProvider.overrideWithValue(networkLog),
       launchEnvironmentProvider.overrideWithValue(environment),
       serverRestartProvider.overrideWithValue(restartOn),
     ],
@@ -47,6 +53,7 @@ class AppContainerHost extends ChangeNotifier {
   @override
   void dispose() {
     _container.dispose();
+    networkLog.dispose();
     super.dispose();
   }
 }

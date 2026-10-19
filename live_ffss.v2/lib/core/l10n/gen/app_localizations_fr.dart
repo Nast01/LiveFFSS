@@ -1207,4 +1207,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get serverSwitchConfirm => 'Changer de serveur';
+
+  @override
+  String get networkLogTitle => 'Journal réseau';
+
+  @override
+  String get networkLogErrorsOnly => 'Erreurs seulement';
+
+  @override
+  String get networkLogClear => 'Effacer';
+
+  @override
+  String get networkLogEmpty => 'Aucune requête enregistrée';
+
+  @override
+  String get networkLogEmptyErrors => 'Aucune requête en erreur';
+
+  @override
+  String get networkLogNoStatus => 'sans réponse';
 }

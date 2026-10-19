@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:live_ffss_v2/core/config/app_config.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
+import 'package:live_ffss_v2/core/network/network_log.dart';
 import 'package:live_ffss_v2/core/network/token_storage.dart';
 
 class HttpClient {
@@ -13,7 +14,10 @@ class HttpClient {
     required TokenStorage tokenStorage,
     http.Client? inner,
     Duration requestTimeout = defaultRequestTimeout,
-  }) : _config = config,
+    this.onRequest,
+    DateTime Function() clock = DateTime.now,
+  }) : _clock = clock,
+       _config = config,
        _tokenStorage = tokenStorage,
        _inner = inner ?? http.Client(),
        _requestTimeout = requestTimeout;
@@ -25,6 +29,12 @@ class HttpClient {
   final TokenStorage _tokenStorage;
   final http.Client _inner;
   final Duration _requestTimeout;
+  final DateTime Function() _clock;
+
+  /// Appelé après chaque requête, réussie ou non. Il ne reçoit jamais l'adresse
+  /// complète, le jeton, le corps ni le formulaire : seulement de quoi dire
+  /// « quoi, où, combien de temps, avec quel résultat ».
+  final void Function(NetworkLogEntry entry)? onRequest;
 
   Future<void> Function()? _onAuthFailure;
 
@@ -95,6 +105,56 @@ class HttpClient {
     Object? body,
     String contentType = _jsonContentType,
   }) async {
+    final at = _clock();
+    final watch = Stopwatch()..start();
+    final seen = _Seen();
+    String? error;
+    try {
+      return await _attempt(
+        path: path,
+        send: send,
+        query: query,
+        contentType: contentType,
+        seen: seen,
+      );
+    } on AppException catch (e) {
+      error = e.runtimeType.toString();
+      rethrow;
+    } finally {
+      onRequest?.call(
+        NetworkLogEntry(
+          at: at,
+          method: method,
+          path: _loggedPath(path),
+          status: seen.status,
+          duration: watch.elapsed,
+          bytes: seen.bytes,
+          error: error,
+          server: _config.environment.label,
+        ),
+      );
+    }
+  }
+
+  /// Le chemin résolu (version de l'API comprise), jamais sa chaîne de
+  /// requête : un appelant qui l'aurait collée au chemin ne la verrait pas
+  /// dans le journal.
+  String _loggedPath(String path) {
+    final bare = path.split('?').first;
+    return '/${_trimSlashes(_config.apiVersion)}/${_trimSlashes(bare)}';
+  }
+
+  Future<Map<String, dynamic>> _attempt({
+    required String path,
+    required Future<http.Response> Function(
+      Uri uri,
+      Map<String, String> headers,
+    )
+    send,
+    required _Seen seen,
+    Map<String, dynamic>? query,
+    String contentType = _jsonContentType,
+  }) async {
     try {
       final token = await _tokenStorage.getToken();
       final uri = _buildUri(path, query, token);
@@ -105,6 +165,9 @@ class HttpClient {
         uri,
         _buildHeaders(token, contentType),
       ).timeout(_requestTimeout);
+      seen
+        ..status = response.statusCode
+        ..bytes = response.bodyBytes.length;
       return _decode(
         response,
         authenticated: token != null && token.isNotEmpty,
@@ -297,4 +360,12 @@ class HttpClient {
     }
     return null;
   }
+}
+
+/// Ce qu'une requête a rapporté avant de réussir ou d'échouer, pour le
+/// journal : l'échec d'après la réponse (`ApiException`) a un statut, celui
+/// d'avant (hors ligne) n'en a pas.
+class _Seen {
+  int? status;
+  int? bytes;
 }

@@ -1957,6 +1957,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Changer de serveur'**
   String get serverSwitchConfirm;
+
+  /// No description provided for @networkLogTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Journal réseau'**
+  String get networkLogTitle;
+
+  /// No description provided for @networkLogErrorsOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreurs seulement'**
+  String get networkLogErrorsOnly;
+
+  /// No description provided for @networkLogClear.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer'**
+  String get networkLogClear;
+
+  /// No description provided for @networkLogEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune requête enregistrée'**
+  String get networkLogEmpty;
+
+  /// No description provided for @networkLogEmptyErrors.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune requête en erreur'**
+  String get networkLogEmptyErrors;
+
+  /// No description provided for @networkLogNoStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'sans réponse'**
+  String get networkLogNoStatus;
 }
 
 class _AppLocalizationsDelegate
