@@ -68,3 +68,11 @@ Constats faits sur de vraies réponses de la recette (`https://site.ffss.io/api/
 - **`competition/evenement/:id/officiels`** → liste d'officiels avec un niveau (`A`, `B`, `C`, parfois vide), un indicateur de juge principal, les jours où ils officient et leur club. Les champs personnels ne sont **pas lus** : l'app ne garde que nom, niveau, principal, jours et club.
 - **Aucun champ `forfait` sur la lecture des engagements**, contrairement à la doc : un forfait déclaré avant la course n'est lisible que par les places (statut, `complement`). Lot 6b.
 - **`evenement/:id` publie les contacts de l'organisateur** (téléphone, e-mail). L'app ne les lit pas et les DTO ne les déclarent pas.
+
+## Forfaits, vérifié le 2026-10-19 sur la recette 1416 (compte référent)
+
+- **`POST competition/engagement/:id/submit?forfait=1|0`** → « Engagement modifié » (essayé sur l'engagement 565147, puis remis dans son état). Paramètre dans l'adresse, sans corps.
+- **Le forfait n'est visible que sur la place** : `engagement.isForfait`. Aucune route ne donne la place d'un engagement ; il faut lire les places de la série.
+- **`place/:id/remplacant/submit` et `/delete`** → **404**, identique à celui d'une route inexistante : le remplacement d'un relayeur n'est pas faisable avant la course par cette voie.
+- **`resultat/:id/remplacant/submit`** refuse un résultat individuel (« Les remplacements ne sont autorisés que pour les relais »), et exige un résultat, qui n'existe qu'après publication.
+- **`resultat/:id/remplacant/available`** rend des licenciés avec e-mail, date de naissance et numéro de licence : **données personnelles**. L'app ne doit montrer que nom et club, et ne rien copier dans les fixtures.
