@@ -166,11 +166,18 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count saisies attendent d\'être envoyées',
-      one: '1 saisie attend d\'être envoyée',
+      other: '$count saisies n\'ont pas été envoyées',
+      one: '1 saisie n\'a pas été envoyée',
     );
-    return '$_temp0. Elles resteront en file et partiront à votre prochaine connexion avec ce compte.';
+    return '$_temp0. Gardées, elles restent sur le téléphone jusqu\'à votre prochaine connexion avec ce compte. Abandonnées, elles sont effacées et ne partiront jamais.';
   }
+
+  @override
+  String get logOutDiscard => 'Abandonner les saisies et se déconnecter';
+
+  @override
+  String get logOutDiscardFailed =>
+      'Les saisies n\'ont pas pu être effacées du téléphone : vous restez connecté. Réessayez.';
 
   @override
   String get cancel => 'Annuler';

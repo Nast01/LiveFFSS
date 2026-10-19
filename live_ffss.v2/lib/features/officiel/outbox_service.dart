@@ -114,6 +114,21 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
     await _persist();
   }
 
+  /// Abandonne les saisies non envoyées (en attente ou refusées) du compte
+  /// [account], à sa déconnexion : elles ne partiront jamais. Celles des
+  /// autres comptes et les envoyées restent. Refusé (une [AppException]) tant
+  /// que la file enregistrée n'a pas été relue : elles y reviendraient.
+  Future<void> discardAccount(String account) async {
+    await _requireLoaded();
+    if (!ref.mounted) return;
+    state = [
+      for (final op in state)
+        if (op.state == OutboxState.sent || !isSameAccount(op.account, account))
+          op,
+    ];
+    await _persist();
+  }
+
   /// Remet en attente une opération refusée, avec un compte d'échecs neuf,
   /// et relance l'envoi. Lève une [AppException] si la file ne peut être
   /// relue ou enregistrée.

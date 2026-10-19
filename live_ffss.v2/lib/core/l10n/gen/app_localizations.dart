@@ -389,8 +389,20 @@ abstract class AppLocalizations {
   /// No description provided for @logOutConfirmBody.
   ///
   /// In fr, this message translates to:
-  /// **'{count, plural, one{1 saisie attend d\'être envoyée} other{{count} saisies attendent d\'être envoyées}}. Elles resteront en file et partiront à votre prochaine connexion avec ce compte.'**
+  /// **'{count, plural, one{1 saisie n\'a pas été envoyée} other{{count} saisies n\'ont pas été envoyées}}. Gardées, elles restent sur le téléphone jusqu\'à votre prochaine connexion avec ce compte. Abandonnées, elles sont effacées et ne partiront jamais.'**
   String logOutConfirmBody(int count);
+
+  /// No description provided for @logOutDiscard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Abandonner les saisies et se déconnecter'**
+  String get logOutDiscard;
+
+  /// No description provided for @logOutDiscardFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les saisies n\'ont pas pu être effacées du téléphone : vous restez connecté. Réessayez.'**
+  String get logOutDiscardFailed;
 
   /// No description provided for @cancel.
   ///

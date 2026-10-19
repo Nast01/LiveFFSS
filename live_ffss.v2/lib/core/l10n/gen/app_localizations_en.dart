@@ -165,11 +165,18 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count entries are waiting to be sent',
-      one: '1 entry is waiting to be sent',
+      other: '$count entries have not been sent',
+      one: '1 entry has not been sent',
     );
-    return '$_temp0. They stay queued and are sent when you next sign in with this account.';
+    return '$_temp0. Kept, they stay on this phone until you next sign in with this account. Abandoned, they are deleted and will never be sent.';
   }
+
+  @override
+  String get logOutDiscard => 'Abandon entries and sign out';
+
+  @override
+  String get logOutDiscardFailed =>
+      'The entries could not be deleted from this phone: you are still signed in. Try again.';
 
   @override
   String get cancel => 'Cancel';

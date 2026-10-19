@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/notifications/reminder_scheduler.dart';
 import 'package:live_ffss_v2/core/providers.dart';
@@ -315,12 +316,27 @@ class _AccountCard extends ConsumerWidget {
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     final queue = ref.read(outboxProvider);
     if (logoutNeedsConfirmation(queue, account)) {
-      final confirmed = await showDialog<bool>(
+      final choice = await showDialog<_LogoutChoice>(
         context: context,
         builder: (context) =>
-            _LogoutDialog(count: pendingOperationCount(queue, account)),
+            _LogoutDialog(count: unsentOperationCount(queue, account)),
       );
-      if (confirmed != true) return;
+      if (choice == null || !context.mounted) return;
+      if (choice == _LogoutChoice.discard) {
+        final l10n = AppLocalizations.of(context);
+        try {
+          await ref.read(outboxProvider.notifier).discardAccount(account.label);
+        } on AppException {
+          // Restées sur le téléphone, elles reviendraient à la reconnexion
+          // du compte : on ne le déconnecte pas sur un abandon à moitié fait.
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(l10n.logOutDiscardFailed)));
+          }
+          return;
+        }
+      }
     }
     await ref.read(sessionProvider.notifier).logout();
   }
@@ -359,6 +375,8 @@ class _AccountCard extends ConsumerWidget {
   }
 }
 
+enum _LogoutChoice { keep, discard }
+
 class _LogoutDialog extends StatelessWidget {
   const _LogoutDialog({required this.count});
 
@@ -372,11 +390,16 @@ class _LogoutDialog extends StatelessWidget {
       content: Text(l10n.logOutConfirmBody(count)),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => Navigator.of(context).pop(),
           child: Text(l10n.cancel),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
+          onPressed: () => Navigator.of(context).pop(_LogoutChoice.discard),
+          style: TextButton.styleFrom(foregroundColor: AppColors.red),
+          child: Text(l10n.logOutDiscard),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(_LogoutChoice.keep),
           child: Text(l10n.logOut),
         ),
       ],

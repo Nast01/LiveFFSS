@@ -51,18 +51,33 @@ void main() {
       expect(logoutNeedsConfirmation([op('a')], account), isTrue);
     });
 
-    test('ignores sent, rejected and other accounts', () {
+    test('true when the account has a rejected operation, which logging '
+        'out could abandon', () {
+      expect(
+        logoutNeedsConfirmation([
+          op('a', state: OutboxState.rejected),
+        ], account),
+        isTrue,
+      );
+    });
+
+    test('ignores sent operations and other accounts', () {
       final queue = [
         op('a', state: OutboxState.sent),
-        op('b', state: OutboxState.rejected),
         op('c', account: 'MARTIN Paul'),
+        op('d', account: 'MARTIN Paul', state: OutboxState.rejected),
       ];
       expect(logoutNeedsConfirmation(queue, account), isFalse);
     });
 
-    test('matches the account name loosely and counts operations', () {
-      final queue = [op('a', account: ' dupont jean '), op('b')];
-      expect(pendingOperationCount(queue, account), 2);
+    test('matches the account name loosely and counts unsent operations', () {
+      final queue = [
+        op('a', account: ' dupont jean '),
+        op('b'),
+        op('c', state: OutboxState.rejected),
+        op('d', state: OutboxState.sent),
+      ];
+      expect(unsentOperationCount(queue, account), 3);
     });
   });
 
