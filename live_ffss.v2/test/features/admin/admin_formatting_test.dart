@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/network/network_log.dart';
 import 'package:live_ffss_v2/domain/event_ranking.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
@@ -6,7 +8,9 @@ import 'package:live_ffss_v2/domain/gender.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
+import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/features/admin/admin_formatting.dart';
+import 'package:live_ffss_v2/features/admin/data_check_providers.dart';
 import 'package:live_ffss_v2/features/my_space/official_space_providers.dart';
 
 NetworkLogEntry _entry(String path, {String? error}) => NetworkLogEntry(
@@ -127,6 +131,94 @@ void main() {
       expect(clubIdOf(clubs, 'TOULON'), 15);
       expect(clubIdOf(clubs, ' ANTIBES'), 16);
       expect(clubIdOf(clubs, 'NICE'), isNull);
+    });
+  });
+
+  group('contrôle des données', () {
+    final fr = lookupAppLocalizations(const Locale('fr'));
+    final en = lookupAppLocalizations(const Locale('en'));
+    const item = MeetingItem(id: 10, name: 'Créneau 177');
+    const heat = Heat(
+      id: 479,
+      name: 'Série 1',
+      number: 1,
+      status: RunStatus.finished,
+      raceName: '200m Obstacles',
+      gender: Gender.female,
+    );
+    DataIssue issue(
+      DataIssueKind kind, {
+      CompetitionEvent? event,
+      bool onHeat = false,
+      String where = '',
+      int count = 1,
+    }) => (
+      kind: kind,
+      event: event,
+      heat: onHeat ? (item: item, heat: heat) : null,
+      where: where,
+      count: count,
+    );
+
+    test('groupées par sorte, dans l\'ordre', () {
+      final a = issue(DataIssueKind.orphanSeries, where: 'a');
+      final b = issue(DataIssueKind.orphanSeries, where: 'b');
+      final c = issue(DataIssueKind.status3, onHeat: true);
+      final groups = groupDataIssues([c, a, b]);
+      expect(
+        [for (final g in groups) g.kind],
+        [DataIssueKind.orphanSeries, DataIssueKind.status3],
+      );
+      expect(
+        [for (final g in groups) g.issues],
+        [
+          [a, b],
+          [c],
+        ],
+      );
+      expect(groupDataIssues(const []), isEmpty);
+    });
+
+    test('où : épreuve, série d\'épreuve ; course ; compte', () {
+      expect(
+        dataIssueWhere(
+          issue(DataIssueKind.orphanSeries, event: _event(3), where: 'Série 8'),
+          fr,
+        ),
+        'Épreuve 3 · Dames · Cadet · Série 8',
+      );
+      expect(
+        dataIssueWhere(
+          issue(DataIssueKind.status3, onHeat: true, count: 2),
+          fr,
+        ),
+        '200m Obstacles · Dames · Série 1 · 2 résultats',
+      );
+      expect(
+        dataIssueWhere(issue(DataIssueKind.unreadablePlaces, onHeat: true), fr),
+        '200m Obstacles · Dames · Série 1 · 1 place',
+      );
+      expect(
+        dataIssueWhere(issue(DataIssueKind.raceWithoutTime, onHeat: true), fr),
+        '200m Obstacles · Dames · Série 1',
+      );
+      expect(dataIssueWhere(issue(DataIssueKind.rolesFailed), fr), '');
+    });
+
+    test('chaque sorte a un titre et une conséquence, en français et en '
+        'anglais', () {
+      for (final l10n in [fr, en]) {
+        final titles = {
+          for (final kind in DataIssueKind.values) dataIssueTitle(kind, l10n),
+        };
+        final consequences = {
+          for (final kind in DataIssueKind.values)
+            dataIssueConsequence(kind, l10n),
+        };
+        expect(titles, hasLength(DataIssueKind.values.length));
+        expect(consequences, hasLength(DataIssueKind.values.length));
+        expect(titles.every((t) => t.isNotEmpty), isTrue);
+      }
     });
   });
 }

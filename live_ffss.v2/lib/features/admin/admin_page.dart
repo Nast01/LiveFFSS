@@ -74,11 +74,12 @@ class _AdminContent extends ConsumerWidget {
                   onTap: () =>
                       context.go(Routes.adminDecisions(competition.id)),
                 ),
-                // Rempli par le contrôle des données (lot 8, tâche 5).
                 MySpaceRow(
                   icon: Icons.fact_check_outlined,
                   title: l10n.adminDataCheck,
-                  subtitle: l10n.adminComingSoon,
+                  subtitle: l10n.adminDataCheckSubtitle,
+                  onTap: () =>
+                      context.go(Routes.adminDataCheck(competition.id)),
                 ),
               ],
             ),

@@ -2083,6 +2083,180 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Forfaits déclarés du club'**
   String get adminClubForfeits;
+
+  /// No description provided for @adminDataCheckSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les épreuves, séries et places relues : plusieurs centaines de requêtes'**
+  String get adminDataCheckSubtitle;
+
+  /// No description provided for @dataCheckNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune anomalie trouvée.'**
+  String get dataCheckNone;
+
+  /// No description provided for @dataCheckError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de faire le contrôle.'**
+  String get dataCheckError;
+
+  /// No description provided for @dataCheckOrphanSeries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Séries orphelines'**
+  String get dataCheckOrphanSeries;
+
+  /// No description provided for @dataCheckOrphanSeriesConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune course du programme ne leur correspond : absentes des résultats de l\'app.'**
+  String get dataCheckOrphanSeriesConsequence;
+
+  /// No description provided for @dataCheckNoSpeciality.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épreuves sans spécialité'**
+  String get dataCheckNoSpeciality;
+
+  /// No description provided for @dataCheckNoSpecialityConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquées partout dans l\'app.'**
+  String get dataCheckNoSpecialityConsequence;
+
+  /// No description provided for @dataCheckStatus3.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats au statut 3'**
+  String get dataCheckStatus3;
+
+  /// No description provided for @dataCheckStatus3Consequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valeur de repli du site quand l\'envoi n\'a pas donné de statut : ni temps, ni décision montrés.'**
+  String get dataCheckStatus3Consequence;
+
+  /// No description provided for @dataCheckNoResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Séries terminées sans résultat publié'**
+  String get dataCheckNoResult;
+
+  /// No description provided for @dataCheckNoResultConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Places sans temps ni classement dans l\'app, et proposées à la saisie.'**
+  String get dataCheckNoResultConsequence;
+
+  /// No description provided for @dataCheckNoTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courses sans horaire'**
+  String get dataCheckNoTime;
+
+  /// No description provided for @dataCheckNoTimeConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans heure au programme ni rappel ; leurs séries ne se rattachent que par le numéro.'**
+  String get dataCheckNoTimeConsequence;
+
+  /// No description provided for @dataCheckUnreadPlaces.
+  ///
+  /// In fr, this message translates to:
+  /// **'Places non lues'**
+  String get dataCheckUnreadPlaces;
+
+  /// No description provided for @dataCheckUnreadPlacesConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Couloirs en attente dans le détail du créneau et le Live (échec réseau ou réponse illisible).'**
+  String get dataCheckUnreadPlacesConsequence;
+
+  /// No description provided for @dataCheckRolesFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rôles non lus'**
+  String get dataCheckRolesFailed;
+
+  /// No description provided for @dataCheckRolesFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les droits du compte sur la compétition sont inconnus : Mon espace n\'en montre aucun.'**
+  String get dataCheckRolesFailedConsequence;
+
+  /// No description provided for @dataCheckParticipantsFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Participants non lus'**
+  String get dataCheckParticipantsFailed;
+
+  /// No description provided for @dataCheckParticipantsFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recherche d\'athlète, fiches et clubs indisponibles.'**
+  String get dataCheckParticipantsFailedConsequence;
+
+  /// No description provided for @dataCheckEventsFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épreuves non lues'**
+  String get dataCheckEventsFailed;
+
+  /// No description provided for @dataCheckEventsFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épreuves et séries non contrôlées.'**
+  String get dataCheckEventsFailedConsequence;
+
+  /// No description provided for @dataCheckProgrammeFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programme non lu'**
+  String get dataCheckProgrammeFailed;
+
+  /// No description provided for @dataCheckProgrammeFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rattachement des séries, courses et places non contrôlés.'**
+  String get dataCheckProgrammeFailedConsequence;
+
+  /// No description provided for @dataCheckSeriesFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Séries d\'épreuve non lues'**
+  String get dataCheckSeriesFailed;
+
+  /// No description provided for @dataCheckSeriesFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rattachement des séries de ces épreuves non contrôlé.'**
+  String get dataCheckSeriesFailedConsequence;
+
+  /// No description provided for @dataCheckResultsFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats de série non lus'**
+  String get dataCheckResultsFailed;
+
+  /// No description provided for @dataCheckResultsFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statut 3 et publication de ces séries non contrôlés.'**
+  String get dataCheckResultsFailedConsequence;
+
+  /// No description provided for @dataCheckResultsCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 résultat} other{{count} résultats}}'**
+  String dataCheckResultsCount(int count);
+
+  /// No description provided for @dataCheckPlacesCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 place} other{{count} places}}'**
+  String dataCheckPlacesCount(int count);
 }
 
 class _AppLocalizationsDelegate

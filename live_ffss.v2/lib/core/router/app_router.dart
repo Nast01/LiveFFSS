@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/features/admin/admin_clubs_page.dart';
 import 'package:live_ffss_v2/features/admin/admin_decisions_page.dart';
 import 'package:live_ffss_v2/features/admin/admin_page.dart';
+import 'package:live_ffss_v2/features/admin/data_check_page.dart';
 import 'package:live_ffss_v2/features/admin/network_log_page.dart';
 import 'package:live_ffss_v2/features/admin/widgets/admin_gate.dart';
 import 'package:live_ffss_v2/features/home/all_competitions_page.dart';
@@ -105,6 +106,8 @@ abstract final class Routes {
       '$admin/competition/$competitionId/dq-forfaits';
   static String adminClubs(int competitionId) =>
       '$admin/competition/$competitionId/clubs';
+  static String adminDataCheck(int competitionId) =>
+      '$admin/competition/$competitionId/controle';
 }
 
 int? _competitionIdOf(Map<String, String> pathParameters) =>
@@ -391,6 +394,7 @@ final _mySpaceRoutes = [
       ),
       _adminRoute('dq-forfaits', (id) => AdminDecisionsPage(competitionId: id)),
       _adminRoute('clubs', (id) => AdminClubsPage(competitionId: id)),
+      _adminRoute('controle', (id) => DataCheckPage(competitionId: id)),
     ],
   ),
   GoRoute(

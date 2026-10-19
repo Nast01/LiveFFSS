@@ -1265,4 +1265,120 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminClubForfeits => 'Club\'s declared forfeits';
+
+  @override
+  String get adminDataCheckSubtitle =>
+      'Every event, series and lane read again: several hundred requests';
+
+  @override
+  String get dataCheckNone => 'No issue found.';
+
+  @override
+  String get dataCheckError => 'Could not run the check.';
+
+  @override
+  String get dataCheckOrphanSeries => 'Orphan series';
+
+  @override
+  String get dataCheckOrphanSeriesConsequence =>
+      'No race in the programme matches them: missing from the app\'s results.';
+
+  @override
+  String get dataCheckNoSpeciality => 'Events without a speciality';
+
+  @override
+  String get dataCheckNoSpecialityConsequence =>
+      'Hidden everywhere in the app.';
+
+  @override
+  String get dataCheckStatus3 => 'Results with status 3';
+
+  @override
+  String get dataCheckStatus3Consequence =>
+      'The site\'s fallback when a submission gave no status: neither time nor decision shown.';
+
+  @override
+  String get dataCheckNoResult => 'Finished series without a published result';
+
+  @override
+  String get dataCheckNoResultConsequence =>
+      'Lanes without time or rank in the app, and offered for entry.';
+
+  @override
+  String get dataCheckNoTime => 'Races without a time';
+
+  @override
+  String get dataCheckNoTimeConsequence =>
+      'No time in the programme and no reminder; their series are linked by number only.';
+
+  @override
+  String get dataCheckUnreadPlaces => 'Unread lanes';
+
+  @override
+  String get dataCheckUnreadPlacesConsequence =>
+      'Lanes pending in the slot detail and in Live (network failure or unreadable response).';
+
+  @override
+  String get dataCheckRolesFailed => 'Roles not read';
+
+  @override
+  String get dataCheckRolesFailedConsequence =>
+      'The account\'s rights on the competition are unknown: My space shows none.';
+
+  @override
+  String get dataCheckParticipantsFailed => 'Participants not read';
+
+  @override
+  String get dataCheckParticipantsFailedConsequence =>
+      'Athlete search, athlete cards and clubs unavailable.';
+
+  @override
+  String get dataCheckEventsFailed => 'Events not read';
+
+  @override
+  String get dataCheckEventsFailedConsequence =>
+      'Events and series not checked.';
+
+  @override
+  String get dataCheckProgrammeFailed => 'Programme not read';
+
+  @override
+  String get dataCheckProgrammeFailedConsequence =>
+      'Series links, races and lanes not checked.';
+
+  @override
+  String get dataCheckSeriesFailed => 'Event series not read';
+
+  @override
+  String get dataCheckSeriesFailedConsequence =>
+      'Series links of these events not checked.';
+
+  @override
+  String get dataCheckResultsFailed => 'Series results not read';
+
+  @override
+  String get dataCheckResultsFailedConsequence =>
+      'Status 3 and publication of these series not checked.';
+
+  @override
+  String dataCheckResultsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count results',
+      one: '1 result',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataCheckPlacesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lanes',
+      one: '1 lane',
+    );
+    return '$_temp0';
+  }
 }

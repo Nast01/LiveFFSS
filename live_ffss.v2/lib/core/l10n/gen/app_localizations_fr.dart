@@ -1273,4 +1273,120 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get adminClubForfeits => 'Forfaits déclarés du club';
+
+  @override
+  String get adminDataCheckSubtitle =>
+      'Toutes les épreuves, séries et places relues : plusieurs centaines de requêtes';
+
+  @override
+  String get dataCheckNone => 'Aucune anomalie trouvée.';
+
+  @override
+  String get dataCheckError => 'Impossible de faire le contrôle.';
+
+  @override
+  String get dataCheckOrphanSeries => 'Séries orphelines';
+
+  @override
+  String get dataCheckOrphanSeriesConsequence =>
+      'Aucune course du programme ne leur correspond : absentes des résultats de l\'app.';
+
+  @override
+  String get dataCheckNoSpeciality => 'Épreuves sans spécialité';
+
+  @override
+  String get dataCheckNoSpecialityConsequence =>
+      'Masquées partout dans l\'app.';
+
+  @override
+  String get dataCheckStatus3 => 'Résultats au statut 3';
+
+  @override
+  String get dataCheckStatus3Consequence =>
+      'Valeur de repli du site quand l\'envoi n\'a pas donné de statut : ni temps, ni décision montrés.';
+
+  @override
+  String get dataCheckNoResult => 'Séries terminées sans résultat publié';
+
+  @override
+  String get dataCheckNoResultConsequence =>
+      'Places sans temps ni classement dans l\'app, et proposées à la saisie.';
+
+  @override
+  String get dataCheckNoTime => 'Courses sans horaire';
+
+  @override
+  String get dataCheckNoTimeConsequence =>
+      'Sans heure au programme ni rappel ; leurs séries ne se rattachent que par le numéro.';
+
+  @override
+  String get dataCheckUnreadPlaces => 'Places non lues';
+
+  @override
+  String get dataCheckUnreadPlacesConsequence =>
+      'Couloirs en attente dans le détail du créneau et le Live (échec réseau ou réponse illisible).';
+
+  @override
+  String get dataCheckRolesFailed => 'Rôles non lus';
+
+  @override
+  String get dataCheckRolesFailedConsequence =>
+      'Les droits du compte sur la compétition sont inconnus : Mon espace n\'en montre aucun.';
+
+  @override
+  String get dataCheckParticipantsFailed => 'Participants non lus';
+
+  @override
+  String get dataCheckParticipantsFailedConsequence =>
+      'Recherche d\'athlète, fiches et clubs indisponibles.';
+
+  @override
+  String get dataCheckEventsFailed => 'Épreuves non lues';
+
+  @override
+  String get dataCheckEventsFailedConsequence =>
+      'Épreuves et séries non contrôlées.';
+
+  @override
+  String get dataCheckProgrammeFailed => 'Programme non lu';
+
+  @override
+  String get dataCheckProgrammeFailedConsequence =>
+      'Rattachement des séries, courses et places non contrôlés.';
+
+  @override
+  String get dataCheckSeriesFailed => 'Séries d\'épreuve non lues';
+
+  @override
+  String get dataCheckSeriesFailedConsequence =>
+      'Rattachement des séries de ces épreuves non contrôlé.';
+
+  @override
+  String get dataCheckResultsFailed => 'Résultats de série non lus';
+
+  @override
+  String get dataCheckResultsFailedConsequence =>
+      'Statut 3 et publication de ces séries non contrôlés.';
+
+  @override
+  String dataCheckResultsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count résultats',
+      one: '1 résultat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataCheckPlacesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count places',
+      one: '1 place',
+    );
+    return '$_temp0';
+  }
 }
