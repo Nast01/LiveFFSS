@@ -50,6 +50,49 @@ abstract interface class ReminderScheduler {
   Future<void> replaceAll(List<Reminder> reminders);
 
   Future<void> cancelAll();
+
+  /// Montre [reminder] tout de suite, sans toucher aux rappels planifiés
+  /// (notification de test de l'espace admin).
+  Future<void> show(Reminder reminder);
+}
+
+/// Les appels au planificateur venus d'un conteneur. Avant un remontage,
+/// [close] les arrête et attend ceux en vol : un `replaceAll` de l'ancienne
+/// app fini après l'annulation des rappels replanifierait ceux de l'autre
+/// serveur, et un `cancelAll` fini après le premier `replaceAll` de la
+/// nouvelle effacerait les siens.
+class ReminderPlanning {
+  bool _closed = false;
+  final Set<Future<void>> _inFlight = {};
+
+  /// Faux, rien n'est planifié : le conteneur va être remplacé.
+  Future<bool> replaceAll(
+    ReminderScheduler scheduler,
+    List<Reminder> reminders,
+  ) => _run(() => scheduler.replaceAll(reminders));
+
+  /// Faux, rien n'est annulé : le conteneur va être remplacé.
+  Future<bool> cancelAll(ReminderScheduler scheduler) =>
+      _run(scheduler.cancelAll);
+
+  Future<bool> _run(Future<void> Function() call) async {
+    if (_closed) return false;
+    final running = call();
+    final settled = running.then<void>((_) {}, onError: (Object _) {});
+    _inFlight.add(settled);
+    try {
+      await running;
+    } finally {
+      _inFlight.remove(settled);
+    }
+    return true;
+  }
+
+  /// Plus rien ne part ; se termine quand ce qui était en vol a fini.
+  Future<void> close() async {
+    _closed = true;
+    await Future.wait([..._inFlight]);
+  }
 }
 
 /// Ailleurs qu'Android (web, tests), aucun rappel : rien n'est demandé ni
@@ -68,6 +111,9 @@ class NoReminderScheduler implements ReminderScheduler {
 
   @override
   Future<void> cancelAll() async {}
+
+  @override
+  Future<void> show(Reminder reminder) async {}
 }
 
 /// Les rappels Android, par `flutter_local_notifications`. Alarmes inexactes :
@@ -115,14 +161,7 @@ class LocalNotificationsScheduler implements ReminderScheduler {
   Future<void> replaceAll(List<Reminder> reminders) => _guard(() async {
     await _init();
     await _plugin.cancelAllPendingNotifications();
-    final details = NotificationDetails(
-      android: AndroidNotificationDetails(
-        _channelId,
-        channelName,
-        importance: Importance.high,
-        priority: Priority.high,
-      ),
-    );
+    final details = _details;
     final now = DateTime.now();
     for (final reminder in reminders) {
       // Passé entre le calcul et ici, le plugin lèverait.
@@ -145,6 +184,28 @@ class LocalNotificationsScheduler implements ReminderScheduler {
     await _init();
     await _plugin.cancelAllPendingNotifications();
   });
+
+  @override
+  Future<void> show(Reminder reminder) => _guard(() async {
+    await _init();
+    await _plugin.show(
+      id: reminder.id,
+      title: reminder.title,
+      body: reminder.body,
+      notificationDetails: _details,
+    );
+  });
+
+  /// Le canal des rappels : la notification de test passe par le même, pour
+  /// vérifier ce que l'utilisateur en a permis.
+  NotificationDetails get _details => NotificationDetails(
+    android: AndroidNotificationDetails(
+      _channelId,
+      channelName,
+      importance: Importance.high,
+      priority: Priority.high,
+    ),
+  );
 
   /// La plateforme lève des `PlatformException`, que les appelants n'attrapent
   /// pas : traduites en [AppException], la seule qu'ils attrapent.

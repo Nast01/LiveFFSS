@@ -1,14 +1,17 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss_v2/core/app_host.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/notifications/reminder_scheduler.dart';
 import 'package:live_ffss_v2/core/providers.dart';
+import 'package:live_ffss_v2/core/storage/local_store.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/deroulement_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/epreuve_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/reunion_dto.dart';
@@ -34,6 +37,7 @@ import 'package:live_ffss_v2/features/reminders/reminders_formatting.dart';
 import 'package:live_ffss_v2/features/reminders/reminders_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
 import 'package:live_ffss_v2/features/settings/reminder_lead.dart';
+import 'package:live_ffss_v2/features/settings/server_switch.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
 import 'package:live_ffss_v2/features/shell/space_competition.dart';
 import 'package:mocktail/mocktail.dart';
@@ -56,6 +60,12 @@ class _FakeScheduler implements ReminderScheduler {
   int cancels = 0;
   final List<List<Reminder>> replaced = [];
 
+  /// Ce que le planificateur a fait, dans l'ordre.
+  final List<String> calls = [];
+
+  /// Retient `replaceAll` tant qu'il n'est pas complété.
+  Completer<void>? replaceGate;
+
   @override
   Future<bool> isPermitted() async => permitted;
 
@@ -67,11 +77,21 @@ class _FakeScheduler implements ReminderScheduler {
   }
 
   @override
-  Future<void> replaceAll(List<Reminder> reminders) async =>
-      replaced.add(reminders);
+  Future<void> replaceAll(List<Reminder> reminders) async {
+    calls.add('replaceAll');
+    await replaceGate?.future;
+    replaced.add(reminders);
+    calls.add('replaced');
+  }
 
   @override
-  Future<void> cancelAll() async => cancels++;
+  Future<void> cancelAll() async {
+    cancels++;
+    calls.add('cancelAll');
+  }
+
+  @override
+  Future<void> show(Reminder reminder) async {}
 }
 
 class _FailingStore extends InMemoryLocalStore {
@@ -599,26 +619,28 @@ void main() {
       when(() => meetings.getProgramme(any())).thenAnswer((_) async => waiting);
     });
 
+    List<Override> overrides({List<Override> extra = const []}) => [
+      localStoreProvider.overrideWithValue(store),
+      reminderSchedulerProvider.overrideWithValue(scheduler),
+      resultsRepositoryProvider.overrideWithValue(results),
+      meetingRepositoryProvider.overrideWithValue(meetings),
+      clockProvider.overrideWithValue(() => now),
+      sessionProvider.overrideWith(() => _FakeSession(account)),
+      spaceCompetitionProvider.overrideWith(
+        (ref, id) async => competition(
+          id,
+          start: DateTime(2026, 3, 27),
+          disciplines: coastal
+              ? const {Discipline.coastal}
+              : const {Discipline.flatWater},
+        ),
+      ),
+      ...extra,
+    ];
+
     ProviderContainer build({List<Override> extra = const []}) {
       final c = ProviderContainer(
-        overrides: [
-          localStoreProvider.overrideWithValue(store),
-          reminderSchedulerProvider.overrideWithValue(scheduler),
-          resultsRepositoryProvider.overrideWithValue(results),
-          meetingRepositoryProvider.overrideWithValue(meetings),
-          clockProvider.overrideWithValue(() => now),
-          sessionProvider.overrideWith(() => _FakeSession(account)),
-          spaceCompetitionProvider.overrideWith(
-            (ref, id) async => competition(
-              id,
-              start: DateTime(2026, 3, 27),
-              disciplines: coastal
-                  ? const {Discipline.coastal}
-                  : const {Discipline.flatWater},
-            ),
-          ),
-          ...extra,
-        ],
+        overrides: overrides(extra: extra),
         retry: noRetry,
       );
       addTearDown(c.dispose);
@@ -895,6 +917,53 @@ void main() {
       await container.read(remindersProvider(other.id).future);
 
       expect(scheduler.cancels, 1);
+    });
+
+    test('changement de serveur : annulés, puis replanifiés par la nouvelle '
+        'app', () async {
+      final host = AppContainerHost(
+        environment: AppEnvironment.development,
+        overrides: overrides(
+          extra: [globalStoreProvider.overrideWithValue(GlobalStore(store))],
+        ),
+      );
+      addTearDown(host.dispose);
+      await plan(host.container);
+      expect(scheduler.replaced, hasLength(1));
+
+      await switchServer(host.container, AppEnvironment.production);
+      expect(scheduler.cancels, 1);
+      await plan(host.container);
+
+      // Même compétition, mêmes suivis : la nouvelle app les replanifie.
+      expect(scheduler.replaced, hasLength(2));
+    });
+
+    test("changement de serveur : une planification de l'ancienne app encore "
+        "en cours finit avant l'annulation, et aucune ne part après", () async {
+      final host = AppContainerHost(
+        environment: AppEnvironment.development,
+        overrides: overrides(
+          extra: [globalStoreProvider.overrideWithValue(GlobalStore(store))],
+        ),
+      );
+      addTearDown(host.dispose);
+      scheduler.replaceGate = Completer<void>();
+      host.container.listen(remindersProvider(1416), (_, _) {});
+      await pumpEventQueue();
+      // Une ou plusieurs, selon les relectures du lancement : toutes en vol.
+      expect(scheduler.calls.toSet(), {'replaceAll'});
+
+      final switching = switchServer(host.container, AppEnvironment.production);
+      await pumpEventQueue();
+      scheduler.replaceGate!.complete();
+      scheduler.replaceGate = null;
+      expect(await switching, isTrue);
+      await pumpEventQueue();
+
+      final cancelled = scheduler.calls.indexOf('cancelAll');
+      expect(cancelled, greaterThan(scheduler.calls.lastIndexOf('replaced')));
+      expect(scheduler.calls.sublist(cancelled), ['cancelAll']);
     });
   });
 }

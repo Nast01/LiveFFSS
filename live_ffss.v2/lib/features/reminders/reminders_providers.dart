@@ -48,6 +48,7 @@ class RemindersNotifier extends AsyncNotifier<List<Reminder>> {
   Future<List<Reminder>> _plan() async {
     // Tout ce qui sert de `ref` est pris avant la première attente.
     final scheduler = ref.watch(reminderSchedulerProvider);
+    final planning = ref.watch(reminderPlanningProvider);
     final now = ref.watch(clockProvider);
     // Les relectures du programme par un écran qui le suit, sans le garder
     // en vie pour les rappels seuls.
@@ -56,7 +57,7 @@ class RemindersNotifier extends AsyncNotifier<List<Reminder>> {
       ..ignore();
     final lead = await ref.watch(reminderLeadProvider.future);
     if (!ref.mounted) return const [];
-    if (lead == ReminderLead.off) return _apply(scheduler, const []);
+    if (lead == ReminderLead.off) return _apply(planning, scheduler, const []);
 
     // Ce que l'appareil garde d'abord : sans athlète, aucune lecture.
     final followsRead = ref.watch(followsProvider(competitionId).future);
@@ -73,14 +74,16 @@ class RemindersNotifier extends AsyncNotifier<List<Reminder>> {
       ?self,
       ...follows.athletes,
     ].where((athlete) => athlete.eventIds.isNotEmpty).toList();
-    if (athletes.isEmpty) return _apply(scheduler, const []);
+    if (athletes.isEmpty) return _apply(planning, scheduler, const []);
 
     final competition = await ref.watch(
       spaceCompetitionProvider(competitionId).future,
     );
     if (!ref.mounted) return const [];
     // Sans eau plate, pas d'heure de départ que l'app sache lire.
-    if (isCoastalOnly(competition)) return _apply(scheduler, const []);
+    if (isCoastalOnly(competition)) {
+      return _apply(planning, scheduler, const []);
+    }
 
     // Lues ensemble ; celles qu'on n'attend pas encore ne doivent pas
     // remonter leur échec comme non traité.
@@ -102,6 +105,7 @@ class RemindersNotifier extends AsyncNotifier<List<Reminder>> {
     if (!ref.mounted) return const [];
 
     return _apply(
+      planning,
       scheduler,
       remindersFor(
         upcomingRaces(athletes, events, programme, knownHeats: knownHeats),
@@ -116,7 +120,9 @@ class RemindersNotifier extends AsyncNotifier<List<Reminder>> {
   /// Le planificateur n'est appelé que si la liste a changé : une relecture
   /// identique du programme ne replanifie rien. Sans permission, rien n'est
   /// planifié ni demandé, et le réglage reste : la demande attend un geste.
+  /// Un remontage en cours ([ReminderPlanning.close]) : rien ne part.
   Future<List<Reminder>> _apply(
+    ReminderPlanning planning,
     ReminderScheduler scheduler,
     List<Reminder> reminders, {
     bool permitted = true,
@@ -126,12 +132,12 @@ class RemindersNotifier extends AsyncNotifier<List<Reminder>> {
       return reminders;
     }
     if (reminders.isEmpty) {
-      await scheduler.cancelAll();
+      if (!await planning.cancelAll(scheduler)) return const [];
     } else {
       if (!permitted) return const [];
       // Une lecture plus récente a pris la main : à elle de planifier.
       if (!ref.mounted) return const [];
-      await scheduler.replaceAll(reminders);
+      if (!await planning.replaceAll(scheduler, reminders)) return const [];
     }
     if (!ref.mounted) return reminders;
     _scheduled = reminders;

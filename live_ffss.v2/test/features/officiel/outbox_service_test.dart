@@ -1162,6 +1162,41 @@ void main() {
       });
     });
   });
+
+  group('loadedQueue', () {
+    const stored = OutboxOperation(
+      id: 'enregistree',
+      account: 'DUPONT Jean',
+      competitionId: 1416,
+      placeId: 11,
+      seriesId: 5,
+      entryId: 7,
+      change: ResultChange(chronos: [5000, null, null]),
+    );
+
+    test('attend la relecture de la file enregistrée', () async {
+      local.values[OutboxStore.storageKey] = OutboxStore.encode([stored]);
+      // Un autre compte : rien ne part pendant la lecture.
+      final c = container(account: _paul);
+      addTearDown(c.dispose);
+      expect(c.read(outboxProvider), isEmpty);
+
+      final queue = await c.read(outboxProvider.notifier).loadedQueue();
+
+      expect(queue.map((o) => o.id), ['enregistree']);
+    });
+
+    test('file illisible : une AppException', () async {
+      final flaky = _FlakyStore(local)..readFailures = 1;
+      final c = container(account: _paul, store: flaky);
+      addTearDown(c.dispose);
+
+      await expectLater(
+        c.read(outboxProvider.notifier).loadedQueue(),
+        throwsA(isA<AppException>()),
+      );
+    });
+  });
 }
 
 /// Un stockage qui échoue à la demande, comme le stockage sécurisé qui lève

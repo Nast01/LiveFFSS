@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/domain/competition_roles.dart';
@@ -84,7 +85,6 @@ void main() {
       );
       expect(mySpaceCardTitle(club, fr), 'Club · Les Dauphins');
       expect(mySpaceCardTitle(official, fr), 'Officiel');
-      expect(mySpaceCardTitle(const MySpaceCard.admin(), fr), 'Admin');
       expect(mySpaceCardTitle(club, en), 'Club · Les Dauphins');
     });
 
@@ -108,10 +108,6 @@ void main() {
         mySpaceCardSubtitle(const MySpaceCard.official(null), fr),
         'Saisies, séries à saisir',
       );
-      expect(
-        mySpaceCardSubtitle(const MySpaceCard.admin(), fr),
-        "L'espace de n'importe quel club",
-      );
     });
 
     test('chaque carte ouvre son espace, dans la branche Mon espace', () {
@@ -121,10 +117,16 @@ void main() {
       );
       expect(mySpaceCardRoute(club, 1416), Routes.mySpaceClub(1416, 15));
       expect(mySpaceCardRoute(official, 1416), Routes.mySpaceOfficial(1416));
-      // L'admin choisit son club dans la liste des clubs des infos.
+    });
+
+    test('la carte Admin dit le serveur courant', () {
       expect(
-        mySpaceCardRoute(const MySpaceCard.admin(), 1416),
-        Routes.mySpaceInfos(1416),
+        adminCardSubtitle(AppEnvironment.development, fr),
+        'Serveur : Recette',
+      );
+      expect(
+        adminCardSubtitle(AppEnvironment.production, en),
+        'Server: Production',
       );
     });
   });
@@ -381,6 +383,23 @@ void main() {
       );
     });
 
+    test("aucun espace, pour un admin : rien, la carte Admin au-dessus "
+        'suffit', () {
+      expect(
+        spacesView(
+          loading: false,
+          failed: false,
+          cards: const MySpaceCards(cards: []),
+          admin: true,
+        ),
+        const SpacesHidden(),
+      );
+      expect(
+        spacesView(loading: false, failed: false, cards: cards, admin: true),
+        const SpacesShown(cards),
+      );
+    });
+
     test('un premier chargement', () {
       expect(
         spacesView(loading: true, failed: false, cards: null),
@@ -449,13 +468,16 @@ void main() {
       expect(
         spaceAthlete(
           const MySpaceCards(
-            cards: [MySpaceCard.admin(), MySpaceCard.athlete(_participant)],
+            cards: [
+              MySpaceCard.official(null),
+              MySpaceCard.athlete(_participant),
+            ],
           ),
         ),
         _participant,
       );
       expect(
-        spaceAthlete(const MySpaceCards(cards: [MySpaceCard.admin()])),
+        spaceAthlete(const MySpaceCards(cards: [MySpaceCard.official(null)])),
         isNull,
       );
     });
@@ -487,7 +509,7 @@ void main() {
       );
       expect(
         athleteSpaceView(
-          const SpacesShown(MySpaceCards(cards: [MySpaceCard.admin()])),
+          const SpacesShown(MySpaceCards(cards: [MySpaceCard.official(null)])),
         ),
         (body: AthleteSpaceBody.notEntered, athlete: null),
       );

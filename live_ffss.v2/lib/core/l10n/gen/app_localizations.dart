@@ -1337,8 +1337,8 @@ abstract class AppLocalizations {
   /// No description provided for @mySpaceAdminSubtitle.
   ///
   /// In fr, this message translates to:
-  /// **'L\'espace de n\'importe quel club'**
-  String get mySpaceAdminSubtitle;
+  /// **'Serveur : {server}'**
+  String mySpaceAdminSubtitle(String server);
 
   /// No description provided for @mySpacePrincipalJudge.
   ///
@@ -1909,6 +1909,552 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{event} · prévu à {time}'**
   String reminderBody(String event, String time);
+
+  /// No description provided for @serverTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Serveur'**
+  String get serverTitle;
+
+  /// No description provided for @serverProduction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Production'**
+  String get serverProduction;
+
+  /// No description provided for @serverStaging.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recette'**
+  String get serverStaging;
+
+  /// No description provided for @serverBanner.
+  ///
+  /// In fr, this message translates to:
+  /// **'RECETTE'**
+  String get serverBanner;
+
+  /// No description provided for @serverSwitchTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer sur {server} ?'**
+  String serverSwitchTitle(String server);
+
+  /// No description provided for @serverSwitchBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'app repart de l\'onglet d\'ouverture sur ce serveur, avec le compte qui y est enregistré s\'il y en a un. Rien n\'est effacé : comptes, suivis et préférences de chaque serveur restent sur le téléphone.'**
+  String get serverSwitchBody;
+
+  /// No description provided for @serverSwitchUnsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 saisie n\'a pas été envoyée : elle reste sur le téléphone et partira au retour sur ce serveur.} other{{count} saisies n\'ont pas été envoyées : elles restent sur le téléphone et partiront au retour sur ce serveur.}}'**
+  String serverSwitchUnsent(int count);
+
+  /// No description provided for @serverSwitchConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer de serveur'**
+  String get serverSwitchConfirm;
+
+  /// No description provided for @remountWaiting.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une saisie est en cours d\'envoi : l\'app attend sa réponse…'**
+  String get remountWaiting;
+
+  /// No description provided for @remountBusy.
+  ///
+  /// In fr, this message translates to:
+  /// **'La saisie en cours d\'envoi n\'a pas répondu : rien n\'a changé. Réessayez dans un instant.'**
+  String get remountBusy;
+
+  /// No description provided for @networkLogTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Journal réseau'**
+  String get networkLogTitle;
+
+  /// No description provided for @networkLogErrorsOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreurs seulement'**
+  String get networkLogErrorsOnly;
+
+  /// No description provided for @networkLogClear.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer'**
+  String get networkLogClear;
+
+  /// No description provided for @networkLogEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune requête enregistrée'**
+  String get networkLogEmpty;
+
+  /// No description provided for @networkLogEmptyErrors.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune requête en erreur'**
+  String get networkLogEmptyErrors;
+
+  /// No description provided for @networkLogNoStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'sans réponse'**
+  String get networkLogNoStatus;
+
+  /// No description provided for @adminTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Espace admin'**
+  String get adminTitle;
+
+  /// No description provided for @adminServerHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'À changer dans les Préférences de Mon espace'**
+  String get adminServerHint;
+
+  /// No description provided for @adminCompetition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compétition active'**
+  String get adminCompetition;
+
+  /// No description provided for @adminDecisions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfaits et DQ de tous les clubs'**
+  String get adminDecisions;
+
+  /// No description provided for @adminOpenSpace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir un espace'**
+  String get adminOpenSpace;
+
+  /// No description provided for @adminClubsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'espace de n\'importe quel club'**
+  String get adminClubsSubtitle;
+
+  /// No description provided for @adminDiagnostic.
+  ///
+  /// In fr, this message translates to:
+  /// **'Diagnostic'**
+  String get adminDiagnostic;
+
+  /// No description provided for @adminDataCheck.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contrôle des données'**
+  String get adminDataCheck;
+
+  /// No description provided for @adminMaintenance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maintenance'**
+  String get adminMaintenance;
+
+  /// No description provided for @adminOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservé aux admins.'**
+  String get adminOnly;
+
+  /// No description provided for @adminRolesError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire vos droits sur cette compétition.'**
+  String get adminRolesError;
+
+  /// No description provided for @adminAllClubs.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les clubs'**
+  String get adminAllClubs;
+
+  /// No description provided for @adminAllEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les épreuves'**
+  String get adminAllEvents;
+
+  /// No description provided for @adminFilteredEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune DQ ni aucun forfait publié pour ce filtre.'**
+  String get adminFilteredEmpty;
+
+  /// No description provided for @adminClubForfeits.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfaits déclarés du club'**
+  String get adminClubForfeits;
+
+  /// No description provided for @adminDataCheckSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épreuves et leurs séries relues (une requête par épreuve) ; résultats et places à la demande'**
+  String get adminDataCheckSubtitle;
+
+  /// No description provided for @dataCheckNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune anomalie trouvée.'**
+  String get dataCheckNone;
+
+  /// No description provided for @dataCheckError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de faire le contrôle.'**
+  String get dataCheckError;
+
+  /// No description provided for @dataCheckOrphanSeries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Séries orphelines'**
+  String get dataCheckOrphanSeries;
+
+  /// No description provided for @dataCheckOrphanSeriesConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune course du programme ne leur correspond : absentes des résultats de l\'app.'**
+  String get dataCheckOrphanSeriesConsequence;
+
+  /// No description provided for @dataCheckNoSpeciality.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épreuves sans spécialité'**
+  String get dataCheckNoSpeciality;
+
+  /// No description provided for @dataCheckNoSpecialityConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquées partout dans l\'app.'**
+  String get dataCheckNoSpecialityConsequence;
+
+  /// No description provided for @dataCheckStatus3.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats au statut 3'**
+  String get dataCheckStatus3;
+
+  /// No description provided for @dataCheckStatus3Consequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valeur de repli du site quand l\'envoi n\'a pas donné de statut : ni temps, ni décision montrés.'**
+  String get dataCheckStatus3Consequence;
+
+  /// No description provided for @dataCheckNoResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Séries terminées sans résultat publié'**
+  String get dataCheckNoResult;
+
+  /// No description provided for @dataCheckNoResultConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Places sans temps ni classement dans l\'app, et proposées à la saisie.'**
+  String get dataCheckNoResultConsequence;
+
+  /// No description provided for @dataCheckNoTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courses sans horaire'**
+  String get dataCheckNoTime;
+
+  /// No description provided for @dataCheckNoTimeConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans heure au programme ni rappel ; leurs séries ne se rattachent que par le numéro.'**
+  String get dataCheckNoTimeConsequence;
+
+  /// No description provided for @dataCheckUnreadPlaces.
+  ///
+  /// In fr, this message translates to:
+  /// **'Places non lues'**
+  String get dataCheckUnreadPlaces;
+
+  /// No description provided for @dataCheckUnreadPlacesConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Couloirs en attente dans le détail du créneau et le Live (échec réseau ou réponse illisible).'**
+  String get dataCheckUnreadPlacesConsequence;
+
+  /// No description provided for @dataCheckRolesFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rôles non lus'**
+  String get dataCheckRolesFailed;
+
+  /// No description provided for @dataCheckRolesFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les droits du compte sur la compétition sont inconnus : Mon espace n\'en montre aucun.'**
+  String get dataCheckRolesFailedConsequence;
+
+  /// No description provided for @dataCheckParticipantsFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Participants non lus'**
+  String get dataCheckParticipantsFailed;
+
+  /// No description provided for @dataCheckParticipantsFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recherche d\'athlète, fiches et clubs indisponibles.'**
+  String get dataCheckParticipantsFailedConsequence;
+
+  /// No description provided for @dataCheckEventsFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épreuves non lues'**
+  String get dataCheckEventsFailed;
+
+  /// No description provided for @dataCheckEventsFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épreuves et séries non contrôlées.'**
+  String get dataCheckEventsFailedConsequence;
+
+  /// No description provided for @dataCheckProgrammeFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programme non lu'**
+  String get dataCheckProgrammeFailed;
+
+  /// No description provided for @dataCheckProgrammeFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rattachement des séries, courses et places non contrôlés.'**
+  String get dataCheckProgrammeFailedConsequence;
+
+  /// No description provided for @dataCheckSeriesFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Séries d\'épreuve non lues'**
+  String get dataCheckSeriesFailed;
+
+  /// No description provided for @dataCheckSeriesFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rattachement des séries de ces épreuves non contrôlé.'**
+  String get dataCheckSeriesFailedConsequence;
+
+  /// No description provided for @dataCheckResultsFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats de série non lus'**
+  String get dataCheckResultsFailed;
+
+  /// No description provided for @dataCheckResultsFailedConsequence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statut 3 et publication de ces séries non contrôlés.'**
+  String get dataCheckResultsFailedConsequence;
+
+  /// No description provided for @dataCheckResultsCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 résultat} other{{count} résultats}}'**
+  String dataCheckResultsCount(int count);
+
+  /// No description provided for @dataCheckPlacesCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 place} other{{count} places}}'**
+  String dataCheckPlacesCount(int count);
+
+  /// No description provided for @dataCheckSeriesCost.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Séries orphelines : aucune épreuve eau plate à lire.} one{Séries orphelines : 1 lecture des séries d\'épreuve, une par épreuve eau plate.} other{Séries orphelines : {count} lectures des séries d\'épreuve, une par épreuve eau plate.}}'**
+  String dataCheckSeriesCost(int count);
+
+  /// No description provided for @dataCheckOnDemand.
+  ///
+  /// In fr, this message translates to:
+  /// **'À la demande'**
+  String get dataCheckOnDemand;
+
+  /// No description provided for @dataCheckResultsAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier les résultats'**
+  String get dataCheckResultsAction;
+
+  /// No description provided for @dataCheckResultsCost.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucune course terminée} one{1 lecture, une par course terminée} other{{count} lectures, une par course terminée}}'**
+  String dataCheckResultsCost(int count);
+
+  /// No description provided for @dataCheckPlacesAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier les places'**
+  String get dataCheckPlacesAction;
+
+  /// No description provided for @dataCheckPlacesCost.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucune place} one{1 lecture, une par place : la plus longue} other{{count} lectures, une par place : la plus longue}}'**
+  String dataCheckPlacesCost(int count);
+
+  /// No description provided for @dataCheckStepRunning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture en cours…'**
+  String get dataCheckStepRunning;
+
+  /// No description provided for @dataCheckStepDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifié'**
+  String get dataCheckStepDone;
+
+  /// No description provided for @adminMaintenanceSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données locales, relecture, rappels, rapport'**
+  String get adminMaintenanceSubtitle;
+
+  /// No description provided for @maintenanceClearTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer les données locales'**
+  String get maintenanceClearTitle;
+
+  /// No description provided for @maintenanceClearSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivis, séries connues, athlète du compte, couloir suivi'**
+  String get maintenanceClearSubtitle;
+
+  /// No description provided for @maintenanceClearBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les suivis, les séries connues, l\'athlète du compte et le couloir suivi de cette compétition seront effacés de ce téléphone. Les saisies non envoyées et la session sont gardées.'**
+  String get maintenanceClearBody;
+
+  /// No description provided for @maintenanceClearConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer'**
+  String get maintenanceClearConfirm;
+
+  /// No description provided for @maintenanceCleared.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données locales effacées.'**
+  String get maintenanceCleared;
+
+  /// No description provided for @maintenanceClearFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Certaines données n\'ont pas pu être effacées.'**
+  String get maintenanceClearFailed;
+
+  /// No description provided for @maintenanceReloadTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forcer une relecture complète'**
+  String get maintenanceReloadTitle;
+
+  /// No description provided for @maintenanceReloadBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'app relit tout depuis le serveur et repart de l\'onglet d\'ouverture. Rien de ce qui est enregistré n\'est effacé.'**
+  String get maintenanceReloadBody;
+
+  /// No description provided for @maintenanceReloadConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Relire'**
+  String get maintenanceReloadConfirm;
+
+  /// No description provided for @maintenanceReminders.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels'**
+  String get maintenanceReminders;
+
+  /// No description provided for @maintenanceTestNotification.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer une notification de test'**
+  String get maintenanceTestNotification;
+
+  /// No description provided for @maintenanceTestTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notification de test'**
+  String get maintenanceTestTitle;
+
+  /// No description provided for @maintenanceTestBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les rappels de course s\'afficheront ainsi.'**
+  String get maintenanceTestBody;
+
+  /// No description provided for @maintenanceTestSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notification envoyée.'**
+  String get maintenanceTestSent;
+
+  /// No description provided for @maintenanceTestUnsupported.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels sur Android seulement.'**
+  String get maintenanceTestUnsupported;
+
+  /// No description provided for @maintenanceTestFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'La notification n\'a pas pu être envoyée.'**
+  String get maintenanceTestFailed;
+
+  /// No description provided for @maintenancePlannedNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun rappel planifié.'**
+  String get maintenancePlannedNone;
+
+  /// No description provided for @maintenancePlannedError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire les rappels.'**
+  String get maintenancePlannedError;
+
+  /// No description provided for @maintenanceReportTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier le rapport de diagnostic'**
+  String get maintenanceReportTitle;
+
+  /// No description provided for @maintenanceReportSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Version, serveur, compétition, file d\'envoi, dernières erreurs ; ni jeton ni nom'**
+  String get maintenanceReportSubtitle;
+
+  /// No description provided for @maintenanceReportCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rapport copié dans le presse-papiers.'**
+  String get maintenanceReportCopied;
+
+  /// No description provided for @maintenanceReportFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de préparer le rapport.'**
+  String get maintenanceReportFailed;
 }
 
 class _AppLocalizationsDelegate

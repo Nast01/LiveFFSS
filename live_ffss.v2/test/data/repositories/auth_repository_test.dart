@@ -60,7 +60,7 @@ void main() {
   });
 
   group('me', () {
-    test('lit le nom et le type du compte', () async {
+    test('lit le nom, le type et le rôle du compte', () async {
       when(() => http.get('me')).thenAnswer(
         (_) async => {
           'success': true,
@@ -72,8 +72,41 @@ void main() {
 
       expect(
         await repository.me(),
-        const Account(label: 'DUPONT Jean', type: 'licencie'),
+        const Account(label: 'DUPONT Jean', type: 'licencie', role: 'user'),
       );
+    });
+
+    test('compte admin (fixture de la recette) : isAdmin', () async {
+      when(() => http.get('me')).thenAnswer((_) async => fixture('me_admin'));
+
+      final account = await repository.me();
+
+      expect(account.role, 'admin');
+      expect(account.type, 'organisme');
+      expect(account.isAdmin, isTrue);
+    });
+
+    test('licencié : pas admin', () async {
+      when(() => http.get('me')).thenAnswer(
+        (_) async => {
+          'label': 'DUPONT Jean',
+          'type': 'licencie',
+          'data': {'role': 'user'},
+        },
+      );
+
+      expect((await repository.me()).isAdmin, isFalse);
+    });
+
+    test('sans rôle lisible : rôle nul, pas admin', () async {
+      when(() => http.get('me')).thenAnswer(
+        (_) async => {'label': 'DUPONT Jean', 'type': 'licencie', 'data': []},
+      );
+
+      final account = await repository.me();
+
+      expect(account.role, isNull);
+      expect(account.isAdmin, isFalse);
     });
 
     test('le compte anonyme est refusé', () async {

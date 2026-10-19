@@ -1,5 +1,10 @@
 import 'package:live_ffss_v2/core/config/app_environment.dart';
 
+/// La version du `pubspec.yaml`, pour le rapport de diagnostic : sans
+/// dépendance de plus pour la lire à l'exécution. Un test vérifie qu'elle
+/// suit le pubspec.
+const String appVersion = '2.0.0+1';
+
 class AppConfig {
   const AppConfig({
     required this.baseUrl,
@@ -12,8 +17,7 @@ class AppConfig {
       apiVersion = 'api/v1.0',
       environment = AppEnvironment.production;
 
-  /// L'environnement de [appConfigProvider] ; le choix dans l'app arrive au
-  /// lot 4.
+  /// L'environnement choisi (`appConfigProvider`).
   factory AppConfig.forEnvironment(AppEnvironment environment) => AppConfig(
     baseUrl: environment.baseUrl,
     apiVersion: environment.apiVersion,

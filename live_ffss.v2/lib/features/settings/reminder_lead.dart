@@ -33,6 +33,12 @@ enum ReminderLead {
   }
 }
 
+/// Le passage obligé des rappels vers le planificateur, un par conteneur :
+/// le remontage l'arrête ([ReminderPlanning.close]).
+final reminderPlanningProvider = Provider<ReminderPlanning>(
+  (ref) => ReminderPlanning(),
+);
+
 /// Hors Android, un planificateur sans effet. Le canal porte le nom de la
 /// langue de l'app : il se recrée quand elle change.
 final reminderSchedulerProvider = Provider<ReminderScheduler>((ref) {

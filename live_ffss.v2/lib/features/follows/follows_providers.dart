@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
+import 'package:live_ffss_v2/core/storage/write_queue.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/results_mapper.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
@@ -98,7 +99,14 @@ class FollowsNotifier extends AsyncNotifier<Follows> {
 
   final int competitionId;
 
-  String get storageKey => 'follows_$competitionId';
+  final _writes = WriteQueue();
+
+  /// Se termine quand les écritures déjà demandées sont finies.
+  Future<void> get writesDone => _writes.idle;
+
+  String get storageKey => storageKeyOf(competitionId);
+
+  static String storageKeyOf(int competitionId) => 'follows_$competitionId';
 
   @override
   Future<Follows> build() async {
@@ -153,11 +161,13 @@ class FollowsNotifier extends AsyncNotifier<Follows> {
     final next = change(state.value ?? await future);
     state = AsyncData(next);
     final local = ref.read(localStoreProvider);
-    try {
-      await local.write(storageKey, jsonEncode(FollowsDto.fromDomain(next)));
-    } on AppException {
-      // Choix gardé en mémoire.
-    }
+    await _writes.run(() async {
+      try {
+        await local.write(storageKey, jsonEncode(FollowsDto.fromDomain(next)));
+      } on AppException {
+        // Choix gardé en mémoire.
+      }
+    });
   }
 
   /// Une valeur illisible vaut « aucun suivi » : comme pour les favoris,

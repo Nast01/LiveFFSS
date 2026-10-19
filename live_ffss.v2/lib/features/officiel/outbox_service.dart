@@ -34,6 +34,12 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
   bool _running = false;
   bool _rerun = false;
 
+  /// L'envoi en vol, s'il y en a un.
+  Future<void>? _sending;
+
+  /// Plus rien ne part : l'app va être remontée ([holdForRemount]).
+  bool _held = false;
+
   /// Le site a refusé le jeton : rien ne part avant que la session change,
   /// sinon chaque essai reprendrait le même refus.
   bool _blocked = false;
@@ -147,6 +153,34 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
       );
     _kick();
     await _persist();
+  }
+
+  /// Arrête les envois et attend la réponse de celui en vol, puis
+  /// l'enregistrement de son résultat : vrai, l'app peut être remontée. Le
+  /// nouveau conteneur relit la file de l'appareil ; remonté plus tôt, il y
+  /// trouverait encore en attente une création partie ici, et la renverrait
+  /// (un doublon). Faux passé [timeout] : les envois reprennent, et l'app ne
+  /// doit pas être remontée.
+  Future<bool> holdForRemount({required Duration timeout}) async {
+    _held = true;
+    try {
+      await (_sending ?? Future<void>.value())
+          .then((_) => _saving)
+          .timeout(timeout);
+      return true;
+    } on TimeoutException {
+      _held = false;
+      _kick();
+      return false;
+    }
+  }
+
+  /// La file une fois relue de l'appareil : avant, `state` ne montre que
+  /// les saisies faites depuis le lancement. Lève une [AppException] si elle
+  /// ne peut être relue.
+  Future<List<OutboxOperation>> loadedQueue() async {
+    await _requireLoaded();
+    return state;
   }
 
   Future<void> _requireLoaded() async {
@@ -268,10 +302,14 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
         // Rien ne part avant la relecture : un échec programme la suivante.
         if (!await _ensureLoaded()) return;
         // Un nouvel essai programmé garde la main : la file attend son délai.
-        while (ref.mounted && !_blocked && _retry == null) {
+        while (ref.mounted && !_blocked && !_held && _retry == null) {
           final op = _next();
           if (op == null) break;
-          if (await _send(op) == _Outcome.stop) break;
+          final sending = _send(op);
+          _sending = sending.then<void>((_) {}, onError: (Object _) {});
+          final outcome = await sending;
+          _sending = null;
+          if (outcome == _Outcome.stop) break;
         }
       } while (ref.mounted && _rerun);
     } finally {
@@ -373,7 +411,9 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
           return _retryLater(op);
         case ApiException(:final statusCode?) when _isTransient(statusCode):
           return _retryLater(op);
-        case UnknownException() || StorageException():
+        // `AdminOnlyException` ne vient d'aucune requête de l'envoi : nommée
+        // pour que le `switch` reste exhaustif, traitée comme une panne.
+        case UnknownException() || StorageException() || AdminOnlyException():
           return _fault(op, OutboxRejection.server, reason: e.message);
         case ApiException() || NotFoundException():
           return _settle(

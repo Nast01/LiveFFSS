@@ -18,7 +18,9 @@ mixin _$Account {
 /// « NOM Prénom » : le site ne donne pas d'identifiant de compte stable,
 /// c'est donc lui qui dit si un jeton repris est celui du même compte.
  String get label;/// Le type de compte (`licencie`, `organisme`…).
- String? get type;
+ String? get type;/// Le rôle global du compte (`data.role` de `/me` : `user`, `admin`…),
+/// indépendant de toute compétition.
+ String? get role;
 /// Create a copy of Account
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +32,20 @@ $AccountCopyWith<Account> get copyWith => _$AccountCopyWithImpl<Account>(this as
 @override
 bool operator ==(Object other) {
   final _this = this as Account;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Account&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.type, _this.type) || other.type == _this.type));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Account&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.role, _this.role) || other.role == _this.role));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Account;
-  return Object.hash(runtimeType,_this.label,_this.type);
+  return Object.hash(runtimeType,_this.label,_this.type,_this.role);
 }
 
 @override
 String toString() {
   final _this = this as Account;
-  return 'Account(label: ${_this.label}, type: ${_this.type})';
+  return 'Account(label: ${_this.label}, type: ${_this.type}, role: ${_this.role})';
 }
 
 
@@ -54,7 +56,7 @@ abstract mixin class $AccountCopyWith<$Res>  {
   factory $AccountCopyWith(Account value, $Res Function(Account) _then) = _$AccountCopyWithImpl;
 @useResult
 $Res call({
- String label, String? type
+ String label, String? type, String? role
 });
 
 
@@ -71,10 +73,11 @@ class _$AccountCopyWithImpl<$Res>
 
 /// Create a copy of Account
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? label = null,Object? type = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? label = null,Object? type = freezed,Object? role = freezed,}) {
   return _then(Account(
 label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,type: freezed == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -160,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String label,  String? type)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String label,  String? type,  String? role)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Account() when $default != null:
-return $default(_that.label,_that.type);case _:
+return $default(_that.label,_that.type,_that.role);case _:
   return orElse();
 
 }
@@ -181,10 +184,10 @@ return $default(_that.label,_that.type);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String label,  String? type)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String label,  String? type,  String? role)  $default,) {final _that = this;
 switch (_that) {
 case _Account():
-return $default(_that.label,_that.type);case _:
+return $default(_that.label,_that.type,_that.role);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +204,10 @@ return $default(_that.label,_that.type);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String label,  String? type)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String label,  String? type,  String? role)?  $default,) {final _that = this;
 switch (_that) {
 case _Account() when $default != null:
-return $default(_that.label,_that.type);case _:
+return $default(_that.label,_that.type,_that.role);case _:
   return null;
 
 }
@@ -215,8 +218,8 @@ return $default(_that.label,_that.type);case _:
 /// @nodoc
 
 
-class _Account implements Account {
-  const _Account({required this.label, this.type});
+class _Account extends Account {
+  const _Account({required this.label, this.type, this.role}): super._();
   
 
 /// « NOM Prénom » : le site ne donne pas d'identifiant de compte stable,
@@ -224,6 +227,9 @@ class _Account implements Account {
 @override final  String label;
 /// Le type de compte (`licencie`, `organisme`…).
 @override final  String? type;
+/// Le rôle global du compte (`data.role` de `/me` : `user`, `admin`…),
+/// indépendant de toute compétition.
+@override final  String? role;
 
 /// Create a copy of Account
 /// with the given fields replaced by the non-null parameter values.
@@ -235,18 +241,18 @@ _$AccountCopyWith<_Account> get copyWith => __$AccountCopyWithImpl<_Account>(thi
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Account&&(identical(other.label, label) || other.label == label)&&(identical(other.type, type) || other.type == type));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Account&&(identical(other.label, label) || other.label == label)&&(identical(other.type, type) || other.type == type)&&(identical(other.role, role) || other.role == role));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,label,type);
+    return Object.hash(runtimeType,label,type,role);
 }
 
 @override
 String toString() {
-    return 'Account(label: $label, type: $type)';
+    return 'Account(label: $label, type: $type, role: $role)';
 }
 
 
@@ -257,7 +263,7 @@ abstract mixin class _$AccountCopyWith<$Res> implements $AccountCopyWith<$Res> {
   factory _$AccountCopyWith(_Account value, $Res Function(_Account) _then) = __$AccountCopyWithImpl;
 @override @useResult
 $Res call({
- String label, String? type
+ String label, String? type, String? role
 });
 
 
@@ -274,10 +280,11 @@ class __$AccountCopyWithImpl<$Res>
 
 /// Create a copy of Account
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? label = null,Object? type = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? label = null,Object? type = freezed,Object? role = freezed,}) {
   return _then(_Account(
 label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,type: freezed == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

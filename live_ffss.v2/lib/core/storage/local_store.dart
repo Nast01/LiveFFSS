@@ -47,3 +47,41 @@ class SecureLocalStore implements LocalStore {
     }
   }
 }
+
+/// Les clés globales seules (`AppEnvironment.globalKeys`) : lisibles sans
+/// savoir sur quel serveur l'app tourne, avant même de le savoir (le serveur
+/// choisi en est une). Une clé propre à un serveur n'a rien à y faire.
+class GlobalStore implements LocalStore {
+  GlobalStore(this._inner);
+
+  /// Le préfixe ne compte pas : une clé globale n'en porte jamais.
+  GlobalStore.secure(FlutterSecureStorage storage)
+    : this(SecureLocalStore(storage, AppEnvironment.production));
+
+  final LocalStore _inner;
+
+  static void _check(String key) {
+    assert(
+      AppEnvironment.globalKeys.contains(key),
+      "$key n'est pas une clé globale",
+    );
+  }
+
+  @override
+  Future<String?> read(String key) {
+    _check(key);
+    return _inner.read(key);
+  }
+
+  @override
+  Future<void> write(String key, String value) {
+    _check(key);
+    return _inner.write(key, value);
+  }
+
+  @override
+  Future<void> delete(String key) {
+    _check(key);
+    return _inner.delete(key);
+  }
+}

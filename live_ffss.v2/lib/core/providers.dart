@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:live_ffss_v2/core/config/app_config.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
+import 'package:live_ffss_v2/core/network/network_log.dart';
 import 'package:live_ffss_v2/core/network/token_storage.dart';
 import 'package:live_ffss_v2/core/storage/local_store.dart';
 
@@ -10,11 +12,46 @@ final secureStorageProvider = Provider<FlutterSecureStorage>(
   (ref) => const FlutterSecureStorage(),
 );
 
-/// Pour le moment, l'application parle à la recette (`site.ffss.io`), là où
-/// FFSSCompetition V3 publie ses compétitions de test (demande du
-/// 2026-10-17). Le choix de l'environnement dans l'app arrive au lot 4.
+/// Tant que personne n'a choisi, l'application parle à la recette
+/// (`site.ffss.io`), là où FFSSCompetition V3 publie ses compétitions de test
+/// (demande du 2026-10-17). Repasser à la production avant toute diffusion.
+const defaultEnvironment = AppEnvironment.development;
+
+/// Le serveur enregistré (clé globale `api_environment`), lu avant `runApp` :
+/// la première requête part déjà vers lui. Illisible : [defaultEnvironment].
+Future<AppEnvironment> readLaunchEnvironment(GlobalStore store) async {
+  try {
+    return AppEnvironment.fromName(
+          await store.read(AppEnvironment.environmentKey),
+        ) ??
+        defaultEnvironment;
+  } catch (_) {
+    // Toute erreur, pas seulement une `AppException` : avant `runApp`, rien
+    // ne l'attraperait, et l'app ne s'ouvrirait pas.
+    return defaultEnvironment;
+  }
+}
+
+/// Les clés globales : le serveur choisi, le drapeau « un admin s'est
+/// connecté ici ».
+final globalStoreProvider = Provider<GlobalStore>(
+  (ref) => GlobalStore.secure(ref.watch(secureStorageProvider)),
+);
+
+/// Le serveur de cette app : fixé par la racine (`AppContainerHost`) pour
+/// toute la vie de son conteneur. Changer de serveur, c'est un conteneur neuf.
+final launchEnvironmentProvider = Provider<AppEnvironment>(
+  (ref) => defaultEnvironment,
+);
+
 final appConfigProvider = Provider<AppConfig>(
-  (ref) => AppConfig.forEnvironment(AppEnvironment.development),
+  (ref) => AppConfig.forEnvironment(ref.watch(launchEnvironmentProvider)),
+);
+
+/// Relance l'app sur un autre serveur ; fourni par la racine
+/// (`AppContainerHost`).
+final serverRestartProvider = Provider<void Function(AppEnvironment)>(
+  (ref) => throw StateError("pas de racine pour changer de serveur"),
 );
 
 final tokenStorageProvider = Provider<TokenStorage>(
@@ -24,12 +61,23 @@ final tokenStorageProvider = Provider<TokenStorage>(
   ),
 );
 
-final httpClientProvider = Provider<HttpClient>(
-  (ref) => HttpClient(
+/// Le client HTTP de la plateforme, remplaçable dans les tests.
+final platformHttpClientProvider = Provider<http.Client>(
+  (ref) => http.Client(),
+);
+
+/// Fermé avec son conteneur : un changement de serveur jette le conteneur.
+final httpClientProvider = Provider<HttpClient>((ref) {
+  final client = HttpClient(
     config: ref.watch(appConfigProvider),
     tokenStorage: ref.watch(tokenStorageProvider),
-  ),
-);
+    inner: ref.watch(platformHttpClientProvider),
+    onRequest: ref.watch(networkLogStoreProvider).add,
+    clock: ref.watch(clockProvider),
+  );
+  ref.onDispose(client.close);
+  return client;
+});
 
 final localStoreProvider = Provider<LocalStore>(
   (ref) => SecureLocalStore(

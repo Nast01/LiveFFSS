@@ -1,0 +1,10 @@
+{
+ "success": true,
+ "message": null,
+ "label": "ORGANISME TEST",
+ "type": "organisme",
+ "data": {
+  "role": "admin",
+  "numAffiliation": "000000"
+ }
+}

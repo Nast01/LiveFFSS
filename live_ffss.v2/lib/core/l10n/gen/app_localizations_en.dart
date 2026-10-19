@@ -768,7 +768,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mySpaceAdmin => 'Admin';
 
   @override
-  String get mySpaceAdminSubtitle => 'Any club\'s space';
+  String mySpaceAdminSubtitle(String server) {
+    return 'Server: $server';
+  }
 
   @override
   String get mySpacePrincipalJudge => 'Chief judge';
@@ -1162,4 +1164,356 @@ class AppLocalizationsEn extends AppLocalizations {
   String reminderBody(String event, String time) {
     return '$event · scheduled at $time';
   }
+
+  @override
+  String get serverTitle => 'Server';
+
+  @override
+  String get serverProduction => 'Production';
+
+  @override
+  String get serverStaging => 'Staging';
+
+  @override
+  String get serverBanner => 'STAGING';
+
+  @override
+  String serverSwitchTitle(String server) {
+    return 'Switch to $server?';
+  }
+
+  @override
+  String get serverSwitchBody =>
+      'The app restarts from its start tab on this server, with the account saved for it if there is one. Nothing is deleted: each server\'s accounts, follows and preferences stay on this phone.';
+
+  @override
+  String serverSwitchUnsent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count entries have not been sent: they stay on this phone and will be sent when you come back to this server.',
+      one:
+          '1 entry has not been sent: it stays on this phone and will be sent when you come back to this server.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get serverSwitchConfirm => 'Switch server';
+
+  @override
+  String get remountWaiting =>
+      'An entry is being sent: the app is waiting for its response…';
+
+  @override
+  String get remountBusy =>
+      'The entry being sent did not respond: nothing changed. Try again in a moment.';
+
+  @override
+  String get networkLogTitle => 'Network log';
+
+  @override
+  String get networkLogErrorsOnly => 'Errors only';
+
+  @override
+  String get networkLogClear => 'Clear';
+
+  @override
+  String get networkLogEmpty => 'No requests recorded';
+
+  @override
+  String get networkLogEmptyErrors => 'No failed requests';
+
+  @override
+  String get networkLogNoStatus => 'no response';
+
+  @override
+  String get adminTitle => 'Admin space';
+
+  @override
+  String get adminServerHint => 'Change it in My space preferences';
+
+  @override
+  String get adminCompetition => 'Active competition';
+
+  @override
+  String get adminDecisions => 'Forfeits and DQs of all clubs';
+
+  @override
+  String get adminOpenSpace => 'Open a space';
+
+  @override
+  String get adminClubsSubtitle => 'Any club\'s space';
+
+  @override
+  String get adminDiagnostic => 'Diagnostics';
+
+  @override
+  String get adminDataCheck => 'Data check';
+
+  @override
+  String get adminMaintenance => 'Maintenance';
+
+  @override
+  String get adminOnly => 'Admins only.';
+
+  @override
+  String get adminRolesError =>
+      'Could not read your rights on this competition.';
+
+  @override
+  String get adminAllClubs => 'All clubs';
+
+  @override
+  String get adminAllEvents => 'All events';
+
+  @override
+  String get adminFilteredEmpty =>
+      'No published DQ or forfeit for this filter.';
+
+  @override
+  String get adminClubForfeits => 'Club\'s declared forfeits';
+
+  @override
+  String get adminDataCheckSubtitle =>
+      'Events and their series read again (one request per event); results and lanes on demand';
+
+  @override
+  String get dataCheckNone => 'No issue found.';
+
+  @override
+  String get dataCheckError => 'Could not run the check.';
+
+  @override
+  String get dataCheckOrphanSeries => 'Orphan series';
+
+  @override
+  String get dataCheckOrphanSeriesConsequence =>
+      'No race in the programme matches them: missing from the app\'s results.';
+
+  @override
+  String get dataCheckNoSpeciality => 'Events without a speciality';
+
+  @override
+  String get dataCheckNoSpecialityConsequence =>
+      'Hidden everywhere in the app.';
+
+  @override
+  String get dataCheckStatus3 => 'Results with status 3';
+
+  @override
+  String get dataCheckStatus3Consequence =>
+      'The site\'s fallback when a submission gave no status: neither time nor decision shown.';
+
+  @override
+  String get dataCheckNoResult => 'Finished series without a published result';
+
+  @override
+  String get dataCheckNoResultConsequence =>
+      'Lanes without time or rank in the app, and offered for entry.';
+
+  @override
+  String get dataCheckNoTime => 'Races without a time';
+
+  @override
+  String get dataCheckNoTimeConsequence =>
+      'No time in the programme and no reminder; their series are linked by number only.';
+
+  @override
+  String get dataCheckUnreadPlaces => 'Unread lanes';
+
+  @override
+  String get dataCheckUnreadPlacesConsequence =>
+      'Lanes pending in the slot detail and in Live (network failure or unreadable response).';
+
+  @override
+  String get dataCheckRolesFailed => 'Roles not read';
+
+  @override
+  String get dataCheckRolesFailedConsequence =>
+      'The account\'s rights on the competition are unknown: My space shows none.';
+
+  @override
+  String get dataCheckParticipantsFailed => 'Participants not read';
+
+  @override
+  String get dataCheckParticipantsFailedConsequence =>
+      'Athlete search, athlete cards and clubs unavailable.';
+
+  @override
+  String get dataCheckEventsFailed => 'Events not read';
+
+  @override
+  String get dataCheckEventsFailedConsequence =>
+      'Events and series not checked.';
+
+  @override
+  String get dataCheckProgrammeFailed => 'Programme not read';
+
+  @override
+  String get dataCheckProgrammeFailedConsequence =>
+      'Series links, races and lanes not checked.';
+
+  @override
+  String get dataCheckSeriesFailed => 'Event series not read';
+
+  @override
+  String get dataCheckSeriesFailedConsequence =>
+      'Series links of these events not checked.';
+
+  @override
+  String get dataCheckResultsFailed => 'Series results not read';
+
+  @override
+  String get dataCheckResultsFailedConsequence =>
+      'Status 3 and publication of these series not checked.';
+
+  @override
+  String dataCheckResultsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count results',
+      one: '1 result',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataCheckPlacesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lanes',
+      one: '1 lane',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataCheckSeriesCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Orphan series: $count event series reads, one per flat water event.',
+      one: 'Orphan series: 1 event series read, one per flat water event.',
+      zero: 'Orphan series: no flat water event to read.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckOnDemand => 'On demand';
+
+  @override
+  String get dataCheckResultsAction => 'Check results';
+
+  @override
+  String dataCheckResultsCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reads, one per finished race',
+      one: '1 read, one per finished race',
+      zero: 'No finished race',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckPlacesAction => 'Check lanes';
+
+  @override
+  String dataCheckPlacesCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reads, one per lane: the longest',
+      one: '1 read, one per lane: the longest',
+      zero: 'No lane',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckStepRunning => 'Reading…';
+
+  @override
+  String get dataCheckStepDone => 'Checked';
+
+  @override
+  String get adminMaintenanceSubtitle =>
+      'Local data, reload, reminders, report';
+
+  @override
+  String get maintenanceClearTitle => 'Clear local data';
+
+  @override
+  String get maintenanceClearSubtitle =>
+      'Follows, known heats, account\'s athlete, followed lane';
+
+  @override
+  String get maintenanceClearBody =>
+      'This competition\'s follows, known heats, account\'s athlete and followed lane will be deleted from this phone. Unsent entries and the session are kept.';
+
+  @override
+  String get maintenanceClearConfirm => 'Clear';
+
+  @override
+  String get maintenanceCleared => 'Local data cleared.';
+
+  @override
+  String get maintenanceClearFailed => 'Some data could not be cleared.';
+
+  @override
+  String get maintenanceReloadTitle => 'Force a full reload';
+
+  @override
+  String get maintenanceReloadBody =>
+      'The app reads everything again from the server and restarts from its start tab. Nothing saved is deleted.';
+
+  @override
+  String get maintenanceReloadConfirm => 'Reload';
+
+  @override
+  String get maintenanceReminders => 'Reminders';
+
+  @override
+  String get maintenanceTestNotification => 'Send a test notification';
+
+  @override
+  String get maintenanceTestTitle => 'Test notification';
+
+  @override
+  String get maintenanceTestBody => 'Race reminders will look like this.';
+
+  @override
+  String get maintenanceTestSent => 'Notification sent.';
+
+  @override
+  String get maintenanceTestUnsupported => 'Reminders on Android only.';
+
+  @override
+  String get maintenanceTestFailed => 'The notification could not be sent.';
+
+  @override
+  String get maintenancePlannedNone => 'No reminder scheduled.';
+
+  @override
+  String get maintenancePlannedError => 'Could not read the reminders.';
+
+  @override
+  String get maintenanceReportTitle => 'Copy the diagnostic report';
+
+  @override
+  String get maintenanceReportSubtitle =>
+      'Version, server, competition, outbox, latest errors; no token or name';
+
+  @override
+  String get maintenanceReportCopied => 'Report copied to the clipboard.';
+
+  @override
+  String get maintenanceReportFailed => 'Could not prepare the report.';
 }

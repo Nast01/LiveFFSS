@@ -8,6 +8,7 @@ import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/account.dart';
+import 'package:live_ffss_v2/features/auth/admin.dart';
 import 'package:live_ffss_v2/features/auth/auth_formatting.dart';
 import 'package:live_ffss_v2/features/auth/login_page.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
@@ -15,6 +16,7 @@ import 'package:live_ffss_v2/features/follows/follows_providers.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/my_space/widgets/my_space_rows.dart';
+import 'package:live_ffss_v2/features/my_space/widgets/server_selector.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
 import 'package:live_ffss_v2/features/reminders/reminder_lead_selector.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
@@ -36,6 +38,8 @@ class MySpacePage extends ConsumerWidget {
     final session = ref.watch(sessionProvider);
     final account = session.value;
     final competition = ref.watch(currentCompetitionProvider);
+    final admin =
+        ref.watch(adminAccessProvider(competition?.id)).value ?? false;
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -70,16 +74,36 @@ class MySpacePage extends ConsumerWidget {
             )
           else
             const LoginForm(),
+          // Sans compétition pour l'admin du compte : le serveur et le
+          // diagnostic ne dépendent d'aucune.
+          if (admin) ...[
+            MySpaceHeader(l10n.mySpaceAdmin),
+            MySpaceBox(
+              children: [
+                MySpaceRow(
+                  icon: Icons.admin_panel_settings_outlined,
+                  title: l10n.adminTitle,
+                  subtitle: adminCardSubtitle(
+                    ref.watch(appConfigProvider).environment,
+                    l10n,
+                  ),
+                  onTap: () => context.go(Routes.admin),
+                ),
+              ],
+            ),
+          ],
           if (competition == null)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: ChooseCompetitionPrompt(),
             )
           else ...[
-            if (account != null) ...[
-              MySpaceHeader(l10n.mySpaceSpaces),
-              _Spaces(competitionId: competition.id, account: account),
-            ],
+            if (account != null)
+              _Spaces(
+                competitionId: competition.id,
+                account: account,
+                admin: admin,
+              ),
             MySpaceHeader(l10n.mySpaceEveryone),
             _Everyone(competitionId: competition.id),
           ],
@@ -92,6 +116,11 @@ class MySpacePage extends ConsumerWidget {
           const StartTabSelector(),
           const SizedBox(height: 8),
           const LanguageSelector(),
+          // Observé aussi pour poser le drapeau dès qu'un admin se connecte.
+          if (ref.watch(adminSeenProvider).value ?? false) ...[
+            const SizedBox(height: 8),
+            const ServerSelector(),
+          ],
         ],
       ),
     );
@@ -101,10 +130,17 @@ class MySpacePage extends ConsumerWidget {
 /// Les cartes des espaces du compte. Rôles en échec : un message et
 /// « Réessayer », le reste de la page s'affiche.
 class _Spaces extends ConsumerWidget {
-  const _Spaces({required this.competitionId, required this.account});
+  const _Spaces({
+    required this.competitionId,
+    required this.account,
+    required this.admin,
+  });
 
   final int competitionId;
   final Account account;
+
+  /// La carte Admin est montrée : sans espace, rien de plus.
+  final bool admin;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -114,11 +150,29 @@ class _Spaces extends ConsumerWidget {
       ProviderScope.containerOf(context, listen: false),
       competitionId,
     );
-    switch (spacesView(
+    final view = spacesView(
       loading: state.isLoading,
       failed: state.hasError,
       cards: state.value,
-    )) {
+      admin: admin,
+    );
+    if (view is SpacesHidden) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        MySpaceHeader(l10n.mySpaceSpaces),
+        _box(context, view, l10n, retry),
+      ],
+    );
+  }
+
+  Widget _box(
+    BuildContext context,
+    SpacesView view,
+    AppLocalizations l10n,
+    VoidCallback retry,
+  ) {
+    switch (view) {
       case SpacesLoading():
         return const Padding(
           padding: EdgeInsets.all(16),
@@ -130,7 +184,7 @@ class _Spaces extends ConsumerWidget {
             ResultsMessage(text: l10n.mySpaceRolesError, onRetry: retry),
           ],
         );
-      case SpacesNone():
+      case SpacesNone() || SpacesHidden():
         return MySpaceBox(children: [MySpaceRow(title: l10n.mySpaceNoSpace)]);
       case SpacesShown(:final cards):
         return MySpaceBox(
@@ -183,7 +237,6 @@ class _CardRow extends StatelessWidget {
         AthleteSpaceCard() => Icons.pool,
         ClubSpaceCard() => Icons.groups_outlined,
         OfficialSpaceCard() => Icons.timer_outlined,
-        AdminSpaceCard() => Icons.admin_panel_settings_outlined,
       },
       title: mySpaceCardTitle(card, l10n),
       subtitle: mySpaceCardSubtitle(card, l10n),

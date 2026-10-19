@@ -770,7 +770,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mySpaceAdmin => 'Admin';
 
   @override
-  String get mySpaceAdminSubtitle => 'L\'espace de n\'importe quel club';
+  String mySpaceAdminSubtitle(String server) {
+    return 'Serveur : $server';
+  }
 
   @override
   String get mySpacePrincipalJudge => 'Juge principal';
@@ -1170,4 +1172,360 @@ class AppLocalizationsFr extends AppLocalizations {
   String reminderBody(String event, String time) {
     return '$event · prévu à $time';
   }
+
+  @override
+  String get serverTitle => 'Serveur';
+
+  @override
+  String get serverProduction => 'Production';
+
+  @override
+  String get serverStaging => 'Recette';
+
+  @override
+  String get serverBanner => 'RECETTE';
+
+  @override
+  String serverSwitchTitle(String server) {
+    return 'Passer sur $server ?';
+  }
+
+  @override
+  String get serverSwitchBody =>
+      'L\'app repart de l\'onglet d\'ouverture sur ce serveur, avec le compte qui y est enregistré s\'il y en a un. Rien n\'est effacé : comptes, suivis et préférences de chaque serveur restent sur le téléphone.';
+
+  @override
+  String serverSwitchUnsent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count saisies n\'ont pas été envoyées : elles restent sur le téléphone et partiront au retour sur ce serveur.',
+      one:
+          '1 saisie n\'a pas été envoyée : elle reste sur le téléphone et partira au retour sur ce serveur.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get serverSwitchConfirm => 'Changer de serveur';
+
+  @override
+  String get remountWaiting =>
+      'Une saisie est en cours d\'envoi : l\'app attend sa réponse…';
+
+  @override
+  String get remountBusy =>
+      'La saisie en cours d\'envoi n\'a pas répondu : rien n\'a changé. Réessayez dans un instant.';
+
+  @override
+  String get networkLogTitle => 'Journal réseau';
+
+  @override
+  String get networkLogErrorsOnly => 'Erreurs seulement';
+
+  @override
+  String get networkLogClear => 'Effacer';
+
+  @override
+  String get networkLogEmpty => 'Aucune requête enregistrée';
+
+  @override
+  String get networkLogEmptyErrors => 'Aucune requête en erreur';
+
+  @override
+  String get networkLogNoStatus => 'sans réponse';
+
+  @override
+  String get adminTitle => 'Espace admin';
+
+  @override
+  String get adminServerHint => 'À changer dans les Préférences de Mon espace';
+
+  @override
+  String get adminCompetition => 'Compétition active';
+
+  @override
+  String get adminDecisions => 'Forfaits et DQ de tous les clubs';
+
+  @override
+  String get adminOpenSpace => 'Ouvrir un espace';
+
+  @override
+  String get adminClubsSubtitle => 'L\'espace de n\'importe quel club';
+
+  @override
+  String get adminDiagnostic => 'Diagnostic';
+
+  @override
+  String get adminDataCheck => 'Contrôle des données';
+
+  @override
+  String get adminMaintenance => 'Maintenance';
+
+  @override
+  String get adminOnly => 'Réservé aux admins.';
+
+  @override
+  String get adminRolesError =>
+      'Impossible de lire vos droits sur cette compétition.';
+
+  @override
+  String get adminAllClubs => 'Tous les clubs';
+
+  @override
+  String get adminAllEvents => 'Toutes les épreuves';
+
+  @override
+  String get adminFilteredEmpty =>
+      'Aucune DQ ni aucun forfait publié pour ce filtre.';
+
+  @override
+  String get adminClubForfeits => 'Forfaits déclarés du club';
+
+  @override
+  String get adminDataCheckSubtitle =>
+      'Épreuves et leurs séries relues (une requête par épreuve) ; résultats et places à la demande';
+
+  @override
+  String get dataCheckNone => 'Aucune anomalie trouvée.';
+
+  @override
+  String get dataCheckError => 'Impossible de faire le contrôle.';
+
+  @override
+  String get dataCheckOrphanSeries => 'Séries orphelines';
+
+  @override
+  String get dataCheckOrphanSeriesConsequence =>
+      'Aucune course du programme ne leur correspond : absentes des résultats de l\'app.';
+
+  @override
+  String get dataCheckNoSpeciality => 'Épreuves sans spécialité';
+
+  @override
+  String get dataCheckNoSpecialityConsequence =>
+      'Masquées partout dans l\'app.';
+
+  @override
+  String get dataCheckStatus3 => 'Résultats au statut 3';
+
+  @override
+  String get dataCheckStatus3Consequence =>
+      'Valeur de repli du site quand l\'envoi n\'a pas donné de statut : ni temps, ni décision montrés.';
+
+  @override
+  String get dataCheckNoResult => 'Séries terminées sans résultat publié';
+
+  @override
+  String get dataCheckNoResultConsequence =>
+      'Places sans temps ni classement dans l\'app, et proposées à la saisie.';
+
+  @override
+  String get dataCheckNoTime => 'Courses sans horaire';
+
+  @override
+  String get dataCheckNoTimeConsequence =>
+      'Sans heure au programme ni rappel ; leurs séries ne se rattachent que par le numéro.';
+
+  @override
+  String get dataCheckUnreadPlaces => 'Places non lues';
+
+  @override
+  String get dataCheckUnreadPlacesConsequence =>
+      'Couloirs en attente dans le détail du créneau et le Live (échec réseau ou réponse illisible).';
+
+  @override
+  String get dataCheckRolesFailed => 'Rôles non lus';
+
+  @override
+  String get dataCheckRolesFailedConsequence =>
+      'Les droits du compte sur la compétition sont inconnus : Mon espace n\'en montre aucun.';
+
+  @override
+  String get dataCheckParticipantsFailed => 'Participants non lus';
+
+  @override
+  String get dataCheckParticipantsFailedConsequence =>
+      'Recherche d\'athlète, fiches et clubs indisponibles.';
+
+  @override
+  String get dataCheckEventsFailed => 'Épreuves non lues';
+
+  @override
+  String get dataCheckEventsFailedConsequence =>
+      'Épreuves et séries non contrôlées.';
+
+  @override
+  String get dataCheckProgrammeFailed => 'Programme non lu';
+
+  @override
+  String get dataCheckProgrammeFailedConsequence =>
+      'Rattachement des séries, courses et places non contrôlés.';
+
+  @override
+  String get dataCheckSeriesFailed => 'Séries d\'épreuve non lues';
+
+  @override
+  String get dataCheckSeriesFailedConsequence =>
+      'Rattachement des séries de ces épreuves non contrôlé.';
+
+  @override
+  String get dataCheckResultsFailed => 'Résultats de série non lus';
+
+  @override
+  String get dataCheckResultsFailedConsequence =>
+      'Statut 3 et publication de ces séries non contrôlés.';
+
+  @override
+  String dataCheckResultsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count résultats',
+      one: '1 résultat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataCheckPlacesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count places',
+      one: '1 place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataCheckSeriesCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Séries orphelines : $count lectures des séries d\'épreuve, une par épreuve eau plate.',
+      one:
+          'Séries orphelines : 1 lecture des séries d\'épreuve, une par épreuve eau plate.',
+      zero: 'Séries orphelines : aucune épreuve eau plate à lire.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckOnDemand => 'À la demande';
+
+  @override
+  String get dataCheckResultsAction => 'Vérifier les résultats';
+
+  @override
+  String dataCheckResultsCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lectures, une par course terminée',
+      one: '1 lecture, une par course terminée',
+      zero: 'Aucune course terminée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckPlacesAction => 'Vérifier les places';
+
+  @override
+  String dataCheckPlacesCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lectures, une par place : la plus longue',
+      one: '1 lecture, une par place : la plus longue',
+      zero: 'Aucune place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckStepRunning => 'Lecture en cours…';
+
+  @override
+  String get dataCheckStepDone => 'Vérifié';
+
+  @override
+  String get adminMaintenanceSubtitle =>
+      'Données locales, relecture, rappels, rapport';
+
+  @override
+  String get maintenanceClearTitle => 'Effacer les données locales';
+
+  @override
+  String get maintenanceClearSubtitle =>
+      'Suivis, séries connues, athlète du compte, couloir suivi';
+
+  @override
+  String get maintenanceClearBody =>
+      'Les suivis, les séries connues, l\'athlète du compte et le couloir suivi de cette compétition seront effacés de ce téléphone. Les saisies non envoyées et la session sont gardées.';
+
+  @override
+  String get maintenanceClearConfirm => 'Effacer';
+
+  @override
+  String get maintenanceCleared => 'Données locales effacées.';
+
+  @override
+  String get maintenanceClearFailed =>
+      'Certaines données n\'ont pas pu être effacées.';
+
+  @override
+  String get maintenanceReloadTitle => 'Forcer une relecture complète';
+
+  @override
+  String get maintenanceReloadBody =>
+      'L\'app relit tout depuis le serveur et repart de l\'onglet d\'ouverture. Rien de ce qui est enregistré n\'est effacé.';
+
+  @override
+  String get maintenanceReloadConfirm => 'Relire';
+
+  @override
+  String get maintenanceReminders => 'Rappels';
+
+  @override
+  String get maintenanceTestNotification => 'Envoyer une notification de test';
+
+  @override
+  String get maintenanceTestTitle => 'Notification de test';
+
+  @override
+  String get maintenanceTestBody =>
+      'Les rappels de course s\'afficheront ainsi.';
+
+  @override
+  String get maintenanceTestSent => 'Notification envoyée.';
+
+  @override
+  String get maintenanceTestUnsupported => 'Rappels sur Android seulement.';
+
+  @override
+  String get maintenanceTestFailed =>
+      'La notification n\'a pas pu être envoyée.';
+
+  @override
+  String get maintenancePlannedNone => 'Aucun rappel planifié.';
+
+  @override
+  String get maintenancePlannedError => 'Impossible de lire les rappels.';
+
+  @override
+  String get maintenanceReportTitle => 'Copier le rapport de diagnostic';
+
+  @override
+  String get maintenanceReportSubtitle =>
+      'Version, serveur, compétition, file d\'envoi, dernières erreurs ; ni jeton ni nom';
+
+  @override
+  String get maintenanceReportCopied => 'Rapport copié dans le presse-papiers.';
+
+  @override
+  String get maintenanceReportFailed => 'Impossible de préparer le rapport.';
 }
