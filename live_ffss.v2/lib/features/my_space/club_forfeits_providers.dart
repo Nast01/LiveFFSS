@@ -132,8 +132,18 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
   final _inFlight = <int>{};
   final _sent = <int, ForfeitSent>{};
 
+  /// Le jeton de la lecture en cours : une lecture remplacée (rafraîchie
+  /// avant sa fin) arrête ses places et n'écrit plus rien.
+  var _generation = 0;
+
+  /// Les places en vol de la dernière lecture : la suivante attend qu'elles
+  /// finissent, sinon deux lectures feraient 12 places en vol.
+  Future<void>? _pool;
+
   @override
   Future<List<ClubForfeit>> build() async {
+    final generation = ++_generation;
+    bool current() => ref.mounted && generation == _generation;
     final competitionId = key.competitionId;
     // Gardés en vie pour [setForfeit], sans tout relire à chaque relecture
     // des droits : le droit se vérifie au moment d'envoyer.
@@ -151,7 +161,7 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
       final competition = await ref.watch(
         spaceCompetitionProvider(competitionId).future,
       );
-      if (!ref.mounted || isCoastalOnly(competition)) return const [];
+      if (!current() || isCoastalOnly(competition)) return const [];
       // Lues ensemble ; celles qu'on n'attend pas encore ne doivent pas
       // remonter leur échec comme non traité.
       final clubRead = ref.watch(clubProvider(key).future);
@@ -163,7 +173,7 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
       final club = await clubRead;
       final events = await eventsRead;
       final programme = await programmeRead;
-      if (!ref.mounted) return const [];
+      if (!current()) return const [];
 
       final entries = clubEntries(club.athletes, events);
       final roundOf = {
@@ -187,10 +197,33 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
       final wanted = {for (final entry in entries) entry.entryId};
       final found = <int, ({int placeId, LaneAssignment lane})>{};
       final read = <int>{};
-      await inPool(
+      final entriesOf = <int, Set<int>>{};
+      for (final entry in entries) {
+        entriesOf.putIfAbsent(entry.event.id, () => {}).add(entry.entryId);
+      }
+      final eventsOfPlace = <int, Set<int>>{};
+      for (final MapEntry(key: eventId, value: round) in roundOf.entries) {
+        for (final heat in round) {
+          for (final placeId in heat.placeIds) {
+            eventsOfPlace.putIfAbsent(placeId, () => {}).add(eventId);
+          }
+        }
+      }
+      bool complete(int eventId) =>
+          entriesOf[eventId]!.every(found.containsKey);
+
+      if (_pool case final previous?) {
+        // Son échec appartient à la lecture remplacée, qui l'a déjà rendu.
+        await previous.then((_) {}, onError: (Object _) {});
+        if (!current()) return const [];
+      }
+      final pool = inPool(
         heatOfPlace.keys,
-        () => ref.mounted && found.length < wanted.length,
+        () => current() && found.length < wanted.length,
         (placeId) async {
+          // Une course partagée n'est plus lue quand toutes ses épreuves ont
+          // trouvé leurs engagements.
+          if (eventsOfPlace[placeId]!.every(complete)) return;
           final Map<int, LaneAssignment?> lanes;
           try {
             lanes = await repository.getLanes([placeId]);
@@ -205,7 +238,13 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
           }
         },
       );
-      if (!ref.mounted) return const [];
+      _pool = pool;
+      try {
+        await pool;
+      } finally {
+        if (identical(_pool, pool)) _pool = null;
+      }
+      if (!current()) return const [];
 
       _places
         ..clear()

@@ -317,13 +317,19 @@ class _ClubPageState extends ConsumerState<ClubPage> {
   }
 
   Future<void> _refresh() async {
-    final forfeits = clubForfeitsProvider(_key);
-    await Future.wait([
-      refreshClubSchedule(_container, _key),
-      // Lus seulement si l'onglet les a montrés.
-      if (_forfeitsKeeper?.isOpen ?? false)
-        _container.read(forfeits.notifier).refresh(),
-    ]);
+    // Pris avant les `await` : la page peut se fermer entre-temps.
+    final container = _container;
+    final key = _key;
+    // Lus seulement si l'onglet les a montrés.
+    final forfeitsKept = _forfeitsKeeper?.isOpen ?? false;
+    final forfeitsShown = forfeitsKept && _tab == _ClubTab.forfeits;
+    Future<void> forfeits() =>
+        container.read(clubForfeitsProvider(key).notifier).refresh();
+    // L'un après l'autre, l'onglet montré d'abord : chacun lit 6 places ou
+    // fiches à la fois, ensemble ils en feraient 12.
+    if (forfeitsShown) await forfeits();
+    await refreshClubSchedule(container, key);
+    if (forfeitsKept && !forfeitsShown && mounted) await forfeits();
   }
 
   /// Pour le référent et l'admin : un interrupteur par engagement, qui agit

@@ -20,6 +20,7 @@ import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
+import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
@@ -190,13 +191,16 @@ void main() {
       final ids = (invocation.positionalArguments.first as Iterable<int>)
           .toList();
       reads.addAll(ids);
+      // L'état du site au moment de la demande.
+      final known = Map.of(lanes);
+      final broken = Set.of(failing);
       inFlight += ids.length;
       if (inFlight > peak) peak = inFlight;
       await Future<void>.delayed(const Duration(milliseconds: 5));
       inFlight -= ids.length;
       return {
         for (final id in ids)
-          if (!failing.contains(id) && lanes.containsKey(id)) id: lanes[id],
+          if (!broken.contains(id) && known.containsKey(id)) id: known[id],
       };
     });
     when(
@@ -438,6 +442,84 @@ void main() {
 
       expect(reads, isNotEmpty);
       expect(of(current(c), 101).forfeit, isTrue);
+    });
+
+    test('un rafraîchissement pendant la première lecture : 6 places au '
+        'plus en vol, état de la dernière lecture', () async {
+      // 102 introuvable : toutes les places sont lues, la lecture dure.
+      lanes[2823] = null;
+      final c = container();
+      final first = read(c);
+      await Future<void>.delayed(const Duration(milliseconds: 1));
+      lanes[2817] = _lane(2817, 2, 101, forfeit: true);
+
+      await notifier(c).refresh();
+      await first.catchError((Object _) => const <ClubForfeit>[]);
+
+      expect(peak, lessThanOrEqualTo(6));
+      expect(of(current(c), 101).forfeit, isTrue);
+    });
+
+    test("les courses d'une épreuve ne sont plus lues une fois ses "
+        'engagements trouvés', () async {
+      // Une épreuve à elle, CINQ engagé (500) en tête de sa course 900 de
+      // 20 places ; 102 introuvable, la lecture des autres va au bout.
+      final round = waiting.progressions.first;
+      final placeIds = [for (var i = 9001; i <= 9020; i++) i];
+      programme = waiting.copyWith(
+        progressions: [
+          ...waiting.progressions,
+          round.copyWith(
+            id: 502,
+            disciplineId: noRound.disciplineId,
+            gender: noRound.gender,
+            categories: [noRound.categoryName],
+            stages: [round.stages.first.copyWith(id: 999)],
+          ),
+        ],
+        meetings: [
+          for (final (i, meeting) in waiting.meetings.indexed)
+            i > 0
+                ? meeting
+                : meeting.copyWith(
+                    items: [
+                      ...meeting.items,
+                      MeetingItem(
+                        id: 900,
+                        name: 'Séries',
+                        roundId: 999,
+                        heats: [
+                          Heat(
+                            id: 900,
+                            name: 'Série 1',
+                            number: 1,
+                            status: RunStatus.waiting,
+                            plannedStart: DateTime(2026, 3, 27, 9),
+                            placeIds: placeIds,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+        ],
+      );
+      lanes
+        ..addAll({for (final id in placeIds) id: null})
+        ..[9001] = _lane(9001, 1, 500)
+        ..[2823] = null;
+      when(() => results.getParticipants(any())).thenAnswer(
+        (_) async => [
+          ...participants,
+          _athlete(5, 'CINQ', [(500, noRound.id)]),
+        ],
+      );
+
+      final list = await read(container());
+
+      expect(of(list, 500).heat?.id, 900);
+      expect(reads, isNot(contains(9020)));
+      expect(reads.where(placeIds.contains).length, lessThanOrEqualTo(6));
+      expect(reads, contains(2829));
     });
   });
 
