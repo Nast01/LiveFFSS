@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:live_ffss_v2/app.dart';
@@ -13,13 +12,7 @@ Future<void> main() async {
   // chargées.
   await initializeDateFormatting();
   final environment = await readLaunchEnvironment(
-    SecureLocalStore(const FlutterSecureStorage(), defaultEnvironment),
+    GlobalStore.secure(const FlutterSecureStorage()),
   );
-  runApp(
-    ProviderScope(
-      retry: noRetry,
-      overrides: [launchEnvironmentProvider.overrideWithValue(environment)],
-      child: const LiveFfssApp(),
-    ),
-  );
+  runApp(AppRoot(environment: environment));
 }

@@ -8,6 +8,7 @@ import 'package:live_ffss_v2/core/config/app_config.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/core/providers.dart';
+import 'package:live_ffss_v2/core/storage/local_store.dart';
 import 'package:live_ffss_v2/data/repositories/auth_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
 import 'package:live_ffss_v2/features/auth/auth_formatting.dart';
@@ -50,6 +51,9 @@ void main() {
         httpClientProvider.overrideWithValue(http),
         tokenStorageProvider.overrideWithValue(tokens),
         localStoreProvider.overrideWithValue(store),
+        globalStoreProvider.overrideWithValue(
+          GlobalStore(InMemoryLocalStore()),
+        ),
       ],
       retry: noRetry,
     );

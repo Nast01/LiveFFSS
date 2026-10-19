@@ -4,6 +4,7 @@ import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/core/providers.dart';
+import 'package:live_ffss_v2/core/storage/local_store.dart';
 import 'package:live_ffss_v2/data/repositories/auth_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
 import 'package:live_ffss_v2/features/auth/admin.dart';
@@ -28,18 +29,21 @@ void main() {
   late _MockAuthRepository auth;
   late InMemoryTokenStorage tokens;
   late InMemoryLocalStore store;
+  late InMemoryLocalStore global;
   late ProviderContainer container;
 
   setUp(() {
     auth = _MockAuthRepository();
     tokens = InMemoryTokenStorage();
     store = InMemoryLocalStore();
+    global = InMemoryLocalStore();
     container = ProviderContainer(
       overrides: [
         authRepositoryProvider.overrideWithValue(auth),
         httpClientProvider.overrideWithValue(_MockHttpClient()),
         tokenStorageProvider.overrideWithValue(tokens),
         localStoreProvider.overrideWithValue(store),
+        globalStoreProvider.overrideWithValue(GlobalStore(global)),
       ],
       retry: noRetry,
     );
@@ -92,28 +96,38 @@ void main() {
     });
 
     test('un licencié ne pose pas le drapeau', () async {
-      container.listen(adminSeenProvider, (_, _) {});
       await loginAs(_jean);
 
       expect(await container.read(adminSeenProvider.future), isFalse);
-      expect(store.values[AdminSeenNotifier.storageKey], isNull);
+      expect(global.values[AdminSeenNotifier.storageKey], isNull);
     });
 
-    test('posé à la connexion admin, gardé après la déconnexion', () async {
-      container.listen(adminSeenProvider, (_, _) {});
+    test('posé par la session dès la connexion admin, sans que Mon espace '
+        "l'ait lu, et gardé après la déconnexion", () async {
       await loginAs(_admin);
 
+      expect(global.values[AdminSeenNotifier.storageKey], 'true');
+      expect(store.values.containsKey(AdminSeenNotifier.storageKey), isFalse);
       expect(await container.read(adminSeenProvider.future), isTrue);
-      expect(store.values[AdminSeenNotifier.storageKey], 'true');
 
       await container.read(sessionProvider.notifier).logout();
 
       expect(await container.read(adminSeenProvider.future), isTrue);
-      expect(store.values[AdminSeenNotifier.storageKey], 'true');
+      expect(global.values[AdminSeenNotifier.storageKey], 'true');
+    });
+
+    test("posé aussi à la reprise vérifiée d'une session admin", () async {
+      tokens.token = 'abc';
+      store.values[SessionNotifier.accountKey] = 'ORGANISME TEST';
+      when(() => auth.me()).thenAnswer((_) async => _admin);
+
+      await container.read(sessionProvider.future);
+
+      expect(global.values[AdminSeenNotifier.storageKey], 'true');
     });
 
     test('relu au lancement suivant, sans session', () async {
-      store.values[AdminSeenNotifier.storageKey] = 'true';
+      global.values[AdminSeenNotifier.storageKey] = 'true';
 
       expect(await container.read(adminSeenProvider.future), isTrue);
     });

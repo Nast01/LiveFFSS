@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/features/home/all_competitions_page.dart';
 import 'package:live_ffss_v2/features/home/home_page.dart';
 import 'package:live_ffss_v2/features/live/live_page.dart';
@@ -212,13 +211,11 @@ GoRoute _itemRoute({required String fallback}) => GoRoute(
 /// Une branche par onglet : chacune garde sa propre pile, donc sa position
 /// quand on passe d'un onglet à l'autre.
 ///
-/// Un nouveau routeur à chaque changement de serveur : les pages ouvertes,
-/// dans tous les onglets, portent des ids de l'autre serveur. L'app repart de
-/// l'onglet d'ouverture.
+/// Un conteneur neuf (changement de serveur) a son propre routeur, qui
+/// repart de l'onglet d'ouverture ; celui de l'ancien est jeté avec lui.
 final routerProvider = Provider<GoRouter>((ref) {
-  ref.watch(appConfigProvider);
   final launch = LaunchRedirect(() => ref.read(startTabProvider.future));
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: Routes.home,
     redirect: (context, state) => launch(state.uri.path),
     routes: [
@@ -300,6 +297,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+  ref.onDispose(router.dispose);
+  return router;
 });
 
 /// Une page de Mon espace sur une compétition : `competition/:competitionId/`

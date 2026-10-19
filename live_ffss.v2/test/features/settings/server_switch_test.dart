@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss_v2/core/app_host.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
@@ -9,16 +11,25 @@ import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/core/notifications/reminder_scheduler.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
+import 'package:live_ffss_v2/core/storage/local_store.dart';
 import 'package:live_ffss_v2/data/repositories/auth_repository.dart';
+import 'package:live_ffss_v2/data/repositories/competition_repository.dart';
+import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
+import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
+import 'package:live_ffss_v2/domain/competition_summary.dart';
 import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
+import 'package:live_ffss_v2/features/home/home_providers.dart';
+import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
+import 'package:live_ffss_v2/features/officiel/outbox_store.dart';
 import 'package:live_ffss_v2/features/settings/reminder_lead.dart';
 import 'package:live_ffss_v2/features/settings/server_switch.dart';
 import 'package:live_ffss_v2/features/shell/active_competition.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../support/competitions.dart';
 import '../../support/in_memory_local_store.dart';
 import '../../support/in_memory_secure_storage.dart';
 
@@ -26,10 +37,16 @@ class _MockAuthRepository extends Mock implements AuthRepository {}
 
 class _MockHttpClient extends Mock implements HttpClient {}
 
+class _MockCompetitionRepository extends Mock
+    implements CompetitionRepository {}
+
+class _MockMeetingRepository extends Mock implements MeetingRepository {}
+
+class _MockResultRepository extends Mock implements ResultRepository {}
+
 class _FailingStore extends InMemoryLocalStore {
   @override
-  Future<String?> read(String key) async =>
-      throw const StorageException('illisible');
+  Future<String?> read(String key) async => throw StateError('keystore');
 }
 
 class _Scheduler extends NoReminderScheduler {
@@ -55,11 +72,23 @@ OutboxOperation _op(String account, OutboxState state) => OutboxOperation(
   state: state,
 );
 
+/// Un faux par serveur, choisi d'après le serveur du conteneur.
+T _byServer<T>(Ref ref, {required T recette, required T production}) =>
+    ref.watch(appConfigProvider).environment == AppEnvironment.production
+    ? production
+    : recette;
+
 void main() {
+  setUpAll(() {
+    registerFallbackValue(DateTime(2026));
+    registerFallbackValue(const RaceResult(seriesId: 0, entryId: 0));
+    registerFallbackValue(<int>[]);
+  });
+
   group('readLaunchEnvironment', () {
     test("rien d'enregistré : la recette", () async {
       expect(
-        await readLaunchEnvironment(InMemoryLocalStore()),
+        await readLaunchEnvironment(GlobalStore(InMemoryLocalStore())),
         AppEnvironment.development,
       );
     });
@@ -68,17 +97,35 @@ void main() {
       final store = InMemoryLocalStore()
         ..values[AppEnvironment.environmentKey] = 'production';
 
-      expect(await readLaunchEnvironment(store), AppEnvironment.production);
+      expect(
+        await readLaunchEnvironment(GlobalStore(store)),
+        AppEnvironment.production,
+      );
     });
 
     test('valeur inconnue ou stockage en panne : la recette', () async {
       final store = InMemoryLocalStore()
         ..values[AppEnvironment.environmentKey] = 'staging';
 
-      expect(await readLaunchEnvironment(store), AppEnvironment.development);
       expect(
-        await readLaunchEnvironment(_FailingStore()),
+        await readLaunchEnvironment(GlobalStore(store)),
         AppEnvironment.development,
+      );
+      expect(
+        await readLaunchEnvironment(GlobalStore(_FailingStore())),
+        AppEnvironment.development,
+      );
+    });
+  });
+
+  group('GlobalStore', () {
+    test('ne lit ni n\'écrit une clé propre à un serveur', () {
+      final store = GlobalStore(InMemoryLocalStore());
+
+      expect(() => store.read('token'), throwsA(isA<AssertionError>()));
+      expect(
+        () => store.write('active_competition', '1'),
+        throwsA(isA<AssertionError>()),
       );
     });
   });
@@ -87,49 +134,103 @@ void main() {
     late InMemorySecureStorage secure;
     late _MockAuthRepository recetteAuth;
     late _MockAuthRepository productionAuth;
-    late ProviderContainer container;
+    late _MockHttpClient recetteHttp;
+    late _MockHttpClient productionHttp;
+    late _MockCompetitionRepository recetteCompetitions;
+    late _MockCompetitionRepository productionCompetitions;
+    late _MockMeetingRepository recetteMeetings;
+    late _MockMeetingRepository productionMeetings;
+    late _MockResultRepository recetteResults;
+    late _MockResultRepository productionResults;
     late List<AppEnvironment> cancelledOn;
+    late AppContainerHost host;
 
     setUp(() {
       secure = InMemorySecureStorage();
       recetteAuth = _MockAuthRepository();
       productionAuth = _MockAuthRepository();
+      recetteHttp = _MockHttpClient();
+      productionHttp = _MockHttpClient();
+      recetteCompetitions = _MockCompetitionRepository();
+      productionCompetitions = _MockCompetitionRepository();
+      recetteMeetings = _MockMeetingRepository();
+      productionMeetings = _MockMeetingRepository();
+      recetteResults = _MockResultRepository();
+      productionResults = _MockResultRepository();
       cancelledOn = [];
       when(() => recetteAuth.me()).thenAnswer((_) async => _recette);
       when(() => productionAuth.me()).thenAnswer((_) async => _production);
-      container = ProviderContainer(
+      when(() => recetteCompetitions.getCompetitionsFrom(any())).thenAnswer(
+        (_) async => [competition(1416, start: DateTime(2026, 10, 19))],
+      );
+      when(() => productionCompetitions.getCompetitionsFrom(any())).thenAnswer(
+        (_) async => [competition(900, start: DateTime(2026, 10, 19))],
+      );
+      // La recette est hors ligne : sa saisie attend.
+      when(
+        () => recetteMeetings.getLanes(any()),
+      ).thenThrow(const NetworkException('hors ligne'));
+      when(() => productionMeetings.getLanes(any())).thenAnswer((_) async {
+        return {};
+      });
+
+      host = AppContainerHost(
+        environment: AppEnvironment.development,
         overrides: [
           secureStorageProvider.overrideWithValue(secure),
-          // Un faux site par serveur : la session doit être reprise par
-          // celui du serveur choisi.
           authRepositoryProvider.overrideWith(
-            (ref) =>
-                ref.watch(appConfigProvider).environment ==
-                    AppEnvironment.production
-                ? productionAuth
-                : recetteAuth,
+            (ref) => _byServer(
+              ref,
+              recette: recetteAuth,
+              production: productionAuth,
+            ),
           ),
-          httpClientProvider.overrideWith((ref) {
-            ref.watch(appConfigProvider);
-            return _MockHttpClient();
-          }),
-          reminderSchedulerProvider.overrideWithValue(
-            _Scheduler(
-              () => cancelledOn.add(
-                container.read(appConfigProvider).environment,
-              ),
+          httpClientProvider.overrideWith(
+            (ref) => _byServer(
+              ref,
+              recette: recetteHttp,
+              production: productionHttp,
+            ),
+          ),
+          competitionRepositoryProvider.overrideWith(
+            (ref) => _byServer(
+              ref,
+              recette: recetteCompetitions,
+              production: productionCompetitions,
+            ),
+          ),
+          meetingRepositoryProvider.overrideWith(
+            (ref) => _byServer(
+              ref,
+              recette: recetteMeetings,
+              production: productionMeetings,
+            ),
+          ),
+          resultRepositoryProvider.overrideWith(
+            (ref) => _byServer(
+              ref,
+              recette: recetteResults,
+              production: productionResults,
+            ),
+          ),
+          reminderSchedulerProvider.overrideWith(
+            (ref) => _Scheduler(
+              () => cancelledOn.add(ref.read(appConfigProvider).environment),
             ),
           ),
         ],
-        retry: noRetry,
       );
-      addTearDown(container.dispose);
-      // Chaque serveur a sa session et sa compétition active.
+      addTearDown(host.dispose);
+      // Chaque serveur a sa session et sa compétition active. Le même nom
+      // de compte sur la file de la recette : le pire cas.
       secure.values
         ..['dev_token'] = 'jeton-recette'
         ..['dev_session_account'] = 'ORGANISME TEST'
         ..['dev_session_role'] = 'admin'
         ..['dev_active_competition'] = '1416'
+        ..['dev_outbox'] = OutboxStore.encode([
+          _op('DUPONT Jean', OutboxState.pending),
+        ])
         ..['token'] = 'jeton-production'
         ..['session_account'] = 'DUPONT Jean'
         ..['active_competition'] = '900';
@@ -137,92 +238,138 @@ void main() {
 
     test('par défaut, la recette', () {
       expect(
-        container.read(appConfigProvider).environment,
+        host.container.read(appConfigProvider).environment,
         AppEnvironment.development,
       );
     });
 
-    test("le serveur lu au lancement est celui de l'app", () {
-      final launched = ProviderContainer(
-        overrides: [
-          launchEnvironmentProvider.overrideWithValue(
-            AppEnvironment.production,
-          ),
-        ],
-        retry: noRetry,
-      );
-      addTearDown(launched.dispose);
+    test('enregistre le serveur sous la clé globale', () async {
+      await switchServer(host.container, AppEnvironment.production);
 
       expect(
-        launched.read(appConfigProvider).environment,
-        AppEnvironment.production,
-      );
-    });
-
-    test('switchTo enregistre le serveur sous la clé globale', () async {
-      await container
-          .read(appConfigProvider.notifier)
-          .switchTo(AppEnvironment.production);
-
-      expect(
-        container.read(appConfigProvider).environment,
+        host.container.read(appConfigProvider).environment,
         AppEnvironment.production,
       );
       expect(secure.values[AppEnvironment.environmentKey], 'production');
       expect(secure.values.containsKey('dev_api_environment'), isFalse);
     });
 
-    test("le stockage, la session et la compétition active suivent, sans rien "
-        "effacer de l'autre serveur", () async {
-      expect(await container.read(sessionProvider.future), _recette);
+    test('un conteneur neuf : session, accueil, compétition active, file '
+        "d'envoi et routeur, sans rien de l'ancien serveur", () async {
+      final old = host.container;
+      old.listen(outboxProvider, (_, _) {});
+      expect(await old.read(sessionProvider.future), _recette);
       expect(
-        (await container.read(activeCompetitionProvider.future))?.id,
-        1416,
+        (await old.read(homeCompetitionsProvider.future)).map((c) => c.id),
+        [1416],
       );
+      expect((await old.read(activeCompetitionProvider.future))?.id, 1416);
+      await pumpEventQueue();
+      expect(old.read(outboxProvider), hasLength(1));
+      final oldRouter = old.read(routerProvider);
 
-      await switchServer(container, AppEnvironment.production);
+      await switchServer(old, AppEnvironment.production);
+      final fresh = host.container;
 
-      expect(await container.read(sessionProvider.future), _production);
-      expect((await container.read(activeCompetitionProvider.future))?.id, 900);
+      expect(identical(fresh, old), isFalse);
+      // Rien de l'ancien, pas même une valeur précédente pendant la reprise.
+      expect(fresh.read(sessionProvider).hasValue, isFalse);
+      expect(await fresh.read(sessionProvider.future), _production);
+      expect(fresh.read(sessionExpiredProvider), isFalse);
       expect(
-        await container.read(localStoreProvider).read('active_competition'),
-        '900',
+        (await fresh.read(
+          homeCompetitionsProvider.future,
+        )).map((CompetitionSummary c) => c.id),
+        [900],
       );
+      expect((await fresh.read(activeCompetitionProvider.future))?.id, 900);
+      expect(fresh.read(outboxProvider), isEmpty);
+      expect(identical(fresh.read(routerProvider), oldRouter), isFalse);
       // La recette garde tout, pour le retour.
       expect(secure.values['dev_token'], 'jeton-recette');
       expect(secure.values['dev_session_account'], 'ORGANISME TEST');
       expect(secure.values['dev_session_role'], 'admin');
       expect(secure.values['dev_active_competition'], '1416');
+      expect(secure.values['dev_outbox'], contains('DUPONT Jean'));
 
-      await switchServer(container, AppEnvironment.development);
+      await switchServer(fresh, AppEnvironment.development);
 
-      expect(await container.read(sessionProvider.future), _recette);
-      expect(
-        (await container.read(activeCompetitionProvider.future))?.id,
-        1416,
-      );
+      expect(await host.container.read(sessionProvider.future), _recette);
       expect(secure.values['token'], 'jeton-production');
     });
 
+    test("un refus de jeton venu de l'ancien serveur ne touche pas au "
+        'nouveau', () async {
+      await host.container.read(sessionProvider.future);
+      final expire =
+          verify(() => recetteHttp.onAuthFailure = captureAny()).captured.last
+              as Future<void> Function();
+
+      await switchServer(host.container, AppEnvironment.production);
+      expect(await host.container.read(sessionProvider.future), _production);
+      await expire();
+
+      expect(host.container.read(sessionProvider).value, _production);
+      expect(host.container.read(sessionExpiredProvider), isFalse);
+      expect(secure.values['token'], 'jeton-production');
+      expect(secure.values['dev_token'], 'jeton-recette');
+    });
+
+    test("une connexion en cours sur l'ancien serveur n'ouvre rien sur le "
+        'nouveau', () async {
+      final old = host.container;
+      await old.read(sessionProvider.future);
+      final token = Completer<String>();
+      when(
+        () => recetteAuth.requestToken(any(), any()),
+      ).thenAnswer((_) => token.future);
+      final login = old.read(sessionProvider.notifier).login('x', 'secret');
+      await pumpEventQueue();
+
+      await switchServer(old, AppEnvironment.production);
+      expect(await host.container.read(sessionProvider.future), _production);
+      token.complete('jeton-neuf');
+      await login;
+
+      expect(host.container.read(sessionProvider).value, _production);
+      expect(secure.values['token'], 'jeton-production');
+      expect(secure.values['dev_token'], isNot('jeton-neuf'));
+    });
+
+    test(
+      "la file d'un serveur ne part jamais avec la session de l'autre",
+      () async {
+        host.container.listen(outboxProvider, (_, _) {});
+        await host.container.read(sessionProvider.future);
+        await pumpEventQueue();
+        expect(host.container.read(outboxProvider), hasLength(1));
+
+        await switchServer(host.container, AppEnvironment.production);
+        host.container.listen(outboxProvider, (_, _) {});
+        await host.container.read(sessionProvider.future);
+        await pumpEventQueue();
+
+        verifyNever(() => productionMeetings.getLanes(any()));
+        verifyNever(() => productionResults.submit(any()));
+        verifyNever(() => recetteResults.submit(any()));
+        expect(secure.values['dev_outbox'], contains('DUPONT Jean'));
+      },
+    );
+
     test('les rappels sont annulés avant de changer de serveur', () async {
-      await switchServer(container, AppEnvironment.production);
+      await switchServer(host.container, AppEnvironment.production);
 
       expect(cancelledOn, [AppEnvironment.development]);
     });
 
     test('même serveur : rien ne change', () async {
-      await switchServer(container, AppEnvironment.development);
+      final before = host.container;
+
+      await switchServer(before, AppEnvironment.development);
 
       expect(cancelledOn, isEmpty);
+      expect(identical(host.container, before), isTrue);
       expect(secure.values.containsKey(AppEnvironment.environmentKey), isFalse);
-    });
-
-    test("la navigation repart de l'onglet d'ouverture", () async {
-      final before = container.read(routerProvider);
-
-      await switchServer(container, AppEnvironment.production);
-
-      expect(identical(container.read(routerProvider), before), isFalse);
     });
   });
 
@@ -254,14 +401,8 @@ void main() {
     });
 
     test('message de confirmation, avec les saisies non envoyées', () {
-      expect(
-        serverSwitchMessage(AppEnvironment.production, 0, fr),
-        isNot(contains('saisie')),
-      );
-      expect(
-        serverSwitchMessage(AppEnvironment.production, 2, fr),
-        contains('2 saisies'),
-      );
+      expect(serverSwitchMessage(0, fr), isNot(contains('saisie')));
+      expect(serverSwitchMessage(2, fr), contains('2 saisies'));
     });
   });
 }

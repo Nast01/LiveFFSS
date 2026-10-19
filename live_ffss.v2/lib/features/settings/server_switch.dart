@@ -10,22 +10,29 @@ import 'package:live_ffss_v2/features/settings/reminder_lead.dart';
 
 /// Passe l'app sur [target]. Rien n'est effacé : chaque serveur garde sous
 /// son préfixe jeton, compte, compétition active, suivis et file d'envoi.
-/// Changer `appConfigProvider` reconstruit stockage, jeton, client HTTP,
-/// session (reprise de celle enregistrée pour [target]) et ce qui en dépend ;
-/// le routeur repart de l'onglet d'ouverture.
+/// L'app repart d'un conteneur neuf (`AppContainerHost`) : session reprise
+/// de celle enregistrée pour [target], routeur sur l'onglet d'ouverture.
 Future<void> switchServer(
   ProviderContainer container,
   AppEnvironment target,
 ) async {
   if (container.read(appConfigProvider).environment == target) return;
   // Les rappels viennent des suivis et du programme de ce serveur : ils
-  // seraient faux sur l'autre. Replanifiés au retour.
+  // seraient faux sur l'autre. La nouvelle app replanifie les siens.
   try {
     await container.read(reminderSchedulerProvider).cancelAll();
   } on AppException {
     // Un rappel resté planifié ne doit pas empêcher de changer de serveur.
   }
-  await container.read(appConfigProvider.notifier).switchTo(target);
+  try {
+    await container
+        .read(globalStoreProvider)
+        .write(AppEnvironment.environmentKey, target.name);
+  } on AppException {
+    // Changé pour cette exécution : le prochain lancement reviendra au
+    // serveur d'avant.
+  }
+  container.read(serverRestartProvider)(target);
 }
 
 /// Les saisies du compte connecté qui ne partiront pas tant que l'app est
@@ -43,10 +50,6 @@ String serverLabel(AppEnvironment environment, AppLocalizations l10n) =>
 String? serverBanner(AppEnvironment environment, AppLocalizations l10n) =>
     environment == AppEnvironment.production ? null : l10n.serverBanner;
 
-String serverSwitchMessage(
-  AppEnvironment target,
-  int unsent,
-  AppLocalizations l10n,
-) => unsent == 0
+String serverSwitchMessage(int unsent, AppLocalizations l10n) => unsent == 0
     ? l10n.serverSwitchBody
     : '${l10n.serverSwitchBody}\n\n${l10n.serverSwitchUnsent(unsent)}';

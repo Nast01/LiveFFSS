@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
+import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
+import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
 import 'package:live_ffss_v2/features/settings/server_switch.dart';
@@ -20,17 +22,24 @@ class ServerSelector extends ConsumerWidget {
     AppEnvironment target,
   ) async {
     final l10n = AppLocalizations.of(context);
-    // La file en mémoire est celle de ce serveur : ses saisies non envoyées
-    // attendront le retour.
+    // La file de ce serveur, relue de l'appareil : ses saisies non envoyées
+    // attendront le retour. Illisible, on dit au moins celles en mémoire.
+    List<OutboxOperation> queue;
+    try {
+      queue = await ref.read(outboxProvider.notifier).loadedQueue();
+    } on AppException {
+      queue = ref.read(outboxProvider);
+    }
+    if (!context.mounted) return;
     final unsent = serverSwitchUnsentCount(
-      ref.read(outboxProvider),
+      queue,
       ref.read(sessionProvider).value,
     );
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.serverSwitchTitle(serverLabel(target, l10n))),
-        content: Text(serverSwitchMessage(target, unsent, l10n)),
+        content: Text(serverSwitchMessage(unsent, l10n)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -44,7 +53,7 @@ class ServerSelector extends ConsumerWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    // Pris avant : cette page est remplacée par le nouveau routeur.
+    // Cette page disparaît avec le conteneur qu'elle quitte.
     final container = ProviderScope.containerOf(context, listen: false);
     await switchServer(container, target);
   }

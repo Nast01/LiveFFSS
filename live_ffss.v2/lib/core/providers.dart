@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:live_ffss_v2/core/config/app_config.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
-import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/core/network/token_storage.dart';
 import 'package:live_ffss_v2/core/storage/local_store.dart';
@@ -17,58 +16,40 @@ final secureStorageProvider = Provider<FlutterSecureStorage>(
 const defaultEnvironment = AppEnvironment.development;
 
 /// Le serveur enregistré (clé globale `api_environment`), lu avant `runApp` :
-/// la première requête part déjà vers lui. Illisible : [defaultEnvironment],
-/// un stockage en panne ne doit pas empêcher l'app de s'ouvrir.
-Future<AppEnvironment> readLaunchEnvironment(LocalStore store) async {
+/// la première requête part déjà vers lui. Illisible : [defaultEnvironment].
+Future<AppEnvironment> readLaunchEnvironment(GlobalStore store) async {
   try {
     return AppEnvironment.fromName(
           await store.read(AppEnvironment.environmentKey),
         ) ??
         defaultEnvironment;
-  } on AppException {
+  } catch (_) {
+    // Toute erreur, pas seulement une `AppException` : avant `runApp`, rien
+    // ne l'attraperait, et l'app ne s'ouvrirait pas.
     return defaultEnvironment;
   }
 }
 
-/// Le stockage des clés globales (`AppEnvironment.globalKeys`), qui ne
-/// dépend pas du serveur : c'est là que s'écrit le serveur choisi, que
-/// [localStoreProvider] attend pour se construire.
-final globalStoreProvider = Provider<LocalStore>(
-  (ref) =>
-      SecureLocalStore(ref.watch(secureStorageProvider), defaultEnvironment),
+/// Les clés globales : le serveur choisi, le drapeau « un admin s'est
+/// connecté ici ».
+final globalStoreProvider = Provider<GlobalStore>(
+  (ref) => GlobalStore.secure(ref.watch(secureStorageProvider)),
 );
 
-/// Remplacé dans `main.dart` par [readLaunchEnvironment].
+/// Le serveur de cette app : fixé par la racine (`AppContainerHost`) pour
+/// toute la vie de son conteneur. Changer de serveur, c'est un conteneur neuf.
 final launchEnvironmentProvider = Provider<AppEnvironment>(
   (ref) => defaultEnvironment,
 );
 
-/// Le serveur courant. Le changer reconstruit tout ce qui en dépend :
-/// stockage (préfixé par serveur), jeton, client HTTP, puis la session et les
-/// données qu'ils servent.
-class AppConfigNotifier extends Notifier<AppConfig> {
-  @override
-  AppConfig build() =>
-      AppConfig.forEnvironment(ref.watch(launchEnvironmentProvider));
+final appConfigProvider = Provider<AppConfig>(
+  (ref) => AppConfig.forEnvironment(ref.watch(launchEnvironmentProvider)),
+);
 
-  /// Enregistré pour le prochain lancement. Un stockage en panne n'empêche
-  /// pas de changer ; ce lancement-là reviendra alors au serveur d'avant.
-  Future<void> switchTo(AppEnvironment environment) async {
-    if (environment == state.environment) return;
-    try {
-      await ref
-          .read(globalStoreProvider)
-          .write(AppEnvironment.environmentKey, environment.name);
-    } on AppException {
-      // Changé pour cette exécution seulement.
-    }
-    if (!ref.mounted) return;
-    state = AppConfig.forEnvironment(environment);
-  }
-}
-
-final appConfigProvider = NotifierProvider<AppConfigNotifier, AppConfig>(
-  AppConfigNotifier.new,
+/// Relance l'app sur un autre serveur ; fourni par la racine
+/// (`AppContainerHost`).
+final serverRestartProvider = Provider<void Function(AppEnvironment)>(
+  (ref) => throw StateError("pas de racine pour changer de serveur"),
 );
 
 final tokenStorageProvider = Provider<TokenStorage>(

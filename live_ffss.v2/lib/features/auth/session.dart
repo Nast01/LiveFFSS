@@ -20,6 +20,10 @@ class SessionNotifier extends AsyncNotifier<Account?> {
   /// sans réseau, l'app montre encore l'espace admin à un admin.
   static const roleKey = 'session_role';
 
+  /// Clé globale : un admin s'est connecté sur ce téléphone. Posée par la
+  /// session elle-même, quel que soit l'écran affiché ; jamais effacée.
+  static const adminSeenKey = 'admin_seen';
+
   /// Change à chaque déconnexion ou expiration : une reprise ou une connexion
   /// commencée avant n'ouvre plus la session en se terminant.
   int _generation = 0;
@@ -36,6 +40,7 @@ class SessionNotifier extends AsyncNotifier<Account?> {
     ref.watch(httpClientProvider).onAuthFailure = _expire;
     final tokens = ref.watch(tokenStorageProvider);
     final store = ref.watch(localStoreProvider);
+    final global = ref.watch(globalStoreProvider);
     final auth = ref.watch(authRepositoryProvider);
     final generation = _generation;
 
@@ -68,7 +73,7 @@ class SessionNotifier extends AsyncNotifier<Account?> {
       await _forget(tokens, store);
       return null;
     }
-    await _remember(store, account);
+    await _remember(store, global, account);
     return account;
   }
 
@@ -80,6 +85,7 @@ class SessionNotifier extends AsyncNotifier<Account?> {
     final generation = ++_generation;
     final tokens = ref.read(tokenStorageProvider);
     final store = ref.read(localStoreProvider);
+    final global = ref.read(globalStoreProvider);
     final auth = ref.read(authRepositoryProvider);
 
     // Un jeton périmé partirait avec la demande : le 403 « Invalid token »
@@ -106,7 +112,7 @@ class SessionNotifier extends AsyncNotifier<Account?> {
     }
     if (!_isCurrent(generation)) return;
 
-    await _remember(store, account);
+    await _remember(store, global, account);
     if (!_isCurrent(generation)) return;
 
     ref.read(sessionExpiredProvider.notifier)._set(false);
@@ -138,12 +144,22 @@ class SessionNotifier extends AsyncNotifier<Account?> {
     await _guard(tokens.clearToken);
   }
 
-  static Future<void> _remember(LocalStore store, Account account) async {
+  static Future<void> _remember(
+    LocalStore store,
+    GlobalStore global,
+    Account account,
+  ) async {
     await _guard(() => store.write(accountKey, account.label));
     final role = account.role;
     await _guard(
       () => role == null ? store.delete(roleKey) : store.write(roleKey, role),
     );
+    if (!account.isAdmin) return;
+    try {
+      await _guard(() => global.write(adminSeenKey, 'true'));
+    } on AppException {
+      // Sans le drapeau, seul le choix du serveur manque : la session tient.
+    }
   }
 
   static Future<void> _forget(TokenStorage tokens, LocalStore store) async {

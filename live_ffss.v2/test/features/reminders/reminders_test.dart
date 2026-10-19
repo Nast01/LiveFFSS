@@ -4,11 +4,13 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss_v2/core/app_host.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/notifications/reminder_scheduler.dart';
 import 'package:live_ffss_v2/core/providers.dart';
+import 'package:live_ffss_v2/core/storage/local_store.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/deroulement_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/epreuve_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/reunion_dto.dart';
@@ -34,6 +36,7 @@ import 'package:live_ffss_v2/features/reminders/reminders_formatting.dart';
 import 'package:live_ffss_v2/features/reminders/reminders_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
 import 'package:live_ffss_v2/features/settings/reminder_lead.dart';
+import 'package:live_ffss_v2/features/settings/server_switch.dart';
 import 'package:live_ffss_v2/features/shell/current_competition.dart';
 import 'package:live_ffss_v2/features/shell/space_competition.dart';
 import 'package:mocktail/mocktail.dart';
@@ -599,27 +602,28 @@ void main() {
       when(() => meetings.getProgramme(any())).thenAnswer((_) async => waiting);
     });
 
+    List<Override> overrides({List<Override> extra = const []}) => [
+      localStoreProvider.overrideWithValue(store),
+      reminderSchedulerProvider.overrideWithValue(scheduler),
+      resultsRepositoryProvider.overrideWithValue(results),
+      meetingRepositoryProvider.overrideWithValue(meetings),
+      clockProvider.overrideWithValue(() => now),
+      sessionProvider.overrideWith(() => _FakeSession(account)),
+      spaceCompetitionProvider.overrideWith(
+        (ref, id) async => competition(
+          id,
+          start: DateTime(2026, 3, 27),
+          disciplines: coastal
+              ? const {Discipline.coastal}
+              : const {Discipline.flatWater},
+        ),
+      ),
+      ...extra,
+    ];
+
     ProviderContainer build({List<Override> extra = const []}) {
       final c = ProviderContainer(
-        overrides: [
-          localStoreProvider.overrideWithValue(store),
-          globalStoreProvider.overrideWithValue(store),
-          reminderSchedulerProvider.overrideWithValue(scheduler),
-          resultsRepositoryProvider.overrideWithValue(results),
-          meetingRepositoryProvider.overrideWithValue(meetings),
-          clockProvider.overrideWithValue(() => now),
-          sessionProvider.overrideWith(() => _FakeSession(account)),
-          spaceCompetitionProvider.overrideWith(
-            (ref, id) async => competition(
-              id,
-              start: DateTime(2026, 3, 27),
-              disciplines: coastal
-                  ? const {Discipline.coastal}
-                  : const {Discipline.flatWater},
-            ),
-          ),
-          ...extra,
-        ],
+        overrides: overrides(extra: extra),
         retry: noRetry,
       );
       addTearDown(c.dispose);
@@ -898,19 +902,23 @@ void main() {
       expect(scheduler.cancels, 1);
     });
 
-    test('retour sur un serveur : ses rappels sont replanifiés, même '
-        'identiques', () async {
-      final container = build();
-      await plan(container);
+    test('changement de serveur : annulés, puis replanifiés par la nouvelle '
+        'app', () async {
+      final host = AppContainerHost(
+        environment: AppEnvironment.development,
+        overrides: overrides(
+          extra: [globalStoreProvider.overrideWithValue(GlobalStore(store))],
+        ),
+      );
+      addTearDown(host.dispose);
+      await plan(host.container);
       expect(scheduler.replaced, hasLength(1));
 
-      // Le changement de serveur les a annulés ; la même compétition, avec
-      // les mêmes suivis, doit les replanifier.
-      await container
-          .read(appConfigProvider.notifier)
-          .switchTo(AppEnvironment.production);
-      await container.read(remindersProvider(competitionId).future);
+      await switchServer(host.container, AppEnvironment.production);
+      expect(scheduler.cancels, 1);
+      await plan(host.container);
 
+      // Même compétition, mêmes suivis : la nouvelle app les replanifie.
       expect(scheduler.replaced, hasLength(2));
     });
   });

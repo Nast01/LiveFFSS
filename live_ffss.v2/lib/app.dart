@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:live_ffss_v2/core/app_host.dart';
+import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/l10n/app_locale.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/providers.dart';
@@ -10,6 +12,50 @@ import 'package:live_ffss_v2/features/officiel/outbox_service.dart';
 import 'package:live_ffss_v2/features/reminders/reminders_providers.dart';
 import 'package:live_ffss_v2/features/settings/app_language.dart';
 import 'package:live_ffss_v2/features/settings/server_switch.dart';
+
+/// La racine : un conteneur par serveur ([AppContainerHost]). Changer de
+/// serveur remonte toute l'app sur un conteneur neuf ; l'ancien n'est jeté
+/// qu'après l'image où ses écrans disparaissent, qui l'écoutent encore.
+class AppRoot extends StatefulWidget {
+  const AppRoot({super.key, required this.environment});
+
+  final AppEnvironment environment;
+
+  @override
+  State<AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<AppRoot> {
+  late final AppContainerHost _host = AppContainerHost(
+    environment: widget.environment,
+    disposeOld: (old) =>
+        WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose()),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _host.addListener(_restart);
+  }
+
+  void _restart() => setState(() {});
+
+  @override
+  void dispose() {
+    _host
+      ..removeListener(_restart)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => UncontrolledProviderScope(
+    // Une clé par conteneur : rien de l'arbre de l'autre serveur ne survit.
+    key: ObjectKey(_host.container),
+    container: _host.container,
+    child: const LiveFfssApp(),
+  );
+}
 
 class LiveFfssApp extends ConsumerWidget {
   const LiveFfssApp({super.key});

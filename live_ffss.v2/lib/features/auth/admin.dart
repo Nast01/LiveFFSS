@@ -15,22 +15,15 @@ final isAdminProvider = Provider<bool>(
 /// revenir à l'autre sans compte.
 class AdminSeenNotifier extends AsyncNotifier<bool> {
   /// Clé globale (`AppEnvironment.globalKeys`) : le drapeau vaut pour les
-  /// deux serveurs.
-  static const storageKey = 'admin_seen';
+  /// deux serveurs. La session le pose à l'ouverture d'une session admin.
+  static const storageKey = SessionNotifier.adminSeenKey;
 
   @override
   Future<bool> build() async {
-    final store = ref.watch(localStoreProvider);
-    // Observer la session pose le drapeau dès qu'une session admin s'ouvre ;
+    final store = ref.watch(globalStoreProvider);
+    // Une session admin ouverte suffit, sans attendre de relire le drapeau ;
     // une déconnexion le relit sans jamais l'effacer.
-    if (ref.watch(isAdminProvider)) {
-      try {
-        await store.write(storageKey, 'true');
-      } on AppException {
-        // Gardé en mémoire jusqu'à la fermeture de l'app.
-      }
-      return true;
-    }
+    if (ref.watch(isAdminProvider)) return true;
     try {
       return await store.read(storageKey) == 'true';
     } on AppException {

@@ -174,7 +174,6 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final router = container.read(routerProvider);
-      addTearDown(router.dispose);
       for (final (location, page) in [
         (Routes.mySpaceOfficial(1416), 'competition/:competitionId/officiel'),
         (

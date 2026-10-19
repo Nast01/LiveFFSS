@@ -23,7 +23,7 @@ part 'athlete_providers.freezed.dart';
 final participantsProvider = FutureProvider.autoDispose
     .family<List<Participant>, int>(
       (ref, competitionId) =>
-          ref.watch(resultsRepositoryProvider).getParticipants(competitionId),
+          ref.read(resultsRepositoryProvider).getParticipants(competitionId),
     );
 
 /// Garde [participantsProvider] en vie dès sa première lecture (recherche ou
