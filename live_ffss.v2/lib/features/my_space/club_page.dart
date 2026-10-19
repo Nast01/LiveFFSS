@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
+import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/my_space.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/follows/follows_providers.dart';
+import 'package:live_ffss_v2/features/my_space/club_forfeits_providers.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/my_space/widgets/my_space_rows.dart';
@@ -22,8 +24,8 @@ enum _ClubTab { planning, results, forfeits }
 
 /// L'espace d'un club, ouvert à tout le monde (décision du 2026-10-18) :
 /// chiffres, planning et résultats de ses athlètes, forfaits publiés. Le
-/// référent du club et l'admin y verront les interrupteurs de forfait,
-/// inactifs jusqu'au lot 6b.
+/// référent du club et l'admin y déclarent ou annulent les forfaits
+/// (lot 6b).
 class ClubPage extends ConsumerStatefulWidget {
   const ClubPage({
     super.key,
@@ -144,9 +146,10 @@ class _ClubPageState extends ConsumerState<ClubPage> {
       coastal: coastal,
     );
 
+    final canManage = canManageForfeits(role);
     return RefreshIndicator(
       key: _refreshKey,
-      onRefresh: () => refreshClubSchedule(_container, _key),
+      onRefresh: _refresh,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         // Pas de marge latérale : les puces défilent bord à bord, les autres
@@ -221,7 +224,11 @@ class _ClubPageState extends ConsumerState<ClubPage> {
               onSelect: (tab) => setState(() => _tab = tab),
             ),
             for (final child in [
-              if (races == null)
+              // Les forfaits à déclarer se lisent sur les places, sans
+              // attendre le planning.
+              if (_tab == _ClubTab.forfeits && canManage)
+                ..._declaredForfeits(club, l10n)
+              else if (races == null)
                 schedule.hasError
                     ? ResultsMessage(
                         text: l10n.mySpaceClubError,
@@ -243,11 +250,7 @@ class _ClubPageState extends ConsumerState<ClubPage> {
                 ...switch (_tab) {
                   _ClubTab.planning => _planning(races, l10n),
                   _ClubTab.results => _results(races, l10n),
-                  _ClubTab.forfeits => _forfeits(
-                    forfeits!,
-                    canManageForfeits(role),
-                    l10n,
-                  ),
+                  _ClubTab.forfeits => _forfeits(forfeits!, l10n),
                 },
               ],
             ])
@@ -304,11 +307,70 @@ class _ClubPageState extends ConsumerState<ClubPage> {
     ];
   }
 
-  List<Widget> _forfeits(
-    List<ClubRace> forfeits,
-    bool canManage,
-    AppLocalizations l10n,
-  ) => [
+  Future<void> _refresh() async {
+    final forfeits = clubForfeitsProvider(_key);
+    await Future.wait([
+      refreshClubSchedule(_container, _key),
+      // Lus seulement si l'onglet les a montrés.
+      if (_container.exists(forfeits))
+        _container.read(forfeits.notifier).refresh(),
+    ]);
+  }
+
+  /// Pour le référent et l'admin : un interrupteur par engagement, qui agit
+  /// tout de suite.
+  List<Widget> _declaredForfeits(ClubInfo club, AppLocalizations l10n) {
+    final state = ref.watch(clubForfeitsProvider(_key));
+    final list = state.value;
+    final now = ref.read(clockProvider)();
+    return [
+      MySpaceHeader(l10n.mySpaceForfeits),
+      Text(
+        l10n.mySpaceForfeitsDeadline(forfeitLead.inMinutes),
+        style: const TextStyle(color: AppColors.textSecondary),
+      ),
+      const SizedBox(height: 8),
+      if (list == null)
+        state.hasError
+            ? ResultsMessage(
+                text: l10n.mySpaceClubError,
+                onRetry: () =>
+                    ref.read(clubForfeitsProvider(_key).notifier).refresh(),
+              )
+            : const Padding(
+                padding: EdgeInsets.only(top: 48),
+                child: Center(child: CircularProgressIndicator()),
+              )
+      else if (list.isEmpty)
+        _Empty(l10n.mySpaceNoEntry)
+      else
+        MySpaceBox(
+          children: [
+            for (final forfeit in list)
+              _ForfeitTile(
+                label: clubForfeitLabel(forfeit, club.label, l10n),
+                value: forfeit.forfeit ?? false,
+                state: forfeitSwitch(forfeit, canManage: true, now: now),
+                onChanged: () => _toggle(forfeit.entryId),
+              ),
+          ],
+        ),
+    ];
+  }
+
+  Future<void> _toggle(int entryId) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    final outcome = await ref
+        .read(clubForfeitsProvider(_key).notifier)
+        .toggle(entryId);
+    final message = forfeitOutcomeMessage(outcome, l10n);
+    if (!mounted || message == null) return;
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Les forfaits des résultats publiés, pour qui ne peut pas en déclarer.
+  List<Widget> _forfeits(List<ClubRace> forfeits, AppLocalizations l10n) => [
     MySpaceHeader(l10n.mySpaceForfeits),
     if (forfeits.isEmpty)
       _Empty(l10n.mySpaceNoForfeit)
@@ -319,14 +381,7 @@ class _ClubPageState extends ConsumerState<ClubPage> {
             _ClubRaceTile(
               title: clubRaceTitle(race),
               subtitle: clubRaceLine(race, l10n),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ResultText(label: resultLabel(race.race.row!.result)),
-                  // Inactif : la déclaration arrive au lot 6b.
-                  if (canManage) const Switch(value: true, onChanged: null),
-                ],
-              ),
+              trailing: ResultText(label: resultLabel(race.race.row!.result)),
               onTap: () => _open(race.athletes),
             ),
         ],
@@ -336,13 +391,6 @@ class _ClubPageState extends ConsumerState<ClubPage> {
       l10n.mySpaceForfeitsHint,
       style: const TextStyle(color: AppColors.textSecondary),
     ),
-    if (canManage) ...[
-      const SizedBox(height: 4),
-      Text(
-        l10n.mySpaceForfeitsLater,
-        style: const TextStyle(color: AppColors.textSecondary),
-      ),
-    ],
   ];
 
   /// Un relais : on choisit lequel des relayeurs ouvrir.
@@ -419,6 +467,51 @@ class _ClubRaceTile extends StatelessWidget {
           const Icon(Icons.chevron_right, color: AppColors.textSecondary),
     );
   }
+}
+
+class _ForfeitTile extends StatelessWidget {
+  const _ForfeitTile({
+    required this.label,
+    required this.value,
+    required this.state,
+    required this.onChanged,
+  });
+
+  final ClubForfeitLabel label;
+  final bool value;
+  final ForfeitSwitch state;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    title: Text(
+      label.title,
+      style: const TextStyle(fontWeight: FontWeight.w700),
+    ),
+    subtitle: Text(
+      label.subtitle,
+      style: const TextStyle(color: AppColors.textSecondary),
+    ),
+    trailing: switch (state) {
+      ForfeitSwitch.hidden => null,
+      ForfeitSwitch.unknown => const Icon(
+        Icons.help_outline,
+        color: AppColors.textSecondary,
+      ),
+      ForfeitSwitch.active => Switch(
+        value: value,
+        onChanged: (_) => onChanged(),
+      ),
+      ForfeitSwitch.sending => Switch(value: value, onChanged: null),
+      ForfeitSwitch.locked => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.lock_outline, color: AppColors.textSecondary),
+          Switch(value: value, onChanged: null),
+        ],
+      ),
+    },
+  );
 }
 
 class _Figure extends StatelessWidget {

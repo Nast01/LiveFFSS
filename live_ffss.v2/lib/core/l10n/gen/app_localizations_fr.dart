@@ -967,8 +967,36 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mySpaceForfeitsHint => 'Forfaits tirés des résultats publiés.';
 
   @override
-  String get mySpaceForfeitsLater =>
-      'Déclarer ou annuler un forfait, remplacer un relayeur : bientôt disponible.';
+  String mySpaceForfeitsDeadline(int minutes) {
+    return 'Déclarer ou annuler un forfait jusqu\'à $minutes min avant la course';
+  }
+
+  @override
+  String mySpaceForfeitPlace(int heat, int lane) {
+    return 'Série $heat · couloir $lane';
+  }
+
+  @override
+  String get mySpaceForfeitNotPlaced => 'pas encore placé';
+
+  @override
+  String get mySpaceForfeitUnknown => 'état inconnu (place illisible)';
+
+  @override
+  String mySpaceForfeitLocked(int minutes) {
+    return 'Trop tard : moins de $minutes min avant la course';
+  }
+
+  @override
+  String get mySpaceForfeitNotAllowed =>
+      'Seul le référent du club ou un admin peut déclarer un forfait';
+
+  @override
+  String get mySpaceForfeitFailed =>
+      'Forfait non enregistré (réseau, droits ou session expirée) : réessayez';
+
+  @override
+  String get mySpaceNoEntry => 'Aucun engagement à venir';
 
   @override
   String get mySpaceNoForfeit => 'Aucun forfait dans les résultats publiés';

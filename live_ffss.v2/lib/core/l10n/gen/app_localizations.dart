@@ -1598,11 +1598,53 @@ abstract class AppLocalizations {
   /// **'Forfaits tirés des résultats publiés.'**
   String get mySpaceForfeitsHint;
 
-  /// No description provided for @mySpaceForfeitsLater.
+  /// No description provided for @mySpaceForfeitsDeadline.
   ///
   /// In fr, this message translates to:
-  /// **'Déclarer ou annuler un forfait, remplacer un relayeur : bientôt disponible.'**
-  String get mySpaceForfeitsLater;
+  /// **'Déclarer ou annuler un forfait jusqu\'à {minutes} min avant la course'**
+  String mySpaceForfeitsDeadline(int minutes);
+
+  /// No description provided for @mySpaceForfeitPlace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série {heat} · couloir {lane}'**
+  String mySpaceForfeitPlace(int heat, int lane);
+
+  /// No description provided for @mySpaceForfeitNotPlaced.
+  ///
+  /// In fr, this message translates to:
+  /// **'pas encore placé'**
+  String get mySpaceForfeitNotPlaced;
+
+  /// No description provided for @mySpaceForfeitUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'état inconnu (place illisible)'**
+  String get mySpaceForfeitUnknown;
+
+  /// No description provided for @mySpaceForfeitLocked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trop tard : moins de {minutes} min avant la course'**
+  String mySpaceForfeitLocked(int minutes);
+
+  /// No description provided for @mySpaceForfeitNotAllowed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seul le référent du club ou un admin peut déclarer un forfait'**
+  String get mySpaceForfeitNotAllowed;
+
+  /// No description provided for @mySpaceForfeitFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfait non enregistré (réseau, droits ou session expirée) : réessayez'**
+  String get mySpaceForfeitFailed;
+
+  /// No description provided for @mySpaceNoEntry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun engagement à venir'**
+  String get mySpaceNoEntry;
 
   /// No description provided for @mySpaceNoForfeit.
   ///

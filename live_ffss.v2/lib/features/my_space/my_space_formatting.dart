@@ -17,6 +17,7 @@ import 'package:live_ffss_v2/domain/outbox.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/features/home/competition_formatting.dart';
+import 'package:live_ffss_v2/features/my_space/club_forfeits_providers.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/my_space/official_space_providers.dart';
 import 'package:live_ffss_v2/features/officiel/entry_formatting.dart';
@@ -382,9 +383,65 @@ String? clubRoleTag(ClubRole role, AppLocalizations l10n) => switch (role) {
   ClubRole.none => null,
 };
 
-/// Le forfait se déclarera au lot 6b : ses interrupteurs, inactifs, ne se
-/// montrent qu'à ceux qui pourront s'en servir.
+/// Le référent du club et l'admin déclarent les forfaits ; les autres voient
+/// ceux des résultats publiés.
 bool canManageForfeits(ClubRole role) => role != ClubRole.none;
+
+typedef ClubForfeitLabel = ({String title, String subtitle});
+
+/// L'athlète, ou pour un relais le club ([clubLabel]) puis ses relayeurs ;
+/// l'épreuve, puis « Série 2 · couloir 4 », « pas encore placé », ou l'état
+/// inconnu quand une place illisible pouvait le porter.
+ClubForfeitLabel clubForfeitLabel(
+  ClubForfeit forfeit,
+  String clubLabel,
+  AppLocalizations l10n,
+) {
+  final athletes = forfeit.athletes.join(', ');
+  final relay = forfeit.event.isRelay && clubLabel.isNotEmpty;
+  final heat = forfeit.heat;
+  final lane = forfeit.lane;
+  return (
+    title: relay ? clubLabel : athletes,
+    subtitle: [
+      if (relay) athletes,
+      athleteRaceTitle(forfeit.event, l10n),
+      if (heat != null && lane != null)
+        l10n.mySpaceForfeitPlace(heat.number, lane)
+      else if (forfeit.forfeit == null)
+        l10n.mySpaceForfeitUnknown
+      else
+        l10n.mySpaceForfeitNotPlaced,
+    ].join(' · '),
+  );
+}
+
+/// L'interrupteur d'un forfait.
+enum ForfeitSwitch { hidden, active, sending, locked, unknown }
+
+/// Sans droit, pas d'interrupteur. L'échéance se lit à [now] : l'écran
+/// resté ouvert la voit passer à son prochain affichage. Un état inconnu ne
+/// se bascule pas : on ne saurait dans quel sens.
+ForfeitSwitch forfeitSwitch(
+  ClubForfeit forfeit, {
+  required bool canManage,
+  required DateTime now,
+}) {
+  if (!canManage) return ForfeitSwitch.hidden;
+  if (forfeit.sending == ForfeitSending.sending) return ForfeitSwitch.sending;
+  if (forfeit.forfeit == null) return ForfeitSwitch.unknown;
+  if (forfeitLocked(forfeit.deadline, now)) return ForfeitSwitch.locked;
+  return ForfeitSwitch.active;
+}
+
+/// Nul après un succès : l'interrupteur le montre.
+String? forfeitOutcomeMessage(ForfeitOutcome outcome, AppLocalizations l10n) =>
+    switch (outcome) {
+      ForfeitOutcome.done => null,
+      ForfeitOutcome.locked => l10n.mySpaceForfeitLocked(forfeitLead.inMinutes),
+      ForfeitOutcome.notAllowed => l10n.mySpaceForfeitNotAllowed,
+      ForfeitOutcome.failed => l10n.mySpaceForfeitFailed,
+    };
 
 /// Le rang provisoire du club dans les chiffres de son espace.
 sealed class ClubRankView {

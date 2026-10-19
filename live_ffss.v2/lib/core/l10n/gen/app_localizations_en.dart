@@ -959,8 +959,36 @@ class AppLocalizationsEn extends AppLocalizations {
       'Withdrawals taken from the published results.';
 
   @override
-  String get mySpaceForfeitsLater =>
-      'Declaring or cancelling a forfeit and replacing a relay swimmer: coming soon.';
+  String mySpaceForfeitsDeadline(int minutes) {
+    return 'Declare or cancel a withdrawal up to $minutes min before the race';
+  }
+
+  @override
+  String mySpaceForfeitPlace(int heat, int lane) {
+    return 'Heat $heat · lane $lane';
+  }
+
+  @override
+  String get mySpaceForfeitNotPlaced => 'not placed yet';
+
+  @override
+  String get mySpaceForfeitUnknown => 'unknown (lane unreadable)';
+
+  @override
+  String mySpaceForfeitLocked(int minutes) {
+    return 'Too late: less than $minutes min before the race';
+  }
+
+  @override
+  String get mySpaceForfeitNotAllowed =>
+      'Only the club\'s referee or an admin can declare a withdrawal';
+
+  @override
+  String get mySpaceForfeitFailed =>
+      'Withdrawal not saved (network, rights or expired session): try again';
+
+  @override
+  String get mySpaceNoEntry => 'No race to come';
 
   @override
   String get mySpaceNoForfeit => 'No withdrawal in the published results';
