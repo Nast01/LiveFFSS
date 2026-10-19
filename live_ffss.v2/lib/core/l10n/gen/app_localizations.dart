@@ -1610,11 +1610,41 @@ abstract class AppLocalizations {
   /// **'Série {heat} · couloir {lane}'**
   String mySpaceForfeitPlace(int heat, int lane);
 
-  /// No description provided for @mySpaceForfeitNotPlaced.
+  /// No description provided for @mySpaceForfeitNotPlacedUnknown.
   ///
   /// In fr, this message translates to:
-  /// **'pas encore placé'**
-  String get mySpaceForfeitNotPlaced;
+  /// **'pas encore placé · état inconnu'**
+  String get mySpaceForfeitNotPlacedUnknown;
+
+  /// No description provided for @mySpaceForfeitSentDeclared.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfait envoyé à {time} (vérifiable une fois placé)'**
+  String mySpaceForfeitSentDeclared(String time);
+
+  /// No description provided for @mySpaceForfeitSentCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulation envoyée à {time} (vérifiable une fois placé)'**
+  String mySpaceForfeitSentCancelled(String time);
+
+  /// No description provided for @mySpaceForfeitDeclare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclarer forfait'**
+  String get mySpaceForfeitDeclare;
+
+  /// No description provided for @mySpaceForfeitCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler le forfait'**
+  String get mySpaceForfeitCancel;
+
+  /// No description provided for @mySpaceForfeitUnconfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyé, mais la place relue montre encore l\'état d\'avant : rafraîchissez dans un instant'**
+  String get mySpaceForfeitUnconfirmed;
 
   /// No description provided for @mySpaceForfeitUnknown.
   ///
@@ -1625,7 +1655,7 @@ abstract class AppLocalizations {
   /// No description provided for @mySpaceForfeitLocked.
   ///
   /// In fr, this message translates to:
-  /// **'Trop tard : moins de {minutes} min avant la course'**
+  /// **'Forfait non modifiable : course courue, sans horaire, ou à moins de {minutes} min'**
   String mySpaceForfeitLocked(int minutes);
 
   /// No description provided for @mySpaceForfeitNotAllowed.
@@ -1640,11 +1670,11 @@ abstract class AppLocalizations {
   /// **'Forfait non enregistré (réseau, droits ou session expirée) : réessayez'**
   String get mySpaceForfeitFailed;
 
-  /// No description provided for @mySpaceNoEntry.
+  /// No description provided for @mySpaceForfeitNoEntry.
   ///
   /// In fr, this message translates to:
   /// **'Aucun engagement à venir'**
-  String get mySpaceNoEntry;
+  String get mySpaceForfeitNoEntry;
 
   /// No description provided for @mySpaceNoForfeit.
   ///

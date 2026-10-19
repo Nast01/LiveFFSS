@@ -390,8 +390,9 @@ bool canManageForfeits(ClubRole role) => role != ClubRole.none;
 typedef ClubForfeitLabel = ({String title, String subtitle});
 
 /// L'athlète, ou pour un relais le club ([clubLabel]) puis ses relayeurs ;
-/// l'épreuve, puis « Série 2 · couloir 4 », « pas encore placé », ou l'état
-/// inconnu quand une place illisible pouvait le porter.
+/// l'épreuve, puis « Série 2 · couloir 4 », ou un état inconnu : une place
+/// illisible pouvait le porter, ou il n'est pas encore placé. Un état
+/// inconnu dit son dernier envoi comme un envoi, jamais comme un état lu.
 ClubForfeitLabel clubForfeitLabel(
   ClubForfeit forfeit,
   String clubLabel,
@@ -408,10 +409,14 @@ ClubForfeitLabel clubForfeitLabel(
       athleteRaceTitle(forfeit.event, l10n),
       if (heat != null && lane != null)
         l10n.mySpaceForfeitPlace(heat.number, lane)
-      else if (forfeit.forfeit == null)
+      else if (forfeit.placesUnread)
         l10n.mySpaceForfeitUnknown
       else
-        l10n.mySpaceForfeitNotPlaced,
+        l10n.mySpaceForfeitNotPlacedUnknown,
+      if (forfeit.lastSent case final sent? when forfeit.forfeit == null)
+        sent.forfeit
+            ? l10n.mySpaceForfeitSentDeclared(timeLabel(sent.at))
+            : l10n.mySpaceForfeitSentCancelled(timeLabel(sent.at)),
     ].join(' · '),
   );
 }
@@ -420,8 +425,9 @@ ClubForfeitLabel clubForfeitLabel(
 enum ForfeitSwitch { hidden, active, sending, locked, unknown }
 
 /// Sans droit, pas d'interrupteur. L'échéance se lit à [now] : l'écran
-/// resté ouvert la voit passer à son prochain affichage. Un état inconnu ne
-/// se bascule pas : on ne saurait dans quel sens.
+/// resté ouvert la voit passer à son prochain affichage. Un état inconnu
+/// n'a pas d'interrupteur, qui prétendrait un état : deux actions
+/// explicites (« Déclarer forfait », « Annuler le forfait »).
 ForfeitSwitch forfeitSwitch(
   ClubForfeit forfeit, {
   required bool canManage,
@@ -429,18 +435,22 @@ ForfeitSwitch forfeitSwitch(
 }) {
   if (!canManage) return ForfeitSwitch.hidden;
   if (forfeit.sending == ForfeitSending.sending) return ForfeitSwitch.sending;
+  if (forfeit.locked || forfeitLocked(forfeit.deadline, now)) {
+    return ForfeitSwitch.locked;
+  }
   if (forfeit.forfeit == null) return ForfeitSwitch.unknown;
-  if (forfeitLocked(forfeit.deadline, now)) return ForfeitSwitch.locked;
   return ForfeitSwitch.active;
 }
 
-/// Nul après un succès : l'interrupteur le montre.
+/// Nul après un succès, que la ligne montre, et pour un second appui
+/// pendant un envoi.
 String? forfeitOutcomeMessage(ForfeitOutcome outcome, AppLocalizations l10n) =>
     switch (outcome) {
-      ForfeitOutcome.done => null,
+      ForfeitOutcome.done || ForfeitOutcome.busy => null,
       ForfeitOutcome.locked => l10n.mySpaceForfeitLocked(forfeitLead.inMinutes),
       ForfeitOutcome.notAllowed => l10n.mySpaceForfeitNotAllowed,
       ForfeitOutcome.failed => l10n.mySpaceForfeitFailed,
+      ForfeitOutcome.unconfirmed => l10n.mySpaceForfeitUnconfirmed,
     };
 
 /// Le rang provisoire du club dans les chiffres de son espace.

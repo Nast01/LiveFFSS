@@ -977,14 +977,35 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get mySpaceForfeitNotPlaced => 'pas encore placé';
+  String get mySpaceForfeitNotPlacedUnknown =>
+      'pas encore placé · état inconnu';
+
+  @override
+  String mySpaceForfeitSentDeclared(String time) {
+    return 'Forfait envoyé à $time (vérifiable une fois placé)';
+  }
+
+  @override
+  String mySpaceForfeitSentCancelled(String time) {
+    return 'Annulation envoyée à $time (vérifiable une fois placé)';
+  }
+
+  @override
+  String get mySpaceForfeitDeclare => 'Déclarer forfait';
+
+  @override
+  String get mySpaceForfeitCancel => 'Annuler le forfait';
+
+  @override
+  String get mySpaceForfeitUnconfirmed =>
+      'Envoyé, mais la place relue montre encore l\'état d\'avant : rafraîchissez dans un instant';
 
   @override
   String get mySpaceForfeitUnknown => 'état inconnu (place illisible)';
 
   @override
   String mySpaceForfeitLocked(int minutes) {
-    return 'Trop tard : moins de $minutes min avant la course';
+    return 'Forfait non modifiable : course courue, sans horaire, ou à moins de $minutes min';
   }
 
   @override
@@ -996,7 +1017,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Forfait non enregistré (réseau, droits ou session expirée) : réessayez';
 
   @override
-  String get mySpaceNoEntry => 'Aucun engagement à venir';
+  String get mySpaceForfeitNoEntry => 'Aucun engagement à venir';
 
   @override
   String get mySpaceNoForfeit => 'Aucun forfait dans les résultats publiés';

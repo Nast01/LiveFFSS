@@ -27,10 +27,11 @@ Le **référent sportif d'un club** (ou un **admin**) déclare ou annule, depuis
 |---|---|
 | Qui | `clubRole` (lot 6a) = référent de ce club ou admin. Les autres voient l'onglet Forfaits en lecture. |
 | Liste | Les engagements des athlètes du club (`Participant.entries`), un par engagement : un relais n'apparaît qu'une fois (ses relayeurs en sous-titre). Épreuves eau plate seulement (garde côtier du lot 6a). |
-| État | Lu sur les **places** des séries **non terminées** du tour séries de chaque épreuve du club (programme), 6 lectures au plus en vol, à l'ouverture de l'onglet et au rafraîchissement manuel ; une place trouvée donne `isForfait`, le numéro de couloir et la série. Engagement sans place trouvée : « pas encore placé », interrupteur actif (le forfait vaut pour l'engagement). |
-| Échéance | `départ prévu de la série de l'engagement − 10 min` (série trouvée), sinon départ prévu de la **première** série non terminée du tour ; passé ce moment (horloge `clockProvider`) : verrouillé. |
-| Envoi | Direct, sans file. Pendant l'envoi l'interrupteur est désactivé ; succès → nouvel état gardé ; échec (`AppException`) → état précédent + message (réseau, droits, session expirée). |
-| Relecture | Après un envoi réussi, la place concernée est relue pour confirmer. |
+| État | Lu sur les **places** du tour séries de chaque épreuve du club (programme) : celles des séries **non terminées** d'abord, puis celles des séries terminées, 6 lectures au plus en vol, jusqu'à trouver chaque engagement, à l'ouverture de l'onglet et au rafraîchissement manuel ; une place trouvée donne `isForfait`, le numéro de couloir et la série. Engagement sans place trouvée : **état inconnu** (« pas encore placé · état inconnu », ou « état inconnu (place illisible) » si une place n'a pu être lue) : seule la place dit le forfait (revu le 2026-10-19 après revue). |
+| Verrou | Verrouillé quelle que soit l'heure : engagement trouvé dans une série **terminée** (couru), place illisible d'une série terminée (il pouvait y être), ou **aucune échéance** (tour séries absent du programme, ou aucune de ses séries n'a d'heure prévue). |
+| Échéance | `départ prévu de la série de l'engagement − 10 min` (série trouvée), sinon le plus tôt des départs prévus des séries non terminées du tour ; passé ce moment (horloge `clockProvider`) : verrouillé. |
+| Envoi | Direct, sans file. Pendant l'envoi la ligne est désactivée (un second appui est ignoré, un rafraîchissement la garde « en cours d'envoi ») ; succès → nouvel état gardé ; échec (`AppException`) → état précédent + message (réseau, droits, session expirée). Le dernier envoi réussi de chaque engagement est gardé tant que l'onglet vit. |
+| Relecture | Après un envoi réussi, la place concernée est relue pour confirmer ; si elle montre encore l'état d'avant, un message le dit. |
 
 ## 4. Écran
 
@@ -38,6 +39,8 @@ Vue club → onglet **Forfaits** :
 
 - en tête, pour le référent / admin : « Déclarer ou annuler un forfait jusqu'à 10 min avant la course » ;
 - une ligne par engagement : athlète (ou relais : club + relayeurs), épreuve, série et couloir si connus, interrupteur (actif, en cours d'envoi, verrouillé) ;
+- état inconnu : pas d'interrupteur, qui prétendrait un état, mais deux actions explicites, « Déclarer forfait » et « Annuler le forfait » ; le dernier envoi est dit comme un envoi, jamais comme un état lu : « Forfait envoyé à HH:MM (vérifiable une fois placé) » ou « Annulation envoyée à HH:MM (vérifiable une fois placé) » ;
+- verrouillé (couru, sans échéance ou à moins de 10 min) : l'état connu reste montré, aucune action ;
 - les forfaits déjà publiés dans les résultats (lot 6a) restent affichés pour les autres.
 
 ## 5. Tests

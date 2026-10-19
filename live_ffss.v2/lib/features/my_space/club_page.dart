@@ -342,28 +342,28 @@ class _ClubPageState extends ConsumerState<ClubPage> {
                 child: Center(child: CircularProgressIndicator()),
               )
       else if (list.isEmpty)
-        _Empty(l10n.mySpaceNoEntry)
+        _Empty(l10n.mySpaceForfeitNoEntry)
       else
         MySpaceBox(
           children: [
             for (final forfeit in list)
               _ForfeitTile(
                 label: clubForfeitLabel(forfeit, club.label, l10n),
-                value: forfeit.forfeit ?? false,
+                value: forfeit.forfeit,
                 state: forfeitSwitch(forfeit, canManage: true, now: now),
-                onChanged: () => _toggle(forfeit.entryId),
+                onSet: (value) => _setForfeit(forfeit.entryId, value),
               ),
           ],
         ),
     ];
   }
 
-  Future<void> _toggle(int entryId) async {
+  Future<void> _setForfeit(int entryId, bool forfeit) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = AppLocalizations.of(context);
     final outcome = await ref
         .read(clubForfeitsProvider(_key).notifier)
-        .toggle(entryId);
+        .setForfeit(entryId, forfeit: forfeit);
     final message = forfeitOutcomeMessage(outcome, l10n);
     if (!mounted || message == null) return;
     messenger.showSnackBar(SnackBar(content: Text(message)));
@@ -474,44 +474,76 @@ class _ForfeitTile extends StatelessWidget {
     required this.label,
     required this.value,
     required this.state,
-    required this.onChanged,
+    required this.onSet,
   });
 
   final ClubForfeitLabel label;
-  final bool value;
+
+  /// Nul : état inconnu, qu'aucun interrupteur ne doit prétendre.
+  final bool? value;
   final ForfeitSwitch state;
-  final VoidCallback onChanged;
+  final ValueChanged<bool> onSet;
 
   @override
-  Widget build(BuildContext context) => ListTile(
-    title: Text(
-      label.title,
-      style: const TextStyle(fontWeight: FontWeight.w700),
-    ),
-    subtitle: Text(
-      label.subtitle,
-      style: const TextStyle(color: AppColors.textSecondary),
-    ),
-    trailing: switch (state) {
-      ForfeitSwitch.hidden => null,
-      ForfeitSwitch.unknown => const Icon(
-        Icons.help_outline,
-        color: AppColors.textSecondary,
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final value = this.value;
+    const spinner = SizedBox(
+      width: 20,
+      height: 20,
+      child: CircularProgressIndicator(strokeWidth: 2),
+    );
+    const lock = Icon(Icons.lock_outline, color: AppColors.textSecondary);
+    return ListTile(
+      title: Text(
+        label.title,
+        style: const TextStyle(fontWeight: FontWeight.w700),
       ),
-      ForfeitSwitch.active => Switch(
-        value: value,
-        onChanged: (_) => onChanged(),
-      ),
-      ForfeitSwitch.sending => Switch(value: value, onChanged: null),
-      ForfeitSwitch.locked => Row(
-        mainAxisSize: MainAxisSize.min,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.lock_outline, color: AppColors.textSecondary),
-          Switch(value: value, onChanged: null),
+          Text(
+            label.subtitle,
+            style: const TextStyle(color: AppColors.textSecondary),
+          ),
+          if (state == ForfeitSwitch.unknown)
+            Wrap(
+              spacing: 8,
+              children: [
+                TextButton(
+                  onPressed: () => onSet(true),
+                  child: Text(l10n.mySpaceForfeitDeclare),
+                ),
+                TextButton(
+                  onPressed: () => onSet(false),
+                  child: Text(l10n.mySpaceForfeitCancel),
+                ),
+              ],
+            ),
         ],
       ),
-    },
-  );
+      trailing: switch (state) {
+        ForfeitSwitch.hidden || ForfeitSwitch.unknown => null,
+        ForfeitSwitch.active when value != null => Switch(
+          value: value,
+          onChanged: onSet,
+        ),
+        ForfeitSwitch.sending when value != null => Switch(
+          value: value,
+          onChanged: null,
+        ),
+        ForfeitSwitch.locked when value != null => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            lock,
+            Switch(value: value, onChanged: null),
+          ],
+        ),
+        ForfeitSwitch.sending => spinner,
+        ForfeitSwitch.locked || ForfeitSwitch.active => lock,
+      },
+    );
+  }
 }
 
 class _Figure extends StatelessWidget {

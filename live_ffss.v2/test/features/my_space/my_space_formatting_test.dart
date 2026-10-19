@@ -764,6 +764,12 @@ void main() {
       forfeit: false,
       deadline: DateTime(2026, 3, 27, 7, 50),
     );
+    final notPlaced = ClubForfeit(
+      entryId: 1,
+      event: event,
+      athletes: const ['Un ATHLETE'],
+      deadline: DateTime(2026, 3, 27, 7, 50),
+    );
 
     test("ligne d'un athlète placé : épreuve, série et couloir", () {
       final label = clubForfeitLabel(placed, 'CLUB Test', fr);
@@ -783,26 +789,56 @@ void main() {
         entryId: 200,
         event: relayEvent,
         athletes: const ['Un ATHLETE', 'Deux ATHLETE'],
-        forfeit: false,
       );
       final label = clubForfeitLabel(relay, 'CLUB Test', fr);
       expect(label.title, 'CLUB Test');
       expect(
         label.subtitle,
         'Un ATHLETE, Deux ATHLETE · ${athleteRaceTitle(relayEvent, fr)}'
-        ' · pas encore placé',
+        ' · pas encore placé · état inconnu',
       );
     });
 
     test('place illisible : état inconnu', () {
-      final unknown = ClubForfeit(
-        entryId: 1,
-        event: event,
-        athletes: const ['Un ATHLETE'],
+      expect(
+        clubForfeitLabel(
+          notPlaced.copyWith(placesUnread: true),
+          '',
+          fr,
+        ).subtitle,
+        endsWith('état inconnu (place illisible)'),
+      );
+    });
+
+    test("le dernier envoi d'un état inconnu est dit comme un envoi", () {
+      final declared = notPlaced.copyWith(
+        lastSent: (forfeit: true, at: DateTime(2026, 3, 27, 7, 5)),
       );
       expect(
-        clubForfeitLabel(unknown, '', fr).subtitle,
-        endsWith('état inconnu (place illisible)'),
+        clubForfeitLabel(declared, '', fr).subtitle,
+        endsWith(
+          'pas encore placé · état inconnu · '
+          'Forfait envoyé à 07:05 (vérifiable une fois placé)',
+        ),
+      );
+      expect(
+        clubForfeitLabel(
+          notPlaced.copyWith(
+            lastSent: (forfeit: false, at: DateTime(2026, 3, 27, 7, 5)),
+          ),
+          '',
+          en,
+        ).subtitle,
+        endsWith('Cancellation sent at 07:05 (checkable once placed)'),
+      );
+      // Un état lu sur la place l'emporte.
+      expect(
+        clubForfeitLabel(
+          placed.copyWith(lastSent: declared.lastSent),
+          '',
+          fr,
+        ).subtitle,
+        isNot(contains('envoyé')),
       );
     });
 
@@ -821,6 +857,15 @@ void main() {
         forfeitSwitch(placed, canManage: true, now: at),
         ForfeitSwitch.locked,
       );
+      // Course courue, ou sans échéance : verrouillé à toute heure.
+      expect(
+        forfeitSwitch(
+          placed.copyWith(locked: true),
+          canManage: true,
+          now: before,
+        ),
+        ForfeitSwitch.locked,
+      );
       expect(
         forfeitSwitch(
           placed.copyWith(sending: ForfeitSending.sending),
@@ -830,30 +875,23 @@ void main() {
         ForfeitSwitch.sending,
       );
       expect(
-        forfeitSwitch(
-          placed.copyWith(forfeit: null),
-          canManage: true,
-          now: before,
-        ),
+        forfeitSwitch(notPlaced, canManage: true, now: before),
         ForfeitSwitch.unknown,
       );
-      // Sans échéance connue, rien ne verrouille.
       expect(
-        forfeitSwitch(
-          placed.copyWith(deadline: null),
-          canManage: true,
-          now: at,
-        ),
-        ForfeitSwitch.active,
+        forfeitSwitch(notPlaced, canManage: true, now: at),
+        ForfeitSwitch.locked,
       );
     });
 
     test('message de résultat', () {
       expect(forfeitOutcomeMessage(ForfeitOutcome.done, fr), isNull);
+      expect(forfeitOutcomeMessage(ForfeitOutcome.busy, fr), isNull);
       expect(
         forfeitOutcomeMessage(ForfeitOutcome.locked, fr),
-        'Trop tard : moins de 10 min avant la course',
+        fr.mySpaceForfeitLocked(10),
       );
+      expect(fr.mySpaceForfeitLocked(10), contains('10 min'));
       expect(
         forfeitOutcomeMessage(ForfeitOutcome.notAllowed, fr),
         fr.mySpaceForfeitNotAllowed,
@@ -862,6 +900,11 @@ void main() {
         forfeitOutcomeMessage(ForfeitOutcome.failed, en),
         en.mySpaceForfeitFailed,
       );
+      expect(
+        forfeitOutcomeMessage(ForfeitOutcome.unconfirmed, fr),
+        fr.mySpaceForfeitUnconfirmed,
+      );
+      expect(en.mySpaceForfeitNoEntry, 'No upcoming entries');
     });
   });
 }

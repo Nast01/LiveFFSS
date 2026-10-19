@@ -969,14 +969,34 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get mySpaceForfeitNotPlaced => 'not placed yet';
+  String get mySpaceForfeitNotPlacedUnknown => 'not placed yet · unknown';
+
+  @override
+  String mySpaceForfeitSentDeclared(String time) {
+    return 'Withdrawal sent at $time (checkable once placed)';
+  }
+
+  @override
+  String mySpaceForfeitSentCancelled(String time) {
+    return 'Cancellation sent at $time (checkable once placed)';
+  }
+
+  @override
+  String get mySpaceForfeitDeclare => 'Declare withdrawal';
+
+  @override
+  String get mySpaceForfeitCancel => 'Cancel withdrawal';
+
+  @override
+  String get mySpaceForfeitUnconfirmed =>
+      'Sent, but the lane read again still shows the previous state: refresh in a moment';
 
   @override
   String get mySpaceForfeitUnknown => 'unknown (lane unreadable)';
 
   @override
   String mySpaceForfeitLocked(int minutes) {
-    return 'Too late: less than $minutes min before the race';
+    return 'Withdrawal locked: race swum, without a time, or less than $minutes min away';
   }
 
   @override
@@ -988,7 +1008,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Withdrawal not saved (network, rights or expired session): try again';
 
   @override
-  String get mySpaceNoEntry => 'No race to come';
+  String get mySpaceForfeitNoEntry => 'No upcoming entries';
 
   @override
   String get mySpaceNoForfeit => 'No withdrawal in the published results';

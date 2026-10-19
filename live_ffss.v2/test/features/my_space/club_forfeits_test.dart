@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
@@ -19,6 +18,7 @@ import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/competition_summary.dart';
 import 'package:live_ffss_v2/domain/discipline.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
+import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
@@ -59,24 +59,27 @@ Programme _waitingProgramme() {
   final meetings = [
     for (final row in _rows('reunion')) ?ReunionDto.fromJson(row).toDomain(),
   ];
-  return Programme(
-    meetings: [
-      for (final meeting in withRaces(meetings, progressions))
-        meeting.copyWith(
-          items: [
-            for (final item in meeting.items)
-              item.copyWith(
-                heats: [
-                  for (final heat in item.heats)
-                    heat.copyWith(status: RunStatus.waiting),
-                ],
-              ),
-          ],
-        ),
-    ],
-    progressions: progressions,
+  return _mapHeats(
+    Programme(
+      meetings: withRaces(meetings, progressions),
+      progressions: progressions,
+    ),
+    (heat) => heat.copyWith(status: RunStatus.waiting),
   );
 }
+
+Programme _mapHeats(Programme programme, Heat Function(Heat heat) change) =>
+    programme.copyWith(
+      meetings: [
+        for (final meeting in programme.meetings)
+          meeting.copyWith(
+            items: [
+              for (final item in meeting.items)
+                item.copyWith(heats: [for (final h in item.heats) change(h)]),
+            ],
+          ),
+      ],
+    );
 
 Participant _athlete(int id, String last, List<(int, int)> entries) =>
     Participant(
@@ -112,11 +115,14 @@ void main() {
   const competitionId = 1416;
   const clubId = 99;
   const key = (competitionId: competitionId, clubId: clubId);
-  final programme = _waitingProgramme();
+  final waiting = _waitingProgramme();
   final events = [
     for (final row in _rows('epreuves_1416'))
       ?EpreuveDto.fromJson(row).toDomain(),
   ];
+  const roundEvents = {36073, 36074, 36075};
+  // Une épreuve eau plate dont aucun tour séries n'est au programme.
+  final noRound = events.firstWhere((e) => !roundEvents.contains(e.id));
 
   // UN court 36073 (engagement 101) ; DEUX court 36074 (102) et, avec
   // TROIS, l'engagement 200 de 36075 : un seul engagement, une seule ligne.
@@ -127,7 +133,12 @@ void main() {
     _athlete(3, 'TROIS', [(200, 36075)]),
     _athlete(4, 'QUATRE', [(300, 36073)]).copyWith(clubId: 7),
   ];
+  const referee = CompetitionRoles(
+    roles: ['referent_sportif'],
+    refereeClubs: [ClubRef(id: clubId, label: 'CLUB Test')],
+  );
 
+  late Programme programme;
   late _MockResultsRepository results;
   late _MockMeetingRepository meetings;
   late _MockEngagementRepository engagements;
@@ -135,29 +146,24 @@ void main() {
   late Set<int> failing;
   late List<int> reads;
   late int peak;
+  late Future<CompetitionRoles> Function() rolesRead;
   var disciplines = {Discipline.flatWater};
   var now = DateTime(2026, 3, 27, 7);
-  CompetitionRoles roles = const CompetitionRoles(
-    roles: ['referent_sportif'],
-    refereeClubs: [ClubRef(id: clubId, label: 'CLUB Test')],
-  );
   Account? account = const Account(label: 'REFERENT Club');
 
   setUpAll(() => registerFallbackValue(<int>[]));
 
   setUp(() {
+    programme = waiting;
     disciplines = {Discipline.flatWater};
     now = DateTime(2026, 3, 27, 7);
-    roles = const CompetitionRoles(
-      roles: ['referent_sportif'],
-      refereeClubs: [ClubRef(id: clubId, label: 'CLUB Test')],
-    );
+    rolesRead = () async => referee;
     account = const Account(label: 'REFERENT Club');
     results = _MockResultsRepository();
     meetings = _MockMeetingRepository();
     engagements = _MockEngagementRepository();
     lanes = {
-      for (final id in [for (var i = 2816; i <= 2829; i++) i]) id: null,
+      for (var i = 2816; i <= 2829; i++) i: null,
       2817: _lane(2817, 2, 101),
       2823: _lane(2823, 2, 102, forfeit: true),
       2825: _lane(2825, 4, 200),
@@ -189,7 +195,7 @@ void main() {
     ).thenAnswer((_) async {});
   });
 
-  ProviderContainer container({List<Override> overrides = const []}) {
+  ProviderContainer container() {
     final c = ProviderContainer(
       overrides: [
         resultsRepositoryProvider.overrideWithValue(results),
@@ -204,10 +210,9 @@ void main() {
             disciplines: disciplines,
           ),
         ),
-        competitionRolesProvider.overrideWith((ref, id) async => roles),
+        competitionRolesProvider.overrideWith((ref, id) => rolesRead()),
         sessionProvider.overrideWith(() => _FakeSession(account)),
         clockProvider.overrideWithValue(() => now),
-        ...overrides,
       ],
       retry: noRetry,
     );
@@ -218,8 +223,10 @@ void main() {
   Future<List<ClubForfeit>> read(ProviderContainer c) async {
     final sub = c.listen(clubForfeitsProvider(key), (_, _) {});
     addTearDown(sub.close);
-    // Les droits sont lus d'avance, comme la page qui les suit.
-    await c.read(competitionRolesProvider(competitionId).future);
+    // Les droits sont lus d'avance, comme la page qui les suit ; en cours
+    // ou en échec, c'est ce que le test veut.
+    final roles = c.read(competitionRolesProvider(competitionId).future);
+    await Future.any([roles, pumpEventQueue()]).catchError((Object _) {});
     await c.read(sessionProvider.future);
     return c.read(clubForfeitsProvider(key).future);
   }
@@ -229,6 +236,20 @@ void main() {
 
   List<ClubForfeit> current(ProviderContainer c) =>
       c.read(clubForfeitsProvider(key)).value!;
+
+  ClubForfeitsNotifier notifier(ProviderContainer c) =>
+      c.read(clubForfeitsProvider(key).notifier);
+
+  void verifyNoSend() => verifyNever(
+    () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
+  );
+
+  void holdSends(Completer<void> sent) => when(
+    () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
+  ).thenAnswer((_) => sent.future);
+
+  Programme with479(Heat Function(Heat heat) change) =>
+      _mapHeats(waiting, (h) => h.id == 479 ? change(h) : h);
 
   group('lecture', () {
     test('un engagement par ligne, un relais une fois avec ses relayeurs, '
@@ -247,6 +268,7 @@ void main() {
       expect(un.heat?.id, 479);
       expect(un.lane, 2);
       expect(un.forfeit, isFalse);
+      expect(un.locked, isFalse);
       expect(un.deadline, DateTime(2026, 3, 27, 7, 50));
       expect(un.sending, ForfeitSending.idle);
 
@@ -254,7 +276,7 @@ void main() {
       expect(of(list, 102).deadline, DateTime(2026, 3, 27, 7, 54));
     });
 
-    test('6 places au plus en vol, et la lecture s\'arrête quand chaque '
+    test("6 places au plus en vol, et la lecture s'arrête quand chaque "
         'engagement est trouvé', () async {
       lanes = {
         for (var i = 2816; i <= 2829; i++) i: null,
@@ -279,24 +301,88 @@ void main() {
       final deux = of(list, 102);
       expect(deux.forfeit, isNull);
       expect(deux.heat, isNull);
+      expect(deux.placesUnread, isTrue);
       expect(of(list, 101).forfeit, isFalse);
+      // Tout est lu faute de trouver 102 : le plafond est atteint.
+      expect(peak, 6);
     });
 
-    test('engagement absent de toutes les places lues : pas encore placé, '
-        'échéance de la première course à courir du tour', () async {
-      lanes.remove(2817);
+    test('absent de toutes les places lues : pas encore placé, état '
+        'inconnu, échéance de la plus tôt des courses à courir', () async {
       lanes[2817] = null;
+      // 479 sans heure : l'échéance vient de 480.
+      programme = with479((h) => h.copyWith(plannedStart: null));
+
+      final un = of(await read(container()), 101);
+
+      expect(un.heat, isNull);
+      expect(un.lane, isNull);
+      expect(un.forfeit, isNull);
+      expect(un.placesUnread, isFalse);
+      expect(un.locked, isFalse);
+      expect(un.deadline, DateTime(2026, 3, 27, 7, 54));
+    });
+
+    test("trouvé dans une course courue du tour : verrouillé à toute heure, "
+        "rien n'est envoyé", () async {
+      programme = with479((h) => h.copyWith(status: RunStatus.finished));
+      final c = container();
+
+      final un = of(await read(c), 101);
+
+      expect(un.heat?.id, 479);
+      expect(un.locked, isTrue);
+      // Les places des courses à courir passent d'abord.
+      expect(reads.indexOf(2822), lessThan(reads.indexOf(2817)));
+      expect(
+        await notifier(c).setForfeit(101, forfeit: true),
+        ForfeitOutcome.locked,
+      );
+      verifyNoSend();
+    });
+
+    test(
+      "place illisible d'une course courue : inconnu et verrouillé",
+      () async {
+        programme = with479((h) => h.copyWith(status: RunStatus.finished));
+        failing = {2817};
+
+        final un = of(await read(container()), 101);
+
+        expect(un.forfeit, isNull);
+        expect(un.locked, isTrue);
+      },
+    );
+
+    test('tour séries absent du programme : verrouillé', () async {
+      when(() => results.getParticipants(any())).thenAnswer(
+        (_) async => [
+          ...participants,
+          _athlete(5, 'CINQ', [(500, noRound.id)]),
+        ],
+      );
+      final c = container();
+
+      final cinq = of(await read(c), 500);
+
+      expect(cinq.deadline, isNull);
+      expect(cinq.locked, isTrue);
+      expect(
+        await notifier(c).setForfeit(500, forfeit: true),
+        ForfeitOutcome.locked,
+      );
+      verifyNoSend();
+    });
+
+    test("aucune course du tour n'a d'heure : verrouillé", () async {
+      programme = _mapHeats(waiting, (h) => h.copyWith(plannedStart: null));
 
       final list = await read(container());
 
-      final un = of(list, 101);
-      expect(un.heat, isNull);
-      expect(un.lane, isNull);
-      expect(un.forfeit, isFalse);
-      expect(un.deadline, DateTime(2026, 3, 27, 7, 50));
+      expect(list.every((f) => f.locked && f.deadline == null), isTrue);
     });
 
-    test('compétition côtière : rien n\'est lu', () async {
+    test("compétition côtière : rien n'est lu", () async {
       disciplines = {Discipline.coastal};
 
       final list = await read(container());
@@ -311,27 +397,25 @@ void main() {
       reads.clear();
       lanes[2817] = _lane(2817, 2, 101, forfeit: true);
 
-      await c.read(clubForfeitsProvider(key).notifier).refresh();
+      await notifier(c).refresh();
 
       expect(reads, isNotEmpty);
       expect(of(current(c), 101).forfeit, isTrue);
     });
   });
 
-  group('toggle', () {
+  group('setForfeit', () {
     test(
-      'déclare tout de suite, montre l\'envoi, puis relit la place',
+      "déclare tout de suite, montre l'envoi, puis relit la place",
       () async {
         final c = container();
         await read(c);
         final sent = Completer<void>();
-        when(
-          () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
-        ).thenAnswer((_) => sent.future);
+        holdSends(sent);
         reads.clear();
         lanes[2817] = _lane(2817, 2, 101, forfeit: true);
 
-        final outcome = c.read(clubForfeitsProvider(key).notifier).toggle(101);
+        final outcome = notifier(c).setForfeit(101, forfeit: true);
         await pumpEventQueue();
 
         expect(of(current(c), 101).forfeit, isTrue);
@@ -349,63 +433,159 @@ void main() {
     test('annule un forfait déclaré', () async {
       final c = container();
       await read(c);
+      lanes[2823] = _lane(2823, 2, 102);
 
-      final outcome = await c
-          .read(clubForfeitsProvider(key).notifier)
-          .toggle(102);
+      final outcome = await notifier(c).setForfeit(102, forfeit: false);
 
       expect(outcome, ForfeitOutcome.done);
       verify(() => engagements.setForfeit(102, forfeit: false)).called(1);
     });
 
-    test('un échec rend l\'état précédent', () async {
+    test("état inconnu : l'envoi est gardé et dit, pas pris pour un état "
+        'lu', () async {
+      lanes[2817] = null;
+      final c = container();
+      await read(c);
+      now = DateTime(2026, 3, 27, 7, 12);
+
+      final outcome = await notifier(c).setForfeit(101, forfeit: true);
+
+      expect(outcome, ForfeitOutcome.done);
+      verify(() => engagements.setForfeit(101, forfeit: true)).called(1);
+      final un = of(current(c), 101);
+      expect(un.forfeit, isNull);
+      expect(un.lastSent, (forfeit: true, at: DateTime(2026, 3, 27, 7, 12)));
+
+      // Gardé à la relecture tant que le fournisseur vit.
+      await notifier(c).refresh();
+      expect(of(current(c), 101).lastSent?.forfeit, isTrue);
+    });
+
+    test("la place relue contredit l'envoi : un résultat qui le dit", () async {
+      final c = container();
+      await read(c);
+
+      final outcome = await notifier(c).setForfeit(101, forfeit: true);
+
+      expect(outcome, ForfeitOutcome.unconfirmed);
+      expect(of(current(c), 101).forfeit, isFalse);
+    });
+
+    test("un échec rend l'état précédent", () async {
       final c = container();
       await read(c);
       when(
         () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
       ).thenThrow(const AuthException('Invalid token'));
 
-      final outcome = await c
-          .read(clubForfeitsProvider(key).notifier)
-          .toggle(101);
+      final outcome = await notifier(c).setForfeit(101, forfeit: true);
 
       expect(outcome, ForfeitOutcome.failed);
       expect(of(current(c), 101).forfeit, isFalse);
       expect(of(current(c), 101).sending, ForfeitSending.idle);
+      expect(of(current(c), 101).lastSent, isNull);
     });
 
-    test('échéance passée l\'écran ouvert : refusé sans appel', () async {
+    test("un refus du site rend l'état précédent", () async {
+      final c = container();
+      await read(c);
+      when(
+        () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
+      ).thenThrow(const ApiException('Accès refusé'));
+
+      final outcome = await notifier(c).setForfeit(102, forfeit: false);
+
+      expect(outcome, ForfeitOutcome.failed);
+      expect(of(current(c), 102).forfeit, isTrue);
+      expect(of(current(c), 102).sending, ForfeitSending.idle);
+    });
+
+    test("second appui pendant l'envoi : occupé, un seul envoi", () async {
+      final c = container();
+      await read(c);
+      final sent = Completer<void>();
+      holdSends(sent);
+
+      final first = notifier(c).setForfeit(101, forfeit: true);
+      await pumpEventQueue();
+      expect(
+        await notifier(c).setForfeit(101, forfeit: false),
+        ForfeitOutcome.busy,
+      );
+      sent.complete();
+      await first;
+
+      verify(
+        () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
+      ).called(1);
+    });
+
+    test("un rafraîchissement pendant l'envoi garde « envoi »", () async {
+      final c = container();
+      await read(c);
+      final sent = Completer<void>();
+      holdSends(sent);
+
+      final first = notifier(c).setForfeit(101, forfeit: true);
+      await pumpEventQueue();
+      await notifier(c).refresh();
+
+      expect(of(current(c), 101).sending, ForfeitSending.sending);
+      sent.complete();
+      await first;
+      expect(of(current(c), 101).sending, ForfeitSending.idle);
+    });
+
+    test("échéance passée l'écran ouvert : refusé sans appel", () async {
       final c = container();
       await read(c);
       now = DateTime(2026, 3, 27, 7, 50);
 
-      final outcome = await c
-          .read(clubForfeitsProvider(key).notifier)
-          .toggle(101);
+      final outcome = await notifier(c).setForfeit(101, forfeit: true);
 
       expect(outcome, ForfeitOutcome.locked);
-      verifyNever(
-        () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
-      );
+      verifyNoSend();
       expect(of(current(c), 101).forfeit, isFalse);
     });
 
     test('compte sans droit sur ce club : aucun appel', () async {
-      roles = const CompetitionRoles(
+      rolesRead = () async => const CompetitionRoles(
         roles: ['referent_sportif'],
         refereeClubs: [ClubRef(id: 7, label: 'Autre')],
       );
       final c = container();
       await read(c);
 
-      final outcome = await c
-          .read(clubForfeitsProvider(key).notifier)
-          .toggle(101);
-
-      expect(outcome, ForfeitOutcome.notAllowed);
-      verifyNever(
-        () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
+      expect(
+        await notifier(c).setForfeit(101, forfeit: true),
+        ForfeitOutcome.notAllowed,
       );
+      verifyNoSend();
+    });
+
+    test('droits en cours de lecture : aucun appel', () async {
+      final pending = Completer<CompetitionRoles>();
+      rolesRead = () => pending.future;
+      final c = container();
+      await read(c);
+
+      expect(
+        await notifier(c).setForfeit(101, forfeit: true),
+        ForfeitOutcome.notAllowed,
+      );
+      verifyNoSend();
+    });
+
+    test('droits en échec : aucun appel', () async {
+      rolesRead = () async => throw const NetworkException('hors ligne');
+      final c = container();
+      await read(c);
+
+      expect(
+        await notifier(c).setForfeit(101, forfeit: true),
+        ForfeitOutcome.notAllowed,
+      );
+      verifyNoSend();
     });
 
     test('sans session : aucun appel', () async {
@@ -413,26 +593,24 @@ void main() {
       final c = container();
       await read(c);
 
-      final outcome = await c
-          .read(clubForfeitsProvider(key).notifier)
-          .toggle(101);
-
-      expect(outcome, ForfeitOutcome.notAllowed);
-      verifyNever(
-        () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
+      expect(
+        await notifier(c).setForfeit(101, forfeit: true),
+        ForfeitOutcome.notAllowed,
       );
+      verifyNoSend();
     });
 
-    test('l\'admin peut déclarer', () async {
-      roles = const CompetitionRoles(roles: ['admin']);
+    test("l'admin peut déclarer", () async {
+      rolesRead = () async => const CompetitionRoles(roles: ['admin']);
       final c = container();
       await read(c);
+      lanes[2817] = _lane(2817, 2, 101, forfeit: true);
 
-      final outcome = await c
-          .read(clubForfeitsProvider(key).notifier)
-          .toggle(101);
-
-      expect(outcome, ForfeitOutcome.done);
+      expect(
+        await notifier(c).setForfeit(101, forfeit: true),
+        ForfeitOutcome.done,
+      );
+      verify(() => engagements.setForfeit(101, forfeit: true)).called(1);
     });
   });
 }
