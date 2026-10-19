@@ -65,7 +65,9 @@ class LiveNotifier extends AsyncNotifier<LiveView>
     // Lu avant toute attente : si la page se ferme pendant une requête,
     // `ref` ne peut plus servir.
     final runRef = ref;
-    final repository = ref.read(meetingRepositoryProvider);
+    // Observé : un changement de serveur relit tout (un même id peut
+    // désigner une autre compétition sur l'autre serveur).
+    final repository = ref.watch(meetingRepositoryProvider);
 
     final programme = await repository.getProgramme(competitionId);
     final selection = liveSelection(programme.meetings);

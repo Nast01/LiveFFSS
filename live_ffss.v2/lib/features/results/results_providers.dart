@@ -29,7 +29,9 @@ final _resultsSourceProvider = FutureProvider.autoDispose
       competitionId,
     ) async {
       // Tout ce qui sert de `ref` est pris avant la première attente.
-      final repository = ref.read(resultsRepositoryProvider);
+      // Observé : un changement de serveur relit tout (un même id peut
+      // désigner une autre compétition sur l'autre serveur).
+      final repository = ref.watch(resultsRepositoryProvider);
       final subscription = ref.listen(
         programmeProvider(competitionId),
         (_, _) {},
@@ -144,7 +146,7 @@ EventRanking _rank(
 final eventRankingProvider = FutureProvider.autoDispose
     .family<EventRanking, ({int competitionId, int eventId})>((ref, key) async {
       // Tout ce qui sert de `ref` est pris avant la première attente.
-      final repository = ref.read(resultsRepositoryProvider);
+      final repository = ref.watch(resultsRepositoryProvider);
       final source = await ref.watch(
         _resultsSourceProvider(key.competitionId).future,
       );
@@ -188,13 +190,19 @@ class StandingsNotifier extends AsyncNotifier<Standings> {
   // survit à ses reconstructions, l'état n'en garde que les cumuls.
   Map<int, EventRanking> _rankings = const {};
 
+  /// Le serveur de [_rankings] : ceux de l'autre ne remplacent jamais une
+  /// épreuve non relue.
+  ResultsRepository? _rankedWith;
+
   @override
   Future<Standings> build() async {
     // Une construction remplacée (`refresh`, page fermée) ne doit plus rien
     // lire : seul le `Ref` de son départ le dit. Tout ce qui sert de `ref` est
     // pris avant la première attente.
     final runRef = ref;
-    final repository = ref.read(resultsRepositoryProvider);
+    // Observé : un changement de serveur relit tout (un même id peut
+    // désigner une autre compétition sur l'autre serveur).
+    final repository = ref.watch(resultsRepositoryProvider);
     final clock = ref.read(clockProvider);
     // Écoutée le temps de la lecture, pas observée : le rafraîchissement des
     // Épreuves relit la source, et ne doit pas refaire une lecture par
@@ -214,7 +222,9 @@ class StandingsNotifier extends AsyncNotifier<Standings> {
     // Un rafraîchissement en partie en échec ne doit pas rendre des
     // classements plus pauvres que les précédents : une épreuve non relue
     // garde son classement d'avant.
-    final previous = _rankings;
+    final previous = identical(repository, _rankedWith)
+        ? _rankings
+        : const <int, EventRanking>{};
     final rankings = <int, EventRanking>{};
     var failedEvents = 0;
     var staleEvents = 0;
@@ -255,6 +265,7 @@ class StandingsNotifier extends AsyncNotifier<Standings> {
       );
     }
     _rankings = rankings;
+    _rankedWith = repository;
 
     // Dans l'ordre des épreuves, pas dans celui des réponses.
     final ordered = [for (final event in events) ?rankings[event.id]];

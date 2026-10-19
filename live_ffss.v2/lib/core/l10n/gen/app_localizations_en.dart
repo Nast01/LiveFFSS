@@ -1162,4 +1162,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String reminderBody(String event, String time) {
     return '$event · scheduled at $time';
   }
+
+  @override
+  String get serverTitle => 'Server';
+
+  @override
+  String get serverProduction => 'Production';
+
+  @override
+  String get serverStaging => 'Staging';
+
+  @override
+  String get serverBanner => 'STAGING';
+
+  @override
+  String serverSwitchTitle(String server) {
+    return 'Switch to $server?';
+  }
+
+  @override
+  String get serverSwitchBody =>
+      'The app restarts from its start tab on this server, with the account saved for it if there is one. Nothing is deleted: each server\'s accounts, follows and preferences stay on this phone.';
+
+  @override
+  String serverSwitchUnsent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count entries have not been sent: they stay on this phone and will be sent when you come back to this server.',
+      one:
+          '1 entry has not been sent: it stays on this phone and will be sent when you come back to this server.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get serverSwitchConfirm => 'Switch server';
 }

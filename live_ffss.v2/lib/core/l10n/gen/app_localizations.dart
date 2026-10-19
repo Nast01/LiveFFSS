@@ -1909,6 +1909,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{event} · prévu à {time}'**
   String reminderBody(String event, String time);
+
+  /// No description provided for @serverTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Serveur'**
+  String get serverTitle;
+
+  /// No description provided for @serverProduction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Production'**
+  String get serverProduction;
+
+  /// No description provided for @serverStaging.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recette'**
+  String get serverStaging;
+
+  /// No description provided for @serverBanner.
+  ///
+  /// In fr, this message translates to:
+  /// **'RECETTE'**
+  String get serverBanner;
+
+  /// No description provided for @serverSwitchTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer sur {server} ?'**
+  String serverSwitchTitle(String server);
+
+  /// No description provided for @serverSwitchBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'app repart de l\'onglet d\'ouverture sur ce serveur, avec le compte qui y est enregistré s\'il y en a un. Rien n\'est effacé : comptes, suivis et préférences de chaque serveur restent sur le téléphone.'**
+  String get serverSwitchBody;
+
+  /// No description provided for @serverSwitchUnsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 saisie n\'a pas été envoyée : elle reste sur le téléphone et partira au retour sur ce serveur.} other{{count} saisies n\'ont pas été envoyées : elles restent sur le téléphone et partiront au retour sur ce serveur.}}'**
+  String serverSwitchUnsent(int count);
+
+  /// No description provided for @serverSwitchConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer de serveur'**
+  String get serverSwitchConfirm;
 }
 
 class _AppLocalizationsDelegate

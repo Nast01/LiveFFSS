@@ -1170,4 +1170,41 @@ class AppLocalizationsFr extends AppLocalizations {
   String reminderBody(String event, String time) {
     return '$event · prévu à $time';
   }
+
+  @override
+  String get serverTitle => 'Serveur';
+
+  @override
+  String get serverProduction => 'Production';
+
+  @override
+  String get serverStaging => 'Recette';
+
+  @override
+  String get serverBanner => 'RECETTE';
+
+  @override
+  String serverSwitchTitle(String server) {
+    return 'Passer sur $server ?';
+  }
+
+  @override
+  String get serverSwitchBody =>
+      'L\'app repart de l\'onglet d\'ouverture sur ce serveur, avec le compte qui y est enregistré s\'il y en a un. Rien n\'est effacé : comptes, suivis et préférences de chaque serveur restent sur le téléphone.';
+
+  @override
+  String serverSwitchUnsent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count saisies n\'ont pas été envoyées : elles restent sur le téléphone et partiront au retour sur ce serveur.',
+      one:
+          '1 saisie n\'a pas été envoyée : elle reste sur le téléphone et partira au retour sur ce serveur.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get serverSwitchConfirm => 'Changer de serveur';
 }

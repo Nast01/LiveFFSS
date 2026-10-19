@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
@@ -1158,6 +1159,154 @@ void main() {
         async.flushMicrotasks();
         expect(stored(), isEmpty);
         expect(c.read(outboxPersistenceFailedProvider), isFalse);
+        c.dispose();
+      });
+    });
+  });
+
+  group('changement de serveur', () {
+    // Le même compte sur les deux serveurs : le pire cas, son nom ne suffit
+    // plus à séparer les deux files.
+    const recetteOp = OutboxOperation(
+      id: 'recette-1',
+      account: 'DUPONT Jean',
+      competitionId: 1416,
+      placeId: 11,
+      seriesId: 5,
+      entryId: 7,
+      change: ResultChange(chronos: [5000, null, null]),
+    );
+    const productionOp = OutboxOperation(
+      id: 'production-1',
+      account: 'DUPONT Jean',
+      competitionId: 900,
+      placeId: 21,
+      seriesId: 6,
+      entryId: 7,
+      change: ResultChange(chronos: [6000, null, null]),
+    );
+
+    late _MockMeetingRepository productionMeetings;
+    late _MockResultRepository productionResults;
+    late InMemoryLocalStore productionStore;
+
+    setUp(() {
+      productionMeetings = _MockMeetingRepository();
+      productionResults = _MockResultRepository();
+      productionStore = InMemoryLocalStore();
+      when(() => productionMeetings.getLanes(any())).thenAnswer((invocation) {
+        final ids = invocation.positionalArguments.single as Iterable<int>;
+        return Future.value({for (final id in ids) id: _lane(id)});
+      });
+      when(() => productionResults.submit(any())).thenAnswer((_) async => 77);
+      local.values[OutboxStore.storageKey] = OutboxStore.encode([recetteOp]);
+      productionStore.values[OutboxStore.storageKey] = OutboxStore.encode([
+        productionOp,
+      ]);
+    });
+
+    ProviderContainer twoServers() {
+      bool production(Ref ref) =>
+          ref.watch(appConfigProvider).environment == AppEnvironment.production;
+      final c = ProviderContainer(
+        overrides: [
+          meetingRepositoryProvider.overrideWith(
+            (ref) => production(ref) ? productionMeetings : meetings,
+          ),
+          resultRepositoryProvider.overrideWith(
+            (ref) => production(ref) ? productionResults : results,
+          ),
+          localStoreProvider.overrideWith(
+            (ref) => production(ref) ? productionStore : local,
+          ),
+          sessionProvider.overrideWith(() => _FakeSession(_jean)),
+          clockProvider.overrideWithValue(() => now),
+          globalStoreProvider.overrideWithValue(InMemoryLocalStore()),
+        ],
+        retry: noRetry,
+      );
+      c.listen(outboxProvider, (_, _) {});
+      return c;
+    }
+
+    List<OutboxOperation> storedIn(InMemoryLocalStore store) =>
+        (OutboxStore.decode(store.values[OutboxStore.storageKey])
+                as OutboxLoaded)
+            .operations;
+
+    test("la file de l'autre serveur reprend, celle-ci reste en sommeil", () {
+      fakeAsync((async) {
+        // Recette hors ligne : sa saisie attend un nouvel essai.
+        when(
+          () => meetings.getLanes(any()),
+        ).thenThrow(const NetworkException('hors ligne'));
+        final c = twoServers();
+        async.flushMicrotasks();
+        expect(c.read(outboxProvider).map((o) => o.id), ['recette-1']);
+
+        unawaited(
+          c
+              .read(appConfigProvider.notifier)
+              .switchTo(AppEnvironment.production),
+        );
+        async.flushMicrotasks();
+        async.elapse(const Duration(hours: 1));
+
+        // La file de la production est relue et part vers la production ;
+        // celle de la recette n'y va jamais, et reste enregistrée chez elle.
+        verify(() => productionMeetings.getLanes([21])).called(1);
+        verifyNever(() => productionMeetings.getLanes([11]));
+        final sent = verify(
+          () => productionResults.submit(captureAny()),
+        ).captured.cast<RaceResult>();
+        expect(sent.map((r) => r.seriesId), [6]);
+        expect(c.read(outboxProvider).map((o) => o.id), ['production-1']);
+        expect(storedIn(productionStore).single.state, OutboxState.sent);
+        expect(storedIn(local).single.id, 'recette-1');
+        expect(storedIn(local).single.state, OutboxState.pending);
+
+        // Au retour, la saisie de la recette repart vers la recette.
+        when(() => meetings.getLanes(any())).thenAnswer((invocation) async {
+          final ids = invocation.positionalArguments.single as Iterable<int>;
+          return {for (final id in ids) id: _lane(id)};
+        });
+        when(() => results.submit(any())).thenAnswer((_) async => 99);
+        unawaited(
+          c
+              .read(appConfigProvider.notifier)
+              .switchTo(AppEnvironment.development),
+        );
+        async.flushMicrotasks();
+        async.elapse(const Duration(hours: 1));
+
+        expect(submitted().map((r) => r.seriesId), [5]);
+        expect(storedIn(local).single.state, OutboxState.sent);
+        c.dispose();
+      });
+    });
+
+    test("un envoi en vol au changement ne touche pas à l'autre file", () {
+      fakeAsync((async) {
+        final lanes = Completer<Map<int, LaneAssignment?>>();
+        when(() => meetings.getLanes(any())).thenAnswer((_) => lanes.future);
+        final c = twoServers();
+        async.flushMicrotasks();
+        verify(() => meetings.getLanes([11])).called(1);
+
+        unawaited(
+          c
+              .read(appConfigProvider.notifier)
+              .switchTo(AppEnvironment.production),
+        );
+        async.flushMicrotasks();
+        lanes.complete({11: _lane(11)});
+        async.flushMicrotasks();
+        async.elapse(const Duration(hours: 1));
+
+        verifyNever(() => results.submit(any()));
+        expect(storedIn(local).single.state, OutboxState.pending);
+        expect(storedIn(productionStore).map((o) => o.id), ['production-1']);
+        expect(c.read(outboxProvider).map((o) => o.id), ['production-1']);
         c.dispose();
       });
     });

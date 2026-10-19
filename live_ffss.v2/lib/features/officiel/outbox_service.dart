@@ -47,8 +47,35 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
   Future<void> _saving = Future.value();
   int _sequence = 0;
 
+  /// Où vit la file en mémoire : le stockage du serveur courant. Un travail
+  /// commencé pour l'un ne touche plus à rien en se terminant sur l'autre.
+  late OutboxStore _home;
+
+  /// Relit le stockage : après un changement de serveur, ce notifier n'est
+  /// reconstruit qu'à sa prochaine lecture, mais le stockage, lui, a déjà
+  /// changé. Sans cela, une saisie de l'ancienne file partirait, entre les
+  /// deux, avec les repositories du nouveau serveur.
+  bool _current(OutboxStore home) =>
+      ref.mounted &&
+      identical(home, _home) &&
+      identical(ref.read(outboxStoreProvider), home);
+
+  /// Reconstruit au changement de serveur : la file de l'autre reste
+  /// enregistrée chez lui, en sommeil, et celle de ce serveur est relue. Le
+  /// notifier, lui, survit : tout ce qu'il tenait de l'autre serveur repart
+  /// de zéro.
   @override
   List<OutboxOperation> build() {
+    _home = ref.watch(outboxStoreProvider);
+    _retry = null;
+    _loadRetry = null;
+    _loadAttempts = 0;
+    _running = false;
+    _rerun = false;
+    _blocked = false;
+    _loaded = false;
+    _loading = null;
+    _unknown = const [];
     ref.onDispose(() {
       _retry?.cancel();
       _loadRetry?.cancel();
@@ -73,17 +100,18 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
     int? resultId,
     required ResultChange change,
   }) async {
+    final home = _home;
     // Une session en cours de reprise ou de connexion n'a pas encore dit à
     // qui est la saisie.
     final session = ref.read(sessionProvider);
     final account = session.isLoading
         ? await ref.read(sessionProvider.future)
         : session.value;
-    if (!ref.mounted) return;
+    if (!_current(home)) return;
     if (account == null) throw const AuthException('non connecté');
     // Non relue, la saisie est gardée en mémoire et `_persist` lève.
     await _ensureLoaded(now: true);
-    if (!ref.mounted) return;
+    if (!_current(home)) return;
 
     final now = ref.read(clockProvider)();
     final op = OutboxOperation(
@@ -105,8 +133,9 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
   /// opération en attente ne s'écarte pas. Refusé (une [AppException]) tant
   /// que la file enregistrée n'a pas été relue : l'opération y reviendrait.
   Future<void> dismiss(String id) async {
+    final home = _home;
     await _requireLoaded();
-    if (!ref.mounted) return;
+    if (!_current(home)) return;
     state = [
       for (final op in state)
         if (op.id != id || op.state == OutboxState.pending) op,
@@ -119,8 +148,9 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
   /// autres comptes et les envoyées restent. Refusé (une [AppException]) tant
   /// que la file enregistrée n'a pas été relue : elles y reviendraient.
   Future<void> discardAccount(String account) async {
+    final home = _home;
     await _requireLoaded();
-    if (!ref.mounted) return;
+    if (!_current(home)) return;
     state = [
       for (final op in state)
         if (op.state == OutboxState.sent || !isSameAccount(op.account, account))
@@ -133,8 +163,9 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
   /// et relance l'envoi. Lève une [AppException] si la file ne peut être
   /// relue ou enregistrée.
   Future<void> retry(String id) async {
+    final home = _home;
     await _requireLoaded();
-    if (!ref.mounted) return;
+    if (!_current(home)) return;
     final index = state.indexWhere((o) => o.id == id);
     if (index < 0 || state[index].state != OutboxState.rejected) return;
     state = [...state]
@@ -160,30 +191,31 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
   Future<bool> _ensureLoaded({bool now = false}) {
     if (_loaded) return Future.value(true);
     if (!now && _loadRetry != null) return Future.value(false);
+    final home = _home;
     return _loading ??= () async {
       try {
-        return await _load();
+        return await _load(home);
       } finally {
-        _loading = null;
+        if (identical(home, _home)) _loading = null;
       }
     }();
   }
 
   /// Les saisies faites avant la relecture (gardées en mémoire) sont fondues
   /// dans la file relue, comme si elles venaient d'être saisies.
-  Future<bool> _load() async {
-    final store = ref.read(outboxStoreProvider);
+  Future<bool> _load(OutboxStore home) async {
+    final store = home;
     final now = ref.read(clockProvider)();
     try {
       final content = await store.load();
-      if (!ref.mounted) return false;
+      if (!_current(home)) return false;
       final OutboxLoaded loaded;
       switch (content) {
         case OutboxLoaded():
           loaded = content;
         case OutboxUnreadable(:final raw):
           await store.backup(raw, now);
-          if (!ref.mounted) return false;
+          if (!_current(home)) return false;
           loaded = const OutboxLoaded([]);
       }
       var queue = loaded.operations;
@@ -199,7 +231,7 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
       _set(pruneSent(queue, now));
       return true;
     } on AppException {
-      if (!ref.mounted) return false;
+      if (!_current(home)) return false;
       _setPersistenceFailed(true);
       _loadRetry?.cancel();
       _loadRetry = Timer(retryDelay(++_loadAttempts), () {
@@ -228,12 +260,14 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
   /// Enregistre la file telle qu'elle est maintenant. Refuse tant que la file
   /// enregistrée n'a pas été relue : l'écrire effacerait ce qu'elle contient.
   Future<void> _persist() async {
+    // `state` d'abord : après un changement de serveur, le lire reconstruit
+    // ce notifier, et tout ce qui suit est alors celui du nouveau serveur.
+    final queue = state;
     if (!_loaded) {
       _setPersistenceFailed(true);
       throw const UnknownException("file d'envoi enregistrée non relue");
     }
-    final store = ref.read(outboxStoreProvider);
-    final queue = state;
+    final store = _home;
     final unknown = _unknown;
     // Enchaînées : deux écritures concurrentes pourraient arriver dans le
     // désordre et laisser la plus ancienne enregistrée.
@@ -261,21 +295,23 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
   }
 
   Future<void> _process() async {
+    final home = _home;
     _running = true;
     try {
       do {
         _rerun = false;
         // Rien ne part avant la relecture : un échec programme la suivante.
-        if (!await _ensureLoaded()) return;
+        if (!await _ensureLoaded() || !_current(home)) return;
         // Un nouvel essai programmé garde la main : la file attend son délai.
-        while (ref.mounted && !_blocked && _retry == null) {
+        while (_current(home) && !_blocked && _retry == null) {
           final op = _next();
           if (op == null) break;
-          if (await _send(op) == _Outcome.stop) break;
+          if (await _send(op, home) == _Outcome.stop) break;
         }
-      } while (ref.mounted && _rerun);
+      } while (_current(home) && _rerun);
     } finally {
-      _running = false;
+      // La file d'un autre serveur a déjà son propre envoi.
+      if (identical(home, _home)) _running = false;
     }
   }
 
@@ -291,12 +327,13 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
     return label != null && isSameAccount(op.account, label);
   }
 
-  Future<_Outcome> _send(OutboxOperation op) async {
+  Future<_Outcome> _send(OutboxOperation op, OutboxStore home) async {
     final meetings = ref.read(meetingRepositoryProvider);
     final results = ref.read(resultRepositoryProvider);
     // Revérifié après chaque attente : la session peut avoir changé de
-    // compte, et une saisie ne part jamais sous un autre que le sien.
-    bool lost() => !ref.mounted || !_ownedBySession(op);
+    // compte, et une saisie ne part jamais sous un autre que le sien, ni vers
+    // un autre serveur que le sien.
+    bool lost() => !_current(home) || !_ownedBySession(op);
     try {
       // Relire la place trouve le résultat d'une création arrivée sur le
       // site malgré une réponse perdue : la renvoyer ferait un doublon.
@@ -356,10 +393,10 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
 
       if (lost()) return _Outcome.stop;
       final id = await results.submit(applyChange(current, op.change));
-      if (!ref.mounted) return _Outcome.stop;
+      if (!_current(home)) return _Outcome.stop;
       return _settle(op, OutboxState.sent, resultId: id);
     } on AppException catch (e) {
-      if (!ref.mounted) return _Outcome.stop;
+      if (!_current(home)) return _Outcome.stop;
       switch (e) {
         case AuthException():
           // La session a peut-être déjà changé : ce refus ne concerne alors

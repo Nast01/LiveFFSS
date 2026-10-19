@@ -389,5 +389,15 @@
   "reminderPermissionMissing": "Notifications not allowed: choose a lead time to allow them.",
   "reminderChannelName": "Race reminders",
   "reminderBody": "{event} · scheduled at {time}",
-  "@reminderBody": {"placeholders": {"event": {"type": "String"}, "time": {"type": "String"}}}
+  "@reminderBody": {"placeholders": {"event": {"type": "String"}, "time": {"type": "String"}}},
+  "serverTitle": "Server",
+  "serverProduction": "Production",
+  "serverStaging": "Staging",
+  "serverBanner": "STAGING",
+  "serverSwitchTitle": "Switch to {server}?",
+  "@serverSwitchTitle": {"placeholders": {"server": {"type": "String"}}},
+  "serverSwitchBody": "The app restarts from its start tab on this server, with the account saved for it if there is one. Nothing is deleted: each server's accounts, follows and preferences stay on this phone.",
+  "serverSwitchUnsent": "{count, plural, one{1 entry has not been sent: it stays on this phone and will be sent when you come back to this server.} other{{count} entries have not been sent: they stay on this phone and will be sent when you come back to this server.}}",
+  "@serverSwitchUnsent": {"placeholders": {"count": {"type": "int"}}},
+  "serverSwitchConfirm": "Switch server"
 }

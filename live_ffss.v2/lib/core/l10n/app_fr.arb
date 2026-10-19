@@ -399,5 +399,15 @@
   "reminderPermissionMissing": "Notifications non autorisées : choisissez un délai pour les autoriser.",
   "reminderChannelName": "Rappels de course",
   "reminderBody": "{event} · prévu à {time}",
-  "@reminderBody": {"placeholders": {"event": {"type": "String"}, "time": {"type": "String"}}}
+  "@reminderBody": {"placeholders": {"event": {"type": "String"}, "time": {"type": "String"}}},
+  "serverTitle": "Serveur",
+  "serverProduction": "Production",
+  "serverStaging": "Recette",
+  "serverBanner": "RECETTE",
+  "serverSwitchTitle": "Passer sur {server} ?",
+  "@serverSwitchTitle": {"placeholders": {"server": {"type": "String"}}},
+  "serverSwitchBody": "L'app repart de l'onglet d'ouverture sur ce serveur, avec le compte qui y est enregistré s'il y en a un. Rien n'est effacé : comptes, suivis et préférences de chaque serveur restent sur le téléphone.",
+  "serverSwitchUnsent": "{count, plural, one{1 saisie n'a pas été envoyée : elle reste sur le téléphone et partira au retour sur ce serveur.} other{{count} saisies n'ont pas été envoyées : elles restent sur le téléphone et partiront au retour sur ce serveur.}}",
+  "@serverSwitchUnsent": {"placeholders": {"count": {"type": "int"}}},
+  "serverSwitchConfirm": "Changer de serveur"
 }

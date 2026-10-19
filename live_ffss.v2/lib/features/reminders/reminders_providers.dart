@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:live_ffss_v2/core/config/app_environment.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/notifications/reminder_scheduler.dart';
 import 'package:live_ffss_v2/core/providers.dart';
@@ -34,8 +35,18 @@ class RemindersNotifier extends AsyncNotifier<List<Reminder>> {
   /// toujours.
   List<Reminder>? _scheduled;
 
+  /// Le serveur de [_scheduled]. Un changement de serveur annule tous les
+  /// rappels : ceux de la même compétition, même identiques, sont à
+  /// replanifier au retour.
+  AppEnvironment? _server;
+
   @override
   Future<List<Reminder>> build() async {
+    final server = ref.watch(appConfigProvider).environment;
+    if (server != _server) {
+      _server = server;
+      _scheduled = null;
+    }
     try {
       return await _plan();
     } on AppException {

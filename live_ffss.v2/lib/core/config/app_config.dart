@@ -12,8 +12,7 @@ class AppConfig {
       apiVersion = 'api/v1.0',
       environment = AppEnvironment.production;
 
-  /// L'environnement de [appConfigProvider] ; le choix dans l'app arrive au
-  /// lot 4.
+  /// L'environnement choisi (`appConfigProvider`).
   factory AppConfig.forEnvironment(AppEnvironment environment) => AppConfig(
     baseUrl: environment.baseUrl,
     apiVersion: environment.apiVersion,

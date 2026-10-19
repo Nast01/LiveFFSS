@@ -603,6 +603,7 @@ void main() {
       final c = ProviderContainer(
         overrides: [
           localStoreProvider.overrideWithValue(store),
+          globalStoreProvider.overrideWithValue(store),
           reminderSchedulerProvider.overrideWithValue(scheduler),
           resultsRepositoryProvider.overrideWithValue(results),
           meetingRepositoryProvider.overrideWithValue(meetings),
@@ -895,6 +896,22 @@ void main() {
       await container.read(remindersProvider(other.id).future);
 
       expect(scheduler.cancels, 1);
+    });
+
+    test('retour sur un serveur : ses rappels sont replanifiés, même '
+        'identiques', () async {
+      final container = build();
+      await plan(container);
+      expect(scheduler.replaced, hasLength(1));
+
+      // Le changement de serveur les a annulés ; la même compétition, avec
+      // les mêmes suivis, doit les replanifier.
+      await container
+          .read(appConfigProvider.notifier)
+          .switchTo(AppEnvironment.production);
+      await container.read(remindersProvider(competitionId).future);
+
+      expect(scheduler.replaced, hasLength(2));
     });
   });
 }
