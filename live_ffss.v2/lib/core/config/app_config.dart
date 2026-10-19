@@ -40,6 +40,7 @@ class ApiEndpoints {
   static const String eventList = 'competition/epreuve';
   static const String eventSeries = 'competition/serie';
   static const String participants = 'competition/evenement/:id/participants';
+  static const String officials = 'competition/evenement/:id/officiels';
   static const String requestToken = 'requestToken';
   static const String me = 'me';
   static const String competitionMe = 'competition/evenement/:id/me';

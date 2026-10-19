@@ -7,6 +7,9 @@ import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/event_ranking.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
+import 'package:live_ffss_v2/domain/follows.dart';
+import 'package:live_ffss_v2/features/follows/followed_mark.dart';
+import 'package:live_ffss_v2/features/follows/follows_providers.dart';
 import 'package:live_ffss_v2/features/results/results_formatting.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:live_ffss_v2/features/results/widgets/choice_chips_row.dart';
@@ -165,6 +168,8 @@ class _RankingSection extends ConsumerWidget {
     }
 
     final rows = shownRows(value);
+    final follows =
+        ref.watch(followsProvider(competitionId)).value ?? const Follows();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -216,6 +221,7 @@ class _RankingSection extends ConsumerWidget {
                   _RankingRowTile(
                     row: row,
                     relay: value.event.isRelay,
+                    followed: isFollowedResult(follows, row.result),
                     onOpen: (athleteId) => context.go(
                       Routes.resultsAthlete(competitionId, athleteId),
                     ),
@@ -233,11 +239,15 @@ class _RankingRowTile extends StatelessWidget {
   const _RankingRowTile({
     required this.row,
     required this.relay,
+    required this.followed,
     required this.onOpen,
   });
 
   final RankingRow row;
   final bool relay;
+
+  /// L'engagement ou le club de la ligne est suivi ([isFollowedResult]).
+  final bool followed;
   final void Function(int athleteId) onOpen;
 
   @override
@@ -269,9 +279,16 @@ class _RankingRowTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    names.title,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  Wrap(
+                    spacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        names.title,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      if (followed) const FollowedMark(),
+                    ],
                   ),
                   if (names.subtitle.isNotEmpty)
                     Text(

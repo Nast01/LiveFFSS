@@ -1,6 +1,8 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/config/app_environment.dart';
+import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/storage/local_store.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -45,5 +47,45 @@ void main() {
     await store.read('language');
 
     verify(() => storage.read(key: 'language')).called(1);
+  });
+
+  test('une clé de suivis porte le préfixe dev_ en développement', () async {
+    final store = SecureLocalStore(storage, AppEnvironment.development);
+
+    await store.read('follows_1416');
+
+    verify(() => storage.read(key: 'dev_follows_1416')).called(1);
+  });
+
+  group('une erreur de la plateforme devient une StorageException', () {
+    final platformError = PlatformException(code: 'KeystoreError');
+
+    test('à la lecture', () async {
+      when(() => storage.read(key: any(named: 'key'))).thenThrow(platformError);
+      final store = SecureLocalStore(storage, AppEnvironment.production);
+
+      expect(() => store.read('k'), throwsA(isA<StorageException>()));
+    });
+
+    test("à l'écriture", () async {
+      when(
+        () => storage.write(
+          key: any(named: 'key'),
+          value: any(named: 'value'),
+        ),
+      ).thenThrow(platformError);
+      final store = SecureLocalStore(storage, AppEnvironment.production);
+
+      expect(() => store.write('k', 'v'), throwsA(isA<StorageException>()));
+    });
+
+    test('à la suppression', () async {
+      when(
+        () => storage.delete(key: any(named: 'key')),
+      ).thenThrow(platformError);
+      final store = SecureLocalStore(storage, AppEnvironment.production);
+
+      expect(() => store.delete('k'), throwsA(isA<StorageException>()));
+    });
   });
 }

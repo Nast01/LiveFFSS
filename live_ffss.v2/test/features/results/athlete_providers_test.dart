@@ -8,10 +8,11 @@ import 'package:live_ffss_v2/data/ffss/dtos/participant_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/reunion_dto.dart';
 import 'package:live_ffss_v2/data/ffss/dtos/serie_results_dto.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/deroulement_mapper.dart';
-import 'package:live_ffss_v2/data/ffss/mappers/reunion_mapper.dart';
 import 'package:live_ffss_v2/data/ffss/mappers/results_mapper.dart';
+import 'package:live_ffss_v2/data/ffss/mappers/reunion_mapper.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/results_repository.dart';
+import 'package:live_ffss_v2/domain/account.dart';
 import 'package:live_ffss_v2/domain/event_results.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
@@ -19,15 +20,25 @@ import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
+import 'package:live_ffss_v2/features/auth/session.dart';
+import 'package:live_ffss_v2/features/follows/follows_providers.dart';
+import 'package:live_ffss_v2/features/follows/reminder_records.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../support/fixtures.dart';
+import '../../support/in_memory_local_store.dart';
 
 class _MockResultsRepository extends Mock implements ResultsRepository {}
 
 class _MockMeetingRepository extends Mock implements MeetingRepository {}
+
+/// Personne de connecté, sans réseau.
+class _NoSession extends SessionNotifier {
+  @override
+  Future<Account?> build() async => null;
+}
 
 List<Map<String, dynamic>> _rows(String name) =>
     (fixture(name)['data'] as List<dynamic>).cast<Map<String, dynamic>>();
@@ -104,9 +115,19 @@ void main() {
       resultsRepositoryProvider.overrideWithValue(results),
       meetingRepositoryProvider.overrideWithValue(meetings),
       clockProvider.overrideWithValue(() => DateTime(2026, 3, 27, 7)),
+      localStoreProvider.overrideWithValue(InMemoryLocalStore()),
+      sessionProvider.overrideWith(_NoSession.new),
     ],
     retry: noRetry,
   );
+
+  /// Les séries connues ne sont gardées que pour un athlète suivi.
+  Future<void> follow(ProviderContainer c, Participant participant) async {
+    await c.read(followsProvider(competitionId).future);
+    await c
+        .read(followsProvider(competitionId).notifier)
+        .toggleAthlete(participant);
+  }
 
   setUpAll(() => registerFallbackValue(<int>[]));
 
@@ -350,8 +371,11 @@ void main() {
             ),
           ],
         );
+        // Pas encore courue au programme non plus.
+        programme = _withStatus(fixtureProgramme, (_) => RunStatus.waiting);
         final c = container();
         addTearDown(c.dispose);
+        await follow(c, n020);
 
         final races = await card(c, 632572);
 
@@ -364,8 +388,63 @@ void main() {
         // Sa série est connue : l'heure est celle de sa course, pas du tour.
         expect(toRun.series, isNotNull);
         expect(toRun.plannedStart, toRun.series!.heat.plannedStart);
+        // Gardée pour les rappels : l'heure de sa série, pas celle du tour.
+        await pumpEventQueue();
+        expect(await c.read(knownHeatsProvider(competitionId).future), {
+          (entryId: 566082, eventId: 36073): toRun.series!.heat.id,
+        });
       },
     );
+
+    test('publiée sans temps, course terminée au programme (statut 3) : pas '
+        'gardée pour les rappels', () async {
+      // Le programme des fixtures, où sa course porte le statut 3 ; 566082
+      // sans temps dans sa série publiée, l'athlète suivi : seule la course
+      // terminée l'écarte.
+      final unrun = {
+        ...series,
+        36073: [
+          for (final one in series[36073]!)
+            one.copyWith(
+              results: [
+                for (final r in one.results)
+                  r.entryId == 566082 ? r.copyWith(time: null) : r,
+              ],
+            ),
+        ],
+      };
+      when(() => results.getEventSeries(any())).thenAnswer(
+        (invocation) async =>
+            unrun[invocation.positionalArguments.first as int] ?? const [],
+      );
+      final n020 = participants.firstWhere((p) => p.id == 632572);
+      when(() => results.getParticipants(any())).thenAnswer(
+        (_) async => [
+          n020.copyWith(
+            entries: const [
+              ParticipantEntry(
+                entryId: 566082,
+                eventId: 36073,
+                categoryName: 'Cadet',
+              ),
+            ],
+          ),
+        ],
+      );
+      // Sa course (480, série 2) est terminée au programme.
+      expect(heats[480]!.status, RunStatus.finished);
+      final c = container();
+      addTearDown(c.dispose);
+      await follow(c, n020);
+
+      final race = (await card(c, 632572)).single;
+
+      expect(race.series, isNotNull);
+      expect(race.series!.finished, isTrue);
+      expect(race.toRun, isTrue);
+      await pumpEventQueue();
+      expect(await c.read(knownHeatsProvider(competitionId).future), isEmpty);
+    });
 
     test('une épreuve illisible : indisponible, le reste listé', () async {
       when(() => results.getEventSeries(any())).thenAnswer((invocation) async {
@@ -545,12 +624,33 @@ void main() {
       lanes[first.placeIds[2]] = lane(first.placeIds[2], 3, entry: entryId);
       final c = container();
       addTearDown(c.dispose);
+      await follow(
+        c,
+        const Participant(
+          id: 1,
+          firstName: 'Un',
+          lastName: 'ATHLETE',
+          club: 'Club',
+          entries: [
+            ParticipantEntry(
+              entryId: entryId,
+              eventId: 36074,
+              categoryName: 'Open',
+            ),
+          ],
+        ),
+      );
 
       final found = await find(c);
 
       expect(found, isNotNull);
       expect(found!.heat.id, 479);
       expect(found.lane, 3);
+      // Gardée pour les rappels.
+      await pumpEventQueue();
+      expect(await c.read(knownHeatsProvider(competitionId).future), {
+        (entryId: entryId, eventId: 36074): 479,
+      });
       verify(() => meetings.getLanes(first.placeIds)).called(1);
       verifyNever(() => meetings.getLanes(heats[480]!.placeIds));
     });

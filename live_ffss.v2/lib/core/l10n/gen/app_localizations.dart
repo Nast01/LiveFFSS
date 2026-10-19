@@ -1213,6 +1213,606 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Impossible de charger la fiche.'**
   String get athleteLoadError;
+
+  /// No description provided for @followedMark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivi'**
+  String get followedMark;
+
+  /// No description provided for @followAthlete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivre cet athlète'**
+  String get followAthlete;
+
+  /// No description provided for @unfollowAthlete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne plus suivre cet athlète'**
+  String get unfollowAthlete;
+
+  /// No description provided for @unfollowClub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne plus suivre ce club'**
+  String get unfollowClub;
+
+  /// No description provided for @mySpaceSpaces.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes espaces sur cette compétition'**
+  String get mySpaceSpaces;
+
+  /// No description provided for @mySpaceEveryone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compétition (tout le monde)'**
+  String get mySpaceEveryone;
+
+  /// No description provided for @mySpacePreferences.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préférences'**
+  String get mySpacePreferences;
+
+  /// No description provided for @mySpaceNoSpace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte n\'a pas d\'espace sur cette compétition.'**
+  String get mySpaceNoSpace;
+
+  /// No description provided for @mySpaceRolesError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire vos espaces sur cette compétition.'**
+  String get mySpaceRolesError;
+
+  /// No description provided for @mySpaceAthlete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Athlète'**
+  String get mySpaceAthlete;
+
+  /// No description provided for @mySpaceAthleteSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planning, résultats'**
+  String get mySpaceAthleteSubtitle;
+
+  /// No description provided for @mySpaceClub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Club · {label}'**
+  String mySpaceClub(String label);
+
+  /// No description provided for @mySpaceClubSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Athlètes, planning, résultats'**
+  String get mySpaceClubSubtitle;
+
+  /// No description provided for @mySpaceOfficial.
+  ///
+  /// In fr, this message translates to:
+  /// **'Officiel'**
+  String get mySpaceOfficial;
+
+  /// No description provided for @mySpaceOfficialSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisies, séries à saisir'**
+  String get mySpaceOfficialSubtitle;
+
+  /// No description provided for @mySpaceAdmin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Admin'**
+  String get mySpaceAdmin;
+
+  /// No description provided for @mySpaceAdminSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'espace de n\'importe quel club'**
+  String get mySpaceAdminSubtitle;
+
+  /// No description provided for @mySpacePrincipalJudge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Juge principal'**
+  String get mySpacePrincipalJudge;
+
+  /// No description provided for @mySpaceStartsNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'maintenant'**
+  String get mySpaceStartsNow;
+
+  /// No description provided for @mySpaceStartsInMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'dans {minutes} min'**
+  String mySpaceStartsInMinutes(int minutes);
+
+  /// No description provided for @mySpaceStartsInHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'dans {hours} h'**
+  String mySpaceStartsInHours(int hours);
+
+  /// No description provided for @mySpaceRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 refusée} other{{count} refusées}}'**
+  String mySpaceRejected(int count);
+
+  /// No description provided for @mySpaceFollows.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes suivis'**
+  String get mySpaceFollows;
+
+  /// No description provided for @mySpaceNoFollow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun suivi'**
+  String get mySpaceNoFollow;
+
+  /// No description provided for @mySpaceFollowsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'On suit depuis une fiche d\'athlète ou l\'espace d\'un club (étoile). Les courses suivies ressortent dans le Live et les résultats.'**
+  String get mySpaceFollowsHint;
+
+  /// No description provided for @mySpaceNextRace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochaine : {label}'**
+  String mySpaceNextRace(String label);
+
+  /// No description provided for @mySpaceNoNextRace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune course à venir'**
+  String get mySpaceNoNextRace;
+
+  /// No description provided for @mySpaceAthleteCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{{count} athlète} other{{count} athlètes}}'**
+  String mySpaceAthleteCount(int count);
+
+  /// No description provided for @mySpaceClubCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{{count} club} other{{count} clubs}}'**
+  String mySpaceClubCount(int count);
+
+  /// No description provided for @mySpaceFlatWaterEventCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{{count} épreuve d\'eau plate} other{{count} épreuves d\'eau plate}}'**
+  String mySpaceFlatWaterEventCount(int count);
+
+  /// No description provided for @mySpaceInfos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Infos de la compétition'**
+  String get mySpaceInfos;
+
+  /// No description provided for @mySpaceInfosSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieu, dates, engagés'**
+  String get mySpaceInfosSubtitle;
+
+  /// No description provided for @mySpaceInfosError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les infos de la compétition.'**
+  String get mySpaceInfosError;
+
+  /// No description provided for @mySpaceOrganizer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Organisateur'**
+  String get mySpaceOrganizer;
+
+  /// No description provided for @mySpaceClubs.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clubs'**
+  String get mySpaceClubs;
+
+  /// No description provided for @mySpaceOfficials.
+  ///
+  /// In fr, this message translates to:
+  /// **'Officiels'**
+  String get mySpaceOfficials;
+
+  /// No description provided for @mySpaceOfficialsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Juge principal, niveaux, jours'**
+  String get mySpaceOfficialsSubtitle;
+
+  /// No description provided for @mySpaceOfficialsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun officiel publié pour cette compétition.'**
+  String get mySpaceOfficialsEmpty;
+
+  /// No description provided for @mySpaceOfficialsError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les officiels.'**
+  String get mySpaceOfficialsError;
+
+  /// No description provided for @mySpaceOfficialLevel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Niveau {level}'**
+  String mySpaceOfficialLevel(String level);
+
+  /// No description provided for @mySpaceOfficialLevelUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Niveau non renseigné'**
+  String get mySpaceOfficialLevelUnknown;
+
+  /// No description provided for @startTabTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Onglet d\'ouverture'**
+  String get startTabTitle;
+
+  /// No description provided for @mySpaceAthleteUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de vérifier votre engagement'**
+  String get mySpaceAthleteUnknown;
+
+  /// No description provided for @mySpaceFollowsError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire vos suivis'**
+  String get mySpaceFollowsError;
+
+  /// No description provided for @mySpaceAthleteSpaceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon espace athlète'**
+  String get mySpaceAthleteSpaceTitle;
+
+  /// No description provided for @mySpaceNextRaceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ma prochaine course'**
+  String get mySpaceNextRaceTitle;
+
+  /// No description provided for @mySpaceCellTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure'**
+  String get mySpaceCellTime;
+
+  /// No description provided for @mySpaceCellSeries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série'**
+  String get mySpaceCellSeries;
+
+  /// No description provided for @mySpaceCellLane.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ligne'**
+  String get mySpaceCellLane;
+
+  /// No description provided for @mySpaceMyPlanning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon planning'**
+  String get mySpaceMyPlanning;
+
+  /// No description provided for @mySpaceMyResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes résultats'**
+  String get mySpaceMyResults;
+
+  /// No description provided for @mySpaceNotEngaged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre compte n\'est engagé sur aucune épreuve de cette compétition.'**
+  String get mySpaceNotEngaged;
+
+  /// No description provided for @mySpaceNoRaceRun.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune course courue pour le moment'**
+  String get mySpaceNoRaceRun;
+
+  /// No description provided for @mySpaceRefereeTag.
+  ///
+  /// In fr, this message translates to:
+  /// **'RÉFÉRENT'**
+  String get mySpaceRefereeTag;
+
+  /// No description provided for @mySpaceAdminTag.
+  ///
+  /// In fr, this message translates to:
+  /// **'ADMIN'**
+  String get mySpaceAdminTag;
+
+  /// No description provided for @mySpaceFigureAthletes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{athlète} other{athlètes}}'**
+  String mySpaceFigureAthletes(int count);
+
+  /// No description provided for @mySpaceFigureRank.
+  ///
+  /// In fr, this message translates to:
+  /// **'clubs (prov.)'**
+  String get mySpaceFigureRank;
+
+  /// No description provided for @mySpaceFigureForfeits.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{forfait} other{forfaits}}'**
+  String mySpaceFigureForfeits(int count);
+
+  /// No description provided for @mySpaceCompute.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calculer'**
+  String get mySpaceCompute;
+
+  /// No description provided for @mySpacePlanning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planning'**
+  String get mySpacePlanning;
+
+  /// No description provided for @mySpaceForfeits.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfaits'**
+  String get mySpaceForfeits;
+
+  /// No description provided for @mySpaceUpcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'À venir'**
+  String get mySpaceUpcoming;
+
+  /// No description provided for @mySpaceCardsFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 fiche d\'athlète n\'a pu être lue} other{{count} fiches d\'athlète n\'ont pu être lues}}'**
+  String mySpaceCardsFailed(int count);
+
+  /// No description provided for @mySpaceForfeitsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfaits tirés des résultats publiés.'**
+  String get mySpaceForfeitsHint;
+
+  /// No description provided for @mySpaceForfeitsLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclarer ou annuler un forfait, remplacer un relayeur : bientôt disponible.'**
+  String get mySpaceForfeitsLater;
+
+  /// No description provided for @mySpaceNoForfeit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun forfait dans les résultats publiés'**
+  String get mySpaceNoForfeit;
+
+  /// No description provided for @mySpaceClubError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger l\'espace du club.'**
+  String get mySpaceClubError;
+
+  /// No description provided for @mySpaceClubNoAthlete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun athlète de ce club n\'est engagé.'**
+  String get mySpaceClubNoAthlete;
+
+  /// No description provided for @mySpaceClubFallback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Club'**
+  String get mySpaceClubFallback;
+
+  /// No description provided for @followClub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivre ce club'**
+  String get followClub;
+
+  /// No description provided for @officialSpaceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon espace officiel'**
+  String get officialSpaceTitle;
+
+  /// No description provided for @officialNothingRunning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune série en cours ni à venir'**
+  String get officialNothingRunning;
+
+  /// No description provided for @officialFollowing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivante : {heat}'**
+  String officialFollowing(String heat);
+
+  /// No description provided for @officialMyEntries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes saisies'**
+  String get officialMyEntries;
+
+  /// No description provided for @officialNoEntries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune saisie sur cette compétition'**
+  String get officialNoEntries;
+
+  /// No description provided for @officialSentAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyée à {time}'**
+  String officialSentAt(String time);
+
+  /// No description provided for @officialStatusCleared.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statut remis à OK'**
+  String get officialStatusCleared;
+
+  /// No description provided for @officialUnknownSeries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série hors programme'**
+  String get officialUnknownSeries;
+
+  /// No description provided for @officialCompetition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compétition'**
+  String get officialCompetition;
+
+  /// No description provided for @officialHeatsToEnter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Séries à saisir'**
+  String get officialHeatsToEnter;
+
+  /// No description provided for @officialHeatsToEnterSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courues sans chrono ni temps'**
+  String get officialHeatsToEnterSubtitle;
+
+  /// No description provided for @officialHeatsToEnterEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune série courue sans chrono ni temps.'**
+  String get officialHeatsToEnterEmpty;
+
+  /// No description provided for @officialHeatsUnread.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 série non lue} other{{count} séries non lues}}'**
+  String officialHeatsUnread(int count);
+
+  /// No description provided for @officialHeatsError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire les séries.'**
+  String get officialHeatsError;
+
+  /// No description provided for @officialDecisions.
+  ///
+  /// In fr, this message translates to:
+  /// **'DQ et forfaits'**
+  String get officialDecisions;
+
+  /// No description provided for @officialDecisionsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tirés des classements d\'épreuve'**
+  String get officialDecisionsSubtitle;
+
+  /// No description provided for @officialDecisionsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune DQ ni aucun forfait publié.'**
+  String get officialDecisionsEmpty;
+
+  /// No description provided for @officialDecisionsUnread.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 épreuve non lue} other{{count} épreuves non lues}}'**
+  String officialDecisionsUnread(int count);
+
+  /// No description provided for @officialDecisionsError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire les classements.'**
+  String get officialDecisionsError;
+
+  /// No description provided for @officialQueued.
+  ///
+  /// In fr, this message translates to:
+  /// **'En file d\'envoi'**
+  String get officialQueued;
+
+  /// No description provided for @reminderLeadTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappel avant une course'**
+  String get reminderLeadTitle;
+
+  /// No description provided for @reminderLeadSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos athlètes suivis et vous-même, d\'après le programme'**
+  String get reminderLeadSubtitle;
+
+  /// No description provided for @reminderLeadOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactivé'**
+  String get reminderLeadOff;
+
+  /// No description provided for @reminderLeadMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{minutes} min avant'**
+  String reminderLeadMinutes(int minutes);
+
+  /// No description provided for @reminderPermissionDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications refusées : les rappels sont désactivés. Autorisez-les dans les réglages du téléphone pour les réactiver.'**
+  String get reminderPermissionDenied;
+
+  /// No description provided for @reminderTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} : départ dans {minutes} min'**
+  String reminderTitle(String name, int minutes);
+
+  /// No description provided for @reminderTitleEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} : épreuve dans {minutes} min'**
+  String reminderTitleEvent(String name, int minutes);
+
+  /// No description provided for @reminderPermissionMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications non autorisées : choisissez un délai pour les autoriser.'**
+  String get reminderPermissionMissing;
+
+  /// No description provided for @reminderChannelName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels de course'**
+  String get reminderChannelName;
+
+  /// No description provided for @reminderBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'{event} · prévu à {time}'**
+  String reminderBody(String event, String time);
 }
 
 class _AppLocalizationsDelegate

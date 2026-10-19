@@ -91,6 +91,11 @@ abstract class Participant with _$Participant {
     required String lastName,
     Gender? gender,
     @Default('') String club,
+
+    /// Relient le participant au compte connecté (`CompetitionRoles`) et aux
+    /// clubs dont il est référent.
+    int? clubId,
+    int? licenseeId,
     @Default(false) bool isGuest,
     @Default(<ParticipantEntry>[]) List<ParticipantEntry> entries,
   }) = _Participant;

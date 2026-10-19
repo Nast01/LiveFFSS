@@ -61,4 +61,22 @@ void main() {
     expect(AppLanguage.french.locale, const Locale('fr'));
     expect(AppLanguage.english.locale, const Locale('en'));
   });
+
+  test('textes hors écran : la langue choisie, sinon celle du téléphone', () {
+    expect(
+      appLocalizationsFor(AppLanguage.english, const [Locale('fr')]).localeName,
+      'en',
+    );
+    expect(
+      appLocalizationsFor(AppLanguage.system, const [
+        Locale('en', 'US'),
+      ]).localeName,
+      'en',
+    );
+    // Langue du téléphone non prise en charge : le français.
+    expect(
+      appLocalizationsFor(AppLanguage.system, const [Locale('es')]).localeName,
+      'fr',
+    );
+  });
 }

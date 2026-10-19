@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
+import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
@@ -72,7 +73,7 @@ void main() {
       meetingRepositoryProvider.overrideWithValue(repository),
       competitionRolesProvider.overrideWith((ref, id) async {
         if (++roleReads == 1) throw const NetworkException('hors ligne');
-        return ['officiel'];
+        return const CompetitionRoles(roles: ['officiel']);
       }),
     ],
     retry: noRetry,

@@ -1438,7 +1438,9 @@ as String,
 /// @nodoc
 mixin _$Participant {
 
- int get id; String get firstName; String get lastName; Gender? get gender; String get club; bool get isGuest; List<ParticipantEntry> get entries;
+ int get id; String get firstName; String get lastName; Gender? get gender; String get club;/// Relient le participant au compte connecté (`CompetitionRoles`) et aux
+/// clubs dont il est référent.
+ int? get clubId; int? get licenseeId; bool get isGuest; List<ParticipantEntry> get entries;
 /// Create a copy of Participant
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1450,20 +1452,20 @@ $ParticipantCopyWith<Participant> get copyWith => _$ParticipantCopyWithImpl<Part
 @override
 bool operator ==(Object other) {
   final _this = this as Participant;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Participant&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.firstName, _this.firstName) || other.firstName == _this.firstName)&&(identical(other.lastName, _this.lastName) || other.lastName == _this.lastName)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.club, _this.club) || other.club == _this.club)&&(identical(other.isGuest, _this.isGuest) || other.isGuest == _this.isGuest)&&const DeepCollectionEquality().equals(other.entries, _this.entries));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Participant&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.firstName, _this.firstName) || other.firstName == _this.firstName)&&(identical(other.lastName, _this.lastName) || other.lastName == _this.lastName)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.club, _this.club) || other.club == _this.club)&&(identical(other.clubId, _this.clubId) || other.clubId == _this.clubId)&&(identical(other.licenseeId, _this.licenseeId) || other.licenseeId == _this.licenseeId)&&(identical(other.isGuest, _this.isGuest) || other.isGuest == _this.isGuest)&&const DeepCollectionEquality().equals(other.entries, _this.entries));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Participant;
-  return Object.hash(runtimeType,_this.id,_this.firstName,_this.lastName,_this.gender,_this.club,_this.isGuest,const DeepCollectionEquality().hash(_this.entries));
+  return Object.hash(runtimeType,_this.id,_this.firstName,_this.lastName,_this.gender,_this.club,_this.clubId,_this.licenseeId,_this.isGuest,const DeepCollectionEquality().hash(_this.entries));
 }
 
 @override
 String toString() {
   final _this = this as Participant;
-  return 'Participant(id: ${_this.id}, firstName: ${_this.firstName}, lastName: ${_this.lastName}, gender: ${_this.gender}, club: ${_this.club}, isGuest: ${_this.isGuest}, entries: ${_this.entries})';
+  return 'Participant(id: ${_this.id}, firstName: ${_this.firstName}, lastName: ${_this.lastName}, gender: ${_this.gender}, club: ${_this.club}, clubId: ${_this.clubId}, licenseeId: ${_this.licenseeId}, isGuest: ${_this.isGuest}, entries: ${_this.entries})';
 }
 
 
@@ -1474,7 +1476,7 @@ abstract mixin class $ParticipantCopyWith<$Res>  {
   factory $ParticipantCopyWith(Participant value, $Res Function(Participant) _then) = _$ParticipantCopyWithImpl;
 @useResult
 $Res call({
- int id, String firstName, String lastName, Gender? gender, String club, bool isGuest, List<ParticipantEntry> entries
+ int id, String firstName, String lastName, Gender? gender, String club, int? clubId, int? licenseeId, bool isGuest, List<ParticipantEntry> entries
 });
 
 
@@ -1491,14 +1493,16 @@ class _$ParticipantCopyWithImpl<$Res>
 
 /// Create a copy of Participant
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? gender = freezed,Object? club = null,Object? isGuest = null,Object? entries = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? gender = freezed,Object? club = null,Object? clubId = freezed,Object? licenseeId = freezed,Object? isGuest = null,Object? entries = null,}) {
   return _then(Participant(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String,lastName: null == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as Gender?,club: null == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
-as String,isGuest: null == isGuest ? _self.isGuest : isGuest // ignore: cast_nullable_to_non_nullable
+as String,clubId: freezed == clubId ? _self.clubId : clubId // ignore: cast_nullable_to_non_nullable
+as int?,licenseeId: freezed == licenseeId ? _self.licenseeId : licenseeId // ignore: cast_nullable_to_non_nullable
+as int?,isGuest: null == isGuest ? _self.isGuest : isGuest // ignore: cast_nullable_to_non_nullable
 as bool,entries: null == entries ? _self.entries : entries // ignore: cast_nullable_to_non_nullable
 as List<ParticipantEntry>,
   ));
@@ -1585,10 +1589,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String firstName,  String lastName,  Gender? gender,  String club,  bool isGuest,  List<ParticipantEntry> entries)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String firstName,  String lastName,  Gender? gender,  String club,  int? clubId,  int? licenseeId,  bool isGuest,  List<ParticipantEntry> entries)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Participant() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.isGuest,_that.entries);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.clubId,_that.licenseeId,_that.isGuest,_that.entries);case _:
   return orElse();
 
 }
@@ -1606,10 +1610,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String firstName,  String lastName,  Gender? gender,  String club,  bool isGuest,  List<ParticipantEntry> entries)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String firstName,  String lastName,  Gender? gender,  String club,  int? clubId,  int? licenseeId,  bool isGuest,  List<ParticipantEntry> entries)  $default,) {final _that = this;
 switch (_that) {
 case _Participant():
-return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.isGuest,_that.entries);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.clubId,_that.licenseeId,_that.isGuest,_that.entries);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1626,10 +1630,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String firstName,  String lastName,  Gender? gender,  String club,  bool isGuest,  List<ParticipantEntry> entries)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String firstName,  String lastName,  Gender? gender,  String club,  int? clubId,  int? licenseeId,  bool isGuest,  List<ParticipantEntry> entries)?  $default,) {final _that = this;
 switch (_that) {
 case _Participant() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.isGuest,_that.entries);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,_that.clubId,_that.licenseeId,_that.isGuest,_that.entries);case _:
   return null;
 
 }
@@ -1641,7 +1645,7 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.gender,_that.club,
 
 
 class _Participant implements Participant {
-  const _Participant({required this.id, required this.firstName, required this.lastName, this.gender, this.club = '', this.isGuest = false,  List<ParticipantEntry> entries = const <ParticipantEntry>[]}): _entries = entries;
+  const _Participant({required this.id, required this.firstName, required this.lastName, this.gender, this.club = '', this.clubId, this.licenseeId, this.isGuest = false,  List<ParticipantEntry> entries = const <ParticipantEntry>[]}): _entries = entries;
   
 
 @override final  int id;
@@ -1649,6 +1653,10 @@ class _Participant implements Participant {
 @override final  String lastName;
 @override final  Gender? gender;
 @override@JsonKey() final  String club;
+/// Relient le participant au compte connecté (`CompetitionRoles`) et aux
+/// clubs dont il est référent.
+@override final  int? clubId;
+@override final  int? licenseeId;
 @override@JsonKey() final  bool isGuest;
  final  List<ParticipantEntry> _entries;
 @override@JsonKey() List<ParticipantEntry> get entries {
@@ -1668,18 +1676,18 @@ _$ParticipantCopyWith<_Participant> get copyWith => __$ParticipantCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Participant&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.club, club) || other.club == club)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&const DeepCollectionEquality().equals(other.entries, _entries));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Participant&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.club, club) || other.club == club)&&(identical(other.clubId, clubId) || other.clubId == clubId)&&(identical(other.licenseeId, licenseeId) || other.licenseeId == licenseeId)&&(identical(other.isGuest, isGuest) || other.isGuest == isGuest)&&const DeepCollectionEquality().equals(other.entries, _entries));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,firstName,lastName,gender,club,isGuest,const DeepCollectionEquality().hash(_entries));
+    return Object.hash(runtimeType,id,firstName,lastName,gender,club,clubId,licenseeId,isGuest,const DeepCollectionEquality().hash(_entries));
 }
 
 @override
 String toString() {
-    return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, gender: $gender, club: $club, isGuest: $isGuest, entries: $entries)';
+    return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, gender: $gender, club: $club, clubId: $clubId, licenseeId: $licenseeId, isGuest: $isGuest, entries: $entries)';
 }
 
 
@@ -1690,7 +1698,7 @@ abstract mixin class _$ParticipantCopyWith<$Res> implements $ParticipantCopyWith
   factory _$ParticipantCopyWith(_Participant value, $Res Function(_Participant) _then) = __$ParticipantCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String firstName, String lastName, Gender? gender, String club, bool isGuest, List<ParticipantEntry> entries
+ int id, String firstName, String lastName, Gender? gender, String club, int? clubId, int? licenseeId, bool isGuest, List<ParticipantEntry> entries
 });
 
 
@@ -1707,14 +1715,16 @@ class __$ParticipantCopyWithImpl<$Res>
 
 /// Create a copy of Participant
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? gender = freezed,Object? club = null,Object? isGuest = null,Object? entries = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? gender = freezed,Object? club = null,Object? clubId = freezed,Object? licenseeId = freezed,Object? isGuest = null,Object? entries = null,}) {
   return _then(_Participant(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String,lastName: null == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as Gender?,club: null == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
-as String,isGuest: null == isGuest ? _self.isGuest : isGuest // ignore: cast_nullable_to_non_nullable
+as String,clubId: freezed == clubId ? _self.clubId : clubId // ignore: cast_nullable_to_non_nullable
+as int?,licenseeId: freezed == licenseeId ? _self.licenseeId : licenseeId // ignore: cast_nullable_to_non_nullable
+as int?,isGuest: null == isGuest ? _self.isGuest : isGuest // ignore: cast_nullable_to_non_nullable
 as bool,entries: null == entries ? _self._entries : entries // ignore: cast_nullable_to_non_nullable
 as List<ParticipantEntry>,
   ));

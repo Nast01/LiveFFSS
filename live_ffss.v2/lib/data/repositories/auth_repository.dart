@@ -3,7 +3,10 @@ import 'package:live_ffss_v2/core/config/app_config.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
 import 'package:live_ffss_v2/core/providers.dart';
+import 'package:live_ffss_v2/data/ffss/dtos/competition_me_dto.dart';
+import 'package:live_ffss_v2/data/ffss/mappers/competition_me_mapper.dart';
 import 'package:live_ffss_v2/domain/account.dart';
+import 'package:live_ffss_v2/domain/competition_roles.dart';
 
 abstract class AuthRepository {
   /// Le jeton d'un compte FFSS. Lève une [AppException] si les identifiants
@@ -15,7 +18,7 @@ abstract class AuthRepository {
   Future<Account> me();
 
   /// Les rôles du compte sur la compétition ; `public` sans session.
-  Future<List<String>> competitionRoles(int competitionId);
+  Future<CompetitionRoles> competitionRoles(int competitionId);
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -64,18 +67,14 @@ class AuthRepositoryImpl implements AuthRepository {
   /// Avec une session, les rôles sont dans `data` ; sans session, le site
   /// les sert sans enveloppe.
   @override
-  Future<List<String>> competitionRoles(int competitionId) async {
+  Future<CompetitionRoles> competitionRoles(int competitionId) async {
     final path = ApiEndpoints.replacePath(ApiEndpoints.competitionMe, {
       'id': competitionId.toString(),
     });
     final body = await _http.get(path);
     final data = body['data'];
-    final raw = data is Map<String, dynamic> ? data['roles'] : body['roles'];
-    final roles = [
-      for (final role in raw is List ? raw : const <Object?>[])
-        if (role is String) role,
-    ];
-    return roles.isEmpty ? const ['public'] : roles;
+    final source = data is Map<String, dynamic> ? data : body;
+    return CompetitionMeDto.fromJson(source).toDomain();
   }
 }
 

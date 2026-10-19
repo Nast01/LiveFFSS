@@ -9,6 +9,7 @@ import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/domain/account.dart';
+import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/manual_timing.dart';
@@ -179,7 +180,7 @@ void main() {
       overrides: [
         roles ??
             competitionRolesProvider.overrideWith(
-              (ref, id) async => ['officiel'],
+              (ref, id) async => const CompetitionRoles(roles: ['officiel']),
             ),
         meetingRepositoryProvider.overrideWithValue(meetings),
         resultRepositoryProvider.overrideWithValue(results),
@@ -209,25 +210,26 @@ void main() {
 
   group('entryAccess', () {
     test('en attente des rôles, puis ouverte aux seuls officiels', () async {
-      final roles = Completer<List<String>>();
+      final roles = Completer<CompetitionRoles>();
       final c = container(
         roles: competitionRolesProvider.overrideWith((ref, id) => roles.future),
       );
       c.listen(entryAccessProvider(_competition), (_, _) {});
       expect(c.read(entryAccessProvider(_competition)), EntryAccess.checking);
 
-      roles.complete(['public', 'officiel']);
+      roles.complete(const CompetitionRoles(roles: ['public', 'officiel']));
       await c.read(competitionRolesProvider(_competition).future);
       expect(c.read(entryAccessProvider(_competition)), EntryAccess.allowed);
     });
 
     test('une relecture des rôles garde la saisie ouverte', () async {
       var reads = 0;
-      final second = Completer<List<String>>();
+      final second = Completer<CompetitionRoles>();
       final c = container(
         roles: competitionRolesProvider.overrideWith(
-          (ref, id) =>
-              ++reads == 1 ? Future.value(['officiel']) : second.future,
+          (ref, id) => ++reads == 1
+              ? Future.value(const CompetitionRoles(roles: ['officiel']))
+              : second.future,
         ),
       );
       c.listen(entryAccessProvider(_competition), (_, _) {});
@@ -237,17 +239,19 @@ void main() {
       c.invalidate(competitionRolesProvider(_competition));
       expect(c.read(entryAccessProvider(_competition)), EntryAccess.allowed);
 
-      second.complete(['public']);
+      second.complete(const CompetitionRoles(roles: ['public']));
       await c.read(competitionRolesProvider(_competition).future);
       expect(c.read(entryAccessProvider(_competition)), EntryAccess.denied);
     });
 
     test('une relecture après un refus attend, sans refuser', () async {
       var reads = 0;
-      final second = Completer<List<String>>();
+      final second = Completer<CompetitionRoles>();
       final c = container(
         roles: competitionRolesProvider.overrideWith(
-          (ref, id) => ++reads == 1 ? Future.value(['public']) : second.future,
+          (ref, id) => ++reads == 1
+              ? Future.value(const CompetitionRoles(roles: ['public']))
+              : second.future,
         ),
       );
       c.listen(entryAccessProvider(_competition), (_, _) {});
@@ -257,7 +261,7 @@ void main() {
       c.invalidate(competitionRolesProvider(_competition));
       expect(c.read(entryAccessProvider(_competition)), EntryAccess.checking);
 
-      second.complete(['officiel']);
+      second.complete(const CompetitionRoles(roles: ['officiel']));
       await c.read(competitionRolesProvider(_competition).future);
       expect(c.read(entryAccessProvider(_competition)), EntryAccess.allowed);
     });
@@ -265,7 +269,8 @@ void main() {
     test('un licencié n\'y entre pas', () async {
       final c = container(
         roles: competitionRolesProvider.overrideWith(
-          (ref, id) async => ['public', 'licencie'],
+          (ref, id) async =>
+              const CompetitionRoles(roles: ['public', 'licencie']),
         ),
       );
       c.listen(entryAccessProvider(_competition), (_, _) {});
@@ -293,7 +298,7 @@ void main() {
       final c = container(
         roles: competitionRolesProvider.overrideWith((ref, id) async {
           if (++reads == 1) throw const NetworkException('hors ligne');
-          return ['officiel'];
+          return const CompetitionRoles(roles: ['officiel']);
         }),
       );
       c.listen(entryAccessProvider(_competition), (_, _) {});
@@ -338,11 +343,12 @@ void main() {
     const paul = Account(label: 'MARTIN Paul');
 
     /// Les rôles de chaque compte, relus quand la session change.
-    Override rolesOf(Map<String, List<String>> byAccount) =>
+    Override rolesOf(Map<String, CompetitionRoles> byAccount) =>
         competitionRolesProvider.overrideWith((ref, id) async {
           final account = await ref.watch(sessionProvider.future);
-          if (account == null) return ['public'];
-          return byAccount[account.label] ?? ['public', 'licencie'];
+          if (account == null) return const CompetitionRoles(roles: ['public']);
+          return byAccount[account.label] ??
+              const CompetitionRoles(roles: ['public', 'licencie']);
         });
 
     _FakeSession session(ProviderContainer c) =>
@@ -355,7 +361,7 @@ void main() {
     }
 
     Future<(ProviderContainer, EntryLane)> openWithDraft(
-      Map<String, List<String>> byAccount,
+      Map<String, CompetitionRoles> byAccount,
     ) async {
       final c = container(roles: rolesOf(byAccount));
       c.listen(entryGateProvider(_competition), (_, _) {});
@@ -377,7 +383,7 @@ void main() {
     test('expirée : l\'écran reste, gelé, ses chiffres gardés ; le même '
         'compte reconnecté reprend où il en était', () async {
       final (c, lane) = await openWithDraft({
-        'DUPONT Jean': ['officiel'],
+        'DUPONT Jean': const CompetitionRoles(roles: ['officiel']),
       });
       final editor = c.read(entryEditorProvider(key).notifier);
       expect(editor.nextHeat(), isTrue);
@@ -414,8 +420,8 @@ void main() {
     test('un autre compte connecté : les chiffres du précédent sont '
         'écartés', () async {
       final (c, _) = await openWithDraft({
-        'DUPONT Jean': ['officiel'],
-        'MARTIN Paul': ['officiel'],
+        'DUPONT Jean': const CompetitionRoles(roles: ['officiel']),
+        'MARTIN Paul': const CompetitionRoles(roles: ['officiel']),
       });
 
       session(c).set(null);
@@ -432,11 +438,13 @@ void main() {
     });
 
     test('le même compte reconnecté sans droit : l\'écran se ferme', () async {
-      var rights = ['officiel'];
+      var rights = const CompetitionRoles(roles: ['officiel']);
       final c = container(
         roles: competitionRolesProvider.overrideWith((ref, id) async {
           final account = await ref.watch(sessionProvider.future);
-          return account == null ? ['public'] : rights;
+          return account == null
+              ? const CompetitionRoles(roles: ['public'])
+              : rights;
         }),
       );
       c.listen(entryGateProvider(_competition), (_, _) {});
@@ -445,7 +453,7 @@ void main() {
 
       session(c).set(null);
       await settle();
-      rights = ['public', 'licencie'];
+      rights = const CompetitionRoles(roles: ['public', 'licencie']);
       session(c).set(jean);
       await settle();
 
@@ -463,9 +471,11 @@ void main() {
         final c = container(
           roles: competitionRolesProvider.overrideWith((ref, id) async {
             final account = await ref.watch(sessionProvider.future);
-            if (account == null) return ['public'];
+            if (account == null) {
+              return const CompetitionRoles(roles: ['public']);
+            }
             if (fail) throw const NetworkException('hors ligne');
-            return ['officiel'];
+            return const CompetitionRoles(roles: ['officiel']);
           }),
         );
         c.listen(entryGateProvider(_competition), (_, _) {});

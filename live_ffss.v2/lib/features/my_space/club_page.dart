@@ -1,0 +1,521 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
+import 'package:live_ffss_v2/core/router/app_router.dart';
+import 'package:live_ffss_v2/core/theme/app_colors.dart';
+import 'package:live_ffss_v2/domain/event_results.dart';
+import 'package:live_ffss_v2/domain/my_space.dart';
+import 'package:live_ffss_v2/features/auth/competition_roles.dart';
+import 'package:live_ffss_v2/features/follows/follows_providers.dart';
+import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
+import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
+import 'package:live_ffss_v2/features/my_space/widgets/my_space_rows.dart';
+import 'package:live_ffss_v2/features/results/results_formatting.dart';
+import 'package:live_ffss_v2/features/results/results_providers.dart';
+import 'package:live_ffss_v2/features/results/widgets/choice_chips_row.dart';
+import 'package:live_ffss_v2/features/results/widgets/results_messages.dart';
+import 'package:live_ffss_v2/features/shell/current_competition.dart';
+import 'package:live_ffss_v2/features/shell/space_competition.dart';
+
+enum _ClubTab { planning, results, forfeits }
+
+/// L'espace d'un club, ouvert à tout le monde (décision du 2026-10-18) :
+/// chiffres, planning et résultats de ses athlètes, forfaits publiés. Le
+/// référent du club et l'admin y verront les interrupteurs de forfait,
+/// inactifs jusqu'au lot 6b.
+class ClubPage extends ConsumerStatefulWidget {
+  const ClubPage({
+    super.key,
+    required this.competitionId,
+    required this.clubId,
+  });
+
+  final int competitionId;
+  final int clubId;
+
+  @override
+  ConsumerState<ClubPage> createState() => _ClubPageState();
+}
+
+class _ClubPageState extends ConsumerState<ClubPage> {
+  // Le bouton passe par l'indicateur du geste : même rond de chargement, et
+  // un appui pendant un rafraîchissement n'en lance pas un second.
+  final _refreshKey = GlobalKey<RefreshIndicatorState>();
+  var _tab = _ClubTab.planning;
+
+  // « Calculer » touché : les classements des clubs (une lecture par
+  // épreuve) ne partent qu'à la demande, ou s'ils sont déjà calculés.
+  var _rankAsked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    activateFromLink(ref, widget.competitionId);
+  }
+
+  ClubKey get _key =>
+      (competitionId: widget.competitionId, clubId: widget.clubId);
+
+  ProviderContainer get _container =>
+      ProviderScope.containerOf(context, listen: false);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final clubState = ref.watch(clubProvider(_key));
+    final club = clubState.value;
+    final roles = ref
+        .watch(competitionRolesProvider(widget.competitionId))
+        .value;
+    final role = clubRole(roles, widget.clubId);
+    final title = clubTitle(club, roles, widget.clubId, l10n);
+    final tag = clubRoleTag(role, l10n);
+    final followed =
+        ref
+            .watch(followsProvider(widget.competitionId))
+            .value
+            ?.followsClub(widget.clubId) ??
+        false;
+
+    final body = switch (clubBody(club, failed: clubState.hasError)) {
+      ClubBody.loading => const Center(child: CircularProgressIndicator()),
+      ClubBody.failed => ResultsMessage(
+        text: l10n.mySpaceClubError,
+        onRetry: () => refreshClubSchedule(_container, _key),
+      ),
+      ClubBody.noAthlete => ResultsMessage(text: l10n.mySpaceClubNoAthlete),
+      ClubBody.shown => _content(club!, role, l10n),
+    };
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Flexible(child: Text(title, overflow: TextOverflow.ellipsis)),
+            if (tag != null) ...[const SizedBox(width: 8), _Tag(tag)],
+          ],
+        ),
+        actions: [
+          // Le libellé suivi est celui des engagés : sans eux, rien à suivre.
+          if (club != null && club.label.isNotEmpty)
+            IconButton(
+              icon: Icon(followed ? Icons.star : Icons.star_border),
+              tooltip: followed ? l10n.unfollowClub : l10n.followClub,
+              onPressed: () => ref
+                  .read(followsProvider(widget.competitionId).notifier)
+                  .toggleClub(widget.clubId, club.label),
+            ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: l10n.resultsRefresh,
+            onPressed: club == null || club.athletes.isEmpty
+                ? null
+                : () => _refreshKey.currentState?.show(),
+          ),
+        ],
+      ),
+      body: body,
+    );
+  }
+
+  Widget _content(ClubInfo club, ClubRole role, AppLocalizations l10n) {
+    final coastal =
+        resultsGate(
+          ref.watch(spaceCompetitionProvider(widget.competitionId)),
+        ) ==
+        ResultsGate.coastal;
+    final schedule = ref.watch(clubScheduleProvider(_key));
+    final races = coastal ? null : schedule.value?.races;
+    final forfeits = races == null ? null : clubForfeits(races);
+
+    final standingsOfClubs = standingsProvider(widget.competitionId);
+    // `exists` n'est pas suivi : des classements calculés par l'onglet
+    // Résultats pendant que la page est ouverte n'y paraissent qu'à sa
+    // prochaine reconstruction. Les suivre d'emblée les calculerait (une
+    // lecture par épreuve) à chaque ouverture ; « Calculer » reste là.
+    final rankAsked = !coastal && (_rankAsked || ref.exists(standingsOfClubs));
+    final standings = rankAsked ? ref.watch(standingsOfClubs) : null;
+    final rank = clubRankView(
+      asked: rankAsked,
+      failed: standings?.hasError ?? false,
+      standings: standings?.value,
+      club: club.label,
+      coastal: coastal,
+    );
+
+    return RefreshIndicator(
+      key: _refreshKey,
+      onRefresh: () => refreshClubSchedule(_container, _key),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        // Pas de marge latérale : les puces défilent bord à bord, les autres
+        // blocs prennent la leur.
+        padding: EdgeInsets.only(
+          top: 12,
+          bottom: 16 + MediaQuery.of(context).viewPadding.bottom,
+        ),
+        children: [
+          for (final child in [
+            MySpaceBox(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    children: [
+                      _Figure(
+                        value: '${club.athletes.length}',
+                        label: l10n.mySpaceFigureAthletes(club.athletes.length),
+                      ),
+                      Expanded(
+                        child: switch (rank) {
+                          RankShown() => _FigureContent(
+                            value: clubRankLabel(rank, l10n),
+                            label: l10n.mySpaceFigureRank,
+                          ),
+                          RankNotComputed() => _FigureAction(
+                            label: l10n.mySpaceCompute,
+                            caption: l10n.mySpaceFigureRank,
+                            onPressed: () => setState(() => _rankAsked = true),
+                          ),
+                          RankFailed() => _FigureAction(
+                            label: l10n.retry,
+                            caption: l10n.mySpaceFigureRank,
+                            onPressed: () =>
+                                ref.read(standingsOfClubs.notifier).refresh(),
+                          ),
+                          RankComputing() => const Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                        },
+                      ),
+                      _Figure(
+                        value: forfeitsFigure(forfeits),
+                        label: l10n.mySpaceFigureForfeits(
+                          forfeits?.length ?? 0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ])
+            _padded(child),
+          const SizedBox(height: 12),
+          if (coastal)
+            ResultsMessage(text: l10n.coastalComingSoon)
+          else ...[
+            ChoiceChipsRow<_ClubTab>(
+              options: _ClubTab.values,
+              selected: _tab,
+              label: (tab) => switch (tab) {
+                _ClubTab.planning => l10n.mySpacePlanning,
+                _ClubTab.results => l10n.tabResults,
+                _ClubTab.forfeits => l10n.mySpaceForfeits,
+              },
+              onSelect: (tab) => setState(() => _tab = tab),
+            ),
+            for (final child in [
+              if (races == null)
+                schedule.hasError
+                    ? ResultsMessage(
+                        text: l10n.mySpaceClubError,
+                        onRetry: () => refreshClubSchedule(_container, _key),
+                      )
+                    : const Padding(
+                        padding: EdgeInsets.only(top: 48),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+              else ...[
+                if (schedule.value!.failedAthletes > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(
+                      l10n.mySpaceCardsFailed(schedule.value!.failedAthletes),
+                      style: const TextStyle(color: AppColors.red),
+                    ),
+                  ),
+                ...switch (_tab) {
+                  _ClubTab.planning => _planning(races, l10n),
+                  _ClubTab.results => _results(races, l10n),
+                  _ClubTab.forfeits => _forfeits(
+                    forfeits!,
+                    canManageForfeits(role),
+                    l10n,
+                  ),
+                },
+              ],
+            ])
+              _padded(child),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _padded(Widget child) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: child,
+  );
+
+  List<Widget> _planning(List<ClubRace> races, AppLocalizations l10n) {
+    final toRun = splitClubRaces(races).toRun;
+    if (toRun.isEmpty) return [_Empty(l10n.mySpaceNoNextRace)];
+    return [
+      MySpaceHeader(l10n.mySpaceUpcoming),
+      MySpaceBox(
+        children: [
+          for (final race in toRun)
+            _ClubRaceTile(
+              time: athleteRaceTime(race.race),
+              title: clubRaceTitle(race),
+              subtitle: clubRaceLine(race, l10n),
+              onTap: () => _open(race.athletes),
+            ),
+        ],
+      ),
+    ];
+  }
+
+  List<Widget> _results(List<ClubRace> races, AppLocalizations l10n) {
+    final groups = clubResultsByEvent(splitClubRaces(races).run);
+    if (groups.isEmpty) return [_Empty(l10n.mySpaceNoRaceRun)];
+    return [
+      for (final group in groups) ...[
+        MySpaceHeader(athleteRaceTitle(group.event, l10n)),
+        MySpaceBox(
+          children: [
+            for (final race in group.races)
+              _ClubRaceTile(
+                time: athleteRaceTime(race.race),
+                title: clubRaceTitle(race),
+                subtitle: athleteRaceDetail(race.race, l10n),
+                trailing: ResultText(label: resultLabel(race.race.row!.result)),
+                onTap: () => _open(race.athletes),
+              ),
+          ],
+        ),
+      ],
+    ];
+  }
+
+  List<Widget> _forfeits(
+    List<ClubRace> forfeits,
+    bool canManage,
+    AppLocalizations l10n,
+  ) => [
+    MySpaceHeader(l10n.mySpaceForfeits),
+    if (forfeits.isEmpty)
+      _Empty(l10n.mySpaceNoForfeit)
+    else
+      MySpaceBox(
+        children: [
+          for (final race in forfeits)
+            _ClubRaceTile(
+              title: clubRaceTitle(race),
+              subtitle: clubRaceLine(race, l10n),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ResultText(label: resultLabel(race.race.row!.result)),
+                  // Inactif : la déclaration arrive au lot 6b.
+                  if (canManage) const Switch(value: true, onChanged: null),
+                ],
+              ),
+              onTap: () => _open(race.athletes),
+            ),
+        ],
+      ),
+    const SizedBox(height: 12),
+    Text(
+      l10n.mySpaceForfeitsHint,
+      style: const TextStyle(color: AppColors.textSecondary),
+    ),
+    if (canManage) ...[
+      const SizedBox(height: 4),
+      Text(
+        l10n.mySpaceForfeitsLater,
+        style: const TextStyle(color: AppColors.textSecondary),
+      ),
+    ],
+  ];
+
+  /// Un relais : on choisit lequel des relayeurs ouvrir.
+  void _open(List<Participant> athletes) {
+    void push(Participant athlete) => context.push(
+      Routes.mySpaceParticipant(widget.competitionId, athlete.id),
+    );
+    if (athletes.length == 1) {
+      push(athletes.single);
+      return;
+    }
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final athlete in athletes)
+              ListTile(
+                title: Text(participantName(athlete)),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  push(athlete);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ClubRaceTile extends StatelessWidget {
+  const _ClubRaceTile({
+    this.time,
+    required this.title,
+    required this.subtitle,
+    this.trailing,
+    required this.onTap,
+  });
+
+  final String? time;
+  final String title;
+  final String subtitle;
+  final Widget? trailing;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final time = this.time;
+    return ListTile(
+      onTap: onTap,
+      leading: time == null
+          ? null
+          : SizedBox(
+              width: 44,
+              child: Text(
+                time,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+      subtitle: subtitle.isEmpty
+          ? null
+          : Text(
+              subtitle,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+      trailing:
+          trailing ??
+          const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+    );
+  }
+}
+
+class _Figure extends StatelessWidget {
+  const _Figure({required this.value, required this.label});
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+    child: _FigureContent(value: value, label: label),
+  );
+}
+
+class _FigureContent extends StatelessWidget {
+  const _FigureContent({required this.value, required this.label});
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      Text(
+        value,
+        style: const TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          color: AppColors.navy,
+        ),
+      ),
+      Text(
+        label,
+        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+      ),
+    ],
+  );
+}
+
+class _FigureAction extends StatelessWidget {
+  const _FigureAction({
+    required this.label,
+    required this.caption,
+    required this.onPressed,
+  });
+
+  final String label;
+  final String caption;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      TextButton(onPressed: onPressed, child: Text(label)),
+      Text(
+        caption,
+        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+      ),
+    ],
+  );
+}
+
+class _Tag extends StatelessWidget {
+  const _Tag(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(
+      color: AppColors.yellow,
+      borderRadius: BorderRadius.circular(6),
+    ),
+    child: Text(
+      text,
+      style: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: AppColors.navy,
+      ),
+    ),
+  );
+}
+
+class _Empty extends StatelessWidget {
+  const _Empty(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 32),
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      style: const TextStyle(color: AppColors.textSecondary),
+    ),
+  );
+}

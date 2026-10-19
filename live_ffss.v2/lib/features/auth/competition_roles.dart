@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:live_ffss_v2/data/repositories/auth_repository.dart';
+import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/manual_timing.dart';
 import 'package:live_ffss_v2/features/auth/session.dart';
 
@@ -7,11 +8,11 @@ import 'package:live_ffss_v2/features/auth/session.dart';
 /// changement de session : une connexion ou une expiration change ce que
 /// l'officiel peut faire.
 final competitionRolesProvider = FutureProvider.autoDispose
-    .family<List<String>, int>((ref, competitionId) async {
+    .family<CompetitionRoles, int>((ref, competitionId) async {
       final auth = ref.watch(authRepositoryProvider);
       final account = await ref.watch(sessionProvider.future);
       // Sans session, le site répondrait `public` : inutile de le demander.
-      if (account == null) return const ['public'];
+      if (account == null) return const CompetitionRoles(roles: ['public']);
       return auth.competitionRoles(competitionId);
     });
 
@@ -24,7 +25,7 @@ final canEnterProvider = Provider.autoDispose.family<bool, int>((
 ) {
   final roles = ref.watch(competitionRolesProvider(competitionId));
   if (roles.isLoading || roles.hasError) return false;
-  return canEnterResults(roles.value ?? const []);
+  return canEnterResults(roles.value?.roles ?? const []);
 });
 
 /// Au rafraîchissement manuel, une lecture des rôles en échec (hors ligne au

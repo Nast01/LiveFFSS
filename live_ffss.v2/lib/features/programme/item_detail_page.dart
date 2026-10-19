@@ -7,8 +7,10 @@ import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
+import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
+import 'package:live_ffss_v2/features/follows/follows_providers.dart';
 import 'package:live_ffss_v2/features/home/competition_formatting.dart';
 import 'package:live_ffss_v2/features/officiel/entry_view.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_providers.dart';
@@ -127,6 +129,9 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       if (gender != null) genderLabel(gender, l10n),
     ].join(' · ');
     final time = timeRangeLabel(item.startTime, item.endTime);
+    final follows =
+        ref.watch(followsProvider(widget.competitionId)).value ??
+        const Follows();
     final pending = itemStatus(item) == ItemStatus.seriesPending;
     final canEnter = ref.watch(canEnterProvider(widget.competitionId));
 
@@ -186,6 +191,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
           else
             for (final heat in item.heats)
               HeatCard(
+                follows: follows,
                 heat: heat,
                 lanes: detail.lanesOf(heat),
                 manualTimes: detail.manualTimesOf(heat),

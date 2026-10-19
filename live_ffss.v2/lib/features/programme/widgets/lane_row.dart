@@ -3,12 +3,22 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/manual_timing.dart';
+import 'package:live_ffss_v2/features/follows/followed_mark.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 
 class LaneRow extends StatelessWidget {
-  const LaneRow({super.key, required this.lane, this.place, this.manualTime});
+  const LaneRow({
+    super.key,
+    required this.lane,
+    this.place,
+    this.manualTime,
+    this.followed = false,
+  });
 
   final LaneAssignment lane;
+
+  /// La place est celle d'un athlète ou d'un club suivi ([isFollowedLane]).
+  final bool followed;
 
   /// La place dans la série, calculée par [heatPlaces] ; nulle sans temps.
   final int? place;
@@ -53,9 +63,16 @@ class LaneRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                Wrap(
+                  spacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    if (followed) const FollowedMark(),
+                  ],
                 ),
                 if (subtitle.isNotEmpty)
                   Text(

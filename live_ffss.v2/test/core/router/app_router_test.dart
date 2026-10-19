@@ -1,4 +1,6 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 
 void main() {
@@ -111,6 +113,127 @@ void main() {
         athleteRedirect({'competitionId': 'x', 'participantId': '632821'}),
         Routes.results,
       );
+    });
+
+    test(
+      'une fiche ailleurs que dans les résultats retombe sur son onglet',
+      () {
+        expect(
+          athleteRedirect({'competitionId': 'x'}, fallback: Routes.mySpace),
+          Routes.mySpace,
+        );
+      },
+    );
+  });
+
+  group('routes de Mon espace', () {
+    test('restent dans la branche Mon espace', () {
+      expect(Routes.mySpaceInfos(1416), '/espace/competition/1416/infos');
+      expect(
+        Routes.mySpaceOfficials(1416),
+        '/espace/competition/1416/officiels',
+      );
+      expect(Routes.mySpaceFollows(1416), '/espace/competition/1416/suivis');
+      expect(Routes.mySpaceAthlete(1416), '/espace/competition/1416/athlete');
+      expect(Routes.mySpaceClub(1416, 15), '/espace/competition/1416/club/15');
+      expect(Routes.mySpaceOfficial(1416), '/espace/competition/1416/officiel');
+      expect(
+        Routes.mySpaceParticipant(1416, 632821),
+        '/espace/competition/1416/fiche/632821',
+      );
+      for (final route in [
+        Routes.mySpaceInfos(1416),
+        Routes.mySpaceClub(1416, 15),
+        Routes.mySpaceParticipant(1416, 1),
+      ]) {
+        expect(route, startsWith('${Routes.mySpace}/'));
+      }
+    });
+
+    test("les pages de l'espace officiel et sa saisie, sous Mon espace", () {
+      expect(
+        Routes.mySpaceHeatsToEnter(1416),
+        '/espace/competition/1416/officiel/a-saisir',
+      );
+      expect(
+        Routes.mySpaceDecisions(1416),
+        '/espace/competition/1416/officiel/dq-forfaits',
+      );
+      expect(
+        Routes.itemEntry(Routes.mySpace, 1416, 7, heatId: 3),
+        '/espace/competition/1416/creneau/7/saisie?serie=3',
+      );
+      // Un créneau illisible sous Mon espace y retombe.
+      expect(
+        itemRedirect({'competitionId': '1416', 'itemId': 'x'}, Routes.mySpace),
+        Routes.mySpace,
+      );
+    });
+
+    test('le routeur sert ces pages et retombe sur Mon espace', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      addTearDown(router.dispose);
+      for (final (location, page) in [
+        (Routes.mySpaceOfficial(1416), 'competition/:competitionId/officiel'),
+        (
+          Routes.mySpaceHeatsToEnter(1416),
+          'competition/:competitionId/officiel/a-saisir',
+        ),
+        (
+          Routes.mySpaceDecisions(1416),
+          'competition/:competitionId/officiel/dq-forfaits',
+        ),
+        (Routes.itemEntry(Routes.mySpace, 1416, 7, heatId: 3), 'saisie'),
+      ]) {
+        final match = router.configuration.findMatch(Uri.parse(location));
+        expect(match.isError, isFalse, reason: location);
+        expect(match.matches.first.route, isA<StatefulShellRoute>());
+        final leaf = match.last.route;
+        expect(leaf.path, page, reason: location);
+      }
+      final entry = router.configuration.findMatch(
+        Uri.parse(Routes.itemEntry(Routes.mySpace, 1416, 7)),
+      );
+      final item = entry.matches
+          .expand((m) => m is ShellRouteMatch ? m.matches : [m])
+          .map((m) => m.route)
+          .whereType<GoRoute>()
+          .firstWhere(
+            (r) => r.path == 'competition/:competitionId/creneau/:itemId',
+          );
+      expect(item.redirect, isNotNull);
+      for (final location in [
+        '/espace/competition/x/officiel',
+        '/espace/competition/x/officiel/a-saisir',
+        '/espace/competition/x/officiel/dq-forfaits',
+      ]) {
+        final match = router.configuration.findMatch(Uri.parse(location));
+        final leaf = match.last.route;
+        expect(
+          mySpaceRedirect({'competitionId': 'x'}),
+          Routes.mySpace,
+          reason: location,
+        );
+        expect(leaf.redirect, isNotNull, reason: location);
+      }
+    });
+
+    test('un lien illisible retombe sur Mon espace', () {
+      expect(mySpaceRedirect({'competitionId': '1416'}), isNull);
+      expect(mySpaceRedirect({'competitionId': 'abc'}), Routes.mySpace);
+      expect(mySpaceRedirect({}), Routes.mySpace);
+    });
+
+    test('club : la compétition et le club', () {
+      expect(clubKey({'competitionId': '1416', 'clubId': '15'}), (
+        competitionId: 1416,
+        clubId: 15,
+      ));
+      expect(clubKey({'competitionId': '1416', 'clubId': 'x'}), isNull);
+      expect(clubRedirect({'competitionId': '1416', 'clubId': '15'}), isNull);
+      expect(clubRedirect({'competitionId': '1416'}), Routes.mySpace);
     });
   });
 }

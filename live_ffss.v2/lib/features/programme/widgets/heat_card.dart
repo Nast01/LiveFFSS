@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
+import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/manual_timing.dart';
@@ -16,7 +17,11 @@ class HeatCard extends StatelessWidget {
     required this.lanes,
     this.manualTimes = const {},
     this.onEnter,
+    this.follows = const Follows(),
   });
+
+  /// Ce que l'utilisateur suit : de quoi repérer ses places.
+  final Follows follows;
 
   final Heat heat;
   final List<LaneAssignment> lanes;
@@ -78,6 +83,7 @@ class HeatCard extends StatelessWidget {
                 lane: lane,
                 place: places[lane.id],
                 manualTime: manualTimes[lane.id],
+                followed: isFollowedLane(follows, lane),
               ),
           const SizedBox(height: 4),
         ],

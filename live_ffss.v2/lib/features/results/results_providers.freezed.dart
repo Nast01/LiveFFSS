@@ -15,8 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Standings {
 
- List<ClubStanding> get clubs; List<LicenseeStanding> get licensees; int get finishedSeries; int get totalSeries;/// Épreuves dont les séries n'ont pu être lues : absentes des
-/// classements, que la page dit alors incomplets.
+ List<ClubStanding> get clubs; List<LicenseeStanding> get licensees; int get finishedSeries; int get totalSeries;/// Épreuves dont les séries n'ont pu être lues, sans classement
+/// antérieur : absentes des classements, que la page dit alors
+/// incomplets.
  int get failedEvents;/// Épreuves que le dernier rafraîchissement n'a pu relire : leur
 /// classement précédent est gardé, que la page dit alors ancien.
  int get staleEvents; DateTime get computedAt;
@@ -241,8 +242,9 @@ class _Standings implements Standings {
 
 @override final  int finishedSeries;
 @override final  int totalSeries;
-/// Épreuves dont les séries n'ont pu être lues : absentes des
-/// classements, que la page dit alors incomplets.
+/// Épreuves dont les séries n'ont pu être lues, sans classement
+/// antérieur : absentes des classements, que la page dit alors
+/// incomplets.
 @override final  int failedEvents;
 /// Épreuves que le dernier rafraîchissement n'a pu relire : leur
 /// classement précédent est gardé, que la page dit alors ancien.
