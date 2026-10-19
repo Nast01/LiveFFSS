@@ -1067,6 +1067,100 @@ void main() {
         c.dispose();
       });
     });
+
+    test('discardAccount écarte les non envoyées du compte, et seulement '
+        'elles', () {
+      fakeAsync((async) {
+        when(
+          () => results.submit(any()),
+        ).thenThrow(const NetworkException('hors ligne'));
+        local.values[OutboxStore.storageKey] = OutboxStore.encode([
+          settled('refusée', OutboxState.rejected),
+          settled('envoyée', OutboxState.sent, at: now),
+          settled(
+            'paul refusée',
+            OutboxState.rejected,
+          ).copyWith(account: 'MARTIN Paul'),
+          settled(
+            'paul en attente',
+            OutboxState.pending,
+          ).copyWith(account: 'MARTIN Paul'),
+        ]);
+        final c = container();
+        async.flushMicrotasks();
+        unawaited(add(c));
+        async.flushMicrotasks();
+        expect(c.read(outboxProvider), hasLength(5));
+
+        unawaited(
+          c.read(outboxProvider.notifier).discardAccount(' dupont jean '),
+        );
+        async.flushMicrotasks();
+
+        const kept = ['envoyée', 'paul refusée', 'paul en attente'];
+        expect(c.read(outboxProvider).map((o) => o.id), kept);
+        expect(stored().map((o) => o.id), kept);
+        c.dispose();
+      });
+    });
+
+    test('discardAccount refusé tant que la file enregistrée est '
+        'illisible', () {
+      fakeAsync((async) {
+        final flaky = _FlakyStore(local)..readFailures = 1000;
+        local.values[OutboxStore.storageKey] = OutboxStore.encode([
+          settled('refusée', OutboxState.rejected),
+        ]);
+        final c = container(store: flaky);
+        async.flushMicrotasks();
+
+        Object? error;
+        unawaited(
+          c
+              .read(outboxProvider.notifier)
+              .discardAccount('DUPONT Jean')
+              .catchError((Object e) => error = e),
+        );
+        async.flushMicrotasks();
+
+        expect(error, isA<AppException>());
+        expect(stored().single.id, 'refusée');
+        c.dispose();
+      });
+    });
+
+    test('discardAccount : un enregistrement en échec le dit, et un nouvel '
+        'essai l’enregistre', () {
+      fakeAsync((async) {
+        local.values[OutboxStore.storageKey] = OutboxStore.encode([
+          settled('refusée', OutboxState.rejected),
+        ]);
+        final flaky = _FlakyStore(local);
+        final c = container(store: flaky);
+        async.flushMicrotasks();
+
+        flaky.writeFailures = 1;
+        Object? error;
+        unawaited(
+          c
+              .read(outboxProvider.notifier)
+              .discardAccount('DUPONT Jean')
+              .catchError((Object e) => error = e),
+        );
+        async.flushMicrotasks();
+        expect(error, isA<AppException>());
+        expect(c.read(outboxPersistenceFailedProvider), isTrue);
+        expect(stored().single.id, 'refusée');
+
+        unawaited(
+          c.read(outboxProvider.notifier).discardAccount('DUPONT Jean'),
+        );
+        async.flushMicrotasks();
+        expect(stored(), isEmpty);
+        expect(c.read(outboxPersistenceFailedProvider), isFalse);
+        c.dispose();
+      });
+    });
   });
 }
 

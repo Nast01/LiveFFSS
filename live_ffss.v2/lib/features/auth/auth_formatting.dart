@@ -14,20 +14,21 @@ LoginFailure loginFailureOf(AppException error) => switch (error) {
   _ => LoginFailure.other,
 };
 
-/// Les saisies que le compte [account] a encore à envoyer : celles-là
-/// resteraient en file à la déconnexion.
-int pendingOperationCount(List<OutboxOperation> queue, Account account) => queue
+/// Les saisies du compte [account] pas encore envoyées, en attente ou
+/// refusées : à la déconnexion, elles restent sur le téléphone, ou sont
+/// abandonnées.
+int unsentOperationCount(List<OutboxOperation> queue, Account account) => queue
     .where(
       (o) =>
-          o.state == OutboxState.pending &&
+          o.state != OutboxState.sent &&
           isSameAccount(o.account, account.label),
     )
     .length;
 
-/// Se déconnecter n'efface rien, mais les saisies en attente ne partent plus
-/// avant la reconnexion : mieux vaut le dire avant.
+/// Les saisies non envoyées ne partent plus avant la reconnexion du compte,
+/// et la déconnexion propose de les abandonner : mieux vaut le dire avant.
 bool logoutNeedsConfirmation(List<OutboxOperation> queue, Account account) =>
-    pendingOperationCount(queue, account) > 0;
+    unsentOperationCount(queue, account) > 0;
 
 /// Le formulaire peut être envoyé : un identifiant et un mot de passe saisis.
 bool canSubmitLogin(String login, String password) =>

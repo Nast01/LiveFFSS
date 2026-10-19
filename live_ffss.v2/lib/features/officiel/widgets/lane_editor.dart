@@ -49,6 +49,7 @@ class LaneEditor extends StatelessWidget {
     final manual = draftManualTime(digits);
     final status = lane.result.status;
     final statusText = status == statusOk ? null : entryLaneSummary(lane, l10n);
+    final chronos = chronosEditable(lane);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -95,7 +96,7 @@ class LaneEditor extends StatelessWidget {
                     number: i + 1,
                     digits: digits[i],
                     selected: field == i,
-                    enabled: lane.editable,
+                    enabled: chronos,
                     onTap: () => onSelectField(i),
                   ),
                 ),
@@ -103,7 +104,12 @@ class LaneEditor extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          if (digits.any(isChronoInvalid))
+          if (status == statusForfeit)
+            Text(
+              l10n.entryForfeitNoChrono,
+              style: const TextStyle(color: AppColors.textSecondary),
+            )
+          else if (digits.any(isChronoInvalid))
             Text(
               l10n.entryInvalidChrono,
               style: const TextStyle(color: AppColors.red),
@@ -142,8 +148,14 @@ class LaneEditor extends StatelessWidget {
               ),
             ),
           if (lane.editable) ...[
-            const SizedBox(height: 12),
-            ChronoKeypad(onDigit: onDigit, onErase: onErase, onClear: onClear),
+            if (chronos) ...[
+              const SizedBox(height: 12),
+              ChronoKeypad(
+                onDigit: onDigit,
+                onErase: onErase,
+                onClear: onClear,
+              ),
+            ],
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,

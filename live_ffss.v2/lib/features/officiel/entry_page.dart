@@ -444,7 +444,7 @@ class _HeatEntry extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: FilledButton(
-                        onPressed: focused.editable
+                        onPressed: chronosEditable(focused)
                             ? () => _saveAndClose(context, ref, focused)
                             : null,
                         child: Text(l10n.entrySave),
@@ -618,6 +618,7 @@ String? _outcomeMessage(EntrySaveOutcome outcome, AppLocalizations l10n) =>
       EntrySaveOutcome.missingCode => l10n.entryDisqualifyCodeRequired,
       EntrySaveOutcome.notConnected => l10n.entryNotConnected,
       EntrySaveOutcome.notPersisted => l10n.entryNotPersisted,
+      EntrySaveOutcome.forfeit => l10n.entryForfeitChronosDropped,
       // Le couloir le dit déjà ; il n'y avait rien à enregistrer.
       EntrySaveOutcome.readOnly ||
       EntrySaveOutcome.saved ||

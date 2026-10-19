@@ -392,6 +392,9 @@ enum EntrySaveOutcome {
 
   /// Validé par le juge, ou sans engagement : rien ne part.
   readOnly,
+
+  /// Couloir forfait : des chiffres tapés avant le forfait ne partent pas.
+  forfeit,
 }
 
 /// Une saisie mise en file ne bloque pas l'enchaînement, même si elle n'a pu
@@ -402,6 +405,9 @@ bool _letsMoveOn(EntrySaveOutcome outcome) => switch (outcome) {
   EntrySaveOutcome.unchanged ||
   EntrySaveOutcome.notPersisted ||
   EntrySaveOutcome.readOnly => true,
+  // L'officiel apprend que ses chiffres sont perdus avant de quitter la
+  // série ; ils sont écartés, l'appui suivant passe.
+  EntrySaveOutcome.forfeit ||
   EntrySaveOutcome.invalid ||
   EntrySaveOutcome.missingCode ||
   EntrySaveOutcome.notConnected => false,
@@ -439,7 +445,7 @@ class EntryEditor extends Notifier<EntryEditorState> {
   void clearField(EntryLane lane) => _edit(lane, (_) => '');
 
   void _edit(EntryLane lane, String Function(String) change) {
-    if (!lane.editable || _frozen) return;
+    if (!chronosEditable(lane) || _frozen) return;
     final id = lane.lane.id;
     final digits = [...laneDigits(lane, state.drafts[id])];
     digits[state.field] = change(digits[state.field]);
@@ -456,6 +462,12 @@ class EntryEditor extends Notifier<EntryEditorState> {
     if (!lane.editable) return EntrySaveOutcome.readOnly;
     final id = lane.lane.id;
     final draft = state.drafts[id];
+    if (!chronosEditable(lane)) {
+      // Tapés avant que le forfait soit lu : ils ne partiront jamais.
+      final lost = draftChangesChronos(lane, draft);
+      _dropDraft(id, draft);
+      return lost ? EntrySaveOutcome.forfeit : EntrySaveOutcome.unchanged;
+    }
     if (!hasUnsavedDraft(lane, draft)) {
       _dropDraft(id, draft);
       return EntrySaveOutcome.unchanged;
@@ -503,8 +515,21 @@ class EntryEditor extends Notifier<EntryEditorState> {
     );
   }
 
-  Future<EntrySaveOutcome> forfeit(EntryLane lane) =>
-      _mark(lane, const ResultChange(mark: ResultMark.forfeit));
+  /// Les chiffres tapés pour le couloir ne servent plus : un forfait n'a pas
+  /// de temps.
+  Future<EntrySaveOutcome> forfeit(EntryLane lane) async {
+    final runRef = ref;
+    final draft = state.drafts[lane.lane.id];
+    final outcome = await _mark(
+      lane,
+      const ResultChange(mark: ResultMark.forfeit),
+    );
+    final queued =
+        outcome == EntrySaveOutcome.saved ||
+        outcome == EntrySaveOutcome.notPersisted;
+    if (runRef.mounted && queued) _dropDraft(lane.lane.id, draft);
+    return outcome;
+  }
 
   /// « Annuler la DQ » comme « Annuler le forfait » : retour au statut OK.
   Future<EntrySaveOutcome> cancelMark(EntryLane lane) =>

@@ -52,18 +52,28 @@ List<int?>? draftChronos(List<String> digits) {
   return [for (final d in digits) chronoValue(d)];
 }
 
+/// Un athlète forfait n'a pas nagé : pas de temps à lui donner (décision du
+/// 2026-10-19). Une DQ, elle, a nagé : ses chronos restent modifiables.
+bool chronosEditable(EntryLane lane) =>
+    lane.editable && lane.result.status != statusForfeit;
+
 /// Les champs d'un couloir : ce que l'officiel a tapé sans l'enregistrer
-/// ([draft]), sinon ses chronos actuels. Un couloir en lecture seule montre
-/// le site tel quel : des chiffres tapés avant la validation ne partiront
-/// jamais.
+/// ([draft]), sinon ses chronos actuels. Un couloir en lecture seule, ou
+/// forfait, montre le site tel quel : des chiffres tapés avant la validation
+/// ou le forfait ne partiront jamais.
 List<String> laneDigits(EntryLane lane, List<String>? draft) =>
-    (lane.editable ? draft : null) ??
+    (chronosEditable(lane) ? draft : null) ??
     [for (final c in lane.result.chronos) chronoDigitsOf(c)];
 
 /// Vrai quand [draft] change les chronos du couloir : un invalide compte,
 /// il n'est pas enregistré.
-bool hasUnsavedDraft(EntryLane lane, List<String>? draft) {
-  if (draft == null || !lane.editable) return false;
+bool hasUnsavedDraft(EntryLane lane, List<String>? draft) =>
+    chronosEditable(lane) && draftChangesChronos(lane, draft);
+
+/// [hasUnsavedDraft] sans regarder si les chronos peuvent partir : de quoi
+/// dire que des chiffres tapés avant un forfait sont perdus.
+bool draftChangesChronos(EntryLane lane, List<String>? draft) {
+  if (draft == null) return false;
   final chronos = draftChronos(draft);
   return chronos == null || !_sameChronos(chronos, lane.result.chronos);
 }

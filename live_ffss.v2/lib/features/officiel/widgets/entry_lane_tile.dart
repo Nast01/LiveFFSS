@@ -114,10 +114,11 @@ class EntryLaneTile extends StatelessWidget {
                     Wrap(
                       spacing: 4,
                       children: [
-                        TextButton(
-                          onPressed: onChronos,
-                          child: Text(l10n.entryChronos),
-                        ),
+                        if (chronosEditable(lane))
+                          TextButton(
+                            onPressed: onChronos,
+                            child: Text(l10n.entryChronos),
+                          ),
                         for (final action in laneActions(lane))
                           TextButton(
                             onPressed: () => onAction(action),
