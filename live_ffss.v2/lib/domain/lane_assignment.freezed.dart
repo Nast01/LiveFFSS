@@ -300,7 +300,9 @@ as bool,
 mixin _$LaneAssignment {
 
 /// Id FFSS de la place.
- int get id; int get lane; List<String> get athletes; String get club; String? get category; bool get forfeit; bool get isRelay; Performance? get performance;/// Ids FFSS du résultat et de l'engagement : de quoi écrire le résultat.
+ int get id; int get lane; List<String> get athletes; String get club; String? get category;/// Nul quand la place ne le dit pas (`isForfait` absent) : seul le
+/// forfait lu compte, l'affichage le prend pour « pas forfait ».
+ bool? get forfeit; bool get isRelay; Performance? get performance;/// Ids FFSS du résultat et de l'engagement : de quoi écrire le résultat.
  int? get resultId; int? get entryId;
 /// Create a copy of LaneAssignment
 /// with the given fields replaced by the non-null parameter values.
@@ -337,7 +339,7 @@ abstract mixin class $LaneAssignmentCopyWith<$Res>  {
   factory $LaneAssignmentCopyWith(LaneAssignment value, $Res Function(LaneAssignment) _then) = _$LaneAssignmentCopyWithImpl;
 @useResult
 $Res call({
- int id, int lane, List<String> athletes, String club, String? category, bool forfeit, bool isRelay, Performance? performance, int? resultId, int? entryId
+ int id, int lane, List<String> athletes, String club, String? category, bool? forfeit, bool isRelay, Performance? performance, int? resultId, int? entryId
 });
 
 
@@ -354,15 +356,15 @@ class _$LaneAssignmentCopyWithImpl<$Res>
 
 /// Create a copy of LaneAssignment
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? lane = null,Object? athletes = null,Object? club = null,Object? category = freezed,Object? forfeit = null,Object? isRelay = null,Object? performance = freezed,Object? resultId = freezed,Object? entryId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? lane = null,Object? athletes = null,Object? club = null,Object? category = freezed,Object? forfeit = freezed,Object? isRelay = null,Object? performance = freezed,Object? resultId = freezed,Object? entryId = freezed,}) {
   return _then(LaneAssignment(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,lane: null == lane ? _self.lane : lane // ignore: cast_nullable_to_non_nullable
 as int,athletes: null == athletes ? _self.athletes : athletes // ignore: cast_nullable_to_non_nullable
 as List<String>,club: null == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
 as String,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as String?,forfeit: null == forfeit ? _self.forfeit : forfeit // ignore: cast_nullable_to_non_nullable
-as bool,isRelay: null == isRelay ? _self.isRelay : isRelay // ignore: cast_nullable_to_non_nullable
+as String?,forfeit: freezed == forfeit ? _self.forfeit : forfeit // ignore: cast_nullable_to_non_nullable
+as bool?,isRelay: null == isRelay ? _self.isRelay : isRelay // ignore: cast_nullable_to_non_nullable
 as bool,performance: freezed == performance ? _self.performance : performance // ignore: cast_nullable_to_non_nullable
 as Performance?,resultId: freezed == resultId ? _self.resultId : resultId // ignore: cast_nullable_to_non_nullable
 as int?,entryId: freezed == entryId ? _self.entryId : entryId // ignore: cast_nullable_to_non_nullable
@@ -463,7 +465,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool forfeit,  bool isRelay,  Performance? performance,  int? resultId,  int? entryId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool? forfeit,  bool isRelay,  Performance? performance,  int? resultId,  int? entryId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LaneAssignment() when $default != null:
 return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_that.forfeit,_that.isRelay,_that.performance,_that.resultId,_that.entryId);case _:
@@ -484,7 +486,7 @@ return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool forfeit,  bool isRelay,  Performance? performance,  int? resultId,  int? entryId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool? forfeit,  bool isRelay,  Performance? performance,  int? resultId,  int? entryId)  $default,) {final _that = this;
 switch (_that) {
 case _LaneAssignment():
 return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_that.forfeit,_that.isRelay,_that.performance,_that.resultId,_that.entryId);case _:
@@ -504,7 +506,7 @@ return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool forfeit,  bool isRelay,  Performance? performance,  int? resultId,  int? entryId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int lane,  List<String> athletes,  String club,  String? category,  bool? forfeit,  bool isRelay,  Performance? performance,  int? resultId,  int? entryId)?  $default,) {final _that = this;
 switch (_that) {
 case _LaneAssignment() when $default != null:
 return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_that.forfeit,_that.isRelay,_that.performance,_that.resultId,_that.entryId);case _:
@@ -519,7 +521,7 @@ return $default(_that.id,_that.lane,_that.athletes,_that.club,_that.category,_th
 
 
 class _LaneAssignment extends LaneAssignment {
-  const _LaneAssignment({required this.id, required this.lane,  List<String> athletes = const <String>[], this.club = '', this.category, this.forfeit = false, this.isRelay = false, this.performance, this.resultId, this.entryId}): _athletes = athletes,super._();
+  const _LaneAssignment({required this.id, required this.lane,  List<String> athletes = const <String>[], this.club = '', this.category, this.forfeit, this.isRelay = false, this.performance, this.resultId, this.entryId}): _athletes = athletes,super._();
   
 
 /// Id FFSS de la place.
@@ -534,7 +536,9 @@ class _LaneAssignment extends LaneAssignment {
 
 @override@JsonKey() final  String club;
 @override final  String? category;
-@override@JsonKey() final  bool forfeit;
+/// Nul quand la place ne le dit pas (`isForfait` absent) : seul le
+/// forfait lu compte, l'affichage le prend pour « pas forfait ».
+@override final  bool? forfeit;
 @override@JsonKey() final  bool isRelay;
 @override final  Performance? performance;
 /// Ids FFSS du résultat et de l'engagement : de quoi écrire le résultat.
@@ -573,7 +577,7 @@ abstract mixin class _$LaneAssignmentCopyWith<$Res> implements $LaneAssignmentCo
   factory _$LaneAssignmentCopyWith(_LaneAssignment value, $Res Function(_LaneAssignment) _then) = __$LaneAssignmentCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int lane, List<String> athletes, String club, String? category, bool forfeit, bool isRelay, Performance? performance, int? resultId, int? entryId
+ int id, int lane, List<String> athletes, String club, String? category, bool? forfeit, bool isRelay, Performance? performance, int? resultId, int? entryId
 });
 
 
@@ -590,15 +594,15 @@ class __$LaneAssignmentCopyWithImpl<$Res>
 
 /// Create a copy of LaneAssignment
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? lane = null,Object? athletes = null,Object? club = null,Object? category = freezed,Object? forfeit = null,Object? isRelay = null,Object? performance = freezed,Object? resultId = freezed,Object? entryId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? lane = null,Object? athletes = null,Object? club = null,Object? category = freezed,Object? forfeit = freezed,Object? isRelay = null,Object? performance = freezed,Object? resultId = freezed,Object? entryId = freezed,}) {
   return _then(_LaneAssignment(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,lane: null == lane ? _self.lane : lane // ignore: cast_nullable_to_non_nullable
 as int,athletes: null == athletes ? _self._athletes : athletes // ignore: cast_nullable_to_non_nullable
 as List<String>,club: null == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
 as String,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as String?,forfeit: null == forfeit ? _self.forfeit : forfeit // ignore: cast_nullable_to_non_nullable
-as bool,isRelay: null == isRelay ? _self.isRelay : isRelay // ignore: cast_nullable_to_non_nullable
+as String?,forfeit: freezed == forfeit ? _self.forfeit : forfeit // ignore: cast_nullable_to_non_nullable
+as bool?,isRelay: null == isRelay ? _self.isRelay : isRelay // ignore: cast_nullable_to_non_nullable
 as bool,performance: freezed == performance ? _self.performance : performance // ignore: cast_nullable_to_non_nullable
 as Performance?,resultId: freezed == resultId ? _self.resultId : resultId // ignore: cast_nullable_to_non_nullable
 as int?,entryId: freezed == entryId ? _self.entryId : entryId // ignore: cast_nullable_to_non_nullable

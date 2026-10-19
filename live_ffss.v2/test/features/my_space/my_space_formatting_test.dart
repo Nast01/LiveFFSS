@@ -17,9 +17,11 @@ import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/domain/series_link.dart';
 import 'package:live_ffss_v2/domain/standings.dart';
+import 'package:live_ffss_v2/features/my_space/club_forfeits_providers.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_formatting.dart';
 import 'package:live_ffss_v2/features/my_space/my_space_providers.dart';
 import 'package:live_ffss_v2/features/results/athlete_providers.dart';
+import 'package:live_ffss_v2/features/results/results_formatting.dart';
 import 'package:live_ffss_v2/features/results/results_providers.dart';
 
 import '../../support/competitions.dart';
@@ -646,14 +648,12 @@ void main() {
 
     test('forfaits : sans mention de lot', () {
       expect(
-        fr.mySpaceForfeitsLater,
-        'Déclarer ou annuler un forfait, remplacer un relayeur : bientôt '
-        'disponible.',
+        fr.mySpaceForfeitsDeadline(10),
+        "Déclarer ou annuler un forfait jusqu'à 10 min avant la course",
       );
       expect(
-        en.mySpaceForfeitsLater,
-        'Declaring or cancelling a forfeit and replacing a relay swimmer: '
-        'coming soon.',
+        en.mySpaceForfeitsDeadline(10),
+        'Declare or cancel a withdrawal up to 10 min before the race',
       );
     });
 
@@ -743,6 +743,178 @@ void main() {
         expect(clubRankLabel(const RankShown(1), en), '1st');
         expect(clubRankLabel(const RankShown(null), fr), '–');
       });
+    });
+  });
+
+  group('forfaits du club', () {
+    final event = _event(36073, '200m Obstacles');
+    final relayEvent = _event(36075, '4x50m Obstacles').copyWith(teamSize: 4);
+    const heat = Heat(
+      id: 479,
+      name: 'Série 2',
+      number: 2,
+      status: RunStatus.waiting,
+    );
+    final placed = ClubForfeit(
+      entryId: 101,
+      event: event,
+      athletes: const ['Un ATHLETE'],
+      heat: heat,
+      lane: 4,
+      forfeit: false,
+      deadline: DateTime(2026, 3, 27, 7, 50),
+    );
+    final notPlaced = ClubForfeit(
+      entryId: 1,
+      event: event,
+      athletes: const ['Un ATHLETE'],
+      deadline: DateTime(2026, 3, 27, 7, 50),
+    );
+
+    test("ligne d'un athlète placé : épreuve, série et couloir", () {
+      final label = clubForfeitLabel(placed, 'CLUB Test', fr);
+      expect(label.title, 'Un ATHLETE');
+      expect(
+        label.subtitle,
+        '${athleteRaceTitle(event, fr)} · Série 2 · couloir 4',
+      );
+      expect(
+        clubForfeitLabel(placed, 'CLUB Test', en).subtitle,
+        endsWith('Heat 2 · lane 4'),
+      );
+    });
+
+    test("ligne d'un relais : le club, puis ses relayeurs", () {
+      final relay = ClubForfeit(
+        entryId: 200,
+        event: relayEvent,
+        athletes: const ['Un ATHLETE', 'Deux ATHLETE'],
+      );
+      final label = clubForfeitLabel(relay, 'CLUB Test', fr);
+      expect(label.title, 'CLUB Test');
+      expect(
+        label.subtitle,
+        'Un ATHLETE, Deux ATHLETE · ${athleteRaceTitle(relayEvent, fr)}'
+        ' · pas encore placé · état inconnu',
+      );
+    });
+
+    test('place illisible : état inconnu', () {
+      expect(
+        clubForfeitLabel(
+          notPlaced.copyWith(placesUnread: true),
+          '',
+          fr,
+        ).subtitle,
+        endsWith('état inconnu (place illisible)'),
+      );
+    });
+
+    test("le dernier envoi d'un état inconnu est dit comme un envoi", () {
+      final declared = notPlaced.copyWith(
+        lastSent: (forfeit: true, at: DateTime(2026, 3, 27, 7, 5)),
+      );
+      expect(
+        clubForfeitLabel(declared, '', fr).subtitle,
+        endsWith(
+          'pas encore placé · état inconnu · '
+          'Forfait envoyé à 07:05 (vérifiable une fois placé)',
+        ),
+      );
+      expect(
+        clubForfeitLabel(
+          notPlaced.copyWith(
+            lastSent: (forfeit: false, at: DateTime(2026, 3, 27, 7, 5)),
+          ),
+          '',
+          en,
+        ).subtitle,
+        endsWith('Cancellation sent at 07:05 (checkable once placed)'),
+      );
+      // Un état lu sur la place l'emporte.
+      expect(
+        clubForfeitLabel(
+          placed.copyWith(lastSent: declared.lastSent),
+          '',
+          fr,
+        ).subtitle,
+        isNot(contains('envoyé')),
+      );
+    });
+
+    test("état de l'interrupteur", () {
+      final before = DateTime(2026, 3, 27, 7, 49);
+      final at = DateTime(2026, 3, 27, 7, 50);
+      expect(
+        forfeitSwitch(placed, canManage: false, now: before),
+        ForfeitSwitch.hidden,
+      );
+      expect(
+        forfeitSwitch(placed, canManage: true, now: before),
+        ForfeitSwitch.active,
+      );
+      expect(
+        forfeitSwitch(placed, canManage: true, now: at),
+        ForfeitSwitch.locked,
+      );
+      // Course partie ou courue : verrouillé à toute heure.
+      expect(
+        forfeitSwitch(
+          placed.copyWith(locked: true),
+          canManage: true,
+          now: before,
+        ),
+        ForfeitSwitch.locked,
+      );
+      // Sans échéance aussi : rien ne dit que la course est à venir.
+      expect(
+        forfeitSwitch(
+          placed.copyWith(deadline: null),
+          canManage: true,
+          now: before,
+        ),
+        ForfeitSwitch.locked,
+      );
+      expect(
+        forfeitSwitch(
+          placed.copyWith(sending: ForfeitSending.sending),
+          canManage: true,
+          now: before,
+        ),
+        ForfeitSwitch.sending,
+      );
+      expect(
+        forfeitSwitch(notPlaced, canManage: true, now: before),
+        ForfeitSwitch.unknown,
+      );
+      expect(
+        forfeitSwitch(notPlaced, canManage: true, now: at),
+        ForfeitSwitch.locked,
+      );
+    });
+
+    test('message de résultat', () {
+      expect(forfeitOutcomeMessage(ForfeitOutcome.done, fr), isNull);
+      expect(forfeitOutcomeMessage(ForfeitOutcome.busy, fr), isNull);
+      expect(
+        forfeitOutcomeMessage(ForfeitOutcome.locked, fr),
+        fr.mySpaceForfeitLocked(10),
+      );
+      expect(fr.mySpaceForfeitLocked(10), contains('10 min'));
+      expect(
+        forfeitOutcomeMessage(ForfeitOutcome.notAllowed, fr),
+        fr.mySpaceForfeitNotAllowed,
+      );
+      expect(
+        forfeitOutcomeMessage(ForfeitOutcome.failed, en),
+        en.mySpaceForfeitFailed,
+      );
+      expect(
+        forfeitOutcomeMessage(ForfeitOutcome.unconfirmed, fr),
+        fr.mySpaceForfeitUnconfirmed,
+      );
+      expect(fr.mySpaceForfeitNoEntry, 'Aucun engagement');
+      expect(en.mySpaceForfeitNoEntry, 'No entries');
     });
   });
 }

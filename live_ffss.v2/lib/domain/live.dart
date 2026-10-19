@@ -98,7 +98,7 @@ bool isProvisional(Heat heat) =>
 /// « OK » sans temps n'est pas un résultat.
 bool hasPublishedResults(Iterable<LaneAssignment> lanes) => lanes.any(
   (lane) =>
-      lane.forfeit ||
+      lane.forfeit == true ||
       (lane.performance?.isDisqualified ?? false) ||
       (lane.performance?.time?.trim().isNotEmpty ?? false),
 );

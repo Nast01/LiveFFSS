@@ -28,7 +28,9 @@ extension PlaceMapper on PlaceDto {
       category: _nonBlank(epreuveCategorie?.categorie?.name),
       resultId: result?.id,
       entryId: engagement?.id,
-      forfeit: engagement?.isForfeit ?? false,
+      // Absent, il reste inconnu : la vue club ne dit jamais « pas forfait »
+      // sans l'avoir lu.
+      forfeit: engagement?.isForfeit,
       isRelay: epreuveCategorie?.epreuve?.discipline?.isRelay ?? false,
       performance: result == null
           ? null

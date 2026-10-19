@@ -36,6 +36,7 @@ class ApiEndpoints {
   static const String competition = 'competition/evenement/:id';
   static const String result = 'competition/resultat/:id';
   static const String resultSubmit = 'competition/resultat/submit';
+  static const String engagementSubmit = 'competition/engagement/:id/submit';
   static const String series = 'competition/serie/:id';
   static const String eventList = 'competition/epreuve';
   static const String eventSeries = 'competition/serie';

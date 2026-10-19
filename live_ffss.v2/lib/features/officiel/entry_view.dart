@@ -175,7 +175,7 @@ RaceResult _fromPlace(Heat heat, LaneAssignment lane) {
     time: performance?.timeHundredths,
     status: disqualified
         ? statusDisqualified
-        : lane.forfeit
+        : lane.forfeit == true
         ? statusForfeit
         : statusOk,
     complement: disqualified ? performance?.disqualificationCode ?? '' : '',

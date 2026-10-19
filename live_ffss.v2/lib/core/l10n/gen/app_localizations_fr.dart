@@ -967,8 +967,57 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mySpaceForfeitsHint => 'Forfaits tirés des résultats publiés.';
 
   @override
-  String get mySpaceForfeitsLater =>
-      'Déclarer ou annuler un forfait, remplacer un relayeur : bientôt disponible.';
+  String mySpaceForfeitsDeadline(int minutes) {
+    return 'Déclarer ou annuler un forfait jusqu\'à $minutes min avant la course';
+  }
+
+  @override
+  String mySpaceForfeitPlace(int heat, int lane) {
+    return 'Série $heat · couloir $lane';
+  }
+
+  @override
+  String get mySpaceForfeitNotPlacedUnknown =>
+      'pas encore placé · état inconnu';
+
+  @override
+  String mySpaceForfeitSentDeclared(String time) {
+    return 'Forfait envoyé à $time (vérifiable une fois placé)';
+  }
+
+  @override
+  String mySpaceForfeitSentCancelled(String time) {
+    return 'Annulation envoyée à $time (vérifiable une fois placé)';
+  }
+
+  @override
+  String get mySpaceForfeitDeclare => 'Déclarer forfait';
+
+  @override
+  String get mySpaceForfeitCancel => 'Annuler le forfait';
+
+  @override
+  String get mySpaceForfeitUnconfirmed =>
+      'Envoyé, mais la place relue montre encore l\'état d\'avant : rafraîchissez dans un instant';
+
+  @override
+  String get mySpaceForfeitUnknown => 'état inconnu (place illisible)';
+
+  @override
+  String mySpaceForfeitLocked(int minutes) {
+    return 'Forfait non modifiable : course courue, sans horaire, ou à moins de $minutes min';
+  }
+
+  @override
+  String get mySpaceForfeitNotAllowed =>
+      'Seul le référent du club ou un admin peut déclarer un forfait';
+
+  @override
+  String get mySpaceForfeitFailed =>
+      'Forfait non enregistré (réseau, droits ou session expirée) : réessayez';
+
+  @override
+  String get mySpaceForfeitNoEntry => 'Aucun engagement';
 
   @override
   String get mySpaceNoForfeit => 'Aucun forfait dans les résultats publiés';

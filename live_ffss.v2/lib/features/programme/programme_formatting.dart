@@ -77,7 +77,7 @@ String? performanceText(LaneAssignment lane, AppLocalizations l10n) {
           performance.disqualificationCode,
         ].where((part) => part != null && part.isNotEmpty).join(' ');
   if (text != null && text.isNotEmpty) return text;
-  return lane.forfeit ? l10n.forfeit : null;
+  return lane.forfeit == true ? l10n.forfeit : null;
 }
 
 /// « Programme · sam. 28 · Réunion 2 - Finales ».

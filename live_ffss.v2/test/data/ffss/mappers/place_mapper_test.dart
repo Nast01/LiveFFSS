@@ -57,6 +57,15 @@ void main() {
     expect(place.performance, isNull);
   });
 
+  test("engagement sans isForfait : forfait inconnu, pas « pas forfait »", () {
+    final json = fixture('place_2816')['data'] as Map<String, dynamic>;
+    (json['engagement'] as Map<String, dynamic>).remove('isForfait');
+
+    final place = PlaceDto.fromJson(json).toDomain()!;
+
+    expect(place.forfeit, isNull);
+  });
+
   test('une place sans id ni numéro est écartée', () {
     expect(PlaceDto.fromJson({'label': 'x'}).toDomain(), isNull);
   });

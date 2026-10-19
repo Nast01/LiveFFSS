@@ -959,8 +959,56 @@ class AppLocalizationsEn extends AppLocalizations {
       'Withdrawals taken from the published results.';
 
   @override
-  String get mySpaceForfeitsLater =>
-      'Declaring or cancelling a forfeit and replacing a relay swimmer: coming soon.';
+  String mySpaceForfeitsDeadline(int minutes) {
+    return 'Declare or cancel a withdrawal up to $minutes min before the race';
+  }
+
+  @override
+  String mySpaceForfeitPlace(int heat, int lane) {
+    return 'Heat $heat · lane $lane';
+  }
+
+  @override
+  String get mySpaceForfeitNotPlacedUnknown => 'not placed yet · unknown';
+
+  @override
+  String mySpaceForfeitSentDeclared(String time) {
+    return 'Withdrawal sent at $time (checkable once placed)';
+  }
+
+  @override
+  String mySpaceForfeitSentCancelled(String time) {
+    return 'Cancellation sent at $time (checkable once placed)';
+  }
+
+  @override
+  String get mySpaceForfeitDeclare => 'Declare withdrawal';
+
+  @override
+  String get mySpaceForfeitCancel => 'Cancel withdrawal';
+
+  @override
+  String get mySpaceForfeitUnconfirmed =>
+      'Sent, but the lane read again still shows the previous state: refresh in a moment';
+
+  @override
+  String get mySpaceForfeitUnknown => 'unknown (lane unreadable)';
+
+  @override
+  String mySpaceForfeitLocked(int minutes) {
+    return 'Withdrawal locked: race swum, without a time, or less than $minutes min away';
+  }
+
+  @override
+  String get mySpaceForfeitNotAllowed =>
+      'Only the club\'s referee or an admin can declare a withdrawal';
+
+  @override
+  String get mySpaceForfeitFailed =>
+      'Withdrawal not saved (network, rights or expired session): try again';
+
+  @override
+  String get mySpaceForfeitNoEntry => 'No entries';
 
   @override
   String get mySpaceNoForfeit => 'No withdrawal in the published results';

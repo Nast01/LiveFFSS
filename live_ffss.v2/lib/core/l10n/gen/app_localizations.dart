@@ -1598,11 +1598,83 @@ abstract class AppLocalizations {
   /// **'Forfaits tirés des résultats publiés.'**
   String get mySpaceForfeitsHint;
 
-  /// No description provided for @mySpaceForfeitsLater.
+  /// No description provided for @mySpaceForfeitsDeadline.
   ///
   /// In fr, this message translates to:
-  /// **'Déclarer ou annuler un forfait, remplacer un relayeur : bientôt disponible.'**
-  String get mySpaceForfeitsLater;
+  /// **'Déclarer ou annuler un forfait jusqu\'à {minutes} min avant la course'**
+  String mySpaceForfeitsDeadline(int minutes);
+
+  /// No description provided for @mySpaceForfeitPlace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série {heat} · couloir {lane}'**
+  String mySpaceForfeitPlace(int heat, int lane);
+
+  /// No description provided for @mySpaceForfeitNotPlacedUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'pas encore placé · état inconnu'**
+  String get mySpaceForfeitNotPlacedUnknown;
+
+  /// No description provided for @mySpaceForfeitSentDeclared.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfait envoyé à {time} (vérifiable une fois placé)'**
+  String mySpaceForfeitSentDeclared(String time);
+
+  /// No description provided for @mySpaceForfeitSentCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulation envoyée à {time} (vérifiable une fois placé)'**
+  String mySpaceForfeitSentCancelled(String time);
+
+  /// No description provided for @mySpaceForfeitDeclare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déclarer forfait'**
+  String get mySpaceForfeitDeclare;
+
+  /// No description provided for @mySpaceForfeitCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler le forfait'**
+  String get mySpaceForfeitCancel;
+
+  /// No description provided for @mySpaceForfeitUnconfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyé, mais la place relue montre encore l\'état d\'avant : rafraîchissez dans un instant'**
+  String get mySpaceForfeitUnconfirmed;
+
+  /// No description provided for @mySpaceForfeitUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'état inconnu (place illisible)'**
+  String get mySpaceForfeitUnknown;
+
+  /// No description provided for @mySpaceForfeitLocked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfait non modifiable : course courue, sans horaire, ou à moins de {minutes} min'**
+  String mySpaceForfeitLocked(int minutes);
+
+  /// No description provided for @mySpaceForfeitNotAllowed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seul le référent du club ou un admin peut déclarer un forfait'**
+  String get mySpaceForfeitNotAllowed;
+
+  /// No description provided for @mySpaceForfeitFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfait non enregistré (réseau, droits ou session expirée) : réessayez'**
+  String get mySpaceForfeitFailed;
+
+  /// No description provided for @mySpaceForfeitNoEntry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun engagement'**
+  String get mySpaceForfeitNoEntry;
 
   /// No description provided for @mySpaceNoForfeit.
   ///

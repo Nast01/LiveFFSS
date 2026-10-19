@@ -41,7 +41,10 @@ abstract class LaneAssignment with _$LaneAssignment {
     @Default(<String>[]) List<String> athletes,
     @Default('') String club,
     String? category,
-    @Default(false) bool forfeit,
+
+    /// Nul quand la place ne le dit pas (`isForfait` absent) : seul le
+    /// forfait lu compte, l'affichage le prend pour « pas forfait ».
+    bool? forfeit,
     @Default(false) bool isRelay,
     Performance? performance,
 
