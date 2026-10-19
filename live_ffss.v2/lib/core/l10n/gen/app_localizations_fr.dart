@@ -419,6 +419,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get entryNoChrono => 'Aucun chrono saisi';
 
   @override
+  String get entryForfeitNoChrono =>
+      'Forfait : pas de chrono. Annulez le forfait pour saisir un temps';
+
+  @override
   String get entryInvalidChrono => 'Secondes au plus 59';
 
   @override
@@ -524,6 +528,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get entryNotConnected => 'Connectez-vous pour saisir';
+
+  @override
+  String get entryForfeitChronosDropped =>
+      'Couloir forfait : les chronos tapés ne sont pas enregistrés';
 
   @override
   String get entryDenied => 'Saisie réservée aux officiels de la compétition';

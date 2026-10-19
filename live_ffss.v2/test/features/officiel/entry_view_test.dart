@@ -276,6 +276,35 @@ void main() {
     );
   });
 
+  group('chronosEditable', () {
+    test('forfait : pas de chrono ; DQ : chronos modifiables', () {
+      expect(chronosEditable(_entry()), isTrue);
+      expect(chronosEditable(_entry(status: statusDisqualified)), isTrue);
+      expect(chronosEditable(_entry(status: statusForfeit)), isFalse);
+      expect(chronosEditable(_entry(editable: false)), isFalse);
+    });
+
+    test('forfait : les champs montrent le site, un brouillon n’y compte '
+        'pas', () {
+      final lane = _entry(status: statusForfeit, chronos: [4321, null, null]);
+      expect(laneDigits(lane, ['5', '', '']), ['4321', '', '']);
+      expect(hasUnsavedDraft(lane, ['5', '', '']), isFalse);
+    });
+
+    test('un couloir forfait en file : pas de chrono', () {
+      final lanes = entryLanes(
+        heat: _heat,
+        lanes: [_lane(11, 1)],
+        results: const {},
+        queue: [_op('a', change: const ResultChange(mark: ResultMark.forfeit))],
+        account: 'DUPONT Jean',
+        readAt: readAt,
+      );
+      expect(lanes.single.result.status, statusForfeit);
+      expect(chronosEditable(lanes.single), isFalse);
+    });
+  });
+
   group('laneActions', () {
     test('OK : DQ ou forfait ; DQ : changer le code ou annuler', () {
       expect(laneActions(_entry()), [

@@ -877,6 +877,89 @@ void main() {
       );
     });
 
+    test('forfait : le pavé ne tape rien, et l’on passe sans rien '
+        'enregistrer', () async {
+      heatResults = {
+        111: const RaceResult(
+          id: 911,
+          seriesId: 10,
+          entryId: 111,
+          status: statusForfeit,
+        ),
+      };
+      final c = container();
+      final lane = (await lanesOf(c)).first;
+      final editor = c.read(entryEditorProvider(key).notifier)
+        ..typeDigit(lane, '5')
+        ..clearField(lane);
+
+      expect(c.read(entryEditorProvider(key)).drafts, isEmpty);
+      expect(await editor.saveAndNext(lane), (
+        outcome: EntrySaveOutcome.unchanged,
+        moved: true,
+      ));
+      expect(outbox.added, isEmpty);
+    });
+
+    test('forfait : des chiffres tapés avant ne partent pas, et l’écran le '
+        'dit une fois', () async {
+      final c = container();
+      final lane = (await lanesOf(c)).first;
+      final editor = c.read(entryEditorProvider(key).notifier)
+        ..typeDigit(lane, '5');
+      // Le forfait posé ailleurs, lu à la relecture suivante.
+      final forfeited = lane.copyWith(
+        result: lane.result.copyWith(status: statusForfeit),
+      );
+
+      expect(await editor.saveAndNext(forfeited), (
+        outcome: EntrySaveOutcome.forfeit,
+        moved: false,
+      ));
+      expect(outbox.added, isEmpty);
+      expect(c.read(entryEditorProvider(key)).drafts, isEmpty);
+      expect(await editor.saveAndNext(forfeited), (
+        outcome: EntrySaveOutcome.unchanged,
+        moved: true,
+      ));
+    });
+
+    test('poser le forfait écarte les chiffres tapés du couloir', () async {
+      final c = container();
+      final lane = (await lanesOf(c)).first;
+      final editor = c.read(entryEditorProvider(key).notifier)
+        ..typeDigit(lane, '5');
+
+      expect(await editor.forfeit(lane), EntrySaveOutcome.saved);
+
+      expect(c.read(entryEditorProvider(key)).drafts, isEmpty);
+      final shown = c.read(entryLanesProvider(heatKey)).value!.first;
+      expect(laneActions(shown), [EntryLaneAction.cancelForfeit]);
+      expect(await editor.cancelMark(shown), EntrySaveOutcome.saved);
+    });
+
+    test('DQ : les chronos restent modifiables', () async {
+      heatResults = {
+        111: const RaceResult(
+          id: 911,
+          seriesId: 10,
+          entryId: 111,
+          status: statusDisqualified,
+          complement: '12',
+        ),
+      };
+      final c = container();
+      final lane = (await lanesOf(c)).first;
+      final editor = c.read(entryEditorProvider(key).notifier)
+        ..typeDigit(lane, '5');
+
+      expect(await editor.saveChronos(lane), EntrySaveOutcome.saved);
+      expect(
+        outbox.added.single.change,
+        const ResultChange(chronos: [5, null, null]),
+      );
+    });
+
     test('depuis « Tous » : enregistrer ramène à la liste', () async {
       final c = container();
       final lane = (await lanesOf(c)).first;

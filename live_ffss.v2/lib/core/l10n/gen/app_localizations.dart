@@ -764,6 +764,12 @@ abstract class AppLocalizations {
   /// **'Aucun chrono saisi'**
   String get entryNoChrono;
 
+  /// No description provided for @entryForfeitNoChrono.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forfait : pas de chrono. Annulez le forfait pour saisir un temps'**
+  String get entryForfeitNoChrono;
+
   /// No description provided for @entryInvalidChrono.
   ///
   /// In fr, this message translates to:
@@ -955,6 +961,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Connectez-vous pour saisir'**
   String get entryNotConnected;
+
+  /// No description provided for @entryForfeitChronosDropped.
+  ///
+  /// In fr, this message translates to:
+  /// **'Couloir forfait : les chronos tapés ne sont pas enregistrés'**
+  String get entryForfeitChronosDropped;
 
   /// No description provided for @entryDenied.
   ///

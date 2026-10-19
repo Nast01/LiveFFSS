@@ -419,6 +419,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryNoChrono => 'No time entered';
 
   @override
+  String get entryForfeitNoChrono =>
+      'Withdrawn: no time. Cancel the withdrawal to enter a time';
+
+  @override
   String get entryInvalidChrono => 'Seconds must be 59 or less';
 
   @override
@@ -523,6 +527,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entryNotConnected => 'Sign in to enter results';
+
+  @override
+  String get entryForfeitChronosDropped =>
+      'Withdrawn lane: the times typed were not saved';
 
   @override
   String get entryDenied =>
