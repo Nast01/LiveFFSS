@@ -228,6 +228,26 @@ void main() {
         expect(titles.every((t) => t.isNotEmpty), isTrue);
       }
     });
+
+    test('étape à la demande : son coût avant, puis en cours, puis faite', () {
+      final cost = fr.dataCheckPlacesCost(412);
+      expect(cost, '412 lectures, une par place : la plus longue');
+      expect(dataCheckStepSubtitle(DataCheckStep.notRun, cost, fr), cost);
+      expect(
+        dataCheckStepSubtitle(DataCheckStep.running, cost, fr),
+        'Lecture en cours…',
+      );
+      expect(dataCheckStepSubtitle(DataCheckStep.done, cost, fr), 'Vérifié');
+      expect(fr.dataCheckResultsCost(1), '1 lecture, une par course terminée');
+    });
+
+    test('le coût des séries orphelines, annoncé', () {
+      expect(
+        fr.dataCheckSeriesCost(60),
+        "Séries orphelines : 60 lectures des séries d'épreuve, une par "
+        'épreuve eau plate.',
+      );
+    });
   });
 
   group('rapport de diagnostic', () {

@@ -40,8 +40,10 @@ class _DataCheckState extends ConsumerState<_DataCheck> {
     activateFromLink(ref, widget.competitionId);
   }
 
-  Future<void> _refresh() =>
-      ref.read(dataCheckProvider(widget.competitionId).notifier).refresh();
+  DataCheckNotifier get _notifier =>
+      ref.read(dataCheckProvider(widget.competitionId).notifier);
+
+  Future<void> _refresh() => _notifier.refresh();
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +51,11 @@ class _DataCheckState extends ConsumerState<_DataCheck> {
     final async = ref.watch(dataCheckProvider(widget.competitionId));
     final value = async.value;
     final Widget body;
-    if (async.isLoading) {
+    if (async.error is AdminOnlyException) {
+      // Une déconnexion refuse aussitôt : l'ancien contrôle, gardé dans
+      // l'état, ne doit plus se voir.
+      body = ResultsMessage(text: l10n.adminOnly);
+    } else if (async.isLoading) {
       // Une relecture complète prend du temps : l'ancien contrôle ne doit
       // pas passer pour le nouveau.
       body = const Center(child: CircularProgressIndicator());
@@ -70,7 +76,9 @@ class _DataCheckState extends ConsumerState<_DataCheck> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: l10n.resultsRefresh,
-            onPressed: async.isLoading ? null : _refresh,
+            onPressed: async.isLoading || (value?.busy ?? false)
+                ? null
+                : _refresh,
           ),
         ],
       ),
@@ -91,6 +99,30 @@ class _DataCheckState extends ConsumerState<_DataCheck> {
           16 + MediaQuery.of(context).viewPadding.bottom,
         ),
         children: [
+          Text(l10n.dataCheckSeriesCost(value.seriesReads)),
+          MySpaceHeader(l10n.dataCheckOnDemand),
+          MySpaceBox(
+            children: [
+              _StepRow(
+                icon: Icons.emoji_events_outlined,
+                title: l10n.dataCheckResultsAction,
+                step: value.results,
+                cost: l10n.dataCheckResultsCost(value.resultReads),
+                onTap: value.busy || value.resultReads == 0
+                    ? null
+                    : _notifier.checkResults,
+              ),
+              _StepRow(
+                icon: Icons.view_week_outlined,
+                title: l10n.dataCheckPlacesAction,
+                step: value.places,
+                cost: l10n.dataCheckPlacesCost(value.placeReads),
+                onTap: value.busy || value.placeReads == 0
+                    ? null
+                    : _notifier.checkPlaces,
+              ),
+            ],
+          ),
           if (groups.isEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 48),
@@ -121,4 +153,35 @@ class _DataCheckState extends ConsumerState<_DataCheck> {
       ),
     );
   }
+}
+
+/// Une étape coûteuse du contrôle : son coût, puis son avancement.
+class _StepRow extends StatelessWidget {
+  const _StepRow({
+    required this.icon,
+    required this.title,
+    required this.step,
+    required this.cost,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final DataCheckStep step;
+  final String cost;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) => MySpaceRow(
+    icon: icon,
+    title: title,
+    subtitle: dataCheckStepSubtitle(step, cost, AppLocalizations.of(context)),
+    trailing: step == DataCheckStep.running
+        ? const SizedBox.square(
+            dimension: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        : null,
+    onTap: onTap,
+  );
 }

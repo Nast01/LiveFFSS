@@ -2093,7 +2093,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminDataCheckSubtitle.
   ///
   /// In fr, this message translates to:
-  /// **'Toutes les épreuves, séries et places relues : plusieurs centaines de requêtes'**
+  /// **'Épreuves et leurs séries relues (une requête par épreuve) ; résultats et places à la demande'**
   String get adminDataCheckSubtitle;
 
   /// No description provided for @dataCheckNone.
@@ -2263,6 +2263,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, one{1 place} other{{count} places}}'**
   String dataCheckPlacesCount(int count);
+
+  /// No description provided for @dataCheckSeriesCost.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Séries orphelines : aucune épreuve eau plate à lire.} one{Séries orphelines : 1 lecture des séries d\'épreuve, une par épreuve eau plate.} other{Séries orphelines : {count} lectures des séries d\'épreuve, une par épreuve eau plate.}}'**
+  String dataCheckSeriesCost(int count);
+
+  /// No description provided for @dataCheckOnDemand.
+  ///
+  /// In fr, this message translates to:
+  /// **'À la demande'**
+  String get dataCheckOnDemand;
+
+  /// No description provided for @dataCheckResultsAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier les résultats'**
+  String get dataCheckResultsAction;
+
+  /// No description provided for @dataCheckResultsCost.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucune course terminée} one{1 lecture, une par course terminée} other{{count} lectures, une par course terminée}}'**
+  String dataCheckResultsCost(int count);
+
+  /// No description provided for @dataCheckPlacesAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier les places'**
+  String get dataCheckPlacesAction;
+
+  /// No description provided for @dataCheckPlacesCost.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucune place} one{1 lecture, une par place : la plus longue} other{{count} lectures, une par place : la plus longue}}'**
+  String dataCheckPlacesCost(int count);
+
+  /// No description provided for @dataCheckStepRunning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture en cours…'**
+  String get dataCheckStepRunning;
+
+  /// No description provided for @dataCheckStepDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifié'**
+  String get dataCheckStepDone;
 
   /// No description provided for @adminMaintenanceSubtitle.
   ///

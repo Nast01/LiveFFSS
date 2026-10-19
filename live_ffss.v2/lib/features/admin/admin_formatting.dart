@@ -145,6 +145,19 @@ String dataIssueConsequence(DataIssueKind kind, AppLocalizations l10n) =>
       DataIssueKind.resultsFailed => l10n.dataCheckResultsFailedConsequence,
     };
 
+/// Ce qu'une étape à la demande du contrôle montre sous son bouton : son
+/// coût ([cost]) tant qu'elle n'a pas tourné, pour qu'on la lance en
+/// connaissance de cause.
+String dataCheckStepSubtitle(
+  DataCheckStep step,
+  String cost,
+  AppLocalizations l10n,
+) => switch (step) {
+  DataCheckStep.notRun => cost,
+  DataCheckStep.running => l10n.dataCheckStepRunning,
+  DataCheckStep.done => l10n.dataCheckStepDone,
+};
+
 /// Les erreurs du journal que le rapport de diagnostic reprend.
 const int diagnosticErrorLimit = 20;
 

@@ -1281,7 +1281,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get adminDataCheckSubtitle =>
-      'Toutes les épreuves, séries et places relues : plusieurs centaines de requêtes';
+      'Épreuves et leurs séries relues (une requête par épreuve) ; résultats et places à la demande';
 
   @override
   String get dataCheckNone => 'Aucune anomalie trouvée.';
@@ -1394,6 +1394,59 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String dataCheckSeriesCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Séries orphelines : $count lectures des séries d\'épreuve, une par épreuve eau plate.',
+      one:
+          'Séries orphelines : 1 lecture des séries d\'épreuve, une par épreuve eau plate.',
+      zero: 'Séries orphelines : aucune épreuve eau plate à lire.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckOnDemand => 'À la demande';
+
+  @override
+  String get dataCheckResultsAction => 'Vérifier les résultats';
+
+  @override
+  String dataCheckResultsCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lectures, une par course terminée',
+      one: '1 lecture, une par course terminée',
+      zero: 'Aucune course terminée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckPlacesAction => 'Vérifier les places';
+
+  @override
+  String dataCheckPlacesCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lectures, une par place : la plus longue',
+      one: '1 lecture, une par place : la plus longue',
+      zero: 'Aucune place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckStepRunning => 'Lecture en cours…';
+
+  @override
+  String get dataCheckStepDone => 'Vérifié';
 
   @override
   String get adminMaintenanceSubtitle =>

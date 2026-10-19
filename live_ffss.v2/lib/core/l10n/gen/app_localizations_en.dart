@@ -1273,7 +1273,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminDataCheckSubtitle =>
-      'Every event, series and lane read again: several hundred requests';
+      'Events and their series read again (one request per event); results and lanes on demand';
 
   @override
   String get dataCheckNone => 'No issue found.';
@@ -1386,6 +1386,58 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String dataCheckSeriesCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Orphan series: $count event series reads, one per flat water event.',
+      one: 'Orphan series: 1 event series read, one per flat water event.',
+      zero: 'Orphan series: no flat water event to read.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckOnDemand => 'On demand';
+
+  @override
+  String get dataCheckResultsAction => 'Check results';
+
+  @override
+  String dataCheckResultsCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reads, one per finished race',
+      one: '1 read, one per finished race',
+      zero: 'No finished race',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckPlacesAction => 'Check lanes';
+
+  @override
+  String dataCheckPlacesCost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reads, one per lane: the longest',
+      one: '1 read, one per lane: the longest',
+      zero: 'No lane',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataCheckStepRunning => 'Reading…';
+
+  @override
+  String get dataCheckStepDone => 'Checked';
 
   @override
   String get adminMaintenanceSubtitle =>

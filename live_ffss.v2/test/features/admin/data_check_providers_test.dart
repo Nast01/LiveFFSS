@@ -46,6 +46,8 @@ class _FakeSession extends SessionNotifier {
 
   @override
   Future<Account?> build() async => _account;
+
+  void set(Account? account) => state = AsyncData(account);
 }
 
 const _competition = 1416;
@@ -140,14 +142,17 @@ void main() {
   late _MockMeetingRepository meetings;
   late _MockResultRepository result;
   late bool rolesFail;
+  late List<String> roles;
   late bool participantsFail;
   late int participantsReads;
+  late _FakeSession session;
 
   setUp(() {
     results = _MockResultsRepository();
     meetings = _MockMeetingRepository();
     result = _MockResultRepository();
     rolesFail = false;
+    roles = const ['public'];
     participantsFail = false;
     participantsReads = 0;
     when(() => results.getEvents(any())).thenAnswer((_) async => const []);
@@ -171,9 +176,10 @@ void main() {
     Set<Discipline> disciplines = const {Discipline.flatWater},
     List<Override> overrides = const [],
   }) {
+    session = _FakeSession(account);
     final c = ProviderContainer(
       overrides: [
-        sessionProvider.overrideWith(() => _FakeSession(account)),
+        sessionProvider.overrideWith(() => session),
         resultsRepositoryProvider.overrideWithValue(results),
         meetingRepositoryProvider.overrideWithValue(meetings),
         resultRepositoryProvider.overrideWithValue(result),
@@ -181,8 +187,9 @@ void main() {
           (ref, id) async => _summary(disciplines),
         ),
         competitionRolesProvider.overrideWith((ref, id) async {
+          await ref.watch(sessionProvider.future);
           if (rolesFail) throw const NetworkException('hors ligne');
-          return const CompetitionRoles(roles: ['public']);
+          return CompetitionRoles(roles: roles);
         }),
         participantsProvider.overrideWith((ref, id) async {
           participantsReads++;
@@ -201,6 +208,22 @@ void main() {
     final sub = c.listen(p, (_, _) {});
     addTearDown(sub.close);
     return sub.read();
+  }
+
+  /// Le contrôle ouvert, puis les étapes à la demande demandées.
+  Future<DataCheck> checked(
+    ProviderContainer c, {
+    bool results = false,
+    bool places = false,
+  }) async {
+    final provider = dataCheckProvider(_competition);
+    final sub = c.listen(provider, (_, _) {});
+    addTearDown(sub.close);
+    await c.read(provider.future);
+    final notifier = c.read(provider.notifier);
+    if (results) await notifier.checkResults();
+    if (places) await notifier.checkPlaces();
+    return c.read(provider).requireValue;
   }
 
   List<DataIssue> ofKind(DataCheck check, DataIssueKind kind) => [
@@ -291,14 +314,46 @@ void main() {
       },
     );
 
-    test('statut 3, série terminée sans résultat, course sans horaire, '
-        'places non lues', () async {
+    test('ouverture : ni résultats ni places lus, leur coût annoncé', () async {
+      when(() => results.getEvents(_competition)).thenAnswer(
+        (_) async => [_event(1), _event(2), _event(3, discipline: null)],
+      );
+      when(() => meetings.getProgramme(_competition)).thenAnswer(
+        (_) async => _programme([
+          _heat(1, placeIds: const [11, 12]),
+          _heat(2, placeIds: const [21]),
+          _heat(3, status: RunStatus.waiting, timed: false),
+          _heat(4, status: RunStatus.waiting, placeIds: const [41, 42, 43]),
+        ]),
+      );
+      final c = container();
+
+      final check = await checked(c);
+
+      verifyNever(() => result.getHeatResults(any()));
+      verifyNever(() => meetings.getLanes(any()));
+      expect(participantsReads, 0);
+      expect(check.seriesReads, 2);
+      expect(check.resultReads, 2);
+      expect(check.placeReads, 6);
+      expect(check.results, DataCheckStep.notRun);
+      expect(check.places, DataCheckStep.notRun);
+      expect(
+        [
+          for (final i in ofKind(check, DataIssueKind.raceWithoutTime))
+            i.heat?.heat.id,
+        ],
+        [3],
+      );
+    });
+
+    test('« Vérifier les résultats » : statut 3 et série terminée sans '
+        'résultat, sans lire les places', () async {
       when(() => meetings.getProgramme(_competition)).thenAnswer(
         (_) async => _programme([
           _heat(1),
           _heat(2),
           _heat(3, status: RunStatus.waiting, timed: false),
-          _heat(4, status: RunStatus.waiting, placeIds: const [41, 42, 43]),
         ]),
       );
       when(() => result.getHeatResults(9001)).thenAnswer(
@@ -312,10 +367,9 @@ void main() {
       when(
         () => result.getHeatResults(9002),
       ).thenAnswer((_) async => {1: _result(1), 2: _result(2, status: 3)});
-      when(() => meetings.getLanes(any())).thenAnswer((_) async => {41: null});
       final c = container();
 
-      final check = await read(c, dataCheckProvider(_competition).future);
+      final check = await checked(c, results: true);
 
       final status3 = ofKind(check, DataIssueKind.status3);
       expect(
@@ -329,17 +383,38 @@ void main() {
         ],
         [2],
       );
-      expect(
-        [
-          for (final i in ofKind(check, DataIssueKind.raceWithoutTime))
-            i.heat?.heat.id,
-        ],
-        [3],
-      );
-      final places = ofKind(check, DataIssueKind.unreadablePlaces);
-      expect([for (final i in places) (i.heat?.heat.id, i.count)], [(4, 2)]);
+      expect(check.results, DataCheckStep.done);
+      expect(check.places, DataCheckStep.notRun);
       // Seules les séries terminées sont lues.
       verify(() => result.getHeatResults(any())).called(2);
+      verifyNever(() => meetings.getLanes(any()));
+    });
+
+    test('« Vérifier les places » : les places non lues, en une demande '
+        'au repository, qui en garde 6 en vol', () async {
+      when(() => meetings.getProgramme(_competition)).thenAnswer(
+        (_) async => _programme([
+          _heat(1, placeIds: const [11]),
+          _heat(4, status: RunStatus.waiting, placeIds: const [41, 42, 43]),
+        ]),
+      );
+      when(
+        () => meetings.getLanes(any()),
+      ).thenAnswer((_) async => {11: null, 41: null});
+      final c = container();
+
+      final check = await checked(c, places: true);
+
+      final places = ofKind(check, DataIssueKind.unreadablePlaces);
+      expect([for (final i in places) (i.heat?.heat.id, i.count)], [(4, 2)]);
+      expect(verify(() => meetings.getLanes(captureAny())).captured.single, [
+        11,
+        41,
+        42,
+        43,
+      ]);
+      verifyNever(() => result.getHeatResults(any()));
+      expect(check.places, DataCheckStep.done);
     });
 
     test(
@@ -353,7 +428,7 @@ void main() {
         ).thenAnswer((_) async => {1: _result(1, status: statusDisqualified)});
         final c = container();
 
-        final check = await read(c, dataCheckProvider(_competition).future);
+        final check = await checked(c, results: true);
 
         expect(ofKind(check, DataIssueKind.finishedWithoutResult), isEmpty);
       },
@@ -400,10 +475,9 @@ void main() {
           () => result.getHeatResults(9001),
         ).thenThrow(const ApiException('500'));
         rolesFail = true;
-        participantsFail = true;
         final c = container();
 
-        final check = await read(c, dataCheckProvider(_competition).future);
+        final check = await checked(c, results: true);
 
         expect(
           [
@@ -420,11 +494,43 @@ void main() {
           [1],
         );
         expect(ofKind(check, DataIssueKind.rolesFailed), hasLength(1));
-        expect(ofKind(check, DataIssueKind.participantsFailed), hasLength(1));
         verify(() => results.getEventSeries(3)).called(1);
         verify(() => result.getHeatResults(9002)).called(1);
       },
     );
+
+    test('participants : jamais lus par le contrôle, signalés seulement '
+        "s'ils ont déjà échoué ailleurs", () async {
+      final c = container();
+
+      expect(
+        ofKind(await checked(c), DataIssueKind.participantsFailed),
+        isEmpty,
+      );
+      expect(participantsReads, 0);
+
+      participantsFail = true;
+      final participants = c.listen(
+        participantsProvider(_competition),
+        (_, _) {},
+      );
+      addTearDown(participants.close);
+      await expectLater(
+        c.read(participantsProvider(_competition).future),
+        throwsA(isA<NetworkException>()),
+      );
+      await c.read(dataCheckProvider(_competition).notifier).refresh();
+
+      expect(
+        ofKind(
+          c.read(dataCheckProvider(_competition)).requireValue,
+          DataIssueKind.participantsFailed,
+        ),
+        hasLength(1),
+      );
+      // Le rafraîchissement du contrôle ne les relit pas non plus.
+      expect(participantsReads, 1);
+    });
 
     test(
       'épreuves et programme en échec : signalés, sans échec global',
@@ -471,10 +577,15 @@ void main() {
       ).thenAnswer((_) => tracked({1: _result(1, time: 6000)}));
       final c = container();
 
-      await read(c, dataCheckProvider(_competition).future);
-
+      await checked(c);
       expect(maxInFlight, 6);
       verify(() => results.getEventSeries(any())).called(20);
+      verifyNever(() => result.getHeatResults(any()));
+
+      maxInFlight = 0;
+      await c.read(dataCheckProvider(_competition).notifier).checkResults();
+
+      expect(maxInFlight, 6);
       verify(() => result.getHeatResults(any())).called(20);
     });
 
@@ -492,6 +603,57 @@ void main() {
       verify(() => results.getEvents(_competition)).called(2);
       verify(() => meetings.getProgramme(_competition)).called(2);
       verify(() => results.getEventSeries(1)).called(2);
+    });
+
+    test('une relecture des droits ne relance pas le contrôle', () async {
+      roles = const ['public', 'admin'];
+      final c = container(account: _licensee);
+      final check = await checked(c);
+      expect(check.coastal, isFalse);
+
+      c.invalidate(competitionRolesProvider(_competition));
+      await pumpEventQueue();
+
+      expect(c.read(dataCheckProvider(_competition)).hasValue, isTrue);
+      verify(() => results.getEvents(_competition)).called(1);
+      verify(() => meetings.getProgramme(_competition)).called(1);
+    });
+
+    test('déconnexion : refusé aussitôt', () async {
+      final c = container();
+      await checked(c);
+
+      session.set(null);
+
+      // Sans attendre : la page montre le refus dès cette image.
+      expect(
+        c.read(dataCheckProvider(_competition)).error,
+        isA<AdminOnlyException>(),
+      );
+    });
+
+    test('chaque geste revérifie le droit : retiré, rien de lu', () async {
+      roles = const ['public', 'admin'];
+      when(() => meetings.getProgramme(_competition)).thenAnswer(
+        (_) async => _programme([
+          _heat(1, placeIds: const [11]),
+        ]),
+      );
+      final c = container(account: _licensee);
+      await checked(c);
+      roles = const ['public'];
+      c.invalidate(competitionRolesProvider(_competition));
+
+      final notifier = c.read(dataCheckProvider(_competition).notifier);
+      await notifier.checkResults();
+      await notifier.checkPlaces();
+
+      expect(
+        c.read(dataCheckProvider(_competition)).error,
+        isA<AdminOnlyException>(),
+      );
+      verifyNever(() => result.getHeatResults(any()));
+      verifyNever(() => meetings.getLanes(any()));
     });
   });
 }
