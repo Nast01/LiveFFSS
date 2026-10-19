@@ -334,4 +334,38 @@ void main() {
       expect(reminderAt(null, before, now), isNull);
     });
   });
+
+  group('forfeitDeadline', () {
+    test('départ prévu moins 10 minutes', () {
+      expect(forfeitLead, const Duration(minutes: 10));
+      expect(
+        forfeitDeadline(DateTime(2026, 10, 19, 10)),
+        DateTime(2026, 10, 19, 9, 50),
+      );
+    });
+
+    test('sans départ : nulle', () {
+      expect(forfeitDeadline(null), isNull);
+    });
+  });
+
+  group('forfeitLocked', () {
+    final deadline = DateTime(2026, 10, 19, 9, 50);
+
+    test("avant l'échéance : ouvert", () {
+      expect(forfeitLocked(deadline, DateTime(2026, 10, 19, 9, 49)), false);
+    });
+
+    test("pile à l'échéance : verrouillé", () {
+      expect(forfeitLocked(deadline, deadline), true);
+    });
+
+    test("après l'échéance : verrouillé", () {
+      expect(forfeitLocked(deadline, DateTime(2026, 10, 19, 11)), true);
+    });
+
+    test('sans échéance : ouvert', () {
+      expect(forfeitLocked(null, DateTime(2026, 10, 19, 11)), false);
+    });
+  });
 }

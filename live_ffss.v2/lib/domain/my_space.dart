@@ -64,6 +64,20 @@ bool isForfeit(EventResult result) =>
     result.complement == 'F' ||
     result.complement == 'FF';
 
+/// Un forfait se déclare ou s'annule jusqu'à 10 minutes avant le départ
+/// prévu (décision du 2026-10-19 : « couru » = 10 min avant le départ).
+const forfeitLead = Duration(minutes: 10);
+
+/// L'échéance d'un forfait pour une course partant à [heatStart] ; nulle
+/// sans départ prévu.
+DateTime? forfeitDeadline(DateTime? heatStart) =>
+    heatStart?.subtract(forfeitLead);
+
+/// Pile à l'échéance, c'est déjà trop tard. Sans échéance connue, rien ne
+/// verrouille : le forfait vaut pour l'engagement, et le site reste juge.
+bool forfeitLocked(DateTime? deadline, DateTime now) =>
+    deadline != null && !now.isBefore(deadline);
+
 /// Les clubs de la compétition, par `clubId` : un participant sans `clubId`
 /// n'a pas de club à qui le rattacher. Le libellé est celui du premier
 /// participant rencontré, FFSS n'en publiant pas d'autre.
