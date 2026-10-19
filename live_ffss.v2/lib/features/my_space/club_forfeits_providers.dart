@@ -52,8 +52,9 @@ abstract class ClubForfeit with _$ClubForfeit {
     @Default(false) bool placesUnread,
     DateTime? deadline,
 
-    /// Plus rien à déclarer, quelle que soit l'heure : sa course est
-    /// courue, ou aucune échéance n'est connue.
+    /// Plus rien à déclarer, quelle que soit l'heure : sa course n'attend
+    /// plus (chambre d'appel, en cours ou courue), ou aucune échéance n'est
+    /// connue.
     @Default(false) bool locked,
     ForfeitSent? lastSent,
     @Default(ForfeitSending.idle) ForfeitSending sending,
@@ -102,8 +103,8 @@ List<ClubEntry> clubEntries(
 /// Les forfaits d'un club (lot 6b) : l'état ne se lit que sur les places
 /// (`engagement.isForfait`), aucune route ne donnant celle d'un engagement.
 /// Sont lues les places du tour séries de chaque épreuve du club, celles des
-/// courses à courir d'abord puis celles des courues (un engagement trouvé
-/// dans une course courue est verrouillé), 6 au plus en vol, jusqu'à
+/// courses en attente d'abord puis celles des autres (un engagement trouvé
+/// dans une course partie ou courue est verrouillé), 6 au plus en vol, jusqu'à
 /// trouver chaque engagement ; à l'ouverture et par
 /// [ClubForfeitsNotifier.refresh], sans minuterie.
 ///
@@ -122,6 +123,10 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
 
   /// La place où chaque engagement a été trouvé : relue après un envoi.
   final _places = <int, int>{};
+
+  /// Le créneau de la course dont dépend chaque engagement (la sienne, ou
+  /// celle qui donne l'échéance) : relu juste avant d'envoyer.
+  final _slots = <int, ({int heatId, int itemId, DateTime day})>{};
 
   /// Gardés hors de `state` : une relecture pendant un envoi les remet.
   final _inFlight = <int>{};
@@ -169,10 +174,10 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
       // chaque place n'est lue qu'une fois. Les courses à courir d'abord :
       // c'est là que sont les engagements à déclarer.
       final heatOfPlace = <int, Heat>{};
-      for (final ran in [false, true]) {
+      for (final waiting in [true, false]) {
         for (final round in roundOf.values) {
           for (final heat in round) {
-            if ((heat.status == RunStatus.finished) != ran) continue;
+            if ((heat.status == RunStatus.waiting) != waiting) continue;
             for (final placeId in heat.placeIds) {
               heatOfPlace.putIfAbsent(placeId, () => heat);
             }
@@ -208,7 +213,13 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
           for (final MapEntry(:key, :value) in found.entries)
             key: value.placeId,
         });
-      return [
+      final slotOfHeat = {
+        for (final meeting in programme.meetings)
+          for (final item in meeting.items)
+            for (final heat in item.heats)
+              heat.id: (heatId: heat.id, itemId: item.id, day: meeting.day),
+      };
+      final forfeits = [
         for (final entry in entries)
           _forfeitOf(
             entry,
@@ -216,9 +227,19 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
             found[entry.entryId],
             heatOfPlace,
             read,
-          ).copyWith(
-            lastSent: _sent[entry.entryId],
-            sending: _inFlight.contains(entry.entryId)
+          ),
+      ];
+      _slots
+        ..clear()
+        ..addAll({
+          for (final (forfeit, heat) in forfeits)
+            forfeit.entryId: ?slotOfHeat[heat?.id],
+        });
+      return [
+        for (final (forfeit, _) in forfeits)
+          forfeit.copyWith(
+            lastSent: _sent[forfeit.entryId],
+            sending: _inFlight.contains(forfeit.entryId)
                 ? ForfeitSending.sending
                 : ForfeitSending.idle,
           ),
@@ -230,7 +251,9 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
     }
   }
 
-  static ClubForfeit _forfeitOf(
+  /// L'engagement, et la course à revérifier avant d'envoyer : la sienne,
+  /// sinon la plus tôt du tour en attente, qui donne l'échéance.
+  static (ClubForfeit, Heat?) _forfeitOf(
     ClubEntry entry,
     List<Heat> round,
     ({int placeId, LaneAssignment lane})? found,
@@ -239,19 +262,20 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
   ) {
     final heat = found == null ? null : heatOfPlace[found.placeId];
     bool unread(Heat h) => h.placeIds.any((id) => !read.contains(id));
-    final toRun = [
+    // Une course peut partir avant son heure prévue : seule une course en
+    // attente laisse encore déclarer.
+    final waiting = [
       for (final h in round)
-        if (h.status != RunStatus.finished) h,
-    ];
-    final starts = [for (final h in toRun) ?h.plannedStart]..sort();
-    // Sa course si elle est connue, sinon la plus tôt du tour à courir.
-    final deadline = forfeitDeadline(heat?.plannedStart ?? starts.firstOrNull);
-    final ran =
-        heat?.status == RunStatus.finished ||
-        // Une place illisible d'une course courue pouvait le porter.
+        if (h.status == RunStatus.waiting && h.plannedStart != null) h,
+    ]..sort((a, b) => a.plannedStart!.compareTo(b.plannedStart!));
+    final checked = heat ?? waiting.firstOrNull;
+    final deadline = forfeitDeadline(checked?.plannedStart);
+    final started =
+        (heat != null && heat.status != RunStatus.waiting) ||
+        // Une place illisible d'une course partie pouvait le porter.
         (found == null &&
-            round.any((h) => h.status == RunStatus.finished && unread(h)));
-    return ClubForfeit(
+            round.any((h) => h.status != RunStatus.waiting && unread(h)));
+    final forfeit = ClubForfeit(
       entryId: entry.entryId,
       event: entry.event,
       athletes: [
@@ -263,8 +287,9 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
       placesUnread: found == null && round.any(unread),
       deadline: deadline,
       // Sans échéance, rien ne dit que la course n'est pas passée.
-      locked: ran || deadline == null,
+      locked: started || deadline == null,
     );
+    return (forfeit, checked);
   }
 
   /// Relit les places, et ce qui en amont a échoué.
@@ -305,14 +330,25 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
     final clock = ref.read(clockProvider);
     final previous = item.forfeit;
     _inFlight.add(entryId);
-    _update(
-      entryId,
-      (f) => f.copyWith(
-        forfeit: previous == null ? null : forfeit,
-        sending: ForfeitSending.sending,
-      ),
-    );
+    _update(entryId, (f) => f.copyWith(sending: ForfeitSending.sending));
     try {
+      // Une course peut partir avant son heure prévue : l'état lu à
+      // l'ouverture ne suffit pas.
+      final bool waiting;
+      try {
+        waiting = await _stillWaiting(meetings, entryId);
+      } on AppException {
+        return ForfeitOutcome.failed;
+      }
+      if (!ref.mounted) return ForfeitOutcome.failed;
+      if (!waiting) {
+        _update(entryId, (f) => f.copyWith(locked: true));
+        return ForfeitOutcome.locked;
+      }
+      _update(
+        entryId,
+        (f) => f.copyWith(forfeit: previous == null ? null : forfeit),
+      );
       try {
         await engagements.setForfeit(entryId, forfeit: forfeit);
       } on AppException {
@@ -340,6 +376,17 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
       _inFlight.remove(entryId);
       _update(entryId, (f) => f.copyWith(sending: ForfeitSending.idle));
     }
+  }
+
+  /// La course de l'engagement est-elle toujours en attente ? Relue sur son
+  /// créneau, une seule lecture légère. Lève [AppException] si le créneau ne
+  /// se lit pas ; une course absente du créneau relu ne laisse rien partir.
+  Future<bool> _stillWaiting(MeetingRepository meetings, int entryId) async {
+    final slot = _slots[entryId];
+    if (slot == null) return false;
+    final item = await meetings.getMeetingItem(slot.itemId, day: slot.day);
+    final heat = item?.heats.where((h) => h.id == slot.heatId).firstOrNull;
+    return heat?.status == RunStatus.waiting;
   }
 
   /// Comme la saisie, un droit établi pour la session en cours : pendant une

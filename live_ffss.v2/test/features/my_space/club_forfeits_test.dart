@@ -147,11 +147,18 @@ void main() {
   late List<int> reads;
   late int peak;
   late Future<CompetitionRoles> Function() rolesRead;
+  // Le programme que relit `getMeetingItem` : celui de la lecture, sauf
+  // si le test fait partir une course entre-temps.
+  Programme? slots;
+  late List<int> itemReads;
   var disciplines = {Discipline.flatWater};
   var now = DateTime(2026, 3, 27, 7);
   Account? account = const Account(label: 'REFERENT Club');
 
-  setUpAll(() => registerFallbackValue(<int>[]));
+  setUpAll(() {
+    registerFallbackValue(<int>[]);
+    registerFallbackValue(DateTime(2026));
+  });
 
   setUp(() {
     programme = waiting;
@@ -170,6 +177,8 @@ void main() {
     };
     failing = {};
     reads = [];
+    slots = null;
+    itemReads = [];
     peak = 0;
     var inFlight = 0;
     when(() => meetings.getProgramme(any())).thenAnswer((_) async => programme);
@@ -193,6 +202,17 @@ void main() {
     when(
       () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
     ).thenAnswer((_) async {});
+    when(
+      () => meetings.getMeetingItem(any(), day: any(named: 'day')),
+    ).thenAnswer((invocation) async {
+      final id = invocation.positionalArguments.first as int;
+      itemReads.add(id);
+      return [
+        for (final meeting in (slots ?? programme).meetings)
+          for (final item in meeting.items)
+            if (item.id == id) item,
+      ].firstOrNull;
+    });
   });
 
   ProviderContainer container() {
@@ -340,6 +360,23 @@ void main() {
       );
       verifyNoSend();
     });
+
+    for (final status in [RunStatus.marshalling, RunStatus.inProgress]) {
+      test('course partie ($status) : verrouillé, rien ne part', () async {
+        programme = with479((h) => h.copyWith(status: status));
+        final c = container();
+
+        final un = of(await read(c), 101);
+
+        expect(un.heat?.id, 479);
+        expect(un.locked, isTrue);
+        expect(
+          await notifier(c).setForfeit(101, forfeit: true),
+          ForfeitOutcome.locked,
+        );
+        verifyNoSend();
+      });
+    }
 
     test(
       "place illisible d'une course courue : inconnu et verrouillé",
@@ -534,6 +571,36 @@ void main() {
       sent.complete();
       await first;
       expect(of(current(c), 101).sending, ForfeitSending.idle);
+    });
+
+    test("course partie depuis la lecture : verrouillé à l'envoi, sans "
+        'appel', () async {
+      final c = container();
+      await read(c);
+      slots = with479((h) => h.copyWith(status: RunStatus.inProgress));
+
+      final outcome = await notifier(c).setForfeit(101, forfeit: true);
+
+      expect(outcome, ForfeitOutcome.locked);
+      expect(itemReads, [177]);
+      verifyNoSend();
+      expect(of(current(c), 101).forfeit, isFalse);
+      expect(of(current(c), 101).locked, isTrue);
+      expect(of(current(c), 101).sending, ForfeitSending.idle);
+    });
+
+    test("créneau illisible à l'envoi : échec, sans appel", () async {
+      final c = container();
+      await read(c);
+      when(
+        () => meetings.getMeetingItem(any(), day: any(named: 'day')),
+      ).thenThrow(const NetworkException('hors ligne'));
+
+      final outcome = await notifier(c).setForfeit(101, forfeit: true);
+
+      expect(outcome, ForfeitOutcome.failed);
+      verifyNoSend();
+      expect(of(current(c), 101).forfeit, isFalse);
     });
 
     test("échéance passée l'écran ouvert : refusé sans appel", () async {
