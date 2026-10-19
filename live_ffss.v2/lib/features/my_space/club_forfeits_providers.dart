@@ -407,3 +407,28 @@ class ClubForfeitsNotifier extends AsyncNotifier<List<ClubForfeit>> {
     ]);
   }
 }
+
+/// Garde [clubForfeitsProvider] en vie le temps de la page du club, dès la
+/// première ouverture de l'onglet Forfaits : jeté au changement de
+/// sous-onglet, il perdrait ses envois en vol (un second envoi deviendrait
+/// possible) et la note « envoyé à », et relirait toutes les places au
+/// retour.
+class ClubForfeitsKeeper {
+  ClubForfeitsKeeper(this._container, this._key);
+
+  final ProviderContainer _container;
+  final ClubKey _key;
+  ProviderSubscription<AsyncValue<List<ClubForfeit>>>? _subscription;
+
+  bool get isOpen => _subscription != null;
+
+  void open() => _subscription ??= _container.listen(
+    clubForfeitsProvider(_key),
+    (_, _) {},
+  );
+
+  void close() {
+    _subscription?.close();
+    _subscription = null;
+  }
+}

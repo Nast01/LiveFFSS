@@ -680,4 +680,97 @@ void main() {
       verify(() => engagements.setForfeit(101, forfeit: true)).called(1);
     });
   });
+
+  group('le temps de la page du club', () {
+    /// L'onglet Forfaits ouvert, comme la page : gardé par [keeper], suivi
+    /// par l'onglet le temps qu'il est montré.
+    Future<(ClubForfeitsKeeper, ProviderSubscription<Object?>)> openTab(
+      ProviderContainer c,
+    ) async {
+      final keeper = ClubForfeitsKeeper(c, key)..open();
+      addTearDown(keeper.close);
+      final tab = c.listen(clubForfeitsProvider(key), (_, _) {});
+      // Comme la page, qui suit les droits ; `read` garderait l'onglet
+      // ouvert jusqu'à la fin du test.
+      final roles = c.listen(
+        competitionRolesProvider(competitionId),
+        (_, _) {},
+      );
+      addTearDown(roles.close);
+      await c.read(competitionRolesProvider(competitionId).future);
+      await c.read(sessionProvider.future);
+      await c.read(clubForfeitsProvider(key).future);
+      return (keeper, tab);
+    }
+
+    Future<void> comeBack(ProviderContainer c) async {
+      final back = c.listen(clubForfeitsProvider(key), (_, _) {});
+      addTearDown(back.close);
+      await c.read(clubForfeitsProvider(key).future);
+    }
+
+    test(
+      'changer de sous-onglet puis revenir ne relit pas les places',
+      () async {
+        final c = container();
+        final (keeper, tab) = await openTab(c);
+        tab.close();
+        await pumpEventQueue();
+        reads.clear();
+
+        await comeBack(c);
+
+        expect(reads, isEmpty);
+        expect(keeper.isOpen, isTrue);
+      },
+    );
+
+    test("un envoi en vol le reste au retour : pas de second envoi", () async {
+      final c = container();
+      final (_, tab) = await openTab(c);
+      final sent = Completer<void>();
+      holdSends(sent);
+      final first = notifier(c).setForfeit(101, forfeit: true);
+      await pumpEventQueue();
+      tab.close();
+      await pumpEventQueue();
+
+      await comeBack(c);
+
+      expect(of(current(c), 101).sending, ForfeitSending.sending);
+      expect(
+        await notifier(c).setForfeit(101, forfeit: false),
+        ForfeitOutcome.busy,
+      );
+      sent.complete();
+      await first;
+      verify(
+        () => engagements.setForfeit(any(), forfeit: any(named: 'forfeit')),
+      ).called(1);
+    });
+
+    test('la note « envoyé à » survit au retour', () async {
+      lanes[2817] = null;
+      final c = container();
+      final (_, tab) = await openTab(c);
+      await notifier(c).setForfeit(101, forfeit: true);
+      tab.close();
+      await pumpEventQueue();
+
+      await comeBack(c);
+
+      expect(of(current(c), 101).lastSent?.forfeit, isTrue);
+    });
+
+    test('fermé avec la page : le fournisseur est jeté', () async {
+      final c = container();
+      final (keeper, tab) = await openTab(c);
+      tab.close();
+      keeper.close();
+      await pumpEventQueue();
+
+      expect(keeper.isOpen, isFalse);
+      expect(c.exists(clubForfeitsProvider(key)), isFalse);
+    });
+  });
 }

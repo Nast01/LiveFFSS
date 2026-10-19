@@ -50,10 +50,19 @@ class _ClubPageState extends ConsumerState<ClubPage> {
   // épreuve) ne partent qu'à la demande, ou s'ils sont déjà calculés.
   var _rankAsked = false;
 
+  // Ouvert à la première visite de l'onglet Forfaits, fermé avec la page.
+  ClubForfeitsKeeper? _forfeitsKeeper;
+
   @override
   void initState() {
     super.initState();
     activateFromLink(ref, widget.competitionId);
+  }
+
+  @override
+  void dispose() {
+    _forfeitsKeeper?.close();
+    super.dispose();
   }
 
   ClubKey get _key =>
@@ -312,7 +321,7 @@ class _ClubPageState extends ConsumerState<ClubPage> {
     await Future.wait([
       refreshClubSchedule(_container, _key),
       // Lus seulement si l'onglet les a montrés.
-      if (_container.exists(forfeits))
+      if (_forfeitsKeeper?.isOpen ?? false)
         _container.read(forfeits.notifier).refresh(),
     ]);
   }
@@ -321,6 +330,7 @@ class _ClubPageState extends ConsumerState<ClubPage> {
   /// tout de suite.
   List<Widget> _declaredForfeits(ClubInfo club, AppLocalizations l10n) {
     final state = ref.watch(clubForfeitsProvider(_key));
+    (_forfeitsKeeper ??= ClubForfeitsKeeper(_container, _key)).open();
     final list = state.value;
     final now = ref.read(clockProvider)();
     return [
