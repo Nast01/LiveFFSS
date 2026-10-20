@@ -653,7 +653,10 @@ void main() {
     });
   });
 
-  test('les places d\'une course sans série ne sont jamais lues', () {
+  // FFSSCompetition publie les places d'une finale (ses engagés) avant d'en
+  // créer la série : la course 540 de la recette 1416 (Finale B - Cadet) a
+  // ses 8 engagés et `serie: null`.
+  test('les places d\'une course sans série sont lues aussi', () {
     fakeAsync((async) {
       item = MeetingItem(
         id: 10,
@@ -668,21 +671,23 @@ void main() {
       c.listen(meetingItemDetailProvider(key), (_, _) {});
       async.flushMicrotasks();
       expect(laneRequests, [
-        {11, 12},
+        {11, 12, 21, 22},
       ]);
 
+      // Non terminée, la finale sans série est relue à chaque tick, comme
+      // une série en cours : sa composition peut encore changer.
       laneRequests.clear();
       async.elapse(itemDetailRefresh);
       async.flushMicrotasks();
       expect(laneRequests, [
-        {11, 12},
+        {11, 12, 21, 22},
       ]);
 
       laneRequests.clear();
       c.read(meetingItemDetailProvider(key).notifier).refresh();
       async.flushMicrotasks();
       expect(laneRequests, [
-        {11, 12},
+        {11, 12, 21, 22},
       ]);
 
       c.dispose();

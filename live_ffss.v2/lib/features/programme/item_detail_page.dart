@@ -8,7 +8,6 @@ import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
 import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/follows.dart';
-import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/follows/follows_providers.dart';
 import 'package:live_ffss_v2/features/home/competition_formatting.dart';
@@ -132,7 +131,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     final follows =
         ref.watch(followsProvider(widget.competitionId)).value ??
         const Follows();
-    final pending = itemStatus(item) == ItemStatus.seriesPending;
+    final pending = showsSeriesPending(item, detail.lanes);
     final canEnter = ref.watch(canEnterProvider(widget.competitionId));
 
     return RefreshIndicator(

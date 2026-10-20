@@ -145,3 +145,9 @@ String stageScheduleLabel(MeetingItem item, String locale) {
     timeRangeLabel(start, item.endTime),
   ].join(' · ');
 }
+
+/// « Séries à venir » seulement quand il n'y a vraiment rien à montrer : une
+/// finale sans série peut déjà avoir sa composition publiée.
+bool showsSeriesPending(MeetingItem item, Map<int, LaneAssignment?> lanes) =>
+    itemStatus(item) == ItemStatus.seriesPending &&
+    item.heats.every((heat) => lanesOfHeat(heat, lanes).isEmpty);

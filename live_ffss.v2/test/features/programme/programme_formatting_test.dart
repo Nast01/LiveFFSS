@@ -3,10 +3,12 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
+import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
+import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/features/programme/programme_formatting.dart';
 
 Stage stage(
@@ -31,6 +33,45 @@ Stage stage(
 void main() {
   final l10n = lookupAppLocalizations(const Locale('fr'));
   setUpAll(() => initializeDateFormatting('fr'));
+
+  group('showsSeriesPending', () {
+    // Finale B de la recette 1416 (course 540) : places publiées avec leurs
+    // engagés, série pas encore créée.
+    MeetingItem finale({int? seriesId}) => MeetingItem(
+      id: 1,
+      name: 'Finale B - Cadet',
+      heats: [
+        Heat(
+          id: 540,
+          name: 'Finale B - Cadet',
+          number: 0,
+          status: RunStatus.waiting,
+          placeIds: const [4173, 4174],
+          seriesId: seriesId,
+        ),
+      ],
+    );
+    const entered = LaneAssignment(id: 4173, lane: 1, athletes: ['ATHLETE Un']);
+
+    test('sans série ni engagé lu : le message « séries à venir »', () {
+      expect(showsSeriesPending(finale(), const {}), isTrue);
+      expect(
+        showsSeriesPending(finale(), const {4173: null, 4174: null}),
+        isTrue,
+      );
+    });
+
+    test(
+      'sans série mais avec des engagés : la composition, pas le message',
+      () {
+        expect(showsSeriesPending(finale(), const {4173: entered}), isFalse);
+      },
+    );
+
+    test('avec une série : jamais le message', () {
+      expect(showsSeriesPending(finale(seriesId: 9), const {}), isFalse);
+    });
+  });
 
   test('ItemStatus.label', () {
     expect(ItemStatus.live.label(l10n), 'EN DIRECT');
