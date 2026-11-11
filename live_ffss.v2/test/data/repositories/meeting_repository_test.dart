@@ -382,9 +382,13 @@ void main() {
       final pending = <int, Completer<Map<String, dynamic>>>{};
       var inFlight = 0;
       var maxInFlight = 0;
-      when(() => http.get(any(), query: any(named: 'query'))).thenAnswer((
-        invocation,
-      ) {
+      when(
+        () => http.get(
+          any(),
+          query: any(named: 'query'),
+          anonymous: any(named: 'anonymous'),
+        ),
+      ).thenAnswer((invocation) {
         final id = idOf(invocation);
         inFlight++;
         if (inFlight > maxInFlight) maxInFlight = inFlight;
@@ -419,9 +423,13 @@ void main() {
     test(
       'une place en échec est absente du résultat, les autres sont là',
       () async {
-        when(() => http.get(any(), query: any(named: 'query'))).thenAnswer((
-          invocation,
-        ) async {
+        when(
+          () => http.get(
+            any(),
+            query: any(named: 'query'),
+            anonymous: any(named: 'anonymous'),
+          ),
+        ).thenAnswer((invocation) async {
           final id = idOf(invocation);
           if (id == 2) throw const NetworkException('hors ligne');
           if (id == 3) return <String, dynamic>{'data': 'corrompue'};
@@ -435,9 +443,31 @@ void main() {
       },
     );
 
+    // La route des places répond 500 dès qu'un jeton est envoyé (recette,
+    // 2026-11-12) : ses données sont publiques, elle se lit sans jeton.
+    test('les places sont lues sans jeton', () async {
+      when(
+        () => http.get(
+          any(),
+          query: any(named: 'query'),
+          anonymous: any(named: 'anonymous'),
+        ),
+      ).thenAnswer((invocation) async => place(idOf(invocation)));
+
+      await repository.getLanes([7]);
+
+      verify(
+        () => http.get(any(), query: any(named: 'query'), anonymous: true),
+      ).called(1);
+    });
+
     test('une place vide est présente avec la valeur nulle', () async {
       when(
-        () => http.get(any(), query: any(named: 'query')),
+        () => http.get(
+          any(),
+          query: any(named: 'query'),
+          anonymous: any(named: 'anonymous'),
+        ),
       ).thenAnswer((invocation) async => place(idOf(invocation), empty: true));
 
       final result = await repository.getLanes([7]);

@@ -246,6 +246,27 @@ void main() {
       },
     );
 
+    // La route des places répond 500 dès qu'un jeton est envoyé (vérifié le
+    // 2026-11-12 sur la recette) : ses données étant publiques, on la lit
+    // sans jeton.
+    test('une lecture anonyme ne porte ni jeton ni Authorization', () async {
+      when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
+      when(
+        () => httpMock.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => responseWith('{"success": true}', 200));
+
+      await client.get('x', query: {'a': 'b'}, anonymous: true);
+
+      final captured = verify(
+        () => httpMock.get(captureAny(), headers: captureAny(named: 'headers')),
+      ).captured;
+      final uri = captured.first as Uri;
+      final headers = captured.last as Map<String, String>;
+      expect(uri.queryParameters.containsKey('token'), isFalse);
+      expect(uri.queryParameters['a'], 'b');
+      expect(headers.containsKey('Authorization'), isFalse);
+    });
+
     test('a post carries the token too, not just a get', () async {
       when(() => tokens.getToken()).thenAnswer((_) async => 'abc123');
       when(

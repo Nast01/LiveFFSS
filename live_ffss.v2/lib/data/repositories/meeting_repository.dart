@@ -117,7 +117,9 @@ class MeetingRepositoryImpl implements MeetingRepository {
     final path = ApiEndpoints.replacePath(ApiEndpoints.lane, {
       'id': placeId.toString(),
     });
-    final data = (await _http.get(path))['data'];
+    // Sans jeton : la route des places répond 500 dès qu'un jeton est envoyé
+    // (recette, 2026-11-12) ; ses données sont publiques.
+    final data = (await _http.get(path, anonymous: true))['data'];
     if (data is! Map<String, dynamic>) {
       throw const ApiException('place illisible');
     }

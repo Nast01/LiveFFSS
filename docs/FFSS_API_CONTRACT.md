@@ -81,3 +81,7 @@ Constats faits sur de vraies réponses de la recette (`https://site.ffss.io/api/
 
 - **`GET /me?token=…` d'un compte admin** → `type: "organisme"` (et non `licencie`), `data: {role: "admin", numAffiliation}` ; pas de `club`, `nom` ni `prenom`. L'app reconnaît l'admin à `data.role == "admin"`.
 - **`GET competition/evenement/1416/me?token=…`** : les rôles de compétition observés sont `admin`, `hote` et `organisme_participant`, avec un objet `organisme` en plus des objets de rôle habituels.
+
+## Places lues avec un jeton, vérifié le 2026-11-12 sur la recette
+
+- `GET competition/reunion/creneau/course/place/:id` répond **HTTP 500, corps vide**, dès que la requête porte un paramètre `token`, quel qu'il soit (jeton admin valide comme jeton inventé) ; sans jeton, la même place répond normalement. Les autres lectures (`reunion`, `creneau/:id`, `course/:id`, `serie/:id`, `resultat/:id`) acceptent le jeton. L'app lit donc les places sans jeton (`HttpClient.get(anonymous: true)`). À signaler au développeur de l'API.

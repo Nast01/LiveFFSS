@@ -137,7 +137,7 @@ Spec : `docs/specs/2026-10-18-lot6a-mon-espace-design.md`. Code : `features/my_s
 - **Langue** : `appLanguageProvider` (onglet Mon espace) — langue du téléphone, français ou anglais, enregistrée sous la clé globale `language`. Langue du téléphone non prise en charge → français (`resolveAppLocale`).
 - `type=3` sur `competition/evenement` rend les trois spécialités.
 - `MeetingRepository` lit les courses **dans la réponse `reunion`**, sans appeler `creneau/:id/course` (cassée depuis le 2026-08-31). À revoir si la route est réparée et que les courses portées par `reunion` s'avèrent tronquées.
-- **Couloirs** : les réponses `reunion` et `creneau` portent des places vides ; `getLanes` lit `course/place/:id` une à une, 6 au plus en vol ; clé absente = échec. Retirer ce contournement (dans le repository seul) quand `creneau/:id` rend les places complètes (demande envoyée au développeur de l'API le 2026-10-17, avec `complement` et le code `Statut`).
+- **Couloirs** : les réponses `reunion` et `creneau` portent des places vides ; `getLanes` lit `course/place/:id` une à une, 6 au plus en vol ; clé absente = échec. **Sans jeton** (`HttpClient.get(anonymous: true)`) : cette route répond HTTP 500 dès qu'un jeton est envoyé, quel qu'il soit, alors que les autres lectures l'acceptent (vérifié le 2026-11-12 sur la recette) ; sans cela, un compte connecté ne voyait aucune composition. Retirer ce contournement (dans le repository seul) quand `creneau/:id` rend les places complètes (demande envoyée au développeur de l'API le 2026-10-17, avec `complement` et le code `Statut`).
 
 ## Tests
 

@@ -52,13 +52,18 @@ class HttpClient {
   /// Une requête encore en vol échoue alors en `NetworkException`.
   void close() => _inner.close();
 
+  /// [anonymous] lit sans jeton : la route des places répond 500 dès qu'un
+  /// jeton est envoyé (recette, 2026-11-12), alors que ses données sont
+  /// publiques. Sans jeton, pas de session à expirer non plus.
   Future<Map<String, dynamic>> get(
     String path, {
     Map<String, dynamic>? query,
+    bool anonymous = false,
   }) => _send(
     method: 'GET',
     path: path,
     query: query,
+    anonymous: anonymous,
     send: (uri, headers) => _inner.get(uri, headers: headers),
   );
 
@@ -109,6 +114,7 @@ class HttpClient {
     Map<String, dynamic>? query,
     Object? body,
     String contentType = _jsonContentType,
+    bool anonymous = false,
   }) async {
     final at = _clock();
     final watch = Stopwatch()..start();
@@ -121,6 +127,7 @@ class HttpClient {
         query: query,
         contentType: contentType,
         seen: seen,
+        anonymous: anonymous,
       );
     } on AppException catch (e) {
       error = e.runtimeType.toString();
@@ -159,9 +166,10 @@ class HttpClient {
     required _Seen seen,
     Map<String, dynamic>? query,
     String contentType = _jsonContentType,
+    bool anonymous = false,
   }) async {
     try {
-      final token = await _tokenStorage.getToken();
+      final token = anonymous ? null : await _tokenStorage.getToken();
       final uri = _buildUri(path, query, token);
       // Arme le délai que le `catch` ci-dessous attrape : `http` n'en pose
       // aucun, donc une socket que le serveur laisse pendre ne revenait jamais
