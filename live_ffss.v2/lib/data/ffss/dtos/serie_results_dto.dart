@@ -49,6 +49,8 @@ abstract class AthleteResultDto with _$AthleteResultDto {
     @JsonKey(name: 'clubLabel') String? club,
     @JsonKey(name: 'nationaliteCode') String? nationality,
     @JsonKey(name: 'isInvite') bool? isGuest,
+    @JsonKey(name: 'idLicencie', readValue: readInt) int? licenseeId,
+    @JsonKey(name: 'idInvite', readValue: readInt) int? guestId,
   }) = _AthleteResultDto;
 
   factory AthleteResultDto.fromJson(Map<String, dynamic> json) =>

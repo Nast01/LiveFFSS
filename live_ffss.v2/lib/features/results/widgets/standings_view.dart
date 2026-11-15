@@ -218,9 +218,10 @@ class _StandingsViewState extends ConsumerState<StandingsView> {
                   subtitle: licenseeSubtitle(licensee, l10n),
                   points: l10n.standingsPoints(licensee.points),
                   onTap: () => context.go(
-                    Routes.resultsAthlete(
+                    Routes.resultsEntryAthlete(
                       widget.competitionId,
-                      licensee.athleteId,
+                      licensee.entryId,
+                      licenseeId: licensee.licenseeId,
                     ),
                   ),
                 ),

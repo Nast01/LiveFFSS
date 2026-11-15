@@ -85,3 +85,10 @@ Constats faits sur de vraies réponses de la recette (`https://site.ffss.io/api/
 ## Places lues avec un jeton, vérifié le 2026-11-12 sur la recette
 
 - `GET competition/reunion/creneau/course/place/:id` répond **HTTP 500, corps vide**, dès que la requête porte un paramètre `token`, quel qu'il soit (jeton admin valide comme jeton inventé) ; sans jeton, la même place répond normalement. Les autres lectures (`reunion`, `creneau/:id`, `course/:id`, `serie/:id`, `resultat/:id`) acceptent le jeton. L'app lit donc les places sans jeton (`HttpClient.get(anonymous: true)`). À signaler au développeur de l'API.
+
+## Identité des athlètes et rattachement aux places, vérifié le 2026-11-15 sur la production 1482 (GET seulement)
+
+- **`Athletes[].Id` de `serie?epreuve=` (et `athletes[].Id` d'une place) est l'athlète d'un engagement** : la même personne a un autre `Id` dans chaque épreuve, et ce n'est pas l'`Id` de `participants` (5 sur 69 coïncident, par hasard). Une personne se reconnaît par `idLicencie`, ou `idInvite` pour un invité ; tous deux sont servis dans `Athletes[]` (pas sur la recette 1416, plus ancienne).
+- **Une place ne porte son résultat (`resultat`) que si celui-ci a été créé avec `place`** (`resultat/submit`, paramètre `place`). Les résultats créés par l'app sans `place` (DQ, forfaits, chronos saisis avant la publication) sont restés sans place après la publication de V3 : `course/place/:id` rend `resultat: null` alors que `serie?epreuve=` donne leur temps final. Exemples : épreuves Dames de 1482 (25 m mannequin, 50 m mannequin palmes, 100 m SLS, 4 places du 50 m bouée tube : 574921 à 574924).
+- `Debut` des séries de la production 1462 (publiées avant la création des séries au programme) est vide, et leur nom porte l'épreuve (« Série 7 - 7 100m SLS Dames (…) ») ; `reunion` et `deroulement` de 1462 ne rendent aucune ligne en production, même avec un jeton.
+

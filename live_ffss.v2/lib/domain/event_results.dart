@@ -37,8 +37,23 @@ abstract class ResultAthlete with _$ResultAthlete {
     @Default('') String club,
     String? nationality,
     @Default(false) bool isGuest,
+
+    /// Le licencié, ou l'invité : eux seuls désignent la même personne d'une
+    /// épreuve à l'autre.
+    int? licenseeId,
+    int? guestId,
   }) = _ResultAthlete;
 }
+
+/// La personne derrière un résultat. `Athletes[].Id` désigne l'athlète d'un
+/// engagement : la même personne en a un autre dans chaque épreuve (vérifié
+/// sur la production, compétition 1482), et ce n'est pas l'id de participant.
+/// Il ne sert qu'à défaut de licencié et d'invité.
+(int, int) personKey(ResultAthlete athlete) => switch (athlete) {
+  ResultAthlete(:final licenseeId?) => (0, licenseeId),
+  ResultAthlete(:final guestId?) => (1, guestId),
+  _ => (2, athlete.id),
+};
 
 /// Le résultat d'un engagement dans une série.
 @freezed
@@ -99,6 +114,24 @@ abstract class Participant with _$Participant {
     @Default(false) bool isGuest,
     @Default(<ParticipantEntry>[]) List<ParticipantEntry> entries,
   }) = _Participant;
+}
+
+/// Le participant d'un résultat : celui qui porte l'engagement [entryId], et
+/// pour un relais celui dont le licencié est [licenseeId]. Nul si rien ne le
+/// désigne à coup sûr : un relayeur sans licencié n'est pas deviné.
+Participant? participantOfEntry(
+  List<Participant> participants,
+  int entryId, {
+  int? licenseeId,
+}) {
+  final candidates = [
+    for (final participant in participants)
+      if (participant.entries.any((e) => e.entryId == entryId)) participant,
+  ];
+  if (licenseeId != null) {
+    return candidates.where((p) => p.licenseeId == licenseeId).firstOrNull;
+  }
+  return candidates.length == 1 ? candidates.single : null;
 }
 
 /// Le résultat a été nagé : un temps, un statut autre qu'OK (DQ, forfait…)

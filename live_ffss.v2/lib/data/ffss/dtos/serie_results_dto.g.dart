@@ -62,6 +62,8 @@ _AthleteResultDto _$AthleteResultDtoFromJson(Map<String, dynamic> json) =>
       club: json['clubLabel'] as String?,
       nationality: json['nationaliteCode'] as String?,
       isGuest: json['isInvite'] as bool?,
+      licenseeId: (readInt(json, 'idLicencie') as num?)?.toInt(),
+      guestId: (readInt(json, 'idInvite') as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$AthleteResultDtoToJson(_AthleteResultDto instance) =>
@@ -72,6 +74,8 @@ Map<String, dynamic> _$AthleteResultDtoToJson(_AthleteResultDto instance) =>
       'clubLabel': instance.club,
       'nationaliteCode': instance.nationality,
       'isInvite': instance.isGuest,
+      'idLicencie': instance.licenseeId,
+      'idInvite': instance.guestId,
     };
 
 _EngagementResultDto _$EngagementResultDtoFromJson(Map<String, dynamic> json) =>

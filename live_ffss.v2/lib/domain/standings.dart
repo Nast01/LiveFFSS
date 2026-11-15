@@ -22,7 +22,11 @@ abstract class ClubStanding with _$ClubStanding {
 abstract class LicenseeStanding with _$LicenseeStanding {
   const factory LicenseeStanding({
     required int rank,
-    required int athleteId,
+
+    /// Un engagement de l'athlète, et son licencié : de quoi retrouver sa
+    /// fiche (`participantOfEntry`), qu'aucun id de résultat ne désigne.
+    required int entryId,
+    int? licenseeId,
     required String name,
     required String club,
     required Gender gender,
@@ -75,7 +79,7 @@ List<ClubStanding> clubStandings(
 /// individuelles seulement, un classement par sexe de l'athlète et catégorie,
 /// tous les résultats comptent. Un athlète sans sexe est écarté.
 List<LicenseeStanding> licenseeStandings(List<EventRanking> rankings) {
-  final groups = <(Gender, String), Map<int, _Licensee>>{};
+  final groups = <(Gender, String), Map<(int, int), _Licensee>>{};
   for (final ranking in rankings) {
     if (ranking.event.isRelay) continue;
     for (final row in ranking.rows) {
@@ -89,9 +93,10 @@ List<LicenseeStanding> licenseeStandings(List<EventRanking> rankings) {
         ranking.event.categoryName,
       ), () => {});
       final licensee = group.putIfAbsent(
-        athlete.id,
+        personKey(athlete),
         () => _Licensee(
-          athlete.id,
+          row.result.entryId,
+          athlete.licenseeId,
           athlete.name,
           athlete.club.isEmpty ? row.result.club : athlete.club,
           group.length,
@@ -111,9 +116,10 @@ List<LicenseeStanding> licenseeStandings(List<EventRanking> rankings) {
 }
 
 final class _Licensee {
-  _Licensee(this.id, this.name, this.club, this.index);
+  _Licensee(this.entryId, this.licenseeId, this.name, this.club, this.index);
 
-  final int id;
+  final int entryId;
+  final int? licenseeId;
 
   /// Ordre d'arrivée, pour un classement reproductible à nom égal.
   final int index;
@@ -140,7 +146,8 @@ List<LicenseeStanding> _rankGroup(
     for (final (i, m) in ordered.indexed)
       LicenseeStanding(
         rank: _tieRank(points, i),
-        athleteId: m.id,
+        entryId: m.entryId,
+        licenseeId: m.licenseeId,
         name: m.name,
         club: m.club,
         gender: gender,

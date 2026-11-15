@@ -62,6 +62,17 @@ abstract final class Routes {
       '$results/competition/$competitionId/recherche';
   static String resultsAthlete(int competitionId, int participantId) =>
       '$results/competition/$competitionId/athlete/$participantId';
+
+  /// La fiche de l'athlète d'un résultat, retrouvée par son engagement : un
+  /// résultat ne porte pas l'id du participant. [licenseeId] choisit le
+  /// relayeur d'un relais.
+  static String resultsEntryAthlete(
+    int competitionId,
+    int entryId, {
+    int? licenseeId,
+  }) =>
+      '$results/competition/$competitionId/engagement/$entryId/athlete'
+      '${licenseeId == null ? '' : '?licencie=$licenseeId'}';
   static const mySpace = '/espace';
 
   /// Les pages de Mon espace, dans sa branche : le retour y ramène.
@@ -124,6 +135,21 @@ int? _competitionIdOf(Map<String, String> pathParameters) =>
   final participantId = int.tryParse(pathParameters['participantId'] ?? '');
   if (competitionId == null || participantId == null) return null;
   return (competitionId: competitionId, participantId: participantId);
+}
+
+/// L'athlète d'un résultat désigné par un lien, ou rien s'il est mal formé.
+({int competitionId, int entryId, int? licenseeId})? entryAthleteKey(
+  Map<String, String> pathParameters,
+  Map<String, String> queryParameters,
+) {
+  final competitionId = _competitionIdOf(pathParameters);
+  final entryId = int.tryParse(pathParameters['entryId'] ?? '');
+  if (competitionId == null || entryId == null) return null;
+  return (
+    competitionId: competitionId,
+    entryId: entryId,
+    licenseeId: int.tryParse(queryParameters['licencie'] ?? ''),
+  );
 }
 
 /// Un lien de recherche ou de fiche mal formé retombe sur les résultats ; nul
@@ -317,6 +343,24 @@ final routerProvider = Provider<GoRouter>((ref) {
                         participantId: key.participantId,
                       );
                     },
+                  ),
+                  GoRoute(
+                    path:
+                        'competition/:competitionId/engagement/:entryId/athlete',
+                    redirect: (context, state) =>
+                        entryAthleteKey(
+                              state.pathParameters,
+                              state.uri.queryParameters,
+                            ) ==
+                            null
+                        ? Routes.results
+                        : null,
+                    builder: (context, state) => EntryAthletePage(
+                      athlete: entryAthleteKey(
+                        state.pathParameters,
+                        state.uri.queryParameters,
+                      )!,
+                    ),
                   ),
                 ],
               ),

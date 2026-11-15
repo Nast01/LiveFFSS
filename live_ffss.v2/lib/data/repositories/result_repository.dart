@@ -20,7 +20,8 @@ abstract class ResultRepository {
   Future<Map<int, RaceResult>> getHeatResults(int seriesId);
 
   /// Crée ou met à jour [result] et rend l'id du résultat.
-  Future<int> submit(RaceResult result);
+  /// [placeId] rattache à sa place un résultat créé (sans `id`).
+  Future<int> submit(RaceResult result, {int? placeId});
 }
 
 class ResultRepositoryImpl implements ResultRepository {
@@ -85,8 +86,15 @@ class ResultRepositoryImpl implements ResultRepository {
   /// part en `''` (stocké 0). `temps` et `rang` ne partent jamais : omis, le
   /// site les garde, alors que les renvoyer écraserait un temps publié par le
   /// juge entre notre lecture et notre écriture. Des points nuls sont omis.
+  ///
+  /// La place ne part qu'à la création, comme FFSSCompetition V3
+  /// (`ResultPublisher`) : sans elle la place ne porte pas le résultat (le
+  /// Live et le programme n'en voient ni temps ni statut), et V3, qui reprend
+  /// un résultat existant sans renvoyer la place, ne l'y rattache jamais
+  /// (production, compétition 1482). Renvoyée à un résultat déjà rattaché,
+  /// le site plante.
   @override
-  Future<int> submit(RaceResult result) async {
+  Future<int> submit(RaceResult result, {int? placeId}) async {
     // Des points absents sont omis : FFSS les conserve, alors qu'un `''` les
     // remettrait à 0.
     String chrono(int i) => result.chronos.elementAtOrNull(i)?.toString() ?? '';
@@ -102,6 +110,7 @@ class ResultRepositoryImpl implements ResultRepository {
         'statut': result.status,
         'complement': result.complement,
         'points': ?result.points,
+        'place': ?(result.id == null ? placeId : null),
       },
     );
     final id = body['id'];

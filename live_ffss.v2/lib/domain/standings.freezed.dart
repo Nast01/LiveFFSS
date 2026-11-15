@@ -290,7 +290,9 @@ as int?,
 /// @nodoc
 mixin _$LicenseeStanding {
 
- int get rank; int get athleteId; String get name; String get club; Gender get gender; String get categoryName; int get points;/// Lignes de classement de l'athlète, comptées ou non.
+ int get rank;/// Un engagement de l'athlète, et son licencié : de quoi retrouver sa
+/// fiche (`participantOfEntry`), qu'aucun id de résultat ne désigne.
+ int get entryId; int? get licenseeId; String get name; String get club; Gender get gender; String get categoryName; int get points;/// Lignes de classement de l'athlète, comptées ou non.
  int get races;
 /// Create a copy of LicenseeStanding
 /// with the given fields replaced by the non-null parameter values.
@@ -303,20 +305,20 @@ $LicenseeStandingCopyWith<LicenseeStanding> get copyWith => _$LicenseeStandingCo
 @override
 bool operator ==(Object other) {
   final _this = this as LicenseeStanding;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LicenseeStanding&&(identical(other.rank, _this.rank) || other.rank == _this.rank)&&(identical(other.athleteId, _this.athleteId) || other.athleteId == _this.athleteId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.club, _this.club) || other.club == _this.club)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.categoryName, _this.categoryName) || other.categoryName == _this.categoryName)&&(identical(other.points, _this.points) || other.points == _this.points)&&(identical(other.races, _this.races) || other.races == _this.races));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LicenseeStanding&&(identical(other.rank, _this.rank) || other.rank == _this.rank)&&(identical(other.entryId, _this.entryId) || other.entryId == _this.entryId)&&(identical(other.licenseeId, _this.licenseeId) || other.licenseeId == _this.licenseeId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.club, _this.club) || other.club == _this.club)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.categoryName, _this.categoryName) || other.categoryName == _this.categoryName)&&(identical(other.points, _this.points) || other.points == _this.points)&&(identical(other.races, _this.races) || other.races == _this.races));
 }
 
 
 @override
 int get hashCode {
   final _this = this as LicenseeStanding;
-  return Object.hash(runtimeType,_this.rank,_this.athleteId,_this.name,_this.club,_this.gender,_this.categoryName,_this.points,_this.races);
+  return Object.hash(runtimeType,_this.rank,_this.entryId,_this.licenseeId,_this.name,_this.club,_this.gender,_this.categoryName,_this.points,_this.races);
 }
 
 @override
 String toString() {
   final _this = this as LicenseeStanding;
-  return 'LicenseeStanding(rank: ${_this.rank}, athleteId: ${_this.athleteId}, name: ${_this.name}, club: ${_this.club}, gender: ${_this.gender}, categoryName: ${_this.categoryName}, points: ${_this.points}, races: ${_this.races})';
+  return 'LicenseeStanding(rank: ${_this.rank}, entryId: ${_this.entryId}, licenseeId: ${_this.licenseeId}, name: ${_this.name}, club: ${_this.club}, gender: ${_this.gender}, categoryName: ${_this.categoryName}, points: ${_this.points}, races: ${_this.races})';
 }
 
 
@@ -327,7 +329,7 @@ abstract mixin class $LicenseeStandingCopyWith<$Res>  {
   factory $LicenseeStandingCopyWith(LicenseeStanding value, $Res Function(LicenseeStanding) _then) = _$LicenseeStandingCopyWithImpl;
 @useResult
 $Res call({
- int rank, int athleteId, String name, String club, Gender gender, String categoryName, int points, int races
+ int rank, int entryId, int? licenseeId, String name, String club, Gender gender, String categoryName, int points, int races
 });
 
 
@@ -344,11 +346,12 @@ class _$LicenseeStandingCopyWithImpl<$Res>
 
 /// Create a copy of LicenseeStanding
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? rank = null,Object? athleteId = null,Object? name = null,Object? club = null,Object? gender = null,Object? categoryName = null,Object? points = null,Object? races = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? rank = null,Object? entryId = null,Object? licenseeId = freezed,Object? name = null,Object? club = null,Object? gender = null,Object? categoryName = null,Object? points = null,Object? races = null,}) {
   return _then(LicenseeStanding(
 rank: null == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
-as int,athleteId: null == athleteId ? _self.athleteId : athleteId // ignore: cast_nullable_to_non_nullable
-as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,entryId: null == entryId ? _self.entryId : entryId // ignore: cast_nullable_to_non_nullable
+as int,licenseeId: freezed == licenseeId ? _self.licenseeId : licenseeId // ignore: cast_nullable_to_non_nullable
+as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,club: null == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
 as String,gender: null == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as Gender,categoryName: null == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable
@@ -439,10 +442,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int rank,  int athleteId,  String name,  String club,  Gender gender,  String categoryName,  int points,  int races)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int rank,  int entryId,  int? licenseeId,  String name,  String club,  Gender gender,  String categoryName,  int points,  int races)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LicenseeStanding() when $default != null:
-return $default(_that.rank,_that.athleteId,_that.name,_that.club,_that.gender,_that.categoryName,_that.points,_that.races);case _:
+return $default(_that.rank,_that.entryId,_that.licenseeId,_that.name,_that.club,_that.gender,_that.categoryName,_that.points,_that.races);case _:
   return orElse();
 
 }
@@ -460,10 +463,10 @@ return $default(_that.rank,_that.athleteId,_that.name,_that.club,_that.gender,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int rank,  int athleteId,  String name,  String club,  Gender gender,  String categoryName,  int points,  int races)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int rank,  int entryId,  int? licenseeId,  String name,  String club,  Gender gender,  String categoryName,  int points,  int races)  $default,) {final _that = this;
 switch (_that) {
 case _LicenseeStanding():
-return $default(_that.rank,_that.athleteId,_that.name,_that.club,_that.gender,_that.categoryName,_that.points,_that.races);case _:
+return $default(_that.rank,_that.entryId,_that.licenseeId,_that.name,_that.club,_that.gender,_that.categoryName,_that.points,_that.races);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -480,10 +483,10 @@ return $default(_that.rank,_that.athleteId,_that.name,_that.club,_that.gender,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int rank,  int athleteId,  String name,  String club,  Gender gender,  String categoryName,  int points,  int races)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int rank,  int entryId,  int? licenseeId,  String name,  String club,  Gender gender,  String categoryName,  int points,  int races)?  $default,) {final _that = this;
 switch (_that) {
 case _LicenseeStanding() when $default != null:
-return $default(_that.rank,_that.athleteId,_that.name,_that.club,_that.gender,_that.categoryName,_that.points,_that.races);case _:
+return $default(_that.rank,_that.entryId,_that.licenseeId,_that.name,_that.club,_that.gender,_that.categoryName,_that.points,_that.races);case _:
   return null;
 
 }
@@ -495,11 +498,14 @@ return $default(_that.rank,_that.athleteId,_that.name,_that.club,_that.gender,_t
 
 
 class _LicenseeStanding implements LicenseeStanding {
-  const _LicenseeStanding({required this.rank, required this.athleteId, required this.name, required this.club, required this.gender, required this.categoryName, required this.points, required this.races});
+  const _LicenseeStanding({required this.rank, required this.entryId, this.licenseeId, required this.name, required this.club, required this.gender, required this.categoryName, required this.points, required this.races});
   
 
 @override final  int rank;
-@override final  int athleteId;
+/// Un engagement de l'athlète, et son licencié : de quoi retrouver sa
+/// fiche (`participantOfEntry`), qu'aucun id de résultat ne désigne.
+@override final  int entryId;
+@override final  int? licenseeId;
 @override final  String name;
 @override final  String club;
 @override final  Gender gender;
@@ -518,18 +524,18 @@ _$LicenseeStandingCopyWith<_LicenseeStanding> get copyWith => __$LicenseeStandin
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LicenseeStanding&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.athleteId, athleteId) || other.athleteId == athleteId)&&(identical(other.name, name) || other.name == name)&&(identical(other.club, club) || other.club == club)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.points, points) || other.points == points)&&(identical(other.races, races) || other.races == races));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LicenseeStanding&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.entryId, entryId) || other.entryId == entryId)&&(identical(other.licenseeId, licenseeId) || other.licenseeId == licenseeId)&&(identical(other.name, name) || other.name == name)&&(identical(other.club, club) || other.club == club)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.categoryName, categoryName) || other.categoryName == categoryName)&&(identical(other.points, points) || other.points == points)&&(identical(other.races, races) || other.races == races));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,rank,athleteId,name,club,gender,categoryName,points,races);
+    return Object.hash(runtimeType,rank,entryId,licenseeId,name,club,gender,categoryName,points,races);
 }
 
 @override
 String toString() {
-    return 'LicenseeStanding(rank: $rank, athleteId: $athleteId, name: $name, club: $club, gender: $gender, categoryName: $categoryName, points: $points, races: $races)';
+    return 'LicenseeStanding(rank: $rank, entryId: $entryId, licenseeId: $licenseeId, name: $name, club: $club, gender: $gender, categoryName: $categoryName, points: $points, races: $races)';
 }
 
 
@@ -540,7 +546,7 @@ abstract mixin class _$LicenseeStandingCopyWith<$Res> implements $LicenseeStandi
   factory _$LicenseeStandingCopyWith(_LicenseeStanding value, $Res Function(_LicenseeStanding) _then) = __$LicenseeStandingCopyWithImpl;
 @override @useResult
 $Res call({
- int rank, int athleteId, String name, String club, Gender gender, String categoryName, int points, int races
+ int rank, int entryId, int? licenseeId, String name, String club, Gender gender, String categoryName, int points, int races
 });
 
 
@@ -557,11 +563,12 @@ class __$LicenseeStandingCopyWithImpl<$Res>
 
 /// Create a copy of LicenseeStanding
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? rank = null,Object? athleteId = null,Object? name = null,Object? club = null,Object? gender = null,Object? categoryName = null,Object? points = null,Object? races = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? rank = null,Object? entryId = null,Object? licenseeId = freezed,Object? name = null,Object? club = null,Object? gender = null,Object? categoryName = null,Object? points = null,Object? races = null,}) {
   return _then(_LicenseeStanding(
 rank: null == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
-as int,athleteId: null == athleteId ? _self.athleteId : athleteId // ignore: cast_nullable_to_non_nullable
-as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,entryId: null == entryId ? _self.entryId : entryId // ignore: cast_nullable_to_non_nullable
+as int,licenseeId: freezed == licenseeId ? _self.licenseeId : licenseeId // ignore: cast_nullable_to_non_nullable
+as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,club: null == club ? _self.club : club // ignore: cast_nullable_to_non_nullable
 as String,gender: null == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as Gender,categoryName: null == categoryName ? _self.categoryName : categoryName // ignore: cast_nullable_to_non_nullable

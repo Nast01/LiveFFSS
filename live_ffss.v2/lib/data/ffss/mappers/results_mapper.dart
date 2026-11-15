@@ -73,6 +73,8 @@ extension AthleteResultMapper on AthleteResultDto {
       club: club?.trim() ?? '',
       nationality: nationality?.trim(),
       isGuest: isGuest ?? false,
+      licenseeId: licenseeId,
+      guestId: guestId,
     );
   }
 }

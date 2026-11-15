@@ -44,7 +44,8 @@ void main() {
       () => http.post(any(), query: any(named: 'query')),
     ).thenAnswer((_) async => {'success': true, 'id': 572548});
 
-    final id = await repository.submit(result);
+    // Un résultat existant : la place n'est pas renvoyée.
+    final id = await repository.submit(result, placeId: 1911);
 
     expect(id, 572548);
     expect(submitted(), {
@@ -74,11 +75,14 @@ void main() {
 
     final id = await repository.submit(
       const RaceResult(seriesId: 1, entryId: 2),
+      placeId: 1911,
     );
 
     expect(id, 9);
     final query = submitted();
     expect(query.containsKey('id'), false);
+    // Sans elle, la place ne porterait jamais le résultat.
+    expect(query['place'], 1911);
     expect(query.containsKey('temps'), false);
     expect(query.containsKey('rang'), false);
     expect(query.containsKey('points'), false);
