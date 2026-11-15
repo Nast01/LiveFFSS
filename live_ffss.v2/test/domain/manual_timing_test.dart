@@ -27,13 +27,11 @@ void main() {
       expect(r.rule, ManualTimeRule.average);
     });
 
-    test(
-      'deux chronos : arrondi au centième le plus proche, demi vers le haut',
-      () {
-        expect(manualTime([4000, 4001])!.hundredths, 4001);
-        expect(manualTime([4000, 4003])!.hundredths, 4002);
-      },
-    );
+    test('deux chronos : moyenne arrondie au centième inférieur', () {
+      expect(manualTime([4000, 4001])!.hundredths, 4000);
+      expect(manualTime([4000, 4003])!.hundredths, 4001);
+      expect(manualTime([4801, 4799])!.hundredths, 4800);
+    });
 
     test('deux chronos dont un zéro : le seul valide', () {
       final r = manualTime([0, 3000, 0])!;
