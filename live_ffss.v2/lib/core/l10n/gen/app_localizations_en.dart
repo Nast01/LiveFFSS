@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'FFSS-LIVE';
 
   @override
+  String get appName => 'FFSS Live';
+
+  @override
   String get appTagline => 'Lifesaving sport, live';
 
   @override

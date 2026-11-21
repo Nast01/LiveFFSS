@@ -1,6 +1,7 @@
 {
   "@@locale": "en",
   "appTitle": "FFSS-LIVE",
+  "appName": "FFSS Live",
   "appTagline": "Lifesaving sport, live",
   "signIn": "Sign in",
   "searchHint": "Competition, city, club…",

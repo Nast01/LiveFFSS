@@ -1,6 +1,7 @@
 {
   "@@locale": "fr",
   "appTitle": "FFSS-LIVE",
+  "appName": "FFSS Live",
   "appTagline": "Sauvetage sportif en direct",
   "signIn": "Se connecter",
   "searchHint": "Compétition, ville, club…",

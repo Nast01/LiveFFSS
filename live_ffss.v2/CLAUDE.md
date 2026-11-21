@@ -177,5 +177,8 @@ Depuis `live_ffss.v2/` :
     dart run build_runner build --delete-conflicting-outputs
     flutter gen-l10n
     flutter run -d chrome
+    dart run flutter_launcher_icons
+
+Nom affiché sur le téléphone : « FFSS Live » (manifeste Android, `Info.plist`, `web/`, `appName` pour le sélecteur de tâches ; l'en-tête de l'accueil garde « FFSS-LIVE » de la maquette). Icône : `assets/images/logo_ffss.png` mis au carré dans `assets/icon/` (`icon.png` plein, `icon_foreground.png` pour l'icône adaptative), générée par `flutter_launcher_icons` (config dans `pubspec.yaml`). Le paquet réécrit `ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS` dans `ios/Runner.xcodeproj/project.pbxproj` : annuler ce changement après chaque génération.
 
 Outils : Flutter 3.47.7 / Dart 3.13.5 depuis le 2026-10-17 (go_router 18, freezed 4). Le SDK est le clone git décrit dans la section Tooling pins du CLAUDE.md v1, partagé avec la v1, qui a été gelée en 3.41.9 : pour la recompiler, `git -C <flutterRoot> checkout 3.41.9` puis `flutter --version`. Les fichiers générés (`.freezed.dart`, `.g.dart`, `lib/core/l10n/gen/`) sont commités.
