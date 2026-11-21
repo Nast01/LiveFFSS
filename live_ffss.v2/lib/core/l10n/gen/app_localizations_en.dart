@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'FFSS-LIVE';
+  String get appTitle => 'FFSS Live';
 
   @override
   String get appTagline => 'Lifesaving sport, live';

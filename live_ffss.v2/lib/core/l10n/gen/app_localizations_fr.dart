@@ -9,7 +9,7 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get appTitle => 'FFSS-LIVE';
+  String get appTitle => 'FFSS Live';
 
   @override
   String get appTagline => 'Sauvetage sportif en direct';
