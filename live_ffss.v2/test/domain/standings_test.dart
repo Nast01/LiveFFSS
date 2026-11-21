@@ -33,7 +33,8 @@ RankingRow _row({
   required String club,
   required int points,
   int? rank,
-  int? athleteId,
+  int? licenseeId,
+  int? guestId,
   String name = 'A',
   Gender? gender = Gender.female,
   int? time = 6000,
@@ -49,8 +50,12 @@ RankingRow _row({
       time: time,
       club: club,
       athletes: [
+        // Comme sur le site : un id d'athlète propre à chaque résultat, seuls
+        // le licencié ou l'invité désignent la même personne.
         ResultAthlete(
-          id: athleteId ?? id,
+          id: id,
+          licenseeId: licenseeId,
+          guestId: guestId,
           name: name,
           gender: gender,
           club: club,
@@ -180,6 +185,29 @@ void main() {
       expect([for (final c in result) (c.club, c.points)], [('ABC', 18)]);
     });
 
+    test("la même personne par son licencié ou son invité, pas par l'id "
+        "d'athlète du résultat", () {
+      final result = licenseeStandings([
+        _ranking(_event(), [
+          _row(club: 'A', points: 20, rank: 1, licenseeId: 7, name: 'Zoe'),
+          _row(club: 'A', points: 18, rank: 2, guestId: 7, name: 'Ana'),
+          _row(club: 'A', points: 16, rank: 3, name: 'Eve'),
+        ]),
+        _ranking(_event(id: 2), [
+          _row(club: 'A', points: 20, rank: 1, licenseeId: 7, name: 'Zoe'),
+          _row(club: 'A', points: 18, rank: 2, guestId: 7, name: 'Ana'),
+          _row(club: 'A', points: 16, rank: 3, name: 'Eve'),
+        ]),
+      ]);
+      expect(
+        [for (final l in result) (l.name, l.points, l.races)],
+        [('Zoe', 40, 2), ('Ana', 36, 2), ('Eve', 16, 1), ('Eve', 16, 1)],
+      );
+      final zoe = result.first;
+      expect(zoe.licenseeId, 7);
+      expect(zoe.entryId, isNot(result[1].entryId));
+    });
+
     test('noms comparés sans casse ni accents', () {
       final result = clubStandings([
         _ranking(_event(), [
@@ -195,29 +223,29 @@ void main() {
     test('séparés par sexe et catégorie, relais exclus, égalités 1, 1, 3', () {
       final result = licenseeStandings([
         _ranking(_event(), [
-          _row(club: 'A', points: 20, rank: 1, athleteId: 1, name: 'Zoe'),
-          _row(club: 'A', points: 20, rank: 1, athleteId: 2, name: 'Ana'),
-          _row(club: 'A', points: 5, rank: 5, athleteId: 3, name: 'Eve'),
+          _row(club: 'A', points: 20, rank: 1, licenseeId: 1, name: 'Zoe'),
+          _row(club: 'A', points: 20, rank: 1, licenseeId: 2, name: 'Ana'),
+          _row(club: 'A', points: 5, rank: 5, licenseeId: 3, name: 'Eve'),
           _row(
             club: 'A',
             points: 20,
             rank: 1,
-            athleteId: 4,
+            licenseeId: 4,
             name: 'Max',
             gender: Gender.male,
           ),
         ]),
         _ranking(_event(id: 2), [
-          _row(club: 'A', points: 18, rank: 2, athleteId: 1, name: 'Zoe'),
+          _row(club: 'A', points: 18, rank: 2, licenseeId: 1, name: 'Zoe'),
         ]),
         _ranking(_event(id: 3, category: 'Junior'), [
-          _row(club: 'A', points: 16, rank: 3, athleteId: 1, name: 'Zoe'),
+          _row(club: 'A', points: 16, rank: 3, licenseeId: 1, name: 'Zoe'),
         ]),
         _ranking(_event(id: 4, teamSize: 4), [
-          _row(club: 'A', points: 20, rank: 1, athleteId: 9, name: 'Relais'),
+          _row(club: 'A', points: 20, rank: 1, licenseeId: 9, name: 'Relais'),
         ]),
         _ranking(_event(id: 5), [
-          _row(club: 'A', points: 20, rank: 1, athleteId: 8, gender: null),
+          _row(club: 'A', points: 20, rank: 1, licenseeId: 8, gender: null),
         ]),
       ]);
       final cadetF = [
@@ -227,12 +255,12 @@ void main() {
       ];
       expect(cadetF, [('Zoe', 1, 38, 2), ('Ana', 2, 20, 1), ('Eve', 3, 5, 1)]);
       expect(
-        result.where((l) => l.athleteId == 9 || l.athleteId == 8),
+        result.where((l) => l.licenseeId == 9 || l.licenseeId == 8),
         isEmpty,
       );
-      expect(result.where((l) => l.athleteId == 4).single.gender, Gender.male);
+      expect(result.where((l) => l.licenseeId == 4).single.gender, Gender.male);
       expect(
-        result.where((l) => l.athleteId == 1).map((l) => l.categoryName),
+        result.where((l) => l.licenseeId == 1).map((l) => l.categoryName),
         unorderedEquals(['Cadet', 'Junior']),
       );
     });
@@ -240,8 +268,8 @@ void main() {
     test('noms comparés sans casse ni accents', () {
       final result = licenseeStandings([
         _ranking(_event(), [
-          _row(club: 'A', points: 5, athleteId: 1, name: 'Zoe'),
-          _row(club: 'A', points: 5, athleteId: 2, name: 'Élodie'),
+          _row(club: 'A', points: 5, licenseeId: 1, name: 'Zoe'),
+          _row(club: 'A', points: 5, licenseeId: 2, name: 'Élodie'),
         ]),
       ]);
       expect([for (final l in result) l.name], ['Élodie', 'Zoe']);
@@ -250,10 +278,10 @@ void main() {
     test('une série publiée pas encore nagée ne compte pas de course', () {
       final result = licenseeStandings([
         _ranking(_event(), [
-          _row(club: 'A', points: 20, rank: 1, athleteId: 1, name: 'Zoe'),
+          _row(club: 'A', points: 20, rank: 1, licenseeId: 1, name: 'Zoe'),
         ]),
         _ranking(_event(id: 2), [
-          _row(club: 'A', points: 0, athleteId: 1, name: 'Zoe', time: null),
+          _row(club: 'A', points: 0, licenseeId: 1, name: 'Zoe', time: null),
         ]),
       ]);
       expect(result.single.races, 1);
@@ -263,9 +291,9 @@ void main() {
     test('égalité 1, 1, 3 puis nom', () {
       final result = licenseeStandings([
         _ranking(_event(), [
-          _row(club: 'A', points: 10, rank: 1, athleteId: 1, name: 'Zoe'),
-          _row(club: 'A', points: 10, rank: 1, athleteId: 2, name: 'Ana'),
-          _row(club: 'A', points: 4, rank: 3, athleteId: 3, name: 'Eve'),
+          _row(club: 'A', points: 10, rank: 1, licenseeId: 1, name: 'Zoe'),
+          _row(club: 'A', points: 10, rank: 1, licenseeId: 2, name: 'Ana'),
+          _row(club: 'A', points: 4, rank: 3, licenseeId: 3, name: 'Eve'),
         ]),
       ]);
       expect(

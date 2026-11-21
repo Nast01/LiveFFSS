@@ -190,3 +190,38 @@ class _AthletePageState extends ConsumerState<AthletePage> {
     );
   }
 }
+
+/// La fiche de l'athlète d'un résultat : son participant est d'abord retrouvé
+/// par l'engagement, puis la même fiche que depuis la recherche s'affiche.
+class EntryAthletePage extends ConsumerWidget {
+  const EntryAthletePage({super.key, required this.athlete});
+
+  final EntryAthleteKey athlete;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final participant = ref.watch(participantOfEntryProvider(athlete));
+    if (participant.value case final participantId?) {
+      return AthletePage(
+        competitionId: athlete.competitionId,
+        participantId: participantId,
+      );
+    }
+    final error = participant.error;
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.tabResults)),
+      body: error == null
+          ? const Center(child: CircularProgressIndicator())
+          : error is NotFoundException
+          ? ResultsMessage(text: l10n.athleteNotFound)
+          : ResultsMessage(
+              text: l10n.athleteLoadError,
+              onRetry: () => retryParticipantOfEntry(
+                ProviderScope.containerOf(context, listen: false),
+                athlete,
+              ),
+            ),
+    );
+  }
+}

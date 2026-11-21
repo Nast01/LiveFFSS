@@ -288,22 +288,26 @@ final class OpenNothing extends RowOpening {
 }
 
 final class OpenAthlete extends RowOpening {
-  const OpenAthlete(this.athleteId);
+  const OpenAthlete(this.entryId, this.licenseeId);
 
-  final int athleteId;
+  /// La fiche se retrouve par l'engagement du résultat (`participantOfEntry`) :
+  /// aucun id d'athlète d'un résultat n'est celui du participant.
+  final int entryId;
+  final int? licenseeId;
 }
 
 /// Un relais : on choisit lequel des relayeurs ouvrir.
 final class PickAthlete extends RowOpening {
-  const PickAthlete(this.athletes);
+  const PickAthlete(this.entryId, this.athletes);
 
+  final int entryId;
   final List<ResultAthlete> athletes;
 }
 
 RowOpening rowOpening(EventResult result) => switch (result.athletes) {
   [] => const OpenNothing(),
-  [final athlete] => OpenAthlete(athlete.id),
-  final athletes => PickAthlete(athletes),
+  [final athlete] => OpenAthlete(result.entryId, athlete.licenseeId),
+  final athletes => PickAthlete(result.entryId, athletes),
 };
 
 Participant? participantById(List<Participant>? participants, int id) =>

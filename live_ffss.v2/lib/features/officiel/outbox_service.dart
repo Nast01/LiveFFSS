@@ -393,7 +393,10 @@ class OutboxService extends Notifier<List<OutboxOperation>> {
       }
 
       if (lost()) return _Outcome.stop;
-      final id = await results.submit(applyChange(current, op.change));
+      final id = await results.submit(
+        applyChange(current, op.change),
+        placeId: op.placeId,
+      );
       if (!ref.mounted) return _Outcome.stop;
       return _settle(op, OutboxState.sent, resultId: id);
     } on AppException catch (e) {

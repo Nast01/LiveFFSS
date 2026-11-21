@@ -429,57 +429,95 @@ class _HeatEntry extends ConsumerWidget {
             ),
           ],
         },
-      if (focus != null && focus.mode != EntryMode.list)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: opened
-              ? Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: editor.closeLane,
-                        child: Text(l10n.entryAllLanes),
-                      ),
+    ];
+
+    // Hors de la liste défilante : le pavé et les chronos remplissent l'écran,
+    // et l'officiel ne doit pas avoir à défiler pour enregistrer.
+    final Widget? actions = focus == null || focus.mode == EntryMode.list
+        ? null
+        : opened
+        ? Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: editor.closeLane,
+                  child: Text(l10n.entryAllLanes),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton(
+                  onPressed: chronosEditable(focused)
+                      ? () => _saveAndClose(context, ref, focused)
+                      : null,
+                  child: Text(l10n.entrySave),
+                ),
+              ),
+            ],
+          )
+        : Row(
+            children: [
+              if (focused != null) ...[
+                Expanded(
+                  flex: 2,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: chronosEditable(focused)
-                            ? () => _saveAndClose(context, ref, focused)
-                            : null,
-                        child: Text(l10n.entrySave),
-                      ),
-                    ),
-                  ],
-                )
-              : FilledButton(
+                    onPressed: chronosEditable(focused)
+                        ? () => _save(context, ref, focused)
+                        : null,
+                    child: Text(l10n.entrySave),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                flex: 3,
+                child: FilledButton(
                   style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(52),
                   ),
                   onPressed: () => _saveAndNext(context, ref, focused),
-                  child: Text(l10n.entrySaveAndNext),
+                  child: Text(
+                    l10n.entrySaveAndNext,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-        ),
-    ];
+              ),
+            ],
+          );
+    final bottom = MediaQuery.of(context).viewPadding.bottom;
 
-    return RefreshIndicator(
-      onRefresh: () => _refresh(ref),
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.only(
-          top: 8,
-          bottom: 16 + MediaQuery.of(context).viewPadding.bottom,
-        ),
-        children: [
-          IgnorePointer(
-            ignoring: frozen,
-            child: Opacity(
-              opacity: frozen ? 0.5 : 1,
-              child: Column(children: children),
+    Widget freezable(Widget child) => IgnorePointer(
+      ignoring: frozen,
+      child: Opacity(opacity: frozen ? 0.5 : 1, child: child),
+    );
+
+    return Column(
+      children: [
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => _refresh(ref),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.only(
+                top: 8,
+                bottom: 16 + (actions == null ? bottom : 0),
+              ),
+              children: [freezable(Column(children: children))],
             ),
           ),
-        ],
-      ),
+        ),
+        if (actions != null)
+          Material(
+            elevation: 4,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 8 + bottom),
+              child: freezable(actions),
+            ),
+          ),
+      ],
     );
   }
 
@@ -536,6 +574,21 @@ class _HeatEntry extends ConsumerWidget {
     } else if (!result.moved) {
       _snack(context, l10n.entryLastHeat);
     }
+  }
+
+  /// Enregistre le couloir suivi sans quitter la série.
+  Future<void> _save(
+    BuildContext context,
+    WidgetRef ref,
+    EntryLane lane,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final outcome = await ref
+        .read(entryEditorProvider(entryKey).notifier)
+        .saveChronos(lane);
+    if (!context.mounted) return;
+    final message = _outcomeMessage(outcome, l10n);
+    if (message != null) _snack(context, message);
   }
 
   Future<void> _saveAndClose(

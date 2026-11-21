@@ -18,9 +18,10 @@ ManualTime? manualTime(List<int?> chronos) {
     case 1:
       return (hundredths: valid[0], rule: ManualTimeRule.single);
     case 2:
-      // Demi vers le haut : (a + b + 1) ~/ 2 sans passer par un flottant.
+      // Arrondie au centième inférieur (décision du 2026-11-15), sans passer
+      // par un flottant.
       return (
-        hundredths: (valid[0] + valid[1] + 1) ~/ 2,
+        hundredths: (valid[0] + valid[1]) ~/ 2,
         rule: ManualTimeRule.average,
       );
     default:

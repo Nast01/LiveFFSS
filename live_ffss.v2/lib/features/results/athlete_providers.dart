@@ -51,6 +51,37 @@ class ParticipantsKeeper extends Notifier<void> {
   );
 }
 
+typedef EntryAthleteKey = ({int competitionId, int entryId, int? licenseeId});
+
+/// L'id de participant de l'athlète d'un résultat ou d'un classement, tiré de
+/// son engagement (`participantOfEntry`) : `Athletes[].Id` n'est pas celui du
+/// participant. [NotFoundException] si rien ne le désigne à coup sûr.
+final participantOfEntryProvider = FutureProvider.autoDispose
+    .family<int, EntryAthleteKey>((ref, key) async {
+      ref.read(participantsKeeperProvider(key.competitionId).notifier).keep();
+      final participants = await ref.watch(
+        participantsProvider(key.competitionId).future,
+      );
+      final participant = participantOfEntry(
+        participants,
+        key.entryId,
+        licenseeId: key.licenseeId,
+      );
+      if (participant == null) {
+        throw NotFoundException('engagement ${key.entryId}');
+      }
+      return participant.id;
+    });
+
+/// « Réessayer » d'une fiche ouverte depuis un résultat : des participants en
+/// échec sont relus, sinon la recherche est refaite sur ceux déjà lus.
+void retryParticipantOfEntry(ProviderContainer container, EntryAthleteKey key) {
+  if (container.read(participantsProvider(key.competitionId)).hasError) {
+    container.invalidate(participantsProvider(key.competitionId));
+  }
+  container.invalidate(participantOfEntryProvider(key));
+}
+
 /// Une épreuve de la fiche d'un athlète. [row] nul : à courir.
 @freezed
 abstract class AthleteRace with _$AthleteRace {

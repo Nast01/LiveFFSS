@@ -83,4 +83,57 @@ void main() {
       expect(hasRun(result(complement: 'HT')), isTrue);
     });
   });
+
+  group('personKey', () {
+    test("le licencié, puis l'invité, puis l'id du résultat", () {
+      const base = ResultAthlete(id: 1, name: 'A');
+      expect(personKey(base.copyWith(licenseeId: 5, guestId: 6)), (0, 5));
+      expect(personKey(base.copyWith(guestId: 6)), (1, 6));
+      expect(personKey(base), (2, 1));
+      // Deux résultats d'une même licenciée ont des id d'athlète différents.
+      expect(
+        personKey(base.copyWith(licenseeId: 5)),
+        personKey(base.copyWith(id: 2, licenseeId: 5)),
+      );
+    });
+  });
+
+  group('participantOfEntry', () {
+    Participant participant(int id, List<int> entries, {int? licenseeId}) =>
+        Participant(
+          id: id,
+          firstName: 'P$id',
+          lastName: 'ATHLETE',
+          licenseeId: licenseeId,
+          entries: [
+            for (final entry in entries)
+              ParticipantEntry(
+                entryId: entry,
+                eventId: 1,
+                categoryName: 'Cadet',
+              ),
+          ],
+        );
+
+    final solo = participant(1, [10, 11], licenseeId: 100);
+    final relay1 = participant(2, [20, 30], licenseeId: 200);
+    final relay2 = participant(3, [30], licenseeId: 300);
+    final all = [solo, relay1, relay2];
+
+    test("l'unique porteur de l'engagement", () {
+      expect(participantOfEntry(all, 11), same(solo));
+      expect(participantOfEntry(all, 11, licenseeId: 100), same(solo));
+    });
+
+    test('un relais : le relayeur de ce licencié', () {
+      expect(participantOfEntry(all, 30, licenseeId: 300), same(relay2));
+    });
+
+    test('rien de sûr : nul', () {
+      // Plusieurs porteurs, et aucun licencié pour choisir.
+      expect(participantOfEntry(all, 30), isNull);
+      expect(participantOfEntry(all, 30, licenseeId: 999), isNull);
+      expect(participantOfEntry(all, 99), isNull);
+    });
+  });
 }

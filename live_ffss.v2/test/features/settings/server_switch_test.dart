@@ -352,8 +352,12 @@ void main() {
       when(
         () => productionMeetings.getLanes(any()),
       ).thenAnswer((_) async => {11: lane});
-      when(() => recetteResults.submit(any())).thenAnswer((_) async => 1);
-      when(() => productionResults.submit(any())).thenAnswer((_) async => 1);
+      when(
+        () => recetteResults.submit(any(), placeId: any(named: 'placeId')),
+      ).thenAnswer((_) async => 1);
+      when(
+        () => productionResults.submit(any(), placeId: any(named: 'placeId')),
+      ).thenAnswer((_) async => 1);
 
       final old = host.container;
       old.listen(outboxProvider, (_, _) {});
@@ -370,8 +374,12 @@ void main() {
 
       verifyNever(() => recetteMeetings.getLanes(any()));
       verifyNever(() => productionMeetings.getLanes(any()));
-      verifyNever(() => recetteResults.submit(any()));
-      verifyNever(() => productionResults.submit(any()));
+      verifyNever(
+        () => recetteResults.submit(any(), placeId: any(named: 'placeId')),
+      );
+      verifyNever(
+        () => productionResults.submit(any(), placeId: any(named: 'placeId')),
+      );
       expect(secure.values['dev_outbox'], contains('DUPONT Jean'));
       expect(secure.values['outbox'], contains('ORGANISME TEST'));
     });
@@ -388,7 +396,7 @@ void main() {
         );
         submitted = Completer<int>();
         when(
-          () => recetteResults.submit(any()),
+          () => recetteResults.submit(any(), placeId: any(named: 'placeId')),
         ).thenAnswer((_) => submitted.future);
       });
 
@@ -398,7 +406,9 @@ void main() {
         old.listen(outboxProvider, (_, _) {});
         await old.read(sessionProvider.future);
         await pumpEventQueue();
-        verify(() => recetteResults.submit(any())).called(1);
+        verify(
+          () => recetteResults.submit(any(), placeId: any(named: 'placeId')),
+        ).called(1);
         return old;
       }
 
@@ -435,7 +445,9 @@ void main() {
         expect(identical(host.container, old), isFalse);
         expect(stored('dev_outbox').single.state, OutboxState.sent);
         await backOnRecette();
-        verifyNever(() => recetteResults.submit(any()));
+        verifyNever(
+          () => recetteResults.submit(any(), placeId: any(named: 'placeId')),
+        );
       });
 
       test('forcer le rechargement attend aussi sa réponse', () async {
@@ -457,7 +469,9 @@ void main() {
         host.container.listen(outboxProvider, (_, _) {});
         await host.container.read(sessionProvider.future);
         await pumpEventQueue();
-        verifyNever(() => recetteResults.submit(any()));
+        verifyNever(
+          () => recetteResults.submit(any(), placeId: any(named: 'placeId')),
+        );
         expect(stored('dev_outbox').single.state, OutboxState.sent);
       });
 
@@ -489,7 +503,9 @@ void main() {
         );
         submitted.complete(99);
         await pumpEventQueue();
-        verifyNever(() => recetteResults.submit(any()));
+        verifyNever(
+          () => recetteResults.submit(any(), placeId: any(named: 'placeId')),
+        );
         expect(old.read(outboxProvider).single.state, OutboxState.sent);
         expect(stored('dev_outbox').single.state, OutboxState.sent);
       });

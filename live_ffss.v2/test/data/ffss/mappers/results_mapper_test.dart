@@ -243,6 +243,22 @@ void main() {
       expect(r.athletes.single.isGuest, isTrue);
     });
 
+    test('licencié et invité de l\'athlète sont lus, nombres ou chaînes', () {
+      final r = ResultatSerieDto.fromJson(
+        result(
+          1,
+          athletes: [
+            {'Id': 671804, 'label': 'A', 'idLicencie': 602064},
+            {'Id': 9, 'label': 'B', 'idLicencie': null, 'idInvite': '77'},
+          ],
+        ),
+      ).toDomain(5)!;
+      expect(r.athletes.first.licenseeId, 602064);
+      expect(r.athletes.first.guestId, isNull);
+      expect(r.athletes.last.licenseeId, isNull);
+      expect(r.athletes.last.guestId, 77);
+    });
+
     test('une heure de début illisible laisse la série sans heure', () {
       final series = SerieResultsDto.fromJson({
         'Id': 1,

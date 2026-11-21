@@ -50,7 +50,7 @@ EventResult result({
   club: club,
   athletes: [
     for (final (i, name) in athletes.indexed)
-      ResultAthlete(id: 100 + i, name: name),
+      ResultAthlete(id: 100 + i, licenseeId: 500 + i, name: name),
   ],
 );
 
@@ -110,7 +110,7 @@ LicenseeStanding licensee(
   String category = 'Cadet',
 }) => LicenseeStanding(
   rank: 1,
-  athleteId: id,
+  entryId: id,
   name: 'ATHLETE $id',
   club: 'Club A',
   gender: gender,
@@ -367,7 +367,7 @@ void main() {
 
     test('licenseesOf filtre par sexe et catégorie', () {
       expect(
-        [for (final l in licenseesOf(all, Gender.female, 'Cadet')) l.athleteId],
+        [for (final l in licenseesOf(all, Gender.female, 'Cadet')) l.entryId],
         [1, 4],
       );
     });
@@ -570,17 +570,21 @@ void main() {
       expect(rowOpening(result(athletes: [])), isA<OpenNothing>());
     });
 
-    test('un athlète : sa fiche', () {
+    test("un athlète : sa fiche, par l'engagement du résultat", () {
       expect(
-        rowOpening(result()),
-        isA<OpenAthlete>().having((o) => o.athleteId, 'athleteId', 100),
+        rowOpening(result(id: 7)),
+        isA<OpenAthlete>()
+            .having((o) => o.entryId, 'entryId', 7)
+            .having((o) => o.licenseeId, 'licenseeId', 500),
       );
     });
 
     test('un relais : le choix du relayeur', () {
       expect(
         rowOpening(result(athletes: ['ATHLETE Un', 'ATHLETE Deux'])),
-        isA<PickAthlete>().having((o) => o.athletes, 'athletes', hasLength(2)),
+        isA<PickAthlete>()
+            .having((o) => o.entryId, 'entryId', 1)
+            .having((o) => o.athletes, 'athletes', hasLength(2)),
       );
     });
   });

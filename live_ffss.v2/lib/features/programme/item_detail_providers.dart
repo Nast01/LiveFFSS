@@ -280,11 +280,11 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail>
       await repository.getMeetingItem(key.itemId, day: day) ??
       (throw NotFoundException('meeting item ${key.itemId}'));
 
-  /// Une course sans série (finale pas encore générée) n'est pas affichée :
-  /// lire ses places ne servirait à rien.
+  /// Toutes les places, y compris celles d'une course sans série :
+  /// FFSSCompetition publie la composition d'une finale (ses engagés) avant
+  /// d'en créer la série (course 540 de la recette 1416).
   List<int> _placeIds(Iterable<Heat> heats) => [
-    for (final heat in heats)
-      if (heat.seriesId != null) ...heat.placeIds,
+    for (final heat in heats) ...heat.placeIds,
   ];
 
   /// Une course qui n'est pas (ou plus) terminée sort du registre : à son

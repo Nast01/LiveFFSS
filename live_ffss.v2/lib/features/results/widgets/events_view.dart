@@ -222,8 +222,12 @@ class _RankingSection extends ConsumerWidget {
                     row: row,
                     relay: value.event.isRelay,
                     followed: isFollowedResult(follows, row.result),
-                    onOpen: (athleteId) => context.go(
-                      Routes.resultsAthlete(competitionId, athleteId),
+                    onOpen: (entryId, licenseeId) => context.go(
+                      Routes.resultsEntryAthlete(
+                        competitionId,
+                        entryId,
+                        licenseeId: licenseeId,
+                      ),
                     ),
                   ),
                 ],
@@ -248,7 +252,7 @@ class _RankingRowTile extends StatelessWidget {
 
   /// L'engagement ou le club de la ligne est suivi ([isFollowedResult]).
   final bool followed;
-  final void Function(int athleteId) onOpen;
+  final void Function(int entryId, int? licenseeId) onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -257,8 +261,15 @@ class _RankingRowTile extends StatelessWidget {
     return InkWell(
       onTap: switch (rowOpening(row.result)) {
         OpenNothing() => null,
-        OpenAthlete(:final athleteId) => () => onOpen(athleteId),
-        PickAthlete(:final athletes) => () => _chooseAthlete(context, athletes),
+        OpenAthlete(:final entryId, :final licenseeId) => () => onOpen(
+          entryId,
+          licenseeId,
+        ),
+        PickAthlete(:final entryId, :final athletes) => () => _chooseAthlete(
+          context,
+          entryId,
+          athletes,
+        ),
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -320,7 +331,11 @@ class _RankingRowTile extends StatelessWidget {
   }
 
   /// Un relais : on choisit lequel des relayeurs ouvrir.
-  void _chooseAthlete(BuildContext context, List<ResultAthlete> athletes) {
+  void _chooseAthlete(
+    BuildContext context,
+    int entryId,
+    List<ResultAthlete> athletes,
+  ) {
     showModalBottomSheet<void>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -332,7 +347,7 @@ class _RankingRowTile extends StatelessWidget {
                 title: Text(athlete.name),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
-                  onOpen(athlete.id);
+                  onOpen(entryId, athlete.licenseeId);
                 },
               ),
           ],

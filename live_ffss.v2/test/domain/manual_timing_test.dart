@@ -27,13 +27,13 @@ void main() {
       expect(r.rule, ManualTimeRule.average);
     });
 
-    test(
-      'deux chronos : arrondi au centième le plus proche, demi vers le haut',
-      () {
-        expect(manualTime([4000, 4001])!.hundredths, 4001);
-        expect(manualTime([4000, 4003])!.hundredths, 4002);
-      },
-    );
+    test('deux chronos : moyenne arrondie au centième inférieur', () {
+      expect(manualTime([4000, 4001])!.hundredths, 4000);
+      expect(manualTime([4000, 4003])!.hundredths, 4001);
+      expect(manualTime([4801, 4799])!.hundredths, 4800);
+      // 33"04 et 33"19 : 33"115, donc 33"11 et non 33"12.
+      expect(manualTime([3304, 3319])!.hundredths, 3311);
+    });
 
     test('deux chronos dont un zéro : le seul valide', () {
       final r = manualTime([0, 3000, 0])!;
