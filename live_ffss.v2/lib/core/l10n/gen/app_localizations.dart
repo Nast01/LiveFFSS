@@ -101,14 +101,8 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In fr, this message translates to:
-  /// **'FFSS-LIVE'**
-  String get appTitle;
-
-  /// No description provided for @appName.
-  ///
-  /// In fr, this message translates to:
   /// **'FFSS Live'**
-  String get appName;
+  String get appTitle;
 
   /// No description provided for @appTagline.
   ///

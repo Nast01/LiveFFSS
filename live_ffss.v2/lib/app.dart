@@ -69,7 +69,7 @@ class LiveFfssApp extends ConsumerWidget {
     // compétition des onglets.
     ref.listen(activeRemindersProvider, (_, _) {});
     return MaterialApp.router(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appName,
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: buildAppTheme(),
       routerConfig: ref.watch(routerProvider),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
