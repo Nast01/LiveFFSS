@@ -7,13 +7,16 @@ import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
 import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
+import 'package:live_ffss_v2/domain/heat_results.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/manual_timing.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
+import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
+import 'package:live_ffss_v2/features/common/heat_results_reader.dart';
 import 'package:live_ffss_v2/features/common/serial_refresh.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_refresh.dart';
 import 'package:live_ffss_v2/features/programme/programme_providers.dart';
@@ -22,10 +25,6 @@ part 'item_detail_providers.freezed.dart';
 
 /// L'API ne pousse rien : le créneau ouvert se relit à ce rythme.
 const Duration itemDetailRefresh = Duration(seconds: 30);
-
-/// Comme pour les places : sans borne, une page de séries ouvrirait autant de
-/// connexions en parallèle.
-const int maxConcurrentChronos = 6;
 
 /// Un créneau ouvert : sa réunion, son étape dans le déroulement de l'épreuve
 /// et les places de ses courses.
@@ -43,17 +42,24 @@ abstract class MeetingItemDetail with _$MeetingItemDetail {
     /// une place jamais lue.
     @Default(<int, LaneAssignment?>{}) Map<int, LaneAssignment?> lanes,
 
-    /// TempsLive1..3 par id d'engagement. Vide pour un spectateur : le temps
-    /// manuel n'est montré qu'aux officiels connectés.
-    @Default(<int, List<int?>>{}) Map<int, List<int?>> chronos,
+    /// Les résultats de chaque série (`serie/:id`), par id de course puis
+    /// d'engagement : une saisie faite depuis l'app (chronos, DQ, forfait) se
+    /// montre à tout le monde avant que le juge publie son temps.
+    @Default(<int, Map<int, RaceResult>>{})
+    Map<int, Map<int, RaceResult>> heatResults,
   }) = _MeetingItemDetail;
 
-  /// Les places occupées de [heat], dans l'ordre des couloirs.
-  List<LaneAssignment> lanesOf(Heat heat) => lanesOfHeat(heat, lanes);
+  /// Les places occupées de [heat], dans l'ordre des couloirs, complétées
+  /// par les résultats de sa série.
+  List<LaneAssignment> lanesOf(Heat heat) =>
+      withHeatResults(lanesOfHeat(heat, lanes), heatResults[heat.id] ?? {});
 
-  /// Le temps manuel des places de [heat] qui n'ont pas de temps publié.
-  Map<int, ManualTime> manualTimesOf(Heat heat) =>
-      chronos.isEmpty ? const {} : manualTimesOfLanes(lanesOf(heat), chronos);
+  /// Le temps manuel des places de [heat] qui n'ont pas encore de temps du
+  /// juge.
+  Map<int, ManualTime> manualTimesOf(Heat heat) => manualTimesOfLanes(
+    lanesOf(heat),
+    chronosOf(heatResults[heat.id] ?? const {}),
+  );
 }
 
 /// Le lien vers un créneau porte la compétition : `creneau/:id` ne dit ni la
@@ -80,10 +86,6 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail>
     _finishedReadAt.clear();
     final timer = Timer.periodic(itemDetailRefresh, (_) => tick());
     ref.onDispose(timer.cancel);
-    ref.listen(
-      canEnterProvider(key.competitionId),
-      (_, next) => _onCanEnterChanged(next),
-    );
     // Lus avant toute attente : si la page se ferme pendant une requête,
     // `ref` ne peut plus servir.
     final repository = ref.read(meetingRepositoryProvider);
@@ -107,9 +109,10 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail>
     if (found == null) throw NotFoundException('meeting item ${key.itemId}');
     final readAt = clock();
     final item = await _readItem(repository, found.meeting.day);
-    // Les chronos suivent l'affichage au lieu de le retarder ; la lecture
-    // attend la fin de ce chargement et passe en série avec les relectures.
-    scheduleMicrotask(() => runInSeries(() => _loadChronos(null)));
+    // Les résultats des séries suivent l'affichage au lieu de le retarder ;
+    // la lecture attend la fin de ce chargement et passe en série avec les
+    // relectures.
+    scheduleMicrotask(() => runInSeries(() => _loadHeatResults(null)));
     final roundId = item.roundId;
     final progression = roundId == null
         ? null
@@ -132,24 +135,9 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail>
     );
   }
 
-  /// Les droits d'un officiel arrivent après le détail (rôles lus en ligne) :
-  /// à leur arrivée les chronos se lisent, à leur perte ils disparaissent à
-  /// l'instant. Avant le premier affichage, le chargement s'en charge.
-  void _onCanEnterChanged(bool canEnter) {
-    final current = state.value;
-    if (current == null) return;
-    if (!canEnter) {
-      if (current.chronos.isNotEmpty) {
-        state = AsyncData(current.copyWith(chronos: const {}));
-      }
-      return;
-    }
-    runInSeries(() => _loadChronos(null));
-  }
-
-  /// Lit les chronos des séries [heatIds] (toutes si nul) et les ajoute au
-  /// détail déjà affiché. Un droit perdu pendant la lecture les jette.
-  Future<void> _loadChronos(Set<int>? heatIds) async {
+  /// Lit les résultats des séries [heatIds] (toutes si nul) et les ajoute au
+  /// détail déjà affiché.
+  Future<void> _loadHeatResults(Set<int>? heatIds) async {
     final runRef = ref;
     if (!runRef.mounted) return;
     if (state.value == null) {
@@ -162,50 +150,16 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail>
     }
     final current = state.value;
     if (current == null) return;
-    final chronos = await _readChronos([
+    final read = await readHeatResults(ref.read(resultRepositoryProvider), [
       for (final heat in current.item.heats)
         if (heatIds == null || heatIds.contains(heat.id)) heat,
-    ]);
-    if (!runRef.mounted) return;
+    ], alive: () => runRef.mounted);
+    if (!runRef.mounted || read.isEmpty) return;
     final latest = state.value;
     if (latest == null) return;
-    if (!ref.read(canEnterProvider(key.competitionId))) {
-      if (latest.chronos.isNotEmpty) {
-        state = AsyncData(latest.copyWith(chronos: const {}));
-      }
-      return;
-    }
-    if (chronos.isEmpty) return;
     state = AsyncData(
-      latest.copyWith(chronos: {...latest.chronos, ...chronos}),
+      latest.copyWith(heatResults: {...latest.heatResults, ...read}),
     );
-  }
-
-  /// Les chronos des séries [heats], pour un officiel seulement : un
-  /// spectateur ne déclenche aucun appel. Un échec ne fait jamais échouer le
-  /// détail, il n'affiche simplement pas de temps manuel.
-  Future<Map<int, List<int?>>> _readChronos(Iterable<Heat> heats) async {
-    final runRef = ref;
-    if (!ref.read(canEnterProvider(key.competitionId))) return const {};
-    final repository = ref.read(resultRepositoryProvider);
-    final chronos = <int, List<int?>>{};
-    final seriesIds = [for (final heat in heats) ?heat.seriesId].iterator;
-    // Les travailleurs tirent dans le même itérateur : `moveNext` + `current`
-    // sans `await` entre les deux est sûr, le code n'est pas préemptif.
-    Future<void> worker() async {
-      while (runRef.mounted && seriesIds.moveNext()) {
-        try {
-          chronos.addAll(await repository.getHeatChronos(seriesIds.current));
-        } on AppException {
-          // Pas de temps manuel pour cette série.
-        }
-      }
-    }
-
-    await Future.wait([
-      for (var i = 0; i < maxConcurrentChronos; i++) worker(),
-    ]);
-    return runRef.mounted ? chronos : const {};
   }
 
   @override
@@ -254,19 +208,17 @@ class MeetingItemDetailNotifier extends AsyncNotifier<MeetingItemDetail>
           : await repository.getLanes(placeIds);
       if (!runRef.mounted) return;
       _recordReads(item.heats, due, fetched, readAt);
-      // Les chronos déjà lus restent affichés pendant que les nouveaux se
+      // Les résultats déjà lus restent affichés pendant que les nouveaux se
       // lisent, sans retarder cette relecture.
       final latest = state.value ?? current;
       state = AsyncData(
         current.copyWith(
           item: item,
           lanes: mergeLanes(current.lanes, fetched, placeIds),
-          chronos: ref.read(canEnterProvider(key.competitionId))
-              ? latest.chronos
-              : const {},
+          heatResults: latest.heatResults,
         ),
       );
-      runInSeries(() => _loadChronos(due));
+      runInSeries(() => _loadHeatResults(due));
     } on AppException catch (error, stackTrace) {
       if (!runRef.mounted) return;
       state = AsyncError(error, stackTrace);

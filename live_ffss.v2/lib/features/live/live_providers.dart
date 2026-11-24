@@ -4,11 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
+import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
+import 'package:live_ffss_v2/domain/heat_results.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/live.dart';
+import 'package:live_ffss_v2/domain/manual_timing.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
+import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
+import 'package:live_ffss_v2/features/common/heat_results_reader.dart';
 import 'package:live_ffss_v2/features/common/serial_refresh.dart';
 import 'package:live_ffss_v2/features/programme/item_detail_refresh.dart';
 
@@ -31,10 +36,25 @@ abstract class LiveView with _$LiveView {
     /// Par id de place. Une valeur nulle est une place vide ; une clé absente,
     /// une place jamais lue.
     @Default(<int, LaneAssignment?>{}) Map<int, LaneAssignment?> lanes,
+
+    /// Les résultats de chaque série (`serie/:id`), par id de course puis
+    /// d'engagement : une saisie faite depuis l'app (chronos, DQ, forfait) se
+    /// montre à tout le monde avant que le juge publie son temps.
+    @Default(<int, Map<int, RaceResult>>{})
+    Map<int, Map<int, RaceResult>> heatResults,
   }) = _LiveView;
 
-  /// Les places occupées de [heat], dans l'ordre des couloirs.
-  List<LaneAssignment> lanesOf(Heat heat) => lanesOfHeat(heat, lanes);
+  /// Les places occupées de [heat], dans l'ordre des couloirs, complétées
+  /// par les résultats de sa série.
+  List<LaneAssignment> lanesOf(Heat heat) =>
+      withHeatResults(lanesOfHeat(heat, lanes), heatResults[heat.id] ?? {});
+
+  /// Le temps manuel des places de [heat] qui n'ont pas encore de temps du
+  /// juge.
+  Map<int, ManualTime> manualTimesOf(Heat heat) => manualTimesOfLanes(
+    lanesOf(heat),
+    chronosOf(heatResults[heat.id] ?? const {}),
+  );
 
   /// Faux tant qu'aucune place de [heat] n'est lue : la carte ne doit pas
   /// encore annoncer une série sans résultat.
@@ -118,7 +138,24 @@ class LiveNotifier extends AsyncNotifier<LiveView>
       state = AsyncData(
         current.copyWith(lanes: mergeLanes(current.lanes, fetched, placeIds)),
       );
+      await _readHeatResults(runRef, heats);
     }
+  }
+
+  /// Les résultats des séries [heats], ajoutés à ceux déjà lus : une série en
+  /// échec garde ce qu'elle montrait.
+  Future<void> _readHeatResults(Ref runRef, List<Heat> heats) async {
+    final read = await readHeatResults(
+      runRef.read(resultRepositoryProvider),
+      heats,
+      alive: () => runRef.mounted,
+    );
+    if (!runRef.mounted || read.isEmpty) return;
+    final current = state.value;
+    if (current == null) return;
+    state = AsyncData(
+      current.copyWith(heatResults: {...current.heatResults, ...read}),
+    );
   }
 
   @override
@@ -172,14 +209,20 @@ class LiveNotifier extends AsyncNotifier<LiveView>
       final kept = {for (final heat in selected) ...heat.placeIds};
       final merged = mergeLanes(current.lanes, fetched, placeIds)
         ..removeWhere((id, _) => !kept.contains(id));
+      final shown = {for (final heat in selected) heat.id};
       state = AsyncData(
         current.copyWith(
           meetings: programme.meetings,
           running: selection.running,
           recent: selection.recent,
           lanes: merged,
+          heatResults: {
+            for (final MapEntry(:key, :value) in current.heatResults.entries)
+              if (shown.contains(key)) key: value,
+          },
         ),
       );
+      await _readHeatResults(runRef, due);
     } on AppException catch (error, stackTrace) {
       if (!runRef.mounted) return;
       state = AsyncError(error, stackTrace);

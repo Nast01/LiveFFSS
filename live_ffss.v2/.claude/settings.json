@@ -1,0 +1,51 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze:*)",
+      "Bash(flutter test:*)",
+      "Bash(flutter pub:*)",
+      "Bash(flutter gen-l10n:*)",
+      "Bash(flutter --version:*)",
+      "Bash(dart analyze:*)",
+      "Bash(dart format:*)",
+      "Bash(dart fix:*)",
+      "Bash(dart run build_runner:*)",
+      "Bash(dart --version:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "PowerShell(flutter analyze:*)",
+      "PowerShell(flutter test:*)",
+      "PowerShell(flutter pub:*)",
+      "PowerShell(flutter gen-l10n:*)",
+      "PowerShell(dart analyze:*)",
+      "PowerShell(dart format:*)",
+      "PowerShell(dart fix:*)",
+      "PowerShell(dart run build_runner:*)",
+      "PowerShell(git status:*)",
+      "PowerShell(git diff:*)",
+      "PowerShell(git log:*)",
+      "PowerShell(git show:*)",
+      "PowerShell(git branch:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -I \"$CLAUDE_PROJECT_DIR/.claude/hooks/format_dart.py\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "dart-and-flutter@anthropic-plugin-directory": true
+  }
+}

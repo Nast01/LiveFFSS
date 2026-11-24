@@ -5,6 +5,7 @@ import 'package:live_ffss_v2/domain/follows.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/live.dart';
+import 'package:live_ffss_v2/domain/manual_timing.dart';
 import 'package:live_ffss_v2/features/live/live_formatting.dart';
 import 'package:live_ffss_v2/features/programme/widgets/lane_row.dart';
 
@@ -16,6 +17,7 @@ class LiveHeatCard extends StatelessWidget {
     required this.position,
     required this.lanes,
     required this.lanesRead,
+    this.manualTimes = const {},
     required this.onOpen,
     this.onEnter,
     this.follows = const Follows(),
@@ -32,6 +34,9 @@ class LiveHeatCard extends StatelessWidget {
 
   /// Une place au moins a été lue (`LiveView.lanesReadFor`).
   final bool lanesRead;
+
+  /// Le temps manuel des places sans temps du juge, par id de place.
+  final Map<int, ManualTime> manualTimes;
   final VoidCallback onOpen;
 
   /// « Saisir », pour un officiel de la compétition ; nul sinon.
@@ -41,7 +46,12 @@ class LiveHeatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final heat = entry.heat;
-    final body = liveCardBody(heat, lanes, lanesRead: lanesRead);
+    final body = liveCardBody(
+      heat,
+      lanes,
+      lanesRead: lanesRead,
+      hasManualTimes: manualTimes.isNotEmpty,
+    );
 
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -130,10 +140,15 @@ class LiveHeatCard extends StatelessWidget {
   List<Widget> _results() {
     final places = heatPlaces(lanes);
     return [
-      for (final lane in resultOrder(lanes, places: places))
+      for (final lane in resultOrder(
+        lanes,
+        places: places,
+        manualTimes: manualTimes,
+      ))
         LaneRow(
           lane: lane,
           place: places[lane.id],
+          manualTime: manualTimes[lane.id],
           followed: isFollowedLane(follows, lane),
         ),
     ];

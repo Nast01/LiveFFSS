@@ -23,8 +23,7 @@ class LaneRow extends StatelessWidget {
   /// La place dans la série, calculée par [heatPlaces] ; nulle sans temps.
   final int? place;
 
-  /// Le temps des chronos, pour un officiel, quand la place n'a pas de temps
-  /// publié.
+  /// Le temps des chronos quand la place n'a pas encore de temps du juge.
   final ManualTime? manualTime;
 
   @override

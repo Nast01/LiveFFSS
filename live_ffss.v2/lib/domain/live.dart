@@ -1,6 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
+import 'package:live_ffss_v2/domain/heat_results.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
+import 'package:live_ffss_v2/domain/manual_timing.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 
@@ -94,22 +96,21 @@ int _byProgram(LiveEntry a, LiveEntry b, Map<int, int> order, bool descending) {
 bool isProvisional(Heat heat) =>
     heat.status != RunStatus.finished || heat.resultsProvisional;
 
-/// Vrai dès qu'une place porte un temps, une DQ ou un forfait : un statut
-/// « OK » sans temps n'est pas un résultat.
-bool hasPublishedResults(Iterable<LaneAssignment> lanes) => lanes.any(
-  (lane) =>
-      lane.forfeit == true ||
-      (lane.performance?.isDisqualified ?? false) ||
-      (lane.performance?.time?.trim().isNotEmpty ?? false),
-);
+/// Vrai dès qu'une place porte un temps, une DQ, un forfait ou un autre
+/// statut : un statut « OK » sans temps n'est pas un résultat.
+bool hasPublishedResults(Iterable<LaneAssignment> lanes) =>
+    lanes.any(hasLaneOutcome);
 
 /// Les places occupées : d'abord celles qui ont une place dans la série, par
-/// place croissante (un ex aequo garde l'ordre des couloirs), puis les autres
-/// par couloir. [places] évite de recalculer `heatPlaces` quand l'appelant
+/// place croissante (un ex aequo garde l'ordre des couloirs), puis celles qui
+/// n'ont qu'un temps manuel ([manualTimes], par id de place), par temps, et
+/// les autres par couloir. Un temps manuel ne donne pas de place : il n'est
+/// pas définitif. [places] évite de recalculer `heatPlaces` quand l'appelant
 /// l'a déjà.
 List<LaneAssignment> resultOrder(
   List<LaneAssignment> lanes, {
   Map<int, int>? places,
+  Map<int, ManualTime> manualTimes = const {},
 }) {
   final placeOf = places ?? heatPlaces(lanes);
   final occupied = [
@@ -122,10 +123,22 @@ List<LaneAssignment> resultOrder(
       final byPlace = placeOf[a.id]!.compareTo(placeOf[b.id]!);
       return byPlace != 0 ? byPlace : a.lane.compareTo(b.lane);
     });
-  return [
-    ...placed,
+  final unplaced = [
     for (final lane in occupied)
       if (!placeOf.containsKey(lane.id)) lane,
+  ];
+  final manual = unplaced.where((l) => manualTimes.containsKey(l.id)).toList()
+    ..sort((a, b) {
+      final byTime = manualTimes[a.id]!.hundredths.compareTo(
+        manualTimes[b.id]!.hundredths,
+      );
+      return byTime != 0 ? byTime : a.lane.compareTo(b.lane);
+    });
+  return [
+    ...placed,
+    ...manual,
+    for (final lane in unplaced)
+      if (!manualTimes.containsKey(lane.id)) lane,
   ];
 }
 

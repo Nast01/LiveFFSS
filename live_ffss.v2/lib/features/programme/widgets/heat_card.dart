@@ -26,7 +26,7 @@ class HeatCard extends StatelessWidget {
   final Heat heat;
   final List<LaneAssignment> lanes;
 
-  /// Par id de place ; vide pour un spectateur.
+  /// Le temps manuel des places sans temps du juge, par id de place.
   final Map<int, ManualTime> manualTimes;
 
   /// « Saisir », pour un officiel de la compétition ; nul sinon.

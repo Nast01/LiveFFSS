@@ -147,6 +147,7 @@ class _LiveBody extends ConsumerWidget {
       position: heatPosition(value.meetings, entry),
       lanes: value.lanesOf(entry.heat),
       lanesRead: value.lanesReadFor(entry.heat),
+      manualTimes: value.manualTimesOf(entry.heat),
       onOpen: () => context.go(Routes.liveItem(competitionId, entry.item.id)),
       onEnter: canEnter && canEnterHeat(entry.heat)
           ? () => context.go(

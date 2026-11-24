@@ -17,7 +17,10 @@ mixin _$LiveView {
 
  List<Meeting> get meetings; List<LiveEntry> get running; List<LiveEntry> get recent;/// Par id de place. Une valeur nulle est une place vide ; une clé absente,
 /// une place jamais lue.
- Map<int, LaneAssignment?> get lanes;
+ Map<int, LaneAssignment?> get lanes;/// Les résultats de chaque série (`serie/:id`), par id de course puis
+/// d'engagement : une saisie faite depuis l'app (chronos, DQ, forfait) se
+/// montre à tout le monde avant que le juge publie son temps.
+ Map<int, Map<int, RaceResult>> get heatResults;
 /// Create a copy of LiveView
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,20 +32,20 @@ $LiveViewCopyWith<LiveView> get copyWith => _$LiveViewCopyWithImpl<LiveView>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as LiveView;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LiveView&&const DeepCollectionEquality().equals(other.meetings, _this.meetings)&&const DeepCollectionEquality().equals(other.running, _this.running)&&const DeepCollectionEquality().equals(other.recent, _this.recent)&&const DeepCollectionEquality().equals(other.lanes, _this.lanes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LiveView&&const DeepCollectionEquality().equals(other.meetings, _this.meetings)&&const DeepCollectionEquality().equals(other.running, _this.running)&&const DeepCollectionEquality().equals(other.recent, _this.recent)&&const DeepCollectionEquality().equals(other.lanes, _this.lanes)&&const DeepCollectionEquality().equals(other.heatResults, _this.heatResults));
 }
 
 
 @override
 int get hashCode {
   final _this = this as LiveView;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.meetings),const DeepCollectionEquality().hash(_this.running),const DeepCollectionEquality().hash(_this.recent),const DeepCollectionEquality().hash(_this.lanes));
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.meetings),const DeepCollectionEquality().hash(_this.running),const DeepCollectionEquality().hash(_this.recent),const DeepCollectionEquality().hash(_this.lanes),const DeepCollectionEquality().hash(_this.heatResults));
 }
 
 @override
 String toString() {
   final _this = this as LiveView;
-  return 'LiveView(meetings: ${_this.meetings}, running: ${_this.running}, recent: ${_this.recent}, lanes: ${_this.lanes})';
+  return 'LiveView(meetings: ${_this.meetings}, running: ${_this.running}, recent: ${_this.recent}, lanes: ${_this.lanes}, heatResults: ${_this.heatResults})';
 }
 
 
@@ -53,7 +56,7 @@ abstract mixin class $LiveViewCopyWith<$Res>  {
   factory $LiveViewCopyWith(LiveView value, $Res Function(LiveView) _then) = _$LiveViewCopyWithImpl;
 @useResult
 $Res call({
- List<Meeting> meetings, List<LiveEntry> running, List<LiveEntry> recent, Map<int, LaneAssignment?> lanes
+ List<Meeting> meetings, List<LiveEntry> running, List<LiveEntry> recent, Map<int, LaneAssignment?> lanes, Map<int, Map<int, RaceResult>> heatResults
 });
 
 
@@ -70,13 +73,14 @@ class _$LiveViewCopyWithImpl<$Res>
 
 /// Create a copy of LiveView
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? meetings = null,Object? running = null,Object? recent = null,Object? lanes = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? meetings = null,Object? running = null,Object? recent = null,Object? lanes = null,Object? heatResults = null,}) {
   return _then(LiveView(
 meetings: null == meetings ? _self.meetings : meetings // ignore: cast_nullable_to_non_nullable
 as List<Meeting>,running: null == running ? _self.running : running // ignore: cast_nullable_to_non_nullable
 as List<LiveEntry>,recent: null == recent ? _self.recent : recent // ignore: cast_nullable_to_non_nullable
 as List<LiveEntry>,lanes: null == lanes ? _self.lanes : lanes // ignore: cast_nullable_to_non_nullable
-as Map<int, LaneAssignment?>,
+as Map<int, LaneAssignment?>,heatResults: null == heatResults ? _self.heatResults : heatResults // ignore: cast_nullable_to_non_nullable
+as Map<int, Map<int, RaceResult>>,
   ));
 }
 
@@ -161,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Meeting> meetings,  List<LiveEntry> running,  List<LiveEntry> recent,  Map<int, LaneAssignment?> lanes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Meeting> meetings,  List<LiveEntry> running,  List<LiveEntry> recent,  Map<int, LaneAssignment?> lanes,  Map<int, Map<int, RaceResult>> heatResults)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LiveView() when $default != null:
-return $default(_that.meetings,_that.running,_that.recent,_that.lanes);case _:
+return $default(_that.meetings,_that.running,_that.recent,_that.lanes,_that.heatResults);case _:
   return orElse();
 
 }
@@ -182,10 +186,10 @@ return $default(_that.meetings,_that.running,_that.recent,_that.lanes);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Meeting> meetings,  List<LiveEntry> running,  List<LiveEntry> recent,  Map<int, LaneAssignment?> lanes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Meeting> meetings,  List<LiveEntry> running,  List<LiveEntry> recent,  Map<int, LaneAssignment?> lanes,  Map<int, Map<int, RaceResult>> heatResults)  $default,) {final _that = this;
 switch (_that) {
 case _LiveView():
-return $default(_that.meetings,_that.running,_that.recent,_that.lanes);case _:
+return $default(_that.meetings,_that.running,_that.recent,_that.lanes,_that.heatResults);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +206,10 @@ return $default(_that.meetings,_that.running,_that.recent,_that.lanes);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Meeting> meetings,  List<LiveEntry> running,  List<LiveEntry> recent,  Map<int, LaneAssignment?> lanes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Meeting> meetings,  List<LiveEntry> running,  List<LiveEntry> recent,  Map<int, LaneAssignment?> lanes,  Map<int, Map<int, RaceResult>> heatResults)?  $default,) {final _that = this;
 switch (_that) {
 case _LiveView() when $default != null:
-return $default(_that.meetings,_that.running,_that.recent,_that.lanes);case _:
+return $default(_that.meetings,_that.running,_that.recent,_that.lanes,_that.heatResults);case _:
   return null;
 
 }
@@ -217,7 +221,7 @@ return $default(_that.meetings,_that.running,_that.recent,_that.lanes);case _:
 
 
 class _LiveView extends LiveView {
-  const _LiveView({required  List<Meeting> meetings, required  List<LiveEntry> running, required  List<LiveEntry> recent,  Map<int, LaneAssignment?> lanes = const <int, LaneAssignment?>{}}): _meetings = meetings,_running = running,_recent = recent,_lanes = lanes,super._();
+  const _LiveView({required  List<Meeting> meetings, required  List<LiveEntry> running, required  List<LiveEntry> recent,  Map<int, LaneAssignment?> lanes = const <int, LaneAssignment?>{},  Map<int, Map<int, RaceResult>> heatResults = const <int, Map<int, RaceResult>>{}}): _meetings = meetings,_running = running,_recent = recent,_lanes = lanes,_heatResults = heatResults,super._();
   
 
  final  List<Meeting> _meetings;
@@ -252,6 +256,19 @@ class _LiveView extends LiveView {
   return EqualUnmodifiableMapView(_lanes);
 }
 
+/// Les résultats de chaque série (`serie/:id`), par id de course puis
+/// d'engagement : une saisie faite depuis l'app (chronos, DQ, forfait) se
+/// montre à tout le monde avant que le juge publie son temps.
+ final  Map<int, Map<int, RaceResult>> _heatResults;
+/// Les résultats de chaque série (`serie/:id`), par id de course puis
+/// d'engagement : une saisie faite depuis l'app (chronos, DQ, forfait) se
+/// montre à tout le monde avant que le juge publie son temps.
+@override@JsonKey() Map<int, Map<int, RaceResult>> get heatResults {
+  if (_heatResults is EqualUnmodifiableMapView) return _heatResults;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_heatResults);
+}
+
 
 /// Create a copy of LiveView
 /// with the given fields replaced by the non-null parameter values.
@@ -263,18 +280,18 @@ _$LiveViewCopyWith<_LiveView> get copyWith => __$LiveViewCopyWithImpl<_LiveView>
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LiveView&&const DeepCollectionEquality().equals(other.meetings, _meetings)&&const DeepCollectionEquality().equals(other.running, _running)&&const DeepCollectionEquality().equals(other.recent, _recent)&&const DeepCollectionEquality().equals(other.lanes, _lanes));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LiveView&&const DeepCollectionEquality().equals(other.meetings, _meetings)&&const DeepCollectionEquality().equals(other.running, _running)&&const DeepCollectionEquality().equals(other.recent, _recent)&&const DeepCollectionEquality().equals(other.lanes, _lanes)&&const DeepCollectionEquality().equals(other.heatResults, _heatResults));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_meetings),const DeepCollectionEquality().hash(_running),const DeepCollectionEquality().hash(_recent),const DeepCollectionEquality().hash(_lanes));
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_meetings),const DeepCollectionEquality().hash(_running),const DeepCollectionEquality().hash(_recent),const DeepCollectionEquality().hash(_lanes),const DeepCollectionEquality().hash(_heatResults));
 }
 
 @override
 String toString() {
-    return 'LiveView(meetings: $meetings, running: $running, recent: $recent, lanes: $lanes)';
+    return 'LiveView(meetings: $meetings, running: $running, recent: $recent, lanes: $lanes, heatResults: $heatResults)';
 }
 
 
@@ -285,7 +302,7 @@ abstract mixin class _$LiveViewCopyWith<$Res> implements $LiveViewCopyWith<$Res>
   factory _$LiveViewCopyWith(_LiveView value, $Res Function(_LiveView) _then) = __$LiveViewCopyWithImpl;
 @override @useResult
 $Res call({
- List<Meeting> meetings, List<LiveEntry> running, List<LiveEntry> recent, Map<int, LaneAssignment?> lanes
+ List<Meeting> meetings, List<LiveEntry> running, List<LiveEntry> recent, Map<int, LaneAssignment?> lanes, Map<int, Map<int, RaceResult>> heatResults
 });
 
 
@@ -302,13 +319,14 @@ class __$LiveViewCopyWithImpl<$Res>
 
 /// Create a copy of LiveView
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? meetings = null,Object? running = null,Object? recent = null,Object? lanes = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? meetings = null,Object? running = null,Object? recent = null,Object? lanes = null,Object? heatResults = null,}) {
   return _then(_LiveView(
 meetings: null == meetings ? _self._meetings : meetings // ignore: cast_nullable_to_non_nullable
 as List<Meeting>,running: null == running ? _self._running : running // ignore: cast_nullable_to_non_nullable
 as List<LiveEntry>,recent: null == recent ? _self._recent : recent // ignore: cast_nullable_to_non_nullable
 as List<LiveEntry>,lanes: null == lanes ? _self._lanes : lanes // ignore: cast_nullable_to_non_nullable
-as Map<int, LaneAssignment?>,
+as Map<int, LaneAssignment?>,heatResults: null == heatResults ? _self._heatResults : heatResults // ignore: cast_nullable_to_non_nullable
+as Map<int, Map<int, RaceResult>>,
   ));
 }
 

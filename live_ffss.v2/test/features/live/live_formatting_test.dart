@@ -145,6 +145,18 @@ void main() {
       );
     });
 
+    test('un temps manuel seul : les résultats', () {
+      expect(
+        liveCardBody(
+          heatOf(RunStatus.inProgress),
+          const [noTime],
+          lanesRead: true,
+          hasManualTimes: true,
+        ),
+        LiveCardBody.results,
+      );
+    });
+
     test('série en cours avec résultats : EN DIRECT et bandeau de '
         'validation', () {
       final heat = heatOf(RunStatus.inProgress, provisional: false);

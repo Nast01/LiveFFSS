@@ -6,11 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/providers.dart';
 import 'package:live_ffss_v2/data/repositories/meeting_repository.dart';
+import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/domain/competition_roles.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 import 'package:live_ffss_v2/features/auth/competition_roles.dart';
 import 'package:live_ffss_v2/features/live/live_providers.dart';
@@ -18,11 +20,14 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockMeetingRepository extends Mock implements MeetingRepository {}
 
+class _MockResultRepository extends Mock implements ResultRepository {}
+
 void main() {
   const competitionId = 1453;
   final day = DateTime(2026, 3, 27);
 
   late _MockMeetingRepository repository;
+  late _MockResultRepository results;
   late List<Heat> heats;
   late Map<int, LaneAssignment?> lanes;
   late List<Set<int>> laneRequests;
@@ -62,8 +67,12 @@ void main() {
     ],
   );
 
-  LaneAssignment lane(int id, int number, String athlete) =>
-      LaneAssignment(id: id, lane: number, athletes: [athlete]);
+  LaneAssignment lane(int id, int number, String athlete) => LaneAssignment(
+    id: id,
+    lane: number,
+    athletes: [athlete],
+    entryId: 500 + id,
+  );
 
   late int roleReads;
 
@@ -71,6 +80,7 @@ void main() {
   ProviderContainer container() => ProviderContainer(
     overrides: [
       meetingRepositoryProvider.overrideWithValue(repository),
+      resultRepositoryProvider.overrideWithValue(results),
       competitionRolesProvider.overrideWith((ref, id) async {
         if (++roleReads == 1) throw const NetworkException('hors ligne');
         return const CompetitionRoles(roles: ['officiel']);
@@ -91,6 +101,8 @@ void main() {
 
   setUp(() {
     repository = _MockMeetingRepository();
+    results = _MockResultRepository();
+    when(() => results.getHeatResults(any())).thenAnswer((_) async => {});
     heats = defaultHeats();
     lanes = {
       11: lane(11, 2, 'Alice'),
@@ -112,6 +124,85 @@ void main() {
         for (final id in ids)
           if (lanes.containsKey(id)) id: lanes[id],
       };
+    });
+  });
+
+  group("saisies faites depuis l'app", () {
+    test('DQ et temps manuel se montrent à tout le monde', () {
+      fakeAsync((async) {
+        when(() => results.getHeatResults(101)).thenAnswer(
+          (_) async => {
+            511: const RaceResult(
+              seriesId: 101,
+              entryId: 511,
+              status: statusDisqualified,
+              complement: '12',
+            ),
+            512: const RaceResult(
+              seriesId: 101,
+              entryId: 512,
+              chronos: [3304, 3319, null],
+            ),
+          },
+        );
+        final c = container();
+        listen(c);
+        async.flushMicrotasks();
+
+        final live = view(c);
+        final alice = live.lanesOf(heats[0]).singleWhere((l) => l.id == 11);
+        expect(alice.performance?.isDisqualified, isTrue);
+        expect(alice.performance?.disqualificationCode, '12');
+        expect(live.manualTimesOf(heats[0]).keys, [12]);
+        expect(live.manualTimesOf(heats[0])[12]!.hundredths, 3311);
+
+        c.dispose();
+      });
+    });
+
+    test('les séries suivent la cadence de leurs places', () {
+      fakeAsync((async) {
+        final c = container();
+        listen(c);
+        async.flushMicrotasks();
+        verify(() => results.getHeatResults(101)).called(1);
+        verify(() => results.getHeatResults(102)).called(1);
+
+        async.elapse(liveRefresh);
+        async.flushMicrotasks();
+        verify(() => results.getHeatResults(101)).called(1);
+        verifyNever(() => results.getHeatResults(102));
+
+        c.dispose();
+      });
+    });
+
+    test("une série en échec garde ce qu'elle montrait", () {
+      fakeAsync((async) {
+        when(() => results.getHeatResults(101)).thenAnswer(
+          (_) async => {
+            512: const RaceResult(
+              seriesId: 101,
+              entryId: 512,
+              chronos: [3304, null, null],
+            ),
+          },
+        );
+        final c = container();
+        listen(c);
+        async.flushMicrotasks();
+        when(
+          () => results.getHeatResults(any()),
+        ).thenThrow(const NetworkException('hors ligne'));
+
+        async.elapse(liveRefresh);
+        async.flushMicrotasks();
+
+        expect(c.read(liveProvider(competitionId)).hasError, isFalse);
+        expect(view(c).manualTimesOf(heats[0]).keys, [12]);
+
+        c.dispose();
+      });
     });
   });
 

@@ -1,3 +1,4 @@
+import 'package:live_ffss_v2/domain/heat_results.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 
 /// Règle qui a produit le temps manuel, pour que l'écran dise d'où il vient.
@@ -39,16 +40,8 @@ Map<int, ManualTime> manualTimesOfLanes(
 ) {
   final times = <int, ManualTime>{};
   for (final lane in lanes) {
-    final performance = lane.performance;
-    final hasTime =
-        performance?.timeHundredths != null ||
-        (performance?.time?.trim().isNotEmpty ?? false);
-    final hasStatus =
-        lane.forfeit == true ||
-        (performance != null &&
-            (performance.isDisqualified || !performance.isOk));
     final entryChronos = chronos[lane.entryId];
-    if (hasTime || hasStatus || entryChronos == null) continue;
+    if (hasLaneOutcome(lane) || entryChronos == null) continue;
     if (manualTime(entryChronos) case final time?) times[lane.id] = time;
   }
   return times;
