@@ -56,18 +56,22 @@ enum LiveCardBody {
   /// Une série courue dont aucun temps n'est publié.
   waitingResults,
 
-  /// Les places, par place puis par couloir.
+  /// Les places, par place, puis par temps manuel, puis par couloir.
   results,
 }
 
 /// [lanes] : les places occupées de la série ; [lanesRead] : une au moins a
-/// été lue (`LiveView.lanesReadFor`).
+/// été lue (`LiveView.lanesReadFor`) ; [hasManualTimes] : une place a un
+/// temps manuel, qui suffit à montrer des résultats.
 LiveCardBody liveCardBody(
   Heat heat,
   List<LaneAssignment> lanes, {
   required bool lanesRead,
+  bool hasManualTimes = false,
 }) {
-  if (hasPublishedResults(lanes)) return LiveCardBody.results;
+  if (hasManualTimes || hasPublishedResults(lanes)) {
+    return LiveCardBody.results;
+  }
   if (!lanesRead) return LiveCardBody.loading;
   return heat.status == RunStatus.finished
       ? LiveCardBody.waitingResults

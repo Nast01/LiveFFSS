@@ -11,12 +11,9 @@ abstract class ResultRepository {
   /// Nul si la réponse ne donne pas de résultat complet.
   Future<RaceResult?> getResult(int id);
 
-  /// Les chronos de chaque engagement d'une série (id de l'engagement →
-  /// TempsLive1..3), lus en une requête plutôt qu'un résultat par couloir.
-  Future<Map<int, List<int?>>> getHeatChronos(int seriesId);
-
-  /// Les résultats d'une série par engagement, en une requête, pour
-  /// l'affichage (`toHeatResult`) : jamais renvoyés tels quels au site.
+  /// Les résultats d'une série par engagement (chronos compris), en une
+  /// requête plutôt qu'un résultat par couloir, pour l'affichage
+  /// (`toHeatResult`) : jamais renvoyés tels quels au site.
   Future<Map<int, RaceResult>> getHeatResults(int seriesId);
 
   /// Crée ou met à jour [result] et rend l'id du résultat.
@@ -42,11 +39,6 @@ class ResultRepositoryImpl implements ResultRepository {
       return null;
     }
   }
-
-  @override
-  Future<Map<int, List<int?>>> getHeatChronos(int seriesId) async => {
-    for (final dto in await _heatRows(seriesId)) ?dto.entry?.id: dto.chronos,
-  };
 
   @override
   Future<Map<int, RaceResult>> getHeatResults(int seriesId) async {

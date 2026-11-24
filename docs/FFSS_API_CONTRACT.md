@@ -48,7 +48,7 @@ Constats faits sur de vraies réponses de la recette (`https://site.ffss.io/api/
   - **Jeton invalide à l'écriture → HTTP 403** (vu avec un jeton littéralement faux).
   - Côté PowerShell 5.1, `ConvertFrom-Json` échoue sur ces réponses (clés `id`/`Id` dans le même objet) : lire le texte brut.
 - **Non vérifié, connexion par formulaire** : `requestToken` est envoyé avec identifiant et mot de passe dans un corps de formulaire (`application/x-www-form-urlencoded`), non dans l'adresse, comme `FfssApiClient.RequestTokenAsync` de V3. À confirmer sur une vraie connexion ; la v1 les passait dans l'adresse.
-- **Non vérifié, lignes de `competition/serie/:id`** : `getHeatResults` et `getHeatChronos` lisent `data.resultats[]` et y attendent `Temps`, `Statut`, `complement`, `TempsLive1..3` et `engagement.id`, comme `resultat/:id`. Que les lignes de la série portent bien ces champs n'est pas confirmé sur la recette ; une ligne illisible est écartée seule, et un `Temps` présent mais illisible vaut « validé ».
+- **Lignes de `competition/serie/:id`, vérifié le 2026-11-22 en production (série 95455, compétition 1482), sans jeton** : `data.resultats[]` porte `Statut`, `Temps`, `TempsLive1..3`, `complement` et `engagement.Id` (une DQ : `Statut` 1, `Temps` 0, `complement` « 30 », chronos présents). La route se lit sans jeton : le Live et le détail d'un créneau la lisent pour tout le monde (`getHeatResults`). Une ligne illisible est écartée seule, et un `Temps` présent mais illisible vaut « validé ».
 
 
 ## Résultats, vérifié le 2026-10-18 sur la recette 1416 (GET seulement)

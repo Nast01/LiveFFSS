@@ -1,11 +1,6 @@
 import 'package:live_ffss_v2/data/ffss/dtos/resultat_dto.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
 
-/// Le `Temps` d'une ligne de série présent mais illisible : un temps du juge
-/// quand même, que l'écran de saisie ne doit pas laisser modifier. Ce
-/// résultat n'est jamais renvoyé au site (l'envoi relit le résultat).
-const int unreadableJudgeTime = 1;
-
 /// FFSS stocke un chrono vidé comme 0 : lu comme « pas de chrono ».
 int? chronoOrNull(int? value) => value != null && value > 0 ? value : null;
 

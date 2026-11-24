@@ -39,8 +39,8 @@ typedef _BlankHeat = ({
 typedef _HeatReads = ({List<_BlankHeat> heats, int unread});
 
 /// Les séries terminées lues une à une, 6 au plus en vol. Une lecture de la
-/// série donne à la fois ses chronos et ses temps publiés : on ne lit pas
-/// `getHeatChronos` en plus. Le programme est lu sans être suivi : sa
+/// série donne à la fois ses chronos et ses temps publiés. Le programme est
+/// lu sans être suivi : sa
 /// relecture de 30 s ne doit pas relancer ces lectures, que seul
 /// [refreshHeatsToEnter] relance.
 final _heatReadsProvider = FutureProvider.autoDispose.family<_HeatReads, int>((

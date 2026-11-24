@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/live.dart';
+import 'package:live_ffss_v2/domain/manual_timing.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/run_status.dart';
 
@@ -187,6 +188,15 @@ void main() {
       expect(hasPublishedResults([lane(1, 1, forfeit: true)]), isTrue);
     });
 
+    test('un forfait publié sur le résultat (statut autre que OK)', () {
+      expect(
+        hasPublishedResults([
+          lane(1, 1, performance: const Performance(statusLabel: 'Forfait')),
+        ]),
+        isTrue,
+      );
+    });
+
     test('statut OK sans temps : faux', () {
       expect(
         hasPublishedResults([
@@ -231,6 +241,23 @@ void main() {
     ];
 
     expect(resultOrder(lanes, places: {2: 1, 1: 2}).map((l) => l.id), [2, 1]);
+  });
+
+  test('resultOrder : les temps manuels après les places, par temps', () {
+    ManualTime manual(int hundredths) =>
+        (hundredths: hundredths, rule: ManualTimeRule.single);
+    final ordered = resultOrder(
+      [
+        lane(1, 1),
+        lane(2, 2, performance: time(5100)),
+        lane(3, 3),
+        lane(4, 4),
+        lane(5, 5, forfeit: true),
+      ],
+      manualTimes: {3: manual(5300), 4: manual(5000), 1: manual(5300)},
+    );
+
+    expect(ordered.map((l) => l.id), [2, 4, 1, 3, 5]);
   });
 
   group('nextScheduled', () {

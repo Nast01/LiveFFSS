@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_ffss_v2/core/errors/app_exception.dart';
 import 'package:live_ffss_v2/core/network/http_client.dart';
-import 'package:live_ffss_v2/data/ffss/mappers/resultat_mapper.dart';
 import 'package:live_ffss_v2/data/repositories/result_repository.dart';
 import 'package:live_ffss_v2/domain/race_result.dart';
 import 'package:mocktail/mocktail.dart';
@@ -194,7 +193,7 @@ void main() {
     expect(await read(null), '');
   });
 
-  test('getHeatChronos reste tolérant là où getResult refuse', () async {
+  test('getHeatResults reste tolérant là où getResult refuse', () async {
     final row = {
       'Id': 1,
       'Statut': 0,
@@ -212,9 +211,11 @@ void main() {
       },
     );
 
-    expect(await repository.getHeatChronos(3), {
-      11: [100, null, null],
-    });
+    expect((await repository.getHeatResults(3))[11]?.chronos, [
+      100,
+      null,
+      null,
+    ]);
     expect(await repository.getResult(1), isNull);
   });
 
@@ -257,42 +258,6 @@ void main() {
 
     expect(await repository.getResult(1), isNull);
   });
-
-  test(
-    'getHeatChronos : chronos par engagement, lignes illisibles écartées',
-    () async {
-      when(() => http.get(any())).thenAnswer(
-        (_) async => {
-          'data': {
-            'resultats': [
-              {
-                'Id': 1,
-                'TempsLive1': 100,
-                'TempsLive2': 0,
-                'TempsLive3': 300,
-                'engagement': {'Id': 11},
-              },
-              {'Id': 2, 'engagement': []},
-              'x',
-              {
-                'Id': 3,
-                'Temps': 'abc',
-                'TempsLive1': {},
-                'engagement': {'Id': 13},
-              },
-            ],
-          },
-        },
-      );
-
-      final chronos = await repository.getHeatChronos(94894);
-
-      verify(() => http.get('competition/serie/94894')).called(1);
-      expect(chronos, {
-        11: [100, null, 300],
-      });
-    },
-  );
 
   test("getHeatResults : par engagement, tolérant pour l'affichage", () async {
     when(() => http.get(any())).thenAnswer(

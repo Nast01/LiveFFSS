@@ -46,6 +46,11 @@ abstract class ResultChange with _$ResultChange {
 }
 
 const int chronoCount = 3;
+
+/// Le `Temps` d'une ligne de série présent mais illisible : un temps du juge
+/// quand même, que l'écran de saisie ne doit pas laisser modifier. Ce
+/// résultat n'est jamais renvoyé au site (l'envoi relit le résultat).
+const int unreadableJudgeTime = 1;
 const int statusOk = 0;
 const int statusDisqualified = 1;
 const int statusForfeit = 2;
