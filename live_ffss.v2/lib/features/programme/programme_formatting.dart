@@ -1,9 +1,13 @@
 import 'package:intl/intl.dart';
 import 'package:live_ffss_v2/core/l10n/gen/app_localizations.dart';
+import 'package:live_ffss_v2/domain/heat.dart';
 import 'package:live_ffss_v2/domain/lane_assignment.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/domain/programme_events.dart';
 import 'package:live_ffss_v2/domain/progression.dart';
+import 'package:live_ffss_v2/domain/run_status.dart';
+import 'package:live_ffss_v2/features/home/competition_formatting.dart';
 
 extension ItemStatusLabel on ItemStatus {
   String label(AppLocalizations l10n) => switch (this) {
@@ -151,3 +155,119 @@ String stageScheduleLabel(MeetingItem item, String locale) {
 bool showsSeriesPending(MeetingItem item, Map<int, LaneAssignment?> lanes) =>
     itemStatus(item) == ItemStatus.seriesPending &&
     item.heats.every((heat) => lanesOfHeat(heat, lanes).isEmpty);
+
+enum EventBadgeKind { live, done, next }
+
+/// Le badge d'une carte d'épreuve : « EN DIRECT » ; « Séries ✓ » quand le tour
+/// de la réunion est couru et que d'autres suivent ; « Terminé » quand il n'y
+/// a plus rien à courir ; sinon l'heure de son prochain créneau.
+({EventBadgeKind kind, String label}) eventBadge(
+  ProgrammeEvent event,
+  AppLocalizations l10n,
+) {
+  switch (event.status) {
+    case ItemStatus.live:
+      return (kind: EventBadgeKind.live, label: l10n.liveBadge);
+    case ItemStatus.finished:
+      final step = _stepOf(event);
+      if (step == null || event.steps.length <= 1 || allStepsFinished(event)) {
+        return (kind: EventBadgeKind.done, label: l10n.statusFinished);
+      }
+      return (kind: EventBadgeKind.done, label: '${stepLabel(step, l10n)} ✓');
+    case ItemStatus.upcoming || ItemStatus.seriesPending || ItemStatus.none:
+      final time = timeLabel(eventTarget(event.items)?.startTime);
+      return (
+        kind: EventBadgeKind.next,
+        label: time.isEmpty ? event.status.label(l10n) : time,
+      );
+  }
+}
+
+/// Le tour que la carte montre dans sa réunion : celui de son premier
+/// créneau.
+EventStep? _stepOf(ProgrammeEvent event) {
+  if (event.items.isEmpty) return null;
+  final id = event.items.first.id;
+  for (final step in event.steps) {
+    if (step.items.any((item) => item.id == id)) return step;
+  }
+  return null;
+}
+
+/// « Séries », « Finale », ou « Finales » pour un tour qui en réunit
+/// plusieurs (A et B, ou une par catégorie).
+String stepLabel(EventStep step, AppLocalizations l10n) =>
+    step.level == StageLevel.finalStage && step.stageCount > 1
+    ? l10n.stageLevelFinals
+    : step.level.label(l10n);
+
+/// Sous le nom d'un tour : la série en cours (« Série 3/4 »), l'heure cochée
+/// d'un tour couru, sinon son heure, précédée du jour quand ce n'est pas
+/// [day] (« dim. 29 15:00 »).
+String stepDetail(
+  EventStep step,
+  DateTime day,
+  String locale,
+  AppLocalizations l10n,
+) {
+  if (step.status == ItemStatus.live) {
+    if (_heatProgress([for (final item in step.items) ...item.heats], l10n)
+        case final progress?) {
+      return progress;
+    }
+  }
+  final start = step.start;
+  if (start == null) return l10n.statusUpcoming;
+  final sameDay =
+      start.year == day.year &&
+      start.month == day.month &&
+      start.day == day.day;
+  final when = sameDay
+      ? timeLabel(start)
+      : '${dayTabLabel(start, locale)} ${timeLabel(start)}';
+  return step.status == ItemStatus.finished ? '$when ✓' : when;
+}
+
+/// « Série 3/4 » : la première série en cours parmi [heats].
+String? _heatProgress(List<Heat> heats, AppLocalizations l10n) {
+  for (var i = 0; i < heats.length; i++) {
+    final status = heats[i].status;
+    if (status == RunStatus.inProgress || status == RunStatus.marshalling) {
+      return l10n.heatOfTotal(i + 1, heats.length);
+    }
+  }
+  return null;
+}
+
+/// « Dames · Cadet, Junior », sans les morceaux inconnus.
+String eventSubtitle(ProgrammeEvent event, AppLocalizations l10n) => [
+  if (event.gender case final gender?) genderLabel(gender, l10n),
+  if (event.categories.isNotEmpty) event.categories.join(', '),
+].join(' · ');
+
+/// Les pastilles disent l'avancement d'une épreuve sans finale, ou du tour en
+/// cours ; ailleurs, le parcours suffit.
+bool showsHeatDots(ProgrammeEvent event) =>
+    event.heats.isNotEmpty &&
+    (event.steps.length <= 1 || event.status == ItemStatus.live);
+
+/// À côté des pastilles : la série en cours, sinon leur nombre.
+String heatDotsLabel(ProgrammeEvent event, AppLocalizations l10n) =>
+    _heatProgress(event.heats, l10n) ??
+    l10n.programmeHeatCount(event.heats.length);
+
+/// Ce que dit une réunion repliée : « Terminée · 4 épreuves » quand elle est
+/// courue, sinon ses créneaux et ses épreuves.
+String meetingCollapsedLabel(
+  Meeting meeting,
+  Programme programme,
+  AppLocalizations l10n, {
+  required bool finished,
+}) {
+  if (!finished) return meetingSummaryLabel(meetingSummary(meeting), l10n);
+  final events = meetingEntries(
+    meeting,
+    programme,
+  ).whereType<EventEntry>().length;
+  return '${l10n.meetingFinished} · ${l10n.meetingEventCount(events)}';
+}

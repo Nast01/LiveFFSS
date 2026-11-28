@@ -350,6 +350,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get stageLevelFinal => 'Finale';
 
   @override
+  String get stageLevelFinals => 'Finales';
+
+  @override
+  String programmeHeatCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count séries',
+      one: '1 série',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get meetingFinished => 'Terminée';
+
+  @override
+  String programmeStepSemantics(String step, String when) {
+    return '$step, $when';
+  }
+
+  @override
   String progressionCollapsed(String first, String following) {
     return '$first › $following';
   }

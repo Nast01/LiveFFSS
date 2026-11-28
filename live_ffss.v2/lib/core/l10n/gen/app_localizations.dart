@@ -674,6 +674,30 @@ abstract class AppLocalizations {
   /// **'Finale'**
   String get stageLevelFinal;
 
+  /// No description provided for @stageLevelFinals.
+  ///
+  /// In fr, this message translates to:
+  /// **'Finales'**
+  String get stageLevelFinals;
+
+  /// No description provided for @programmeHeatCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{1 série} other{{count} séries}}'**
+  String programmeHeatCount(int count);
+
+  /// No description provided for @meetingFinished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminée'**
+  String get meetingFinished;
+
+  /// No description provided for @programmeStepSemantics.
+  ///
+  /// In fr, this message translates to:
+  /// **'{step}, {when}'**
+  String programmeStepSemantics(String step, String when);
+
   /// No description provided for @progressionCollapsed.
   ///
   /// In fr, this message translates to:

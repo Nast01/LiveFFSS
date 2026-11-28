@@ -17,4 +17,10 @@ abstract final class AppColors {
   static const coastalBackground = Color(0xFFE2F3EA);
   static const coastalText = Color(0xFF17643B);
   static const dateBox = Color(0xFFEEF2F9);
+
+  /// « EN DIRECT » sur le Programme : un rouge doux, le liseré jaune et la
+  /// bordure marine disant déjà l'épreuve en cours.
+  static const liveSoftBackground = Color(0xFFFDECEC);
+  static const liveSoftText = Color(0xFFB91C1C);
+  static const muted = Color(0xFF9AA3B5);
 }

@@ -8,6 +8,7 @@ import 'package:live_ffss_v2/core/router/app_router.dart';
 import 'package:live_ffss_v2/core/theme/app_colors.dart';
 import 'package:live_ffss_v2/domain/meeting.dart';
 import 'package:live_ffss_v2/domain/programme.dart';
+import 'package:live_ffss_v2/domain/programme_events.dart';
 import 'package:live_ffss_v2/features/programme/programme_providers.dart';
 import 'package:live_ffss_v2/features/programme/widgets/day_tabs.dart';
 import 'package:live_ffss_v2/features/programme/widgets/meeting_card.dart';
@@ -51,13 +52,43 @@ class ProgrammePage extends ConsumerWidget {
   }
 }
 
-class _ProgrammeBody extends ConsumerWidget {
+class _ProgrammeBody extends ConsumerStatefulWidget {
   const _ProgrammeBody({required this.competitionId});
 
   final int competitionId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ProgrammeBody> createState() => _ProgrammeBodyState();
+}
+
+class _ProgrammeBodyState extends ConsumerState<_ProgrammeBody> {
+  /// La carte de l'épreuve sur laquelle la vue s'ouvre.
+  final _focusKey = GlobalKey();
+
+  /// La vue ne défile vers l'épreuve qu'une fois, au premier affichage du
+  /// programme : ensuite, l'utilisateur fait défiler à sa guise, et une
+  /// relecture de 30 s ne le ramène pas en arrière.
+  bool _focusDone = false;
+
+  int get competitionId => widget.competitionId;
+
+  void _scrollToFocus() {
+    if (_focusDone) return;
+    _focusDone = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _focusKey.currentContext;
+      if (target == null || !target.mounted) return;
+      Scrollable.ensureVisible(
+        target,
+        alignment: 0.15,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final provider = programmeProvider(competitionId);
     ref.listen(provider, (previous, next) {
@@ -101,9 +132,11 @@ class _ProgrammeBody extends ConsumerWidget {
         : meetingsOfDay(value.meetings, selected);
     final expansion = ref.watch(meetingExpansionProvider);
     final now = ref.watch(clockProvider)();
+    final focus = openingFocus(value, selected, now);
+    _scrollToFocus();
 
     return RefreshIndicator(
-      onRefresh: () => _refresh(ref),
+      onRefresh: _refresh,
       child: ListView(
         // Toujours défilable : sans cela, le geste de rafraîchissement ne
         // part pas sur un programme plus court que l'écran.
@@ -133,14 +166,20 @@ class _ProgrammeBody extends ConsumerWidget {
             const SizedBox(height: 12),
             for (final meeting in meetings)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                 child: MeetingCard(
                   meeting: meeting,
+                  programme: value,
+                  finished: meetingFinished(meeting, now),
                   expanded: isMeetingExpanded(
                     expansion,
                     meeting.id,
                     finished: meetingFinished(meeting, now),
                   ),
+                  focusEventKey: focus?.meetingId == meeting.id
+                      ? focus?.eventKey
+                      : null,
+                  focusKey: _focusKey,
                   onToggle: (expanded) => ref
                       .read(meetingExpansionProvider.notifier)
                       .toggle(meeting.id, currentlyExpanded: expanded),
@@ -154,7 +193,7 @@ class _ProgrammeBody extends ConsumerWidget {
     );
   }
 
-  Future<void> _refresh(WidgetRef ref) async {
+  Future<void> _refresh() async {
     final provider = programmeProvider(competitionId);
     try {
       ref.invalidate(provider);
